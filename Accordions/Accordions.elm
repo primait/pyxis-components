@@ -119,7 +119,7 @@ render { accordionId, content, isOpen, title, tagger, accordionType } =
                     , ( "accordion__icon--collapse", not isOpen )
                     ]
                 ]
-                [ text "+" ]
+                []
             ]
         , div
             [ classList
