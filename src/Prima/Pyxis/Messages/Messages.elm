@@ -1,4 +1,4 @@
-module Prima.Pyxis.Messages exposing
+module Prima.Pyxis.Messages.Messages exposing
     ( messageErrorConfig
     , messageInfoConfig
     , messageSuccessConfig
