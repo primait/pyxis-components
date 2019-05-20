@@ -1,28 +1,12 @@
-module Prima.Pyxis.Messages exposing (messageErrorConfig, messageInfoConfig, messageSuccessConfig, render)
+module Prima.Pyxis.Messages exposing
+    ( messageErrorConfig
+    , messageInfoConfig
+    , messageSuccessConfig
+    , render
+    )
 
 import Html exposing (..)
 import Html.Attributes exposing (..)
-
-
-type MessageType
-    = Info
-    | Success
-    | Error
-
-
-isMessageInfo : MessageType -> Bool
-isMessageInfo =
-    (==) Info
-
-
-isMessageSuccess : MessageType -> Bool
-isMessageSuccess =
-    (==) Success
-
-
-isMessageError : MessageType -> Bool
-isMessageError =
-    (==) Error
 
 
 type alias Config msg =
@@ -44,6 +28,27 @@ messageSuccessConfig =
 messageErrorConfig : List (Html msg) -> Config msg
 messageErrorConfig =
     Config Error
+
+
+type MessageType
+    = Info
+    | Success
+    | Error
+
+
+isMessageInfo : MessageType -> Bool
+isMessageInfo =
+    (==) Info
+
+
+isMessageSuccess : MessageType -> Bool
+isMessageSuccess =
+    (==) Success
+
+
+isMessageError : MessageType -> Bool
+isMessageError =
+    (==) Error
 
 
 render : Config msg -> Html msg
