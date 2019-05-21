@@ -1,13 +1,15 @@
 module Prima.Pyxis.Accordions.Accordions exposing
-    ( Config
+    ( Accordion
+    , Config
     , accordionBaseConfig
     , accordionDarkConfig
+    , accordionHandler
     , accordionLightConfig
     , render
     )
 
 import Html exposing (..)
-import Html.Attributes exposing (class, classList)
+import Html.Attributes exposing (class, classList, id)
 import Html.Events exposing (onClick)
 
 
@@ -17,25 +19,36 @@ type Config msg
 
 type alias Configuration msg =
     { type_ : AccordionType
-    , title : String
-    , content : List (Html msg)
-    , tagger : Bool -> msg
+    , slug : String
+    , tagger : String -> Bool -> msg
     }
 
 
-accordionBaseConfig : String -> List (Html msg) -> (Bool -> msg) -> Config msg
-accordionBaseConfig title content tagger =
-    Config <| Configuration Base title content tagger
+type alias Accordion msg =
+    { isOpen : Bool
+    , title : String
+    , content : List (Html msg)
+    }
 
 
-accordionLightConfig : String -> List (Html msg) -> (Bool -> msg) -> Config msg
-accordionLightConfig title content tagger =
-    Config <| Configuration Light title content tagger
+accordionHandler : Bool -> String -> List (Html msg) -> Accordion msg
+accordionHandler isOpen title content =
+    Accordion isOpen title content
 
 
-accordionDarkConfig : String -> List (Html msg) -> (Bool -> msg) -> Config msg
-accordionDarkConfig title content tagger =
-    Config <| Configuration Dark title content tagger
+accordionBaseConfig : String -> (String -> Bool -> msg) -> Config msg
+accordionBaseConfig slug tagger =
+    Config <| Configuration Base slug tagger
+
+
+accordionLightConfig : String -> (String -> Bool -> msg) -> Config msg
+accordionLightConfig slug tagger =
+    Config <| Configuration Light slug tagger
+
+
+accordionDarkConfig : String -> (String -> Bool -> msg) -> Config msg
+accordionDarkConfig slug tagger =
+    Config <| Configuration Dark slug tagger
 
 
 type AccordionType
@@ -59,12 +72,11 @@ isDarkAccordion =
     (==) Dark
 
 
-render : Bool -> Config msg -> Html msg
-render isOpen (Config ({ content, title, type_, tagger } as config)) =
+render : Accordion msg -> Config msg -> Html msg
+render ({ isOpen, title, content } as accordion) (Config { type_, tagger, slug }) =
     div
-        [ {--id accordionId
-        , --}
-          classList
+        [ id slug
+        , classList
             [ ( "a-accordion", True )
             , ( "is-open", isOpen )
             , ( "a-accordion--base", isBaseAccordion type_ )
@@ -74,7 +86,7 @@ render isOpen (Config ({ content, title, type_, tagger } as config)) =
         ]
         [ span
             [ class "a-accordion__toggle fs-xsmall fw-heavy a-link--alt"
-            , (onClick << tagger) isOpen
+            , onClick (tagger slug isOpen)
             ]
             [ text title
             , i
