@@ -1,5 +1,6 @@
 module Prima.Pyxis.Accordions.Accordions exposing
-    ( accordionBaseConfig
+    ( Config
+    , accordionBaseConfig
     , accordionDarkConfig
     , accordionLightConfig
     , render
@@ -10,10 +11,12 @@ import Html.Attributes exposing (class, classList)
 import Html.Events exposing (onClick)
 
 
-type alias Config msg =
-    { type_ : AccordionType
+type Config msg
+    = Config (Configuration msg)
 
-    --, accordionId : String
+
+type alias Configuration msg =
+    { type_ : AccordionType
     , title : String
     , content : List (Html msg)
     , tagger : Bool -> msg
@@ -22,17 +25,17 @@ type alias Config msg =
 
 accordionBaseConfig : String -> List (Html msg) -> (Bool -> msg) -> Config msg
 accordionBaseConfig title content tagger =
-    Config Base title content tagger
+    Config <| Configuration Base title content tagger
 
 
 accordionLightConfig : String -> List (Html msg) -> (Bool -> msg) -> Config msg
 accordionLightConfig title content tagger =
-    Config Light title content tagger
+    Config <| Configuration Light title content tagger
 
 
 accordionDarkConfig : String -> List (Html msg) -> (Bool -> msg) -> Config msg
 accordionDarkConfig title content tagger =
-    Config Dark title content tagger
+    Config <| Configuration Dark title content tagger
 
 
 type AccordionType
@@ -57,7 +60,7 @@ isDarkAccordion =
 
 
 render : Bool -> Config msg -> Html msg
-render isOpen ({ content, title, type_, tagger } as config) =
+render isOpen (Config ({ content, title, type_, tagger } as config)) =
     div
         [ {--id accordionId
         , --}

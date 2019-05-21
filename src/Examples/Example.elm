@@ -1,6 +1,7 @@
 module Examples.Example exposing (Model, Msg(..), initialModel, update)
 
 import Browser
+import Examples.Helpers as Helpers
 import Html exposing (..)
 import Html.Attributes exposing (class)
 import Html.Events exposing (onClick)
@@ -23,21 +24,26 @@ type Msg
     | ToggleAccordion Bool
 
 
-update : Msg -> Model -> Model
+update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case Debug.log "update" msg of
         ToggleAccordion isOpen ->
-            { model | isAccordionOpen = not isOpen }
+            ( { model | isAccordionOpen = not isOpen }, Cmd.none )
 
         OpenAccordion ->
-            { model | isAccordionOpen = True }
+            ( { model | isAccordionOpen = True }, Cmd.none )
 
         CloseAccordion ->
-            { model | isAccordionOpen = False }
+            ( { model | isAccordionOpen = False }, Cmd.none )
 
 
-view : Model -> Html Msg
+view : Model -> Browser.Document Msg
 view model =
+    Browser.Document "Accordion component" (appBody model)
+
+
+appBody : Model -> List (Html Msg)
+appBody model =
     let
         accordionConfig =
             Accordions.accordionBaseConfig
@@ -45,12 +51,11 @@ view model =
                 [ text "Lorem ipsum dolor sit amet..." ]
                 ToggleAccordion
     in
-    div
-        []
-        [ btn OpenAccordion "Apri"
-        , btn CloseAccordion "Chiudi"
-        , Accordions.render model.isAccordionOpen accordionConfig
-        ]
+    [ Helpers.pyxisStyle
+    , btn OpenAccordion "Apri"
+    , btn CloseAccordion "Chiudi"
+    , Accordions.render model.isAccordionOpen accordionConfig
+    ]
 
 
 btn : Msg -> String -> Html Msg
@@ -60,9 +65,16 @@ btn tagger label =
         [ text label ]
 
 
+init : () -> ( Model, Cmd Msg )
+init _ =
+    ( initialModel, Cmd.none )
+
+
+main : Program () Model Msg
 main =
-    Browser.sandbox
-        { init = initialModel
+    Browser.document
+        { init = init
         , view = view
         , update = update
+        , subscriptions = \_ -> Sub.none
         }
