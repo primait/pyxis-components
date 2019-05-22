@@ -4,15 +4,20 @@ module Prima.Pyxis.Tables.Tables exposing
     , Header
     , Row
     , State
+    , columnFloat
+    , columnHtml
+    , columnInteger
+    , columnString
     , config
     , initialState
     , render
+    , row
     , sortByAsc
     , sortByDesc
     , sortByNothing
     )
 
-import Html exposing (Html, table, tbody, td, text, th, thead, tr)
+import Html exposing (Html, i, table, tbody, td, text, th, thead, tr)
 import Html.Attributes exposing (class, classList)
 import Html.Events exposing (onClick)
 
@@ -23,15 +28,16 @@ type Config msg
 
 type alias Configuration msg =
     { headers : List (Header msg)
-    , rows : List Row
+    , rows : List (Row msg)
     , tagger : Slug -> msg
     , alternateRows : Bool
+    , isSortable : Bool
     }
 
 
-config : List (Header msg) -> List Row -> (Slug -> msg) -> Bool -> Config msg
-config headers rows tagger alternateRows =
-    Config (Configuration headers rows tagger alternateRows)
+config : List (Header msg) -> List (Row msg) -> (Slug -> msg) -> Bool -> Bool -> Config msg
+config headers rows tagger alternateRows isSortable =
+    Config (Configuration headers rows tagger alternateRows isSortable)
 
 
 type State
@@ -79,18 +85,44 @@ type alias HeaderConfiguration msg =
     }
 
 
-type Row
-    = Row (List Column)
+type Row msg
+    = Row (List (Column msg))
 
 
-type Column
-    = Column ColumnConfiguration
+row : List (Column msg) -> Row msg
+row columns =
+    Row columns
 
 
-type ColumnConfiguration
-    = StringColumn Name String
-    | IntegerColumn Name Int
-    | FloatColumn Name Float
+type Column msg
+    = Column (ColumnConfiguration msg)
+
+
+type ColumnConfiguration msg
+    = StringColumn String
+    | IntegerColumn Int
+    | FloatColumn Float
+    | HtmlColumn (List (Html msg))
+
+
+columnString : String -> Column msg
+columnString content =
+    Column (StringColumn content)
+
+
+columnInteger : Int -> Column msg
+columnInteger content =
+    Column (IntegerColumn content)
+
+
+columnFloat : Float -> Column msg
+columnFloat content =
+    Column (FloatColumn content)
+
+
+columnHtml : List (Html msg) -> Column msg
+columnHtml content =
+    Column (HtmlColumn content)
 
 
 type alias Slug =
@@ -102,59 +134,77 @@ type alias Name =
 
 
 render : State -> Config msg -> Html msg
-render state (Config { alternateRows, headers, rows, tagger }) =
+render state (Config conf) =
     table
         [ classList
             [ ( "m-table", True )
-            , ( "m-table--alternateRows", alternateRows )
+            , ( "m-table--alternateRows", conf.alternateRows )
             ]
         ]
-        [ renderTHead tagger headers
-        , renderTBody rows
+        [ renderTHead state conf
+        , renderTBody conf.rows
         ]
 
 
-renderTHead : (Slug -> msg) -> List (Header msg) -> Html msg
-renderTHead tagger headers =
+renderTHead : State -> Configuration msg -> Html msg
+renderTHead (State internalState) ({ headers } as conf) =
     thead
         [ class "m-table__header" ]
-        (List.map (renderTH tagger) headers)
+        (List.map (renderTH internalState conf) headers)
 
 
-renderTH : (Slug -> msg) -> Header msg -> Html msg
-renderTH tagger (Header { slug, name }) =
+renderTH : InternalState -> Configuration msg -> Header msg -> Html msg
+renderTH { sortBy } { tagger, isSortable } (Header { slug, name }) =
     th
         [ class "m-table__header__item fsSmall"
         , (onClick << tagger) slug
         ]
-        [ text name ]
+        [ text name
+        , renderSortIcon sortBy slug
+        ]
 
 
-renderTBody : List Row -> Html msg
+renderSortIcon : Maybe Sort -> Slug -> Html msg
+renderSortIcon sort slug =
+    i
+        [ classList
+            [ ( "a-icon", True )
+            , ( "m-table__header__item", True )
+            , ( "a-icon--chevron-up", sort == Just Asc )
+            , ( "a-icon--chevron-down", sort == Just Desc )
+            ]
+        ]
+        []
+
+
+renderTBody : List (Row msg) -> Html msg
 renderTBody rows =
     tbody
         [ class "m-table__body" ]
         (List.map renderTR rows)
 
 
-renderTR : Row -> Html msg
+renderTR : Row msg -> Html msg
 renderTR (Row columns) =
     tr
         [ class "m-table__body__row" ]
         (List.map renderTD columns)
 
 
-renderTD : Column -> Html msg
+renderTD : Column msg -> Html msg
 renderTD (Column columnType) =
     td
         [ class "m-table__body__row__col fsSmall" ]
         (case columnType of
-            StringColumn name content ->
-                (List.singleton << text) name
+            StringColumn content ->
+                (List.singleton << text) content
 
-            IntegerColumn name content ->
+            IntegerColumn content ->
                 (List.singleton << text << String.fromInt) content
 
-            FloatColumn name content ->
+            FloatColumn content ->
                 (List.singleton << text << String.fromFloat) content
+
+            HtmlColumn content ->
+                content
         )
