@@ -39,7 +39,7 @@ accordionRender accordion =
     Accordions.render (accordionHandler accordion) (accordionConfig accordion)
 
 
-accordionHandler : Accordion -> Accordions.Accordion Msg
+accordionHandler : Accordion -> Accordions.State Msg
 accordionHandler accordion =
     Accordions.accordionHandler accordion.isAccordionOpen accordion.title accordion.content
 

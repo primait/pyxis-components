@@ -1,6 +1,6 @@
 module Prima.Pyxis.Accordions.Accordions exposing
-    ( Accordion
-    , Config
+    ( Config
+    , State
     , accordionBaseConfig
     , accordionDarkConfig
     , accordionHandler
@@ -24,16 +24,16 @@ type alias Configuration msg =
     }
 
 
-type alias Accordion msg =
+type alias State msg =
     { isOpen : Bool
     , title : String
     , content : List (Html msg)
     }
 
 
-accordionHandler : Bool -> String -> List (Html msg) -> Accordion msg
+accordionHandler : Bool -> String -> List (Html msg) -> State msg
 accordionHandler isOpen title content =
-    Accordion isOpen title content
+    State isOpen title content
 
 
 accordionBaseConfig : String -> (String -> Bool -> msg) -> Config msg
@@ -72,7 +72,7 @@ isDarkAccordion =
     (==) Dark
 
 
-render : Accordion msg -> Config msg -> Html msg
+render : State msg -> Config msg -> Html msg
 render ({ isOpen, title, content } as accordion) (Config { type_, tagger, slug }) =
     div
         [ id slug
