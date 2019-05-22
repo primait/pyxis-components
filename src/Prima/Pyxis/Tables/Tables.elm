@@ -14,6 +14,7 @@ module Prima.Pyxis.Tables.Tables exposing
 
 import Html exposing (Html, table, tbody, td, text, th, thead, tr)
 import Html.Attributes exposing (class, classList)
+import Html.Events exposing (onClick)
 
 
 type Config msg
@@ -23,12 +24,12 @@ type Config msg
 type alias Configuration msg =
     { headers : List (Header msg)
     , rows : List Row
-    , tagger : State -> msg
+    , tagger : Slug -> msg
     , alternateRows : Bool
     }
 
 
-config : List (Header msg) -> List Row -> (State -> msg) -> Bool -> Config msg
+config : List (Header msg) -> List Row -> (Slug -> msg) -> Bool -> Config msg
 config headers rows tagger alternateRows =
     Config (Configuration headers rows tagger alternateRows)
 
@@ -101,29 +102,31 @@ type alias Name =
 
 
 render : State -> Config msg -> Html msg
-render state (Config { alternateRows, headers, rows }) =
+render state (Config { alternateRows, headers, rows, tagger }) =
     table
         [ classList
             [ ( "m-table", True )
             , ( "m-table--alternateRows", alternateRows )
             ]
         ]
-        [ renderTHead headers
+        [ renderTHead tagger headers
         , renderTBody rows
         ]
 
 
-renderTHead : List (Header msg) -> Html msg
-renderTHead headers =
+renderTHead : (Slug -> msg) -> List (Header msg) -> Html msg
+renderTHead tagger headers =
     thead
         [ class "m-table__header" ]
-        (List.map renderTH headers)
+        (List.map (renderTH tagger) headers)
 
 
-renderTH : Header msg -> Html msg
-renderTH (Header { slug, name }) =
+renderTH : (Slug -> msg) -> Header msg -> Html msg
+renderTH tagger (Header { slug, name }) =
     th
-        [ class "m-table__header__item fsSmall" ]
+        [ class "m-table__header__item fsSmall"
+        , (onClick << tagger) slug
+        ]
         [ text name ]
 
 
