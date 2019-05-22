@@ -1,11 +1,13 @@
 module Prima.Pyxis.Accordions.Accordions exposing
     ( Config
     , State
-    , accordionBaseConfig
-    , accordionDarkConfig
-    , accordionHandler
-    , accordionLightConfig
+    , baseConfig
+    , close
+    , darkConfig
+    , lightConfig
+    , open
     , render
+    , state
     )
 
 import Html exposing (..)
@@ -24,30 +26,44 @@ type alias Configuration msg =
     }
 
 
-type alias State msg =
+type State msg
+    = State (InternalState msg)
+
+
+type alias InternalState msg =
     { isOpen : Bool
     , title : String
     , content : List (Html msg)
     }
 
 
-accordionHandler : Bool -> String -> List (Html msg) -> State msg
-accordionHandler isOpen title content =
-    State isOpen title content
+state : Bool -> String -> List (Html msg) -> State msg
+state isOpen title content =
+    State <| InternalState isOpen title content
 
 
-accordionBaseConfig : String -> (String -> Bool -> msg) -> Config msg
-accordionBaseConfig slug tagger =
+open : State msg -> State msg
+open (State internalState) =
+    State { internalState | isOpen = True }
+
+
+close : State msg -> State msg
+close (State internalState) =
+    State { internalState | isOpen = False }
+
+
+baseConfig : String -> (String -> Bool -> msg) -> Config msg
+baseConfig slug tagger =
     Config <| Configuration Base slug tagger
 
 
-accordionLightConfig : String -> (String -> Bool -> msg) -> Config msg
-accordionLightConfig slug tagger =
+lightConfig : String -> (String -> Bool -> msg) -> Config msg
+lightConfig slug tagger =
     Config <| Configuration Light slug tagger
 
 
-accordionDarkConfig : String -> (String -> Bool -> msg) -> Config msg
-accordionDarkConfig slug tagger =
+darkConfig : String -> (String -> Bool -> msg) -> Config msg
+darkConfig slug tagger =
     Config <| Configuration Dark slug tagger
 
 
@@ -73,7 +89,7 @@ isDarkAccordion =
 
 
 render : State msg -> Config msg -> Html msg
-render ({ isOpen, title, content } as accordion) (Config { type_, tagger, slug }) =
+render ((State { isOpen, title, content }) as accordion) (Config { type_, tagger, slug }) =
     div
         [ id slug
         , classList

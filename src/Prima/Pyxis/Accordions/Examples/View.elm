@@ -1,6 +1,5 @@
 module Prima.Pyxis.Accordions.Examples.View exposing
     ( accordionConfig
-    , accordionHandler
     , accordionRender
     , appBody
     , view
@@ -36,25 +35,20 @@ appBody model =
 
 accordionRender : Accordion -> Html Msg
 accordionRender accordion =
-    Accordions.render (accordionHandler accordion) (accordionConfig accordion)
-
-
-accordionHandler : Accordion -> Accordions.State Msg
-accordionHandler accordion =
-    Accordions.accordionHandler accordion.isAccordionOpen accordion.title accordion.content
+    Accordions.render accordion.state (accordionConfig accordion)
 
 
 accordionConfig : Accordion -> Accordions.Config Msg
 accordionConfig accordion =
     (case accordion.accordionType of
         Light ->
-            Accordions.accordionLightConfig
+            Accordions.lightConfig
 
         Dark ->
-            Accordions.accordionDarkConfig
+            Accordions.darkConfig
 
         Base ->
-            Accordions.accordionBaseConfig
+            Accordions.baseConfig
     )
         accordion.slug
         ToggleAccordion
