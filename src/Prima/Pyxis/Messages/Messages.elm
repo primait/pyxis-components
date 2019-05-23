@@ -55,24 +55,24 @@ render : Config msg -> Html msg
 render config =
     div
         [ classList
-            [ ( "message", True )
+            [ ( "m-message", True )
             , ( "message__success", isMessageSuccess config.type_ )
             , ( "message__error", isMessageError config.type_ )
             , ( "message__info", isMessageInfo config.type_ )
             ]
         ]
         [ div
-            [ class "message__icon" ]
+            [ class "m-message__icon" ]
             [ i
                 [ classList
-                    [ ( "icon-success", isMessageSuccess config.type_ )
-                    , ( "icon-error", isMessageError config.type_ )
-                    , ( "icon-info", isMessageInfo config.type_ )
+                    [ ( "a-icon a-icon-success", isMessageSuccess config.type_ )
+                    , ( "a-icon a-icon-error", isMessageError config.type_ )
+                    , ( "a-icon a-icon-info", isMessageInfo config.type_ )
                     ]
                 ]
                 []
             ]
         , span
-            [ class "message__content" ]
+            [ class "m-message__text" ]
             config.content
         ]
