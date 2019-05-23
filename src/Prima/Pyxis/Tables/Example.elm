@@ -51,7 +51,7 @@ type Sort
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-    case Debug.log "Update " msg of
+    case msg of
         Table ->
             ( model, Cmd.none )
 
