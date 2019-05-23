@@ -1,4 +1,4 @@
-module Prima.Pyxis.Accordions.Examples.Model exposing
+module Prima.Pyxis.Accordion.Examples.Model exposing
     ( Accordion
     , AccordionType(..)
     , Model
@@ -7,7 +7,7 @@ module Prima.Pyxis.Accordions.Examples.Model exposing
     )
 
 import Html exposing (..)
-import Prima.Pyxis.Accordions.Accordions as Accordions
+import Prima.Pyxis.Accordion.Accordion as Accordion
 import Prima.Pyxis.Helpers as Helpers
 
 
@@ -28,7 +28,7 @@ initialModel =
 type alias Accordion =
     { accordionType : AccordionType
     , slug : String
-    , state : Accordions.State Msg
+    , state : Accordion.State Msg
     }
 
 
@@ -40,7 +40,7 @@ type AccordionType
 
 accordionBuilder : AccordionType -> Accordion
 accordionBuilder type_ =
-    Accordion type_ (accordionTypeToSlug type_) (Accordions.state False (accordionTypeToTitle type_) accordionContent)
+    Accordion type_ (accordionTypeToSlug type_) (Accordion.state False (accordionTypeToTitle type_) accordionContent)
 
 
 accordionTypeToSlug : AccordionType -> String

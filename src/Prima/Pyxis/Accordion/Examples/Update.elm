@@ -1,7 +1,7 @@
-module Prima.Pyxis.Accordions.Examples.Update exposing (update)
+module Prima.Pyxis.Accordion.Examples.Update exposing (update)
 
-import Prima.Pyxis.Accordions.Accordions as Accordions
-import Prima.Pyxis.Accordions.Examples.Model
+import Prima.Pyxis.Accordion.Accordion as Accordion
+import Prima.Pyxis.Accordion.Examples.Model
     exposing
         ( Accordion
         , Model
@@ -20,12 +20,12 @@ updateAccordion : String -> Bool -> Accordion -> Accordion
 updateAccordion slug isOpen accordion =
     case ( slug == accordion.slug, isOpen ) of
         ( True, False ) ->
-            updateAccordionState Accordions.open accordion
+            updateAccordionState Accordion.open accordion
 
         ( _, _ ) ->
-            updateAccordionState Accordions.close accordion
+            updateAccordionState Accordion.close accordion
 
 
-updateAccordionState : (Accordions.State Msg -> Accordions.State Msg) -> Accordion -> Accordion
+updateAccordionState : (Accordion.State Msg -> Accordion.State Msg) -> Accordion -> Accordion
 updateAccordionState mapper accordion =
     { accordion | state = mapper accordion.state }
