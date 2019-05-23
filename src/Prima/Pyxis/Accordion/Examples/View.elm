@@ -1,4 +1,4 @@
-module Prima.Pyxis.Accordions.Examples.View exposing
+module Prima.Pyxis.Accordion.Examples.View exposing
     ( accordionConfig
     , accordionRender
     , appBody
@@ -8,8 +8,8 @@ module Prima.Pyxis.Accordions.Examples.View exposing
 import Browser
 import Html exposing (..)
 import Html.Attributes exposing (class)
-import Prima.Pyxis.Accordions.Accordions as Accordions
-import Prima.Pyxis.Accordions.Examples.Model
+import Prima.Pyxis.Accordion.Accordion as Accordion
+import Prima.Pyxis.Accordion.Examples.Model
     exposing
         ( Accordion
         , AccordionType(..)
@@ -35,20 +35,20 @@ appBody model =
 
 accordionRender : Accordion -> Html Msg
 accordionRender accordion =
-    Accordions.render accordion.state (accordionConfig accordion)
+    Accordion.render accordion.state (accordionConfig accordion)
 
 
-accordionConfig : Accordion -> Accordions.Config Msg
+accordionConfig : Accordion -> Accordion.Config Msg
 accordionConfig accordion =
     (case accordion.accordionType of
         Light ->
-            Accordions.lightConfig
+            Accordion.lightConfig
 
         Dark ->
-            Accordions.darkConfig
+            Accordion.darkConfig
 
         Base ->
-            Accordions.baseConfig
+            Accordion.baseConfig
     )
         accordion.slug
         ToggleAccordion

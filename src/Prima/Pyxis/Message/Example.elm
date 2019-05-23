@@ -1,4 +1,4 @@
-module Prima.Pyxis.Messages.Example exposing
+module Prima.Pyxis.Message.Example exposing
     ( Model
     , Msg(..)
     , init
@@ -8,10 +8,10 @@ module Prima.Pyxis.Messages.Example exposing
     )
 
 import Browser
-import Html exposing (..)
+import Html exposing (Html, div, text)
 import Html.Attributes exposing (class)
 import Prima.Pyxis.Helpers as Helpers
-import Prima.Pyxis.Messages.Messages as Message
+import Prima.Pyxis.Message.Message as Message
 
 
 main : Program () Model Msg
@@ -39,14 +39,12 @@ initialModel =
 
 
 type Msg
-    = Message
+    = NoOp
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-    case msg of
-        _ ->
-            ( model, Cmd.none )
+    ( model, Cmd.none )
 
 
 view : Model -> Browser.Document Msg
@@ -59,15 +57,16 @@ appBody _ =
     [ Helpers.pyxisStyle
     , div
         [ class "a-container a-container--medium directionColumn" ]
-        [ h1
-            []
-            [ text "Messages" ]
-        , div []
-            [ "Lorem ipsum"
-                |> text
-                |> List.singleton
-                |> Message.messageSuccessConfig
-                |> Message.render
-            ]
-        ]
+        ([ Message.messageInfoConfig
+         , Message.messageSuccessConfig
+         , Message.messageErrorConfig
+         ]
+            |> List.map messageBuilder
+            |> List.intersperse Helpers.spacer
+        )
     ]
+
+
+messageBuilder : (List (Html msg) -> Message.Config msg) -> Html msg
+messageBuilder mapper =
+    (Message.render << mapper << List.singleton << text) "Lorem ipsum dolor sit amet."

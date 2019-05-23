@@ -1,7 +1,7 @@
-module Prima.Pyxis.Tables.Examples.Update exposing (update)
+module Prima.Pyxis.Table.Examples.Update exposing (update)
 
-import Prima.Pyxis.Tables.Examples.Model exposing (..)
-import Prima.Pyxis.Tables.Tables as Tables
+import Prima.Pyxis.Table.Examples.Model exposing (..)
+import Prima.Pyxis.Table.Table as Table
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -12,20 +12,20 @@ update msg model =
 
         SortBy headerSlug ->
             let
-                ( sortAlgorithm, sortFn ) =
+                ( sortAlgorithm, sortMapper ) =
                     case model.sortBy of
                         Nothing ->
-                            ( Just Asc, Tables.sortByAsc )
+                            ( Just Asc, Table.sortByAsc )
 
                         Just Asc ->
-                            ( Just Desc, Tables.sortByDesc )
+                            ( Just Desc, Table.sortByDesc )
 
                         Just Desc ->
-                            ( Nothing, Tables.sortByNothing )
+                            ( Nothing, Table.sortByNothing )
             in
             ( { model
                 | sortBy = sortAlgorithm
-                , tableState = sortFn headerSlug model.tableState
+                , tableState = sortMapper headerSlug model.tableState
               }
             , Cmd.none
             )

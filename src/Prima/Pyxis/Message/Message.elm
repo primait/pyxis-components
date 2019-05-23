@@ -1,5 +1,6 @@
-module Prima.Pyxis.Messages.Messages exposing
-    ( messageErrorConfig
+module Prima.Pyxis.Message.Message exposing
+    ( Config
+    , messageErrorConfig
     , messageInfoConfig
     , messageSuccessConfig
     , render
@@ -9,25 +10,29 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 
 
-type alias Config msg =
+type Config msg
+    = Config (Configuration msg)
+
+
+type alias Configuration msg =
     { type_ : MessageType
     , content : List (Html msg)
     }
 
 
 messageInfoConfig : List (Html msg) -> Config msg
-messageInfoConfig =
-    Config Info
+messageInfoConfig content =
+    Config (Configuration Info content)
 
 
 messageSuccessConfig : List (Html msg) -> Config msg
-messageSuccessConfig =
-    Config Success
+messageSuccessConfig content =
+    Config (Configuration Success content)
 
 
 messageErrorConfig : List (Html msg) -> Config msg
-messageErrorConfig =
-    Config Error
+messageErrorConfig content =
+    Config (Configuration Error content)
 
 
 type MessageType
@@ -52,21 +57,21 @@ isMessageError =
 
 
 render : Config msg -> Html msg
-render config =
+render (Config config) =
     div
         [ classList
             [ ( "m-message", True )
-            , ( "message__success", isMessageSuccess config.type_ )
-            , ( "message__error", isMessageError config.type_ )
-            , ( "message__info", isMessageInfo config.type_ )
+            , ( "m-message--success", isMessageSuccess config.type_ )
+            , ( "m-message--error", isMessageError config.type_ )
+            , ( "m-message--info", isMessageInfo config.type_ )
             ]
         ]
         [ div
             [ class "m-message__icon" ]
             [ i
                 [ classList
-                    [ ( "a-icon a-icon-success", isMessageSuccess config.type_ )
-                    , ( "a-icon a-icon-error", isMessageError config.type_ )
+                    [ ( "a-icon a-icon-ok", isMessageSuccess config.type_ )
+                    , ( "a-icon a-icon-attention", isMessageError config.type_ )
                     , ( "a-icon a-icon-info", isMessageInfo config.type_ )
                     ]
                 ]

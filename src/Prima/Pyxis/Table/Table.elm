@@ -1,4 +1,4 @@
-module Prima.Pyxis.Tables.Tables exposing
+module Prima.Pyxis.Table.Table exposing
     ( Column
     , Config
     , Header
@@ -53,7 +53,7 @@ initialState =
 
 type alias InternalState =
     { sortBy : Maybe Sort
-    , sortByColumn : Maybe Slug
+    , sortedColumn : Maybe Slug
     }
 
 
@@ -64,17 +64,17 @@ type Sort
 
 sortByAsc : Slug -> State -> State
 sortByAsc sortBySlug (State internalState) =
-    State { internalState | sortBy = Just Asc, sortByColumn = Just sortBySlug }
+    State { internalState | sortBy = Just Asc, sortedColumn = Just sortBySlug }
 
 
 sortByDesc : Slug -> State -> State
 sortByDesc sortBySlug (State internalState) =
-    State { internalState | sortBy = Just Desc, sortByColumn = Just sortBySlug }
+    State { internalState | sortBy = Just Desc, sortedColumn = Just sortBySlug }
 
 
 sortByNothing : Slug -> State -> State
 sortByNothing _ (State internalState) =
-    State { internalState | sortBy = Nothing, sortByColumn = Nothing }
+    State { internalState | sortBy = Nothing, sortedColumn = Nothing }
 
 
 type Header msg
@@ -100,28 +100,6 @@ type Row msg
 row : List (Column msg) -> Row msg
 row columns =
     Row columns
-
-
-type ComparableColumn
-    = ComparableRowString String
-    | ComparableRowInt Int
-    | ComparableRowFloat Float
-
-
-columnToComparable : Column msg -> Maybe ComparableColumn
-columnToComparable (Column columnConf) =
-    case columnConf of
-        StringColumn content ->
-            (Just << ComparableRowString) content
-
-        IntegerColumn content ->
-            (Just << ComparableRowInt) content
-
-        FloatColumn content ->
-            (Just << ComparableRowFloat) content
-
-        HtmlColumn _ ->
-            Nothing
 
 
 type Column msg
@@ -165,48 +143,49 @@ type alias Name =
 
 sortRows : Int -> List (Row msg) -> List (Row msg)
 sortRows columnIndex rows =
-    let
-        columnToArray : List (Column msg) -> Array (Column msg)
-        columnToArray columns =
-            Array.fromList columns
-
-        findColumnByIndex : Int -> Array (Column msg) -> Maybe (Column msg)
-        findColumnByIndex index columns =
-            Array.get index columns
-    in
     List.sortBy
-        (\(Row columns) ->
-            case
-                columns
-                    |> columnToArray
-                    |> findColumnByIndex columnIndex
-                    |> Maybe.andThen columnToComparable
-            of
-                Nothing ->
-                    ""
-
-                Just comparable ->
-                    case comparable of
-                        ComparableRowString content ->
-                            content
-
-                        ComparableRowInt content ->
-                            String.fromInt content
-
-                        ComparableRowFloat content ->
-                            String.fromFloat content
+        (Maybe.withDefault ""
+            << Maybe.map columnToComparable
+            << Array.get columnIndex
+            << Array.fromList
+            << pickColumnsFromRow
         )
         rows
 
 
+columnToComparable : Column msg -> String
+columnToComparable (Column columnConf) =
+    case columnConf of
+        StringColumn content ->
+            content
+
+        IntegerColumn content ->
+            String.fromInt content
+
+        FloatColumn content ->
+            String.fromFloat content
+
+        HtmlColumn _ ->
+            ""
+
+
+pickColumnsFromRow : Row msg -> List (Column msg)
+pickColumnsFromRow (Row columns) =
+    columns
+
+
+retrieveHeaderIndexBySlug : Maybe Slug -> List (Header msg) -> Maybe Int
+retrieveHeaderIndexBySlug slug headers =
+    headers
+        |> List.map (\(Header h) -> h.slug)
+        |> List.Extra.findIndex ((==) slug << Just)
+
+
 render : State -> Config msg -> Html msg
-render (State ({ sortBy, sortByColumn } as state)) (Config conf) =
+render (State ({ sortBy, sortedColumn } as state)) (Config conf) =
     let
-        sortByColumnIndex =
-            conf.headers
-                |> List.map (\(Header h) -> h.slug)
-                |> List.Extra.findIndex ((==) sortByColumn << Just)
-                |> Maybe.withDefault 0
+        index =
+            (Maybe.withDefault 0 << retrieveHeaderIndexBySlug sortedColumn) conf.headers
 
         sortedRows =
             case sortBy of
@@ -214,10 +193,10 @@ render (State ({ sortBy, sortByColumn } as state)) (Config conf) =
                     conf.rows
 
                 Just Asc ->
-                    sortRows sortByColumnIndex conf.rows
+                    sortRows index conf.rows
 
                 Just Desc ->
-                    List.reverse <| sortRows sortByColumnIndex conf.rows
+                    (List.reverse << sortRows index) conf.rows
     in
     table
         [ classList

@@ -1,9 +1,9 @@
 module Main exposing (main)
 
 import Browser
-import Prima.Pyxis.Tables.Examples.Model exposing (..)
-import Prima.Pyxis.Tables.Examples.Update exposing (..)
-import Prima.Pyxis.Tables.Examples.View exposing (..)
+import Prima.Pyxis.Table.Examples.Model exposing (..)
+import Prima.Pyxis.Table.Examples.Update exposing (..)
+import Prima.Pyxis.Table.Examples.View exposing (..)
 
 
 main : Program () Model Msg
