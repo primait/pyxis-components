@@ -51,7 +51,7 @@ update msg model =
 
 view : Model -> Browser.Document Msg
 view model =
-    Browser.Document "Accordion component" (appBody model)
+    Browser.Document "Message component" (appBody model)
 
 
 appBody : Model -> List (Html Msg)
