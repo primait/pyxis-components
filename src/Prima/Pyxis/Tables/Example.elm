@@ -1,9 +1,6 @@
 module Main exposing (Model, Msg(..), initialModel, main, update, view)
 
 import Browser
-import Html exposing (..)
-import Html.Attributes exposing (..)
-import Html.Events exposing (onInput)
 import Prima.Pyxis.Helpers as Helpers
 import Prima.Pyxis.Tables.Tables as Tables
 

@@ -178,7 +178,6 @@ sortRows columnIndex rows =
         (\(Row columns) ->
             case
                 columns
-                    --                |> List.map columnToComparable
                     |> columnToArray
                     |> findColumnByIndex columnIndex
                     |> Maybe.andThen columnToComparable
