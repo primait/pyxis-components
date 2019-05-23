@@ -9,6 +9,7 @@ module Prima.Pyxis.Tables.Tables exposing
     , columnInteger
     , columnString
     , config
+    , header
     , initialState
     , render
     , row
@@ -17,9 +18,11 @@ module Prima.Pyxis.Tables.Tables exposing
     , sortByNothing
     )
 
+import Array exposing (Array)
 import Html exposing (Html, i, table, tbody, td, text, th, thead, tr)
 import Html.Attributes exposing (class, classList)
 import Html.Events exposing (onClick)
+import List.Extra
 
 
 type Config msg
@@ -29,15 +32,14 @@ type Config msg
 type alias Configuration msg =
     { headers : List (Header msg)
     , rows : List (Row msg)
-    , tagger : Slug -> msg
     , alternateRows : Bool
     , isSortable : Bool
     }
 
 
-config : List (Header msg) -> List (Row msg) -> (Slug -> msg) -> Bool -> Bool -> Config msg
-config headers rows tagger alternateRows isSortable =
-    Config (Configuration headers rows tagger alternateRows isSortable)
+config : List (Header msg) -> List (Row msg) -> Bool -> Bool -> Config msg
+config headers rows alternateRows isSortable =
+    Config (Configuration headers rows alternateRows isSortable)
 
 
 type State
@@ -46,11 +48,12 @@ type State
 
 initialState : State
 initialState =
-    State (InternalState Nothing)
+    State (InternalState Nothing Nothing)
 
 
 type alias InternalState =
     { sortBy : Maybe Sort
+    , sortByColumn : Maybe Slug
     }
 
 
@@ -59,19 +62,19 @@ type Sort
     | Desc
 
 
-sortByAsc : State -> State
-sortByAsc (State internalState) =
-    State { internalState | sortBy = Just Asc }
+sortByAsc : Slug -> State -> State
+sortByAsc sortBySlug (State internalState) =
+    State { internalState | sortBy = Just Asc, sortByColumn = Just sortBySlug }
 
 
-sortByDesc : State -> State
-sortByDesc (State internalState) =
-    State { internalState | sortBy = Just Desc }
+sortByDesc : Slug -> State -> State
+sortByDesc sortBySlug (State internalState) =
+    State { internalState | sortBy = Just Desc, sortByColumn = Just sortBySlug }
 
 
-sortByNothing : State -> State
-sortByNothing (State internalState) =
-    State { internalState | sortBy = Nothing }
+sortByNothing : Slug -> State -> State
+sortByNothing _ (State internalState) =
+    State { internalState | sortBy = Nothing, sortByColumn = Nothing }
 
 
 type Header msg
@@ -85,6 +88,11 @@ type alias HeaderConfiguration msg =
     }
 
 
+header : Slug -> Name -> (Slug -> msg) -> Header msg
+header slug name tagger =
+    Header <| HeaderConfiguration slug name tagger
+
+
 type Row msg
     = Row (List (Column msg))
 
@@ -92,6 +100,28 @@ type Row msg
 row : List (Column msg) -> Row msg
 row columns =
     Row columns
+
+
+type ComparableColumn
+    = ComparableRowString String
+    | ComparableRowInt Int
+    | ComparableRowFloat Float
+
+
+columnToComparable : Column msg -> Maybe ComparableColumn
+columnToComparable (Column columnConf) =
+    case columnConf of
+        StringColumn content ->
+            (Just << ComparableRowString) content
+
+        IntegerColumn content ->
+            (Just << ComparableRowInt) content
+
+        FloatColumn content ->
+            (Just << ComparableRowFloat) content
+
+        HtmlColumn _ ->
+            Nothing
 
 
 type Column msg
@@ -133,8 +163,63 @@ type alias Name =
     String
 
 
+sortRows : Int -> List (Row msg) -> List (Row msg)
+sortRows columnIndex rows =
+    let
+        columnToArray : List (Column msg) -> Array (Column msg)
+        columnToArray columns =
+            Array.fromList columns
+
+        findColumnByIndex : Int -> Array (Column msg) -> Maybe (Column msg)
+        findColumnByIndex index columns =
+            Array.get index columns
+    in
+    List.sortBy
+        (\(Row columns) ->
+            case
+                columns
+                    --                |> List.map columnToComparable
+                    |> columnToArray
+                    |> findColumnByIndex columnIndex
+                    |> Maybe.andThen columnToComparable
+            of
+                Nothing ->
+                    ""
+
+                Just comparable ->
+                    case comparable of
+                        ComparableRowString content ->
+                            content
+
+                        ComparableRowInt content ->
+                            String.fromInt content
+
+                        ComparableRowFloat content ->
+                            String.fromFloat content
+        )
+        rows
+
+
 render : State -> Config msg -> Html msg
-render state (Config conf) =
+render (State ({ sortBy, sortByColumn } as state)) (Config conf) =
+    let
+        sortByColumnIndex =
+            conf.headers
+                |> List.map (\(Header h) -> h.slug)
+                |> List.Extra.findIndex ((==) sortByColumn << Just)
+                |> Maybe.withDefault 0
+
+        sortedRows =
+            case sortBy of
+                Nothing ->
+                    conf.rows
+
+                Just Asc ->
+                    sortRows sortByColumnIndex conf.rows
+
+                Just Desc ->
+                    List.reverse <| sortRows sortByColumnIndex conf.rows
+    in
     table
         [ classList
             [ ( "m-table", True )
@@ -142,19 +227,19 @@ render state (Config conf) =
             ]
         ]
         [ renderTHead state conf
-        , renderTBody conf.rows
+        , renderTBody sortedRows
         ]
 
 
-renderTHead : State -> Configuration msg -> Html msg
-renderTHead (State internalState) ({ headers } as conf) =
+renderTHead : InternalState -> Configuration msg -> Html msg
+renderTHead internalState ({ headers } as conf) =
     thead
         [ class "m-table__header" ]
         (List.map (renderTH internalState conf) headers)
 
 
 renderTH : InternalState -> Configuration msg -> Header msg -> Html msg
-renderTH { sortBy } { tagger, isSortable } (Header { slug, name }) =
+renderTH { sortBy } { isSortable } (Header { slug, name, tagger }) =
     th
         [ class "m-table__header__item fsSmall"
         , (onClick << tagger) slug
