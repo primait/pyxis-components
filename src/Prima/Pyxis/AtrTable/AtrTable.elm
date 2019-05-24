@@ -16,7 +16,9 @@ module Prima.Pyxis.AtrTable.AtrTable exposing
     , update
     )
 
-import Html exposing (Html, text)
+import Html exposing (Html, option, select, text)
+import Html.Attributes exposing (class, classList, selected, value)
+import Html.Events exposing (onInput)
 import Prima.Pyxis.Table.Table as Table
 
 
@@ -37,14 +39,14 @@ init atrDetails =
 
 
 type Msg
-    = AtrChanged AtrType Year
+    = AtrChanged AtrType Year String
     | NoOpSort String
 
 
 update : Msg -> Config -> ( Config, Cmd Msg )
 update msg config =
     case msg of
-        AtrChanged atrType year ->
+        AtrChanged atrType year value ->
             ( config, Cmd.none )
 
         NoOpSort _ ->
@@ -71,6 +73,11 @@ type alias AtrConfiguration =
 atr : Int -> Atr
 atr year =
     Atr (AtrConfiguration year Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing)
+
+
+isLegacy : Year -> Bool
+isLegacy year =
+    year < 2015
 
 
 setMain : Maybe String -> Atr -> Atr
@@ -180,6 +187,11 @@ atrTypeExtractor type_ =
             .equalMixed
 
 
+atrSelectableOptions : List String
+atrSelectableOptions =
+    (List.map String.fromInt << List.range 0) 5 ++ [ "NA", "ND" ]
+
+
 type alias Year =
     Int
 
@@ -220,9 +232,55 @@ buildRows atrDetails =
 
 
 buildColumn : AtrType -> Atr -> Table.Column Msg
-buildColumn atrType (Atr atrConfig) =
-    let
-        extractor =
-            atrTypeExtractor atrType
-    in
-    (Table.columnHtml << List.singleton << text << Maybe.withDefault "-" << extractor) atrConfig
+buildColumn atrType atrDetail =
+    (Table.columnHtml << buildColumnContent atrType) atrDetail
+
+
+buildColumnContent : AtrType -> Atr -> List (Html Msg)
+buildColumnContent atrType (Atr atrConfig) =
+    case ( atrType, isLegacy atrConfig.year ) of
+        ( Main, True ) ->
+            [ buildSelect atrType atrConfig ]
+
+        ( Equal, True ) ->
+            [ buildSelect atrType atrConfig ]
+
+        ( Main, False ) ->
+            [ (text << String.fromInt << calculateTotalAccidents atrConfig) [ MainPeople, MainObjects, MainMixed ] ]
+
+        ( Equal, False ) ->
+            [ (text << String.fromInt << calculateTotalAccidents atrConfig) [ EqualPeople, EqualObjects, EqualMixed ] ]
+
+        ( _, True ) ->
+            [ text "--" ]
+
+        ( _, _ ) ->
+            [ buildSelect atrType atrConfig ]
+
+
+buildSelect : AtrType -> AtrConfiguration -> Html Msg
+buildSelect atrType { year } =
+    select
+        [ (onInput << AtrChanged atrType) year ]
+        (List.map buildSelectOption atrSelectableOptions)
+
+
+buildSelectOption : String -> Html Msg
+buildSelectOption optionValue =
+    option
+        [ value optionValue
+        ]
+        [ text optionValue
+        ]
+
+
+calculateTotalAccidents : AtrConfiguration -> List AtrType -> Int
+calculateTotalAccidents atrConfig atrTypes =
+    atrTypes
+        |> List.filterMap
+            (\atrType ->
+                atrConfig
+                    |> atrTypeExtractor atrType
+                    |> Maybe.andThen String.toInt
+            )
+        |> List.sum
