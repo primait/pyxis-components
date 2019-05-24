@@ -11,12 +11,12 @@ import Prima.Pyxis.AtrTable.Examples.Model
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case Debug.log "update" msg of
-        AtrChanged ->
-            ( model, Cmd.none )
-
         AtrTableMsg subMsg ->
             let
+                ( updatedAtrTable, atrCmd, atrDetails ) =
+                    AtrTable.update subMsg model.atrTable
+
                 _ =
-                    Debug.log "subMsg" subMsg
+                    Debug.log "updateAtrStatus" atrDetails
             in
-            ( model, Cmd.none )
+            ( { model | atrTable = updatedAtrTable }, Cmd.none )

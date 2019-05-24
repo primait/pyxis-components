@@ -44,28 +44,36 @@ type Msg
 
 
 update : Msg -> Config -> ( Config, Cmd Msg, List Atr )
-update msg (Config conf) =
+update msg (Config configuration) =
     case msg of
         AtrChanged atrType year value ->
-            ( Config
-                { conf
-                    | atrDetails =
-                        List.map
-                            (\(Atr atrConfig) ->
-                                if atrConfig.year == year then
-                                    updateAtr atrType year value (Atr atrConfig)
-
-                                else
-                                    Atr atrConfig
-                            )
-                            conf.atrDetails
-                }
+            let  
+                updatedConf = 
+                    updateConfiguration atrType year value configuration
+            in 
+            ( Config updatedConf 
             , Cmd.none
-            , conf.atrDetails
+            , updatedConf.atrDetails
             )
 
         NoOpSort _ ->
-            ( Config conf, Cmd.none, conf.atrDetails )
+            ( Config configuration, Cmd.none, configuration.atrDetails )
+
+
+updateConfiguration : AtrType -> Year -> String -> Configuration -> Configuration
+updateConfiguration atrType year value configuration =
+    { configuration
+        | atrDetails =
+            List.map
+                (\(Atr atrConfig) ->
+                    if atrConfig.year == year then
+                        updateAtr atrType year value (Atr atrConfig)
+
+                    else
+                        Atr atrConfig
+                )
+                configuration.atrDetails
+    }
 
 
 updateAtr : AtrType -> Year -> String -> Atr -> Atr
@@ -302,16 +310,21 @@ buildColumnContent atrType (Atr atrConfig) =
 
 
 buildSelect : AtrType -> AtrConfiguration -> Html Msg
-buildSelect atrType { year } =
+buildSelect atrType ({ year } as atrConfig) =
     select
         [ (onInput << AtrChanged atrType) year ]
-        (List.map buildSelectOption atrSelectableOptions)
+        (List.map (buildSelectOption atrType atrConfig) atrSelectableOptions)
 
 
-buildSelectOption : String -> Html Msg
-buildSelectOption optionValue =
+buildSelectOption : AtrType -> AtrConfiguration -> String -> Html Msg
+buildSelectOption atrType atrConfig optionValue =
+    let
+        atrDetailsAccidents =
+            atrTypeExtractor atrType atrConfig
+    in
     option
         [ value optionValue
+        , (selected << Maybe.withDefault False << Maybe.map ((==) optionValue)) atrDetailsAccidents
         ]
         [ text optionValue
         ]

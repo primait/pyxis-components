@@ -22,26 +22,6 @@ appBody model =
     [ Helpers.pyxisStyle
     , div
         [ class "a-container a-container--medium directionColumn" ]
-        [ (Html.map AtrTableMsg
-            << AtrTable.render
-            << Tuple.first
-            << AtrTable.init
-            << List.repeat 5
-          )
-            createAtr
+        [ Html.map AtrTableMsg <| AtrTable.render model.atrTable
         ]
     ]
-
-
-createAtr : AtrTable.Atr
-createAtr =
-    2019
-        |> AtrTable.atr
-        |> AtrTable.setEqual (Just "1")
-        |> AtrTable.setEqualMixed (Just "1")
-        |> AtrTable.setEqualObjects (Just "1")
-        |> AtrTable.setEqualPeople (Just "1")
-        |> AtrTable.setMain (Just "1")
-        |> AtrTable.setMainMixed (Just "1")
-        |> AtrTable.setMainObjects (Just "1")
-        |> AtrTable.setMainPeople (Just "1")
