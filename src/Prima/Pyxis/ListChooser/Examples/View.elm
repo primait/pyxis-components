@@ -36,7 +36,7 @@ appBody model =
 
 exampleList : List String
 exampleList =
-    [ "ciao", "piacere", "arrivederci" ]
+    [ "VOLKSWAGEN Golf 1.6 TDI 90 CV 5p. Tech&Sound BlueMo", "VOLKSWAGEN Golf 1.6 TDI 90 CV 5p. Trendline BlueMot", "VOLKSWAGEN Golf 1.6 TDI 90 CV 5p. Trendline BlueMot" ]
 
 
 stringsToChooserItems : List String -> List ChooserItem

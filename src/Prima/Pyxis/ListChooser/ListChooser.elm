@@ -14,6 +14,22 @@ import Html.Attributes exposing (class, classList)
 import Html.Events exposing (onClick)
 
 
+type alias Model =
+    { items : List ( Slug, Bool )
+    }
+
+
+type Msg
+    = Toggle Slug
+
+
+update : Msg -> Model -> ( Model, Cmd Msg )
+update msg model =
+    case msg of
+        Toggle slug ->
+            ( model, Cmd.none )
+
+
 type Config
     = Config Configuration
 
@@ -81,4 +97,10 @@ renderList items =
 
 renderItem : ChooserItem -> Html msg
 renderItem (ChooserItem content) =
-    li [ class "m-list-chooser__item" ] [ text content ]
+    li
+        [ classList
+            [ ( "m-list-chooser__item", True )
+            , ( "is-selected", False )
+            ]
+        ]
+        [ text content ]
