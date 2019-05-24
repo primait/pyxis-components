@@ -9,7 +9,7 @@ import Prima.Pyxis.ListChooser.Examples.Model
         ( Model
         , Msg(..)
         )
-import Prima.Pyxis.ListChooser.ListChooser as ListChooser exposing (..)
+import Prima.Pyxis.ListChooser.ListChooser as ListChooser
 
 
 view : Model -> Browser.Document Msg
@@ -18,27 +18,14 @@ view model =
 
 
 appBody : Model -> List (Html Msg)
-appBody model =
+appBody { chooserItemState } =
     let
-        myState =
-            ListChooser.state <| stringsToChooserItems exampleList
-
-        myConfiguration =
+        chooserConfig =
             ListChooser.singleSelectionConfig 5
     in
     [ Helpers.pyxisStyle
     , div
         [ class "a-container a-container--medium directionColumn" ]
-        [ ListChooser.render myState myConfiguration
+        [ Html.map ChoosedMsg <| ListChooser.render chooserItemState chooserConfig
         ]
     ]
-
-
-exampleList : List String
-exampleList =
-    [ "VOLKSWAGEN Golf 1.6 TDI 90 CV 5p. Tech&Sound BlueMo", "VOLKSWAGEN Golf 1.6 TDI 90 CV 5p. Trendline BlueMot", "VOLKSWAGEN Golf 1.6 TDI 90 CV 5p. Trendline BlueMot" ]
-
-
-stringsToChooserItems : List String -> List ChooserItem
-stringsToChooserItems list =
-    List.map ListChooser.createItem list
