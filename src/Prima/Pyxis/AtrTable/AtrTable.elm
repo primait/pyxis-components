@@ -43,14 +43,57 @@ type Msg
     | NoOpSort String
 
 
-update : Msg -> Config -> ( Config, Cmd Msg )
-update msg config =
+update : Msg -> Config -> ( Config, Cmd Msg, List Atr )
+update msg (Config conf) =
     case msg of
         AtrChanged atrType year value ->
-            ( config, Cmd.none )
+            ( Config
+                { conf
+                    | atrDetails =
+                        List.map
+                            (\(Atr atrConfig) ->
+                                if atrConfig.year == year then
+                                    updateAtr atrType year value (Atr atrConfig)
+
+                                else
+                                    Atr atrConfig
+                            )
+                            conf.atrDetails
+                }
+            , Cmd.none
+            , conf.atrDetails
+            )
 
         NoOpSort _ ->
-            ( config, Cmd.none )
+            ( Config conf, Cmd.none, conf.atrDetails )
+
+
+updateAtr : AtrType -> Year -> String -> Atr -> Atr
+updateAtr atrType year value theAtr =
+    case atrType of
+        Main ->
+            setMain (Just value) theAtr
+
+        MainPeople ->
+            setMainPeople (Just value) theAtr
+
+        MainObjects ->
+            setMainObjects (Just value) theAtr
+
+        MainMixed ->
+            setMainMixed (Just value) theAtr
+
+        Equal ->
+            setEqual (Just value) theAtr
+
+        EqualPeople ->
+            setEqualPeople (Just value) theAtr
+
+        EqualObjects ->
+            setEqualObjects (Just value) theAtr
+
+        EqualMixed ->
+            setEqualMixed (Just value) theAtr
 
 
 type Atr
