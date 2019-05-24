@@ -1,9 +1,9 @@
-module Prima.Pyxis.Accordions.Example exposing (main)
+module Main exposing (main)
 
 import Browser
-import Prima.Pyxis.Accordions.Examples.Model exposing (Model, Msg, initialModel)
-import Prima.Pyxis.Accordions.Examples.Update exposing (update)
-import Prima.Pyxis.Accordions.Examples.View exposing (view)
+import Prima.Pyxis.Table.Examples.Model exposing (..)
+import Prima.Pyxis.Table.Examples.Update exposing (..)
+import Prima.Pyxis.Table.Examples.View exposing (..)
 
 
 main : Program () Model Msg

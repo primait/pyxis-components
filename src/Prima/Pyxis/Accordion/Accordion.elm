@@ -1,4 +1,4 @@
-module Prima.Pyxis.Accordions.Accordions exposing
+module Prima.Pyxis.Accordion.Accordion exposing
     ( Config
     , State
     , baseConfig
