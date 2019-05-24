@@ -20,7 +20,7 @@ module Prima.Pyxis.Table.Table exposing
 
 import Array exposing (Array)
 import Html exposing (Html, i, table, tbody, td, text, th, thead, tr)
-import Html.Attributes exposing (class, classList)
+import Html.Attributes exposing (class, classList, attribute)
 import Html.Events exposing (onClick)
 import List.Extra
 
@@ -218,10 +218,18 @@ renderTHead internalState ({ headers } as conf) =
 
 renderTH : InternalState -> Configuration msg -> Header msg -> Html msg
 renderTH { sortBy } { isSortable } (Header { slug, name, tagger }) =
+    let 
+        sortableAttribute = 
+            if isSortable then
+                (onClick << tagger) slug
+            else 
+                attribute "data-unsortable" ""
+    in
     th
+        (sortableAttribute :: 
         [ class "m-table__header__item fsSmall"
-        , (onClick << tagger) slug
-        ]
+        
+        ])
         [ text name
         , renderSortIcon sortBy slug
         ]
