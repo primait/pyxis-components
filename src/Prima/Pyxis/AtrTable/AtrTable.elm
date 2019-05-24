@@ -1,5 +1,5 @@
 module Prima.Pyxis.AtrTable.AtrTable exposing
-    ( Atr
+    ( AtrDetail
     , Config
     , Msg
     , atr
@@ -27,31 +27,31 @@ type Config
 
 
 type alias Configuration =
-    { atrDetails : List Atr
+    { atrDetails : List AtrDetail
     , alternateRows : Bool
     , isSortable : Bool
     }
 
 
-init : List Atr -> ( Config, Cmd Msg )
+init : List AtrDetail -> ( Config, Cmd Msg )
 init atrDetails =
     ( Config (Configuration atrDetails False False), Cmd.none )
 
 
 type Msg
-    = AtrChanged AtrType Year String
+    = AtrDetailChanged AtrDetailType Year String
     | NoOpSort String
 
 
-update : Msg -> Config -> ( Config, Cmd Msg, List Atr )
+update : Msg -> Config -> ( Config, Cmd Msg, List AtrDetail )
 update msg (Config configuration) =
     case msg of
-        AtrChanged atrType year value ->
-            let  
-                updatedConf = 
+        AtrDetailChanged atrType year value ->
+            let
+                updatedConf =
                     updateConfiguration atrType year value configuration
-            in 
-            ( Config updatedConf 
+            in
+            ( Config updatedConf
             , Cmd.none
             , updatedConf.atrDetails
             )
@@ -60,55 +60,55 @@ update msg (Config configuration) =
             ( Config configuration, Cmd.none, configuration.atrDetails )
 
 
-updateConfiguration : AtrType -> Year -> String -> Configuration -> Configuration
+updateConfiguration : AtrDetailType -> Year -> String -> Configuration -> Configuration
 updateConfiguration atrType year value configuration =
     { configuration
         | atrDetails =
             List.map
-                (\(Atr atrConfig) ->
+                (\(AtrDetail atrConfig) ->
                     if atrConfig.year == year then
-                        updateAtr atrType year value (Atr atrConfig)
+                        updateAtrDetail atrType year value (AtrDetail atrConfig)
 
                     else
-                        Atr atrConfig
+                        AtrDetail atrConfig
                 )
                 configuration.atrDetails
     }
 
 
-updateAtr : AtrType -> Year -> String -> Atr -> Atr
-updateAtr atrType year value theAtr =
+updateAtrDetail : AtrDetailType -> Year -> String -> AtrDetail -> AtrDetail
+updateAtrDetail atrType year value theAtrDetail =
     case atrType of
         Main ->
-            setMain (Just value) theAtr
+            setMain (Just value) theAtrDetail
 
         MainPeople ->
-            setMainPeople (Just value) theAtr
+            setMainPeople (Just value) theAtrDetail
 
         MainObjects ->
-            setMainObjects (Just value) theAtr
+            setMainObjects (Just value) theAtrDetail
 
         MainMixed ->
-            setMainMixed (Just value) theAtr
+            setMainMixed (Just value) theAtrDetail
 
         Equal ->
-            setEqual (Just value) theAtr
+            setEqual (Just value) theAtrDetail
 
         EqualPeople ->
-            setEqualPeople (Just value) theAtr
+            setEqualPeople (Just value) theAtrDetail
 
         EqualObjects ->
-            setEqualObjects (Just value) theAtr
+            setEqualObjects (Just value) theAtrDetail
 
         EqualMixed ->
-            setEqualMixed (Just value) theAtr
+            setEqualMixed (Just value) theAtrDetail
 
 
-type Atr
-    = Atr AtrConfiguration
+type AtrDetail
+    = AtrDetail AtrDetailConfiguration
 
 
-type alias AtrConfiguration =
+type alias AtrDetailConfiguration =
     { year : Year
     , main : Maybe String
     , mainPeople : Maybe String
@@ -121,9 +121,9 @@ type alias AtrConfiguration =
     }
 
 
-atr : Int -> Atr
+atr : Int -> AtrDetail
 atr year =
-    Atr (AtrConfiguration year Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing)
+    AtrDetail (AtrDetailConfiguration year Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing)
 
 
 isLegacy : Year -> Bool
@@ -131,47 +131,47 @@ isLegacy year =
     year < 2015
 
 
-setMain : Maybe String -> Atr -> Atr
-setMain maybeValue (Atr atrConfig) =
-    Atr { atrConfig | main = maybeValue }
+setMain : Maybe String -> AtrDetail -> AtrDetail
+setMain maybeValue (AtrDetail atrConfig) =
+    AtrDetail { atrConfig | main = maybeValue }
 
 
-setMainPeople : Maybe String -> Atr -> Atr
-setMainPeople maybeValue (Atr atrConfig) =
-    Atr { atrConfig | mainPeople = maybeValue }
+setMainPeople : Maybe String -> AtrDetail -> AtrDetail
+setMainPeople maybeValue (AtrDetail atrConfig) =
+    AtrDetail { atrConfig | mainPeople = maybeValue }
 
 
-setMainObjects : Maybe String -> Atr -> Atr
-setMainObjects maybeValue (Atr atrConfig) =
-    Atr { atrConfig | mainObjects = maybeValue }
+setMainObjects : Maybe String -> AtrDetail -> AtrDetail
+setMainObjects maybeValue (AtrDetail atrConfig) =
+    AtrDetail { atrConfig | mainObjects = maybeValue }
 
 
-setMainMixed : Maybe String -> Atr -> Atr
-setMainMixed maybeValue (Atr atrConfig) =
-    Atr { atrConfig | mainMixed = maybeValue }
+setMainMixed : Maybe String -> AtrDetail -> AtrDetail
+setMainMixed maybeValue (AtrDetail atrConfig) =
+    AtrDetail { atrConfig | mainMixed = maybeValue }
 
 
-setEqual : Maybe String -> Atr -> Atr
-setEqual maybeValue (Atr atrConfig) =
-    Atr { atrConfig | equal = maybeValue }
+setEqual : Maybe String -> AtrDetail -> AtrDetail
+setEqual maybeValue (AtrDetail atrConfig) =
+    AtrDetail { atrConfig | equal = maybeValue }
 
 
-setEqualPeople : Maybe String -> Atr -> Atr
-setEqualPeople maybeValue (Atr atrConfig) =
-    Atr { atrConfig | equalPeople = maybeValue }
+setEqualPeople : Maybe String -> AtrDetail -> AtrDetail
+setEqualPeople maybeValue (AtrDetail atrConfig) =
+    AtrDetail { atrConfig | equalPeople = maybeValue }
 
 
-setEqualObjects : Maybe String -> Atr -> Atr
-setEqualObjects maybeValue (Atr atrConfig) =
-    Atr { atrConfig | equalObjects = maybeValue }
+setEqualObjects : Maybe String -> AtrDetail -> AtrDetail
+setEqualObjects maybeValue (AtrDetail atrConfig) =
+    AtrDetail { atrConfig | equalObjects = maybeValue }
 
 
-setEqualMixed : Maybe String -> Atr -> Atr
-setEqualMixed maybeValue (Atr atrConfig) =
-    Atr { atrConfig | equalMixed = maybeValue }
+setEqualMixed : Maybe String -> AtrDetail -> AtrDetail
+setEqualMixed maybeValue (AtrDetail atrConfig) =
+    AtrDetail { atrConfig | equalMixed = maybeValue }
 
 
-type AtrType
+type AtrDetailType
     = Main
     | MainPeople
     | MainObjects
@@ -182,7 +182,7 @@ type AtrType
     | EqualMixed
 
 
-atrTypeToString : AtrType -> String
+atrTypeToString : AtrDetailType -> String
 atrTypeToString type_ =
     case type_ of
         Main ->
@@ -210,7 +210,7 @@ atrTypeToString type_ =
             "Misto"
 
 
-atrTypeExtractor : AtrType -> (AtrConfiguration -> Maybe String)
+atrTypeExtractor : AtrDetailType -> (AtrDetailConfiguration -> Maybe String)
 atrTypeExtractor type_ =
     case type_ of
         Main ->
@@ -250,11 +250,11 @@ type alias Year =
 render : Config -> Html Msg
 render (Config ({ atrDetails, alternateRows, isSortable } as config)) =
     let
-        destructureAtr (Atr atrConfiguration) =
+        destructureAtrDetail (AtrDetail atrConfiguration) =
             atrConfiguration
 
         headers =
-            (buildHeaders << List.map (String.fromInt << .year << destructureAtr)) atrDetails
+            (buildHeaders << List.map (String.fromInt << .year << destructureAtrDetail)) atrDetails
 
         rows =
             buildRows atrDetails
@@ -263,11 +263,11 @@ render (Config ({ atrDetails, alternateRows, isSortable } as config)) =
 
 
 buildHeaders : List String -> List (Table.Header Msg)
-buildHeaders yearsOfAtr =
-    Table.header "" "" NoOpSort :: List.map (\year -> Table.header year year NoOpSort) yearsOfAtr
+buildHeaders yearsOfAtrDetail =
+    Table.header "" "" NoOpSort :: List.map (\year -> Table.header year year NoOpSort) yearsOfAtrDetail
 
 
-buildRows : List Atr -> List (Table.Row Msg)
+buildRows : List AtrDetail -> List (Table.Row Msg)
 buildRows atrDetails =
     List.map
         (\atrType -> Table.row <| Table.columnString (atrTypeToString atrType) :: List.map (buildColumn atrType) atrDetails)
@@ -282,13 +282,13 @@ buildRows atrDetails =
         ]
 
 
-buildColumn : AtrType -> Atr -> Table.Column Msg
+buildColumn : AtrDetailType -> AtrDetail -> Table.Column Msg
 buildColumn atrType atrDetail =
     (Table.columnHtml << buildColumnContent atrType) atrDetail
 
 
-buildColumnContent : AtrType -> Atr -> List (Html Msg)
-buildColumnContent atrType (Atr atrConfig) =
+buildColumnContent : AtrDetailType -> AtrDetail -> List (Html Msg)
+buildColumnContent atrType (AtrDetail atrConfig) =
     case ( atrType, isLegacy atrConfig.year ) of
         ( Main, True ) ->
             [ buildSelect atrType atrConfig ]
@@ -309,14 +309,14 @@ buildColumnContent atrType (Atr atrConfig) =
             [ buildSelect atrType atrConfig ]
 
 
-buildSelect : AtrType -> AtrConfiguration -> Html Msg
+buildSelect : AtrDetailType -> AtrDetailConfiguration -> Html Msg
 buildSelect atrType ({ year } as atrConfig) =
     select
-        [ (onInput << AtrChanged atrType) year ]
+        [ (onInput << AtrDetailChanged atrType) year ]
         (List.map (buildSelectOption atrType atrConfig) atrSelectableOptions)
 
 
-buildSelectOption : AtrType -> AtrConfiguration -> String -> Html Msg
+buildSelectOption : AtrDetailType -> AtrDetailConfiguration -> String -> Html Msg
 buildSelectOption atrType atrConfig optionValue =
     let
         atrDetailsAccidents =
@@ -330,7 +330,7 @@ buildSelectOption atrType atrConfig optionValue =
         ]
 
 
-calculateTotalAccidents : AtrConfiguration -> List AtrType -> Int
+calculateTotalAccidents : AtrDetailConfiguration -> List AtrDetailType -> Int
 calculateTotalAccidents atrConfig atrTypes =
     atrTypes
         |> List.filterMap
