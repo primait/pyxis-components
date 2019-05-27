@@ -22,7 +22,7 @@ initialModel =
     Model [] <| (Tuple.first << AtrTable.init << List.map createAtr) (List.range 2012 2019)
 
 
-createAtr : Int -> AtrTable.Atr
+createAtr : Int -> AtrTable.AtrDetail
 createAtr year =
     year
         |> AtrTable.atr
