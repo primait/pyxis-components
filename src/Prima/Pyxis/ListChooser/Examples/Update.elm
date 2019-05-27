@@ -14,16 +14,7 @@ update msg model =
                     ListChooser.update subMsg model.chooserItemState
             in
             ( { model
-                | finitures =
-                    List.map
-                        (\f ->
-                            if List.member f.slug <| List.map Tuple.first <| List.filter Tuple.second updatedFinitures then
-                                { f | isSelected = True }
-
-                            else
-                                { f | isSelected = False }
-                        )
-                        model.finitures
+                | chooserItemState = updatedState
               }
             , Cmd.none
             )

@@ -3,21 +3,24 @@ module Prima.Pyxis.ListChooser.ListChooser exposing
     , Config
     , Msg
     , State
+    , config
     , createItem
     , init
-    , multipleSelectionConfig
     , render
-    , singleSelectionConfig
     , update
+    , viewMode
+    , viewModeAll
+    , viewModePartial
     )
 
-import Html exposing (Html, div, li, text, ul)
-import Html.Attributes exposing (class, classList)
+import Html exposing (Html, a, div, li, text, ul)
+import Html.Attributes exposing (attribute, class, classList)
 import Html.Events exposing (onClick)
 
 
 type Msg
     = Toggle Slug
+    | ToggleViewMode
 
 
 type Config
@@ -25,24 +28,35 @@ type Config
 
 
 type alias Configuration =
-    { mode : Mode
-    , itemsPerView : Int
+    { itemsPerView : Int
+    , toggleViewAllLabel : String
+    , toggleViewPartialLabel : String
     }
 
 
-singleSelectionConfig : Int -> Config
-singleSelectionConfig itemsPerView =
-    Config (Configuration SingleSelection itemsPerView)
+config : Int -> String -> String -> Config
+config itemsPerView toggleViewAllLabel toggleViewPartialLabel =
+    Config (Configuration itemsPerView toggleViewAllLabel toggleViewPartialLabel)
 
 
-multipleSelectionConfig : Int -> Config
-multipleSelectionConfig itemsPerView =
-    Config (Configuration MultipleSelection itemsPerView)
+type ViewMode
+    = All
+    | Partial
 
 
-type Mode
-    = SingleSelection
-    | MultipleSelection
+viewModePartial : ViewMode
+viewModePartial =
+    Partial
+
+
+viewModeAll : ViewMode
+viewModeAll =
+    All
+
+
+viewMode : ViewMode -> State -> State
+viewMode mode (State internalState) =
+    State { internalState | mode = mode }
 
 
 type State
@@ -50,26 +64,35 @@ type State
 
 
 type alias InternalState =
-    { items : List ChooserItem
+    { mode : ViewMode
+    , items : List ChooserItem
     }
 
 
-init : List ChooserItem -> ( State, Cmd Msg )
-init items =
-    ( State (InternalState items), Cmd.none )
+init : ViewMode -> List ChooserItem -> ( State, Cmd Msg )
+init mode items =
+    ( State (InternalState mode items), Cmd.none )
 
 
-update : Msg -> State -> ( State, Cmd Msg, List ( String, Bool ) )
+update : Msg -> State -> ( State, Cmd Msg )
 update msg (State internalState) =
     case msg of
         Toggle toggledSlug ->
-            let
-                updatedItems =
-                    updateChooserItems toggledSlug internalState.items
-            in
-            ( State { internalState | items = updatedItems }
+            ( State { internalState | items = updateChooserItems toggledSlug internalState.items }
             , Cmd.none
-            , List.map (\(ChooserItem { slug, isSelected }) -> ( slug, isSelected )) updatedItems
+            )
+
+        ToggleViewMode ->
+            ( State
+                { internalState
+                    | mode =
+                        if internalState.mode == All then
+                            Partial
+
+                        else
+                            All
+                }
+            , Cmd.none
             )
 
 
@@ -77,11 +100,7 @@ updateChooserItems : Slug -> List ChooserItem -> List ChooserItem
 updateChooserItems slug list =
     List.map
         (\(ChooserItem conf) ->
-            if slug == conf.slug then
-                ChooserItem { conf | isSelected = not conf.isSelected }
-
-            else
-                ChooserItem conf
+            ChooserItem { conf | isSelected = slug == conf.slug }
         )
         list
 
@@ -107,10 +126,22 @@ type alias Slug =
 
 
 render : State -> Config -> Html Msg
-render (State internalState) (Config config) =
+render (State ({ mode, items } as internalState)) (Config conf) =
+    let
+        itemList =
+            case mode of
+                All ->
+                    items
+
+                Partial ->
+                    List.take conf.itemsPerView items
+    in
     div
-        [ class "m-list-chooser" ]
-        [ renderList internalState.items
+        [ class "m-list-chooser directionColumn"
+        , attribute "data-max-items" <| String.fromInt conf.itemsPerView
+        ]
+        [ renderList itemList
+        , btnGroup [ toggleViewMode mode conf ]
         ]
 
 
@@ -131,3 +162,27 @@ renderItem (ChooserItem configuration) =
         , (onClick << Toggle) configuration.slug
         ]
         [ text configuration.content ]
+
+
+btnGroup : List (Html Msg) -> Html Msg
+btnGroup =
+    div
+        [ class "m-btnGroup" ]
+
+
+toggleViewMode : ViewMode -> Configuration -> Html Msg
+toggleViewMode mode conf =
+    let
+        label =
+            case mode of
+                All ->
+                    conf.toggleViewPartialLabel
+
+                Partial ->
+                    conf.toggleViewAllLabel
+    in
+    a
+        [ onClick ToggleViewMode
+        , class "a-link fwHeavy fsSmall"
+        ]
+        [ text label ]

@@ -19,13 +19,9 @@ view model =
 
 appBody : Model -> List (Html Msg)
 appBody { chooserItemState } =
-    let
-        chooserConfig =
-            ListChooser.singleSelectionConfig 5
-    in
     [ Helpers.pyxisStyle
     , div
         [ class "a-container a-container--medium directionColumn" ]
-        [ Html.map ChoosedMsg <| ListChooser.render chooserItemState chooserConfig
+        [ Html.map ChoosedMsg <| ListChooser.render chooserItemState <| ListChooser.config 3 "Mostra tutto" "Mostra i primi 3"
         ]
     ]
