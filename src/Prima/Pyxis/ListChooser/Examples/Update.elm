@@ -7,10 +7,10 @@ import Tuple
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-    case Debug.log "update" msg of
+    case msg of
         ChoosedMsg subMsg ->
             let
-                ( updatedState, cmd, updatedFinitures ) =
+                ( updatedState, cmd ) =
                     ListChooser.update subMsg model.chooserItemState
             in
             ( { model
