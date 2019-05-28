@@ -4,15 +4,15 @@ module Prima.Pyxis.AtrTable.AtrTable exposing
     , Msg
     , atr
     , init
+    , paritaria
+    , paritariaCose
+    , paritariaMista
+    , paritariaPersone
+    , principale
+    , principaleCose
+    , principaleMista
+    , principalePersone
     , render
-    , setEqual
-    , setEqualMixed
-    , setEqualObjects
-    , setEqualPeople
-    , setMain
-    , setMainMixed
-    , setMainObjects
-    , setMainPeople
     , update
     )
 
@@ -22,6 +22,28 @@ import Html.Events exposing (onInput)
 import Prima.Pyxis.Table.Table as Table
 
 
+{-| Creates a specific kind of table, the `ATR` table component.
+Uses `Prima.Pyxis.Table.Table` under the hood.
+
+`Warning`. This documentation requires knownledge of Insurance doprincipale.
+
+#Configuration
+
+@docs Config, AtrDetail
+
+#Configuration Helpers
+
+@docs init, update, paritaria, paritariaMista, paritariaCose, paritariaPersone, principale, principaleMista, principaleCose, principalePersone
+
+#Render
+
+@docs render
+
+-}
+
+
+{-| Defines the configuration of an `Atr` table
+-}
 type Config
     = Config Configuration
 
@@ -33,6 +55,9 @@ type alias Configuration =
     }
 
 
+{-| Returns a `Tuple` containing the `Config` and a possible batch of side effects to
+be managed by parent application. Requires a list of `AtrDetail`.
+-}
 init : List AtrDetail -> ( Config, Cmd Msg )
 init atrDetails =
     ( Config (Configuration atrDetails False False), Cmd.none )
@@ -43,6 +68,9 @@ type Msg
     | NoOpSort String
 
 
+{-| Updates the configuration of the `Atr` table.
+Returns a tuple containing the new `Config`.
+-}
 update : Msg -> Config -> ( Config, Cmd Msg, List AtrDetail )
 update msg (Config configuration) =
     case msg of
@@ -79,29 +107,29 @@ updateConfiguration atrType year value configuration =
 updateAtrDetail : AtrDetailType -> Year -> String -> AtrDetail -> AtrDetail
 updateAtrDetail atrType year value theAtrDetail =
     case atrType of
-        Main ->
-            setMain (Just value) theAtrDetail
+        Principale ->
+            principale (Just value) theAtrDetail
 
-        MainPeople ->
-            setMainPeople (Just value) theAtrDetail
+        PrincipalePersone ->
+            principalePersone (Just value) theAtrDetail
 
-        MainObjects ->
-            setMainObjects (Just value) theAtrDetail
+        PrincipaleCose ->
+            principaleCose (Just value) theAtrDetail
 
-        MainMixed ->
-            setMainMixed (Just value) theAtrDetail
+        PrincipaleMista ->
+            principaleMista (Just value) theAtrDetail
 
-        Equal ->
-            setEqual (Just value) theAtrDetail
+        Paritaria ->
+            paritaria (Just value) theAtrDetail
 
-        EqualPeople ->
-            setEqualPeople (Just value) theAtrDetail
+        ParitariaPersone ->
+            paritariaPersone (Just value) theAtrDetail
 
-        EqualObjects ->
-            setEqualObjects (Just value) theAtrDetail
+        ParitariaCose ->
+            paritariaCose (Just value) theAtrDetail
 
-        EqualMixed ->
-            setEqualMixed (Just value) theAtrDetail
+        ParitariaMista ->
+            paritariaMista (Just value) theAtrDetail
 
 
 type AtrDetail
@@ -110,20 +138,79 @@ type AtrDetail
 
 type alias AtrDetailConfiguration =
     { year : Year
-    , main : Maybe String
-    , mainPeople : Maybe String
-    , mainObjects : Maybe String
-    , mainMixed : Maybe String
-    , equal : Maybe String
-    , equalPeople : Maybe String
-    , equalObjects : Maybe String
-    , equalMixed : Maybe String
+    , principale : Maybe String
+    , principalePersone : Maybe String
+    , principaleCose : Maybe String
+    , principaleMista : Maybe String
+    , paritaria : Maybe String
+    , paritariaPersone : Maybe String
+    , paritariaCose : Maybe String
+    , paritariaMista : Maybe String
     }
 
 
+{-| Creates an empty `AtrDetail`. Each detail is identified by an year and representation of accidents occurred
+during it. All setters methods are pipeable.
+-}
 atr : Int -> AtrDetail
 atr year =
     AtrDetail (AtrDetailConfiguration year Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing)
+
+
+{-| Sets the `Responsabilità Principale` value for a specific `AtrDetail`.
+-}
+principale : Maybe String -> AtrDetail -> AtrDetail
+principale maybeValue (AtrDetail atrConfig) =
+    AtrDetail { atrConfig | principale = maybeValue }
+
+
+{-| Sets the `Responsabilità Principale Persone` value for a specific `AtrDetail`.
+-}
+principalePersone : Maybe String -> AtrDetail -> AtrDetail
+principalePersone maybeValue (AtrDetail atrConfig) =
+    AtrDetail { atrConfig | principalePersone = maybeValue }
+
+
+{-| Sets the `Responsabilità Principale Cose` value for a specific `AtrDetail`.
+-}
+principaleCose : Maybe String -> AtrDetail -> AtrDetail
+principaleCose maybeValue (AtrDetail atrConfig) =
+    AtrDetail { atrConfig | principaleCose = maybeValue }
+
+
+{-| Sets the `Responsabilità Principale Mista` value for a specific `AtrDetail`.
+-}
+principaleMista : Maybe String -> AtrDetail -> AtrDetail
+principaleMista maybeValue (AtrDetail atrConfig) =
+    AtrDetail { atrConfig | principaleMista = maybeValue }
+
+
+{-| Sets the `Responsabilità Paritaria` value for a specific `AtrDetail`.
+-}
+paritaria : Maybe String -> AtrDetail -> AtrDetail
+paritaria maybeValue (AtrDetail atrConfig) =
+    AtrDetail { atrConfig | paritaria = maybeValue }
+
+
+{-| Sets the `Responsabilità Paritaria Persone` value for a specific `AtrDetail`.
+-}
+paritariaPersone : Maybe String -> AtrDetail -> AtrDetail
+paritariaPersone maybeValue (AtrDetail atrConfig) =
+    AtrDetail { atrConfig | paritariaPersone = maybeValue }
+
+
+{-| Sets the `Responsabilità Paritaria Cose` value for a specific `AtrDetail`.
+-}
+paritariaCose : Maybe String -> AtrDetail -> AtrDetail
+paritariaCose maybeValue (AtrDetail atrConfig) =
+    AtrDetail { atrConfig | paritariaCose = maybeValue }
+
+
+{-| Sets the `Responsabilità Paritaria Mista` value for a specific `AtrDetail`.
+-}
+paritariaMista : Maybe String -> AtrDetail -> AtrDetail
+paritariaMista maybeValue (AtrDetail atrConfig) =
+    AtrDetail { atrConfig | paritariaMista = maybeValue }
 
 
 isLegacy : Year -> Bool
@@ -131,111 +218,71 @@ isLegacy year =
     year < 2015
 
 
-setMain : Maybe String -> AtrDetail -> AtrDetail
-setMain maybeValue (AtrDetail atrConfig) =
-    AtrDetail { atrConfig | main = maybeValue }
-
-
-setMainPeople : Maybe String -> AtrDetail -> AtrDetail
-setMainPeople maybeValue (AtrDetail atrConfig) =
-    AtrDetail { atrConfig | mainPeople = maybeValue }
-
-
-setMainObjects : Maybe String -> AtrDetail -> AtrDetail
-setMainObjects maybeValue (AtrDetail atrConfig) =
-    AtrDetail { atrConfig | mainObjects = maybeValue }
-
-
-setMainMixed : Maybe String -> AtrDetail -> AtrDetail
-setMainMixed maybeValue (AtrDetail atrConfig) =
-    AtrDetail { atrConfig | mainMixed = maybeValue }
-
-
-setEqual : Maybe String -> AtrDetail -> AtrDetail
-setEqual maybeValue (AtrDetail atrConfig) =
-    AtrDetail { atrConfig | equal = maybeValue }
-
-
-setEqualPeople : Maybe String -> AtrDetail -> AtrDetail
-setEqualPeople maybeValue (AtrDetail atrConfig) =
-    AtrDetail { atrConfig | equalPeople = maybeValue }
-
-
-setEqualObjects : Maybe String -> AtrDetail -> AtrDetail
-setEqualObjects maybeValue (AtrDetail atrConfig) =
-    AtrDetail { atrConfig | equalObjects = maybeValue }
-
-
-setEqualMixed : Maybe String -> AtrDetail -> AtrDetail
-setEqualMixed maybeValue (AtrDetail atrConfig) =
-    AtrDetail { atrConfig | equalMixed = maybeValue }
-
-
 type AtrDetailType
-    = Main
-    | MainPeople
-    | MainObjects
-    | MainMixed
-    | Equal
-    | EqualPeople
-    | EqualObjects
-    | EqualMixed
+    = Principale
+    | PrincipalePersone
+    | PrincipaleCose
+    | PrincipaleMista
+    | Paritaria
+    | ParitariaPersone
+    | ParitariaCose
+    | ParitariaMista
 
 
 atrTypeToString : AtrDetailType -> String
 atrTypeToString type_ =
     case type_ of
-        Main ->
+        Principale ->
             "Principale"
 
-        MainPeople ->
+        PrincipalePersone ->
             "Persone"
 
-        MainObjects ->
+        PrincipaleCose ->
             "Cose"
 
-        MainMixed ->
-            "Misto"
+        PrincipaleMista ->
+            "Mista"
 
-        Equal ->
+        Paritaria ->
             "Paritaria"
 
-        EqualPeople ->
+        ParitariaPersone ->
             "Persone"
 
-        EqualObjects ->
+        ParitariaCose ->
             "Cose"
 
-        EqualMixed ->
-            "Misto"
+        ParitariaMista ->
+            "Mista"
 
 
 atrTypeExtractor : AtrDetailType -> (AtrDetailConfiguration -> Maybe String)
 atrTypeExtractor type_ =
     case type_ of
-        Main ->
-            .main
+        Principale ->
+            .principale
 
-        MainPeople ->
-            .mainPeople
+        PrincipalePersone ->
+            .principalePersone
 
-        MainObjects ->
-            .mainObjects
+        PrincipaleCose ->
+            .principaleCose
 
-        MainMixed ->
-            .mainMixed
+        PrincipaleMista ->
+            .principaleMista
 
-        Equal ->
-            .equal
+        Paritaria ->
+            .paritaria
 
-        EqualPeople ->
-            .equalPeople
+        ParitariaPersone ->
+            .paritariaPersone
 
-        EqualObjects ->
-            .equalObjects
+        ParitariaCose ->
+            .paritariaCose
 
-        EqualMixed ->
-            .equalMixed
+        ParitariaMista ->
+            .paritariaMista
 
 
 atrSelectableOptions : List String
@@ -247,6 +294,8 @@ type alias Year =
     Int
 
 
+{-| Renders the table by receiving a `Configuration`. The columns of this table are expressed by the length of the `AtrDetail` list.
+-}
 render : Config -> Html Msg
 render (Config ({ atrDetails, alternateRows, isSortable } as config)) =
     let
@@ -271,14 +320,14 @@ buildRows : List AtrDetail -> List (Table.Row Msg)
 buildRows atrDetails =
     List.map
         (\atrType -> Table.row <| Table.columnString (atrTypeToString atrType) :: List.map (buildColumn atrType) atrDetails)
-        [ Main
-        , MainObjects
-        , MainPeople
-        , MainMixed
-        , Equal
-        , EqualObjects
-        , EqualPeople
-        , EqualMixed
+        [ Principale
+        , PrincipaleCose
+        , PrincipalePersone
+        , PrincipaleMista
+        , Paritaria
+        , ParitariaCose
+        , ParitariaPersone
+        , ParitariaMista
         ]
 
 
@@ -290,17 +339,17 @@ buildColumn atrType atrDetail =
 buildColumnContent : AtrDetailType -> AtrDetail -> List (Html Msg)
 buildColumnContent atrType (AtrDetail atrConfig) =
     case ( atrType, isLegacy atrConfig.year ) of
-        ( Main, True ) ->
+        ( Principale, True ) ->
             [ buildSelect atrType atrConfig ]
 
-        ( Equal, True ) ->
+        ( Paritaria, True ) ->
             [ buildSelect atrType atrConfig ]
 
-        ( Main, False ) ->
-            [ (text << String.fromInt << calculateTotalAccidents atrConfig) [ MainPeople, MainObjects, MainMixed ] ]
+        ( Principale, False ) ->
+            [ (text << String.fromInt << calculateTotalAccidents atrConfig) [ PrincipalePersone, PrincipaleCose, PrincipaleMista ] ]
 
-        ( Equal, False ) ->
-            [ (text << String.fromInt << calculateTotalAccidents atrConfig) [ EqualPeople, EqualObjects, EqualMixed ] ]
+        ( Paritaria, False ) ->
+            [ (text << String.fromInt << calculateTotalAccidents atrConfig) [ ParitariaPersone, ParitariaCose, ParitariaMista ] ]
 
         ( _, True ) ->
             [ text "--" ]

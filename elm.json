@@ -5,8 +5,11 @@
     "license": "BSD-3-Clause",
     "version": "1.0.0",
     "exposed-modules": [
-        "Prima.Pyxis.Accordions",
-        "Prima.Pyxis.Messages"
+        "Prima.Pyxis.Accordion.Accordion",
+        "Prima.Pyxis.AtrTable.AtrTable",
+        "Prima.Pyxis.ListChooser.ListChooser",
+        "Prima.Pyxis.Message.Message",
+        "Prima.Pyxis.Table.Table"
     ],
     "elm-version": "0.19.0 <= v < 0.20.0",
     "dependencies": {

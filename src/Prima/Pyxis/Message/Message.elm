@@ -10,6 +10,21 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 
 
+{-| Creates a `Message` component by using predefined `Html` syntax.
+
+#Configuration
+
+@docs Config
+
+#Configuration Helpers
+
+@docs messageErrorConfig, messageInfoConfig, messageSuccessConfig
+
+#Render
+
+@docs render
+
+-}
 type Config msg
     = Config (Configuration msg)
 
@@ -20,16 +35,22 @@ type alias Configuration msg =
     }
 
 
+{-| Defines the configuration of an `Info` message.
+-}
 messageInfoConfig : List (Html msg) -> Config msg
 messageInfoConfig content =
     Config (Configuration Info content)
 
 
+{-| Defines the configuration of a `Success` message.
+-}
 messageSuccessConfig : List (Html msg) -> Config msg
 messageSuccessConfig content =
     Config (Configuration Success content)
 
 
+{-| Defines the configuration of an `Error` message.
+-}
 messageErrorConfig : List (Html msg) -> Config msg
 messageErrorConfig content =
     Config (Configuration Error content)
@@ -55,7 +76,8 @@ isMessageError : MessageType -> Bool
 isMessageError =
     (==) Error
 
-
+{-| Renders the `Message` by receiving it's `Config`.
+-}
 render : Config msg -> Html msg
 render (Config config) =
     div

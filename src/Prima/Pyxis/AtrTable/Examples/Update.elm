@@ -15,8 +15,5 @@ update msg model =
             let
                 ( updatedAtrTable, atrCmd, atrDetails ) =
                     AtrTable.update subMsg model.atrTable
-
-                _ =
-                    Debug.log "updateAtrStatus" atrDetails
             in
             ( { model | atrTable = updatedAtrTable }, Cmd.none )

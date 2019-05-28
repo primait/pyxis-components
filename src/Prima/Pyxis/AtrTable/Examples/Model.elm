@@ -26,11 +26,11 @@ createAtr : Int -> AtrTable.AtrDetail
 createAtr year =
     year
         |> AtrTable.atr
-        |> AtrTable.setEqual (Just "1")
-        |> AtrTable.setEqualMixed (Just "1")
-        |> AtrTable.setEqualObjects (Just "1")
-        |> AtrTable.setEqualPeople (Just "1")
-        |> AtrTable.setMain (Just "1")
-        |> AtrTable.setMainMixed (Just "1")
-        |> AtrTable.setMainObjects (Just "1")
-        |> AtrTable.setMainPeople (Just "1")
+        |> AtrTable.paritaria (Just "1")
+        |> AtrTable.paritariaMista (Just "1")
+        |> AtrTable.paritariaCose (Just "1")
+        |> AtrTable.paritariaPersone (Just "1")
+        |> AtrTable.principale (Just "1")
+        |> AtrTable.principaleMista (Just "1")
+        |> AtrTable.principaleCose (Just "1")
+        |> AtrTable.principalePersone (Just "1")
