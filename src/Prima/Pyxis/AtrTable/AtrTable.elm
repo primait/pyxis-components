@@ -1,23 +1,32 @@
 module Prima.Pyxis.AtrTable.AtrTable exposing
     ( Config, AtrDetail, Msg
-    , init, atr, update, paritaria, paritariaMista, paritariaCose, paritariaPersone, principale, principaleMista, principaleCose, principalePersone
+    , init, atr, update
+    , paritaria, paritariaMista, paritariaCose, paritariaPersone, principale, principaleMista, principaleCose, principalePersone
     , render
     )
 
-{-| Creates a specific kind of table, the `ATR` table component.
-Uses `Prima.Pyxis.Table.Table` under the hood.
+{-| Creates a specific kind of table, the ATR table component.
+Uses Prima.Pyxis.Table.Table under the hood.
 
-`Warning`. This documentation requires knownledge of Insurance doprincipale.
+Warning. This documentation requires knownledge of Insurance domain.
 
-#Configuration
+
+# Configuration
 
 @docs Config, AtrDetail, Msg
 
-#Configuration Helpers
 
-@docs init, atr, update, paritaria, paritariaMista, paritariaCose, paritariaPersone, principale, principaleMista, principaleCose, principalePersone
+# Configuration Helpers
 
-#Render
+@docs init, atr, update
+
+
+# Helpers
+
+@docs paritaria, paritariaMista, paritariaCose, paritariaPersone, principale, principaleMista, principaleCose, principalePersone
+
+
+# Render
 
 @docs render
 
@@ -29,7 +38,7 @@ import Html.Events exposing (onInput)
 import Prima.Pyxis.Table.Table as Table
 
 
-{-| Defines the configuration of an `Atr` table
+{-| Defines the configuration of an Atr table
 -}
 type Config
     = Config Configuration
@@ -42,8 +51,8 @@ type alias Configuration =
     }
 
 
-{-| Returns a `Tuple` containing the `Config` and a possible batch of side effects to
-be managed by parent application. Requires a list of `AtrDetail`.
+{-| Returns a Tuple containing the Config and a possible batch of side effects to
+be managed by parent application. Requires a list of AtrDetail.
 -}
 init : List AtrDetail -> ( Config, Cmd Msg )
 init atrDetails =
@@ -57,8 +66,8 @@ type Msg
     | NoOpSort String
 
 
-{-| Updates the configuration of the `Atr` table.
-Returns a tuple containing the new `Config`.
+{-| Updates the configuration of the Atr table.
+Returns a tuple containing the new Config.
 -}
 update : Msg -> Config -> ( Config, Cmd Msg, List AtrDetail )
 update msg (Config configuration) =
@@ -121,7 +130,7 @@ updateAtrDetail atrType year value theAtrDetail =
             paritariaMista (Just value) theAtrDetail
 
 
-{-| Represents a detail for an `ATR` which contains information about
+{-| Represents a detail for an ATR which contains information about
 the number of accidents in a specific year.
 -}
 type AtrDetail
@@ -141,7 +150,7 @@ type alias AtrDetailConfiguration =
     }
 
 
-{-| Creates an empty `AtrDetail`. Each detail is identified by an year and representation of accidents occurred
+{-| Creates an empty AtrDetail. Each detail is identified by an year and representation of accidents occurred
 during it. All setters methods are pipeable.
 -}
 atr : Int -> AtrDetail
@@ -149,56 +158,56 @@ atr year =
     AtrDetail (AtrDetailConfiguration year Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing)
 
 
-{-| Sets the `Responsabilità Principale` value for a specific `AtrDetail`.
+{-| Sets the Responsabilità Principale value for a specific AtrDetail.
 -}
 principale : Maybe String -> AtrDetail -> AtrDetail
 principale maybeValue (AtrDetail atrConfig) =
     AtrDetail { atrConfig | principale = maybeValue }
 
 
-{-| Sets the `Responsabilità Principale Persone` value for a specific `AtrDetail`.
+{-| Sets the Responsabilità Principale Persone value for a specific AtrDetail.
 -}
 principalePersone : Maybe String -> AtrDetail -> AtrDetail
 principalePersone maybeValue (AtrDetail atrConfig) =
     AtrDetail { atrConfig | principalePersone = maybeValue }
 
 
-{-| Sets the `Responsabilità Principale Cose` value for a specific `AtrDetail`.
+{-| Sets the Responsabilità Principale Cose value for a specific AtrDetail.
 -}
 principaleCose : Maybe String -> AtrDetail -> AtrDetail
 principaleCose maybeValue (AtrDetail atrConfig) =
     AtrDetail { atrConfig | principaleCose = maybeValue }
 
 
-{-| Sets the `Responsabilità Principale Mista` value for a specific `AtrDetail`.
+{-| Sets the Responsabilità Principale Mista value for a specific AtrDetail.
 -}
 principaleMista : Maybe String -> AtrDetail -> AtrDetail
 principaleMista maybeValue (AtrDetail atrConfig) =
     AtrDetail { atrConfig | principaleMista = maybeValue }
 
 
-{-| Sets the `Responsabilità Paritaria` value for a specific `AtrDetail`.
+{-| Sets the Responsabilità Paritaria value for a specific AtrDetail.
 -}
 paritaria : Maybe String -> AtrDetail -> AtrDetail
 paritaria maybeValue (AtrDetail atrConfig) =
     AtrDetail { atrConfig | paritaria = maybeValue }
 
 
-{-| Sets the `Responsabilità Paritaria Persone` value for a specific `AtrDetail`.
+{-| Sets the Responsabilità Paritaria Persone value for a specific AtrDetail.
 -}
 paritariaPersone : Maybe String -> AtrDetail -> AtrDetail
 paritariaPersone maybeValue (AtrDetail atrConfig) =
     AtrDetail { atrConfig | paritariaPersone = maybeValue }
 
 
-{-| Sets the `Responsabilità Paritaria Cose` value for a specific `AtrDetail`.
+{-| Sets the Responsabilità Paritaria Cose value for a specific AtrDetail.
 -}
 paritariaCose : Maybe String -> AtrDetail -> AtrDetail
 paritariaCose maybeValue (AtrDetail atrConfig) =
     AtrDetail { atrConfig | paritariaCose = maybeValue }
 
 
-{-| Sets the `Responsabilità Paritaria Mista` value for a specific `AtrDetail`.
+{-| Sets the Responsabilità Paritaria Mista value for a specific AtrDetail.
 -}
 paritariaMista : Maybe String -> AtrDetail -> AtrDetail
 paritariaMista maybeValue (AtrDetail atrConfig) =
@@ -286,7 +295,7 @@ type alias Year =
     Int
 
 
-{-| Renders the table by receiving a `Configuration`. The columns of this table are expressed by the length of the `AtrDetail` list.
+{-| Renders the table by receiving a Configuration. The columns of this table are expressed by the length of the AtrDetail list.
 -}
 render : Config -> Html Msg
 render (Config ({ atrDetails, alternateRows, isSortable } as config)) =

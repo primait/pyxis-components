@@ -1,48 +1,43 @@
 module Prima.Pyxis.Table.Table exposing
-    ( Column
-    , Config
-    , Header
-    , Row
-    , State
-    , columnFloat
-    , columnHtml
-    , columnInteger
-    , columnString
-    , config
-    , header
-    , initialState
+    ( Config, State, Header, Row, Column
+    , config, initialState
+    , header, row
+    , columnFloat, columnHtml, columnInteger, columnString
+    , sortByAsc, sortByDesc, sortByNothing
     , render
-    , row
-    , sortByAsc
-    , sortByDesc
-    , sortByNothing
     )
 
-{-| Creates a customizable `Table` component by using predefined `Html` syntax.
+{-| Creates a customizable Table component by using predefined Html syntax.
 
-    #Configuration
 
-    @docs Config, State, Header, Row, Column
+# Configuration
 
-    #Configuration Helpers
+@docs Config, State, Header, Row, Column
 
-    @docs config, initialState
 
-    #Configuration for `Row`s & `Header`s
+# Configuration Helpers
 
-    @docs header, row
+@docs config, initialState
 
-    #Configuration for `Column`s
 
-    @docs columnFloat, columnHtml, columnInteger, columnString
+# Configuration for Rows & Headers
 
-    #Helpers
+@docs header, row
 
-    @docs sortByAsc, sortByDesc, sortByNothing
 
-    #Render
+# Configuration for Columns
 
-    @docs render
+@docs columnFloat, columnHtml, columnInteger, columnString
+
+
+# Helpers
+
+@docs sortByAsc, sortByDesc, sortByNothing
+
+
+# Render
+
+@docs render
 
 -}
 
@@ -69,8 +64,8 @@ type alias Configuration msg =
 
 {-| Returns the config of the component.
 
-    -- Create a new `Table.Config`
     ...
+
     type Msg =
         SortBy String
     ...
@@ -93,6 +88,7 @@ type alias Configuration msg =
                 True
         in
         Table.config headers rows alternateRows isSortable
+
     ...
 
 -}
@@ -107,7 +103,7 @@ type State
     = State InternalState
 
 
-{-| Creates an initial `State` with no sort applied.
+{-| Creates an initial State with no sort applied.
 -}
 initialState : State
 initialState =
@@ -125,14 +121,14 @@ type Sort
     | Desc
 
 
-{-| Sorts the column defined by `Slug` in `Asc` order.
+{-| Sorts the column defined by Slug in Asc order.
 -}
 sortByAsc : Slug -> State -> State
 sortByAsc sortBySlug (State internalState) =
     State { internalState | sortBy = Just Asc, sortedColumn = Just sortBySlug }
 
 
-{-| Sorts the column defined by `Slug` in `Desc` order.
+{-| Sorts the column defined by Slug in Desc order.
 -}
 sortByDesc : Slug -> State -> State
 sortByDesc sortBySlug (State internalState) =
@@ -146,7 +142,7 @@ sortByNothing _ (State internalState) =
     State { internalState | sortBy = Nothing, sortedColumn = Nothing }
 
 
-{-| Represents an `Header` of the table. It's gonna be rendered as a `<th/>` tag.
+{-| Represents an Header of the table. It's gonna be rendered as a <th/> tag.
 -}
 type Header msg
     = Header (HeaderConfiguration msg)
@@ -162,7 +158,7 @@ type alias HeaderConfiguration msg =
 {-|
 
 
-## Creates and `Header`.
+## Creates and Header.
 
     myHeader : String -> String -> (String -> Msg) -> Table.Header Msg
     myHeader slug content sortByTagger =
@@ -174,13 +170,13 @@ header slug name tagger =
     Header <| HeaderConfiguration slug name tagger
 
 
-{-| Represents a `Row` which contains a list of `Column`s.
+{-| Represents a Row which contains a list of Columns.
 -}
 type Row msg
     = Row (List (Column msg))
 
 
-{-| Creates a `Row`
+{-| Creates a Row
 
     myRow : List (Column Msg) -> Table.Row Msg
     myRow columns =
@@ -192,7 +188,7 @@ row columns =
     Row columns
 
 
-{-| Represents a `Column` which can manage a specific kind of data.
+{-| Represents a Column which can manage a specific kind of data.
 -}
 type Column msg
     = Column (ColumnConfiguration msg)
@@ -205,28 +201,28 @@ type ColumnConfiguration msg
     | HtmlColumn (List (Html msg))
 
 
-{-| Creates a `Column` which content is `String` primitive.
+{-| Creates a Column which content is String primitive.
 -}
 columnString : String -> Column msg
 columnString content =
     Column (StringColumn content)
 
 
-{-| Creates a `Column` which content is `Integer` primitive.
+{-| Creates a Column which content is Integer primitive.
 -}
 columnInteger : Int -> Column msg
 columnInteger content =
     Column (IntegerColumn content)
 
 
-{-| Creates a `Column` which content is `Float` primitive.
+{-| Creates a Column which content is Float primitive.
 -}
 columnFloat : Float -> Column msg
 columnFloat content =
     Column (FloatColumn content)
 
 
-{-| Creates a `Column` which content is `Html`.
+{-| Creates a Column which content is Html.
 -}
 columnHtml : List (Html msg) -> Column msg
 columnHtml content =
@@ -281,7 +277,7 @@ retrieveHeaderIndexBySlug slug headers =
         |> List.Extra.findIndex ((==) slug << Just)
 
 
-{-| Renders a `Table` by receiving a `State` and a `Config`
+{-| Renders a Table by receiving a State and a Config
 -}
 render : State -> Config msg -> Html msg
 render (State ({ sortBy, sortedColumn } as state)) (Config conf) =

@@ -5,21 +5,25 @@ module Prima.Pyxis.Accordion.Accordion exposing
     , render
     )
 
-{-| Creates an `Accordion` component by using predefined `Html` syntax.
+{-| Creates an Accordion component by using predefined Html syntax.
 
-#Configuration
+
+# Configuration
 
 @docs Config, State
 
-#Configuration Helpers
+
+# Configuration Helpers
 
 @docs baseConfig, lightConfig, darkConfig, state
 
-#Helpers
+
+# Helpers
 
 @docs open, close
 
-#Render
+
+# Render
 
 @docs render
 
@@ -60,8 +64,8 @@ type alias InternalState msg =
 
 {-| Returns the basic state of the component.
 
-    -- Create a new `Accordion.State`
     ...
+
     myAccordionState : Accordion.State
     myAccordionState =
         let
@@ -72,9 +76,10 @@ type alias InternalState msg =
                 "My title"
 
             content =
-                [ text "Lorem ipsum dolor sit amet." ]
+                (List.singleton <<  text) "Lorem ipsum dolor sit amet."
         in
         Accordion.state isOpen title content
+
     ...
 
 -}
@@ -85,10 +90,8 @@ state isOpen title content =
 
 {-| Opens the Accordion to reveal it's content.
 
-    --
-    ...
-    updatedAccordionState = Accordion.open myAccordionState
-    ...
+    updatedAccordionState =
+        Accordion.open myAccordionState
 
 -}
 open : State msg -> State msg
@@ -98,10 +101,8 @@ open (State internalState) =
 
 {-| Closes the Accordion to hide it's content.
 
-    --
-    ...
-    updatedAccordionState = Accordion.close myAccordionState
-    ...
+    updatedAccordionState =
+        Accordion.close myAccordionState
 
 -}
 close : State msg -> State msg
@@ -111,15 +112,17 @@ close (State internalState) =
 
 {-| Returns the configuration for a Base accordion skin.
 
-    --
     ...
+
     type alias Slug =
         String
 
     type Msg =
         Toggled Slug Bool
 
-    myAccordionConfig : `Accordion.Config`
+    ...
+
+    myAccordionConfig : Accordion.Config
     myAccordionConfig =
     let
         slug =
@@ -129,6 +132,7 @@ close (State internalState) =
             Toggled
     in
         Accordion.baseConfig slug tagger
+
     ...
 
 -}
@@ -137,14 +141,14 @@ baseConfig slug tagger =
     Config <| Configuration Base slug tagger
 
 
-{-| The same as `baseConfig` but with a Light skin.
+{-| The same as baseConfig but with a Light skin.
 -}
 lightConfig : String -> (String -> Bool -> msg) -> Config msg
 lightConfig slug tagger =
     Config <| Configuration Light slug tagger
 
 
-{-| The same as `baseConfig` but with a Dark skin.
+{-| The same as baseConfig but with a Dark skin.
 -}
 darkConfig : String -> (String -> Bool -> msg) -> Config msg
 darkConfig slug tagger =
@@ -172,14 +176,9 @@ isDarkAccordion =
     (==) Dark
 
 
-{-|
+{-| Renders the Accordion component by receiving is State and Config.
 
-
-## Renders the `Accordion` component by receiving is `State` and `Config`.
-
-...
-Accordion.render myAccordionState myAccordionConfiguration
-...
+    Accordion.render myAccordionState myAccordionConfiguration
 
 -}
 render : State msg -> Config msg -> Html msg

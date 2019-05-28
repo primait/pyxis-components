@@ -4,17 +4,20 @@ module Prima.Pyxis.Message.Message exposing
     , render
     )
 
-{-| Creates a `Message` component by using predefined `Html` syntax.
+{-| Creates a Message component by using predefined Html syntax.
 
-#Configuration
+
+# Configuration
 
 @docs Config
 
-#Configuration Helpers
+
+# Configuration Helpers
 
 @docs messageErrorConfig, messageInfoConfig, messageSuccessConfig
 
-#Render
+
+# Render
 
 @docs render
 
@@ -24,7 +27,7 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 
 
-{-| Represents the config of a `Message`
+{-| Represents the config of a Message
 -}
 type Config msg
     = Config (Configuration msg)
@@ -36,21 +39,21 @@ type alias Configuration msg =
     }
 
 
-{-| Defines the configuration of an `Info` message.
+{-| Defines the configuration of an Info message.
 -}
 messageInfoConfig : List (Html msg) -> Config msg
 messageInfoConfig content =
     Config (Configuration Info content)
 
 
-{-| Defines the configuration of a `Success` message.
+{-| Defines the configuration of a Success message.
 -}
 messageSuccessConfig : List (Html msg) -> Config msg
 messageSuccessConfig content =
     Config (Configuration Success content)
 
 
-{-| Defines the configuration of an `Error` message.
+{-| Defines the configuration of an Error message.
 -}
 messageErrorConfig : List (Html msg) -> Config msg
 messageErrorConfig content =
@@ -78,7 +81,7 @@ isMessageError =
     (==) Error
 
 
-{-| Renders the `Message` by receiving it's `Config`.
+{-| Renders the Message by receiving it's Config.
 -}
 render : Config msg -> Html msg
 render (Config config) =

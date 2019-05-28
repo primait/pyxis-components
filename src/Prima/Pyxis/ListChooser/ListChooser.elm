@@ -1,25 +1,29 @@
 module Prima.Pyxis.ListChooser.ListChooser exposing
-    ( Config, State, Msg, ChooserItem
+    ( Config, State, Msg, ChooserItem, ViewMode
     , config, init, update
     , createItem, viewMode, viewModeAll, viewModePartial
     , render
     )
 
-{-| Creates a `List` of `ChooserItem`s component.
+{-| Creates a List of ChooserItems component.
 
-#Configuration
 
-@docs Config, State, Msg, ChooserItem
+# Configuration
 
-#Configuration Helpers
+@docs Config, State, Msg, ChooserItem, ViewMode
+
+
+# Configuration Helpers
 
 @docs config, init, update
 
-#Helpers
+
+# Helpers
 
 @docs createItem, viewMode, viewModeAll, viewModePartial
 
-#Render
+
+# Render
 
 @docs render
 
@@ -51,7 +55,8 @@ type alias Configuration =
 
 
 {-| Creates the configuration of the ListChooser.
-...
+
+    ...
 
     myConfig : ListChooser.Config
     myConfig =
@@ -66,6 +71,7 @@ type alias Configuration =
                 "Show first " ++ (String.fromInt itemsPerView) ++ " elements"
         in
         ListChooser.config itemsPerView viewAllLabel viewPartialLabel
+
     ...
 
 -}
@@ -74,33 +80,37 @@ config itemsPerView toggleViewAllLabel toggleViewPartialLabel =
     Config (Configuration itemsPerView toggleViewAllLabel toggleViewPartialLabel)
 
 
+{-| Defines the mode in which the list must be shown. It's possible to choose
+between the full list of items (`viewModeAll`) or a limited set of items (viewModePartial).
+In this case the number of items to be shown is expressed via `itemsPerView`.
+-}
 type ViewMode
     = All
     | Partial
 
 
-{-| Retrieves the partial `ViewMode` constructor.
+{-| Retrieves the partial ViewMode constructor.
 -}
 viewModePartial : ViewMode
 viewModePartial =
     Partial
 
 
-{-| Retrieves the all `ViewMode` constructor.
+{-| Retrieves the all ViewMode constructor.
 -}
 viewModeAll : ViewMode
 viewModeAll =
     All
 
 
-{-| Sets the new `ViewMode` by updating the `State`.
+{-| Sets the new ViewMode by updating the State.
 -}
 viewMode : ViewMode -> State -> State
 viewMode mode (State internalState) =
     State { internalState | mode = mode }
 
 
-{-| Represents the component `State`.
+{-| Represents the component State.
 -}
 type State
     = State InternalState
@@ -112,14 +122,14 @@ type alias InternalState =
     }
 
 
-{-| Creates the first instance of a `ListChooser`.
+{-| Creates the first instance of a ListChooser.
 -}
 init : ViewMode -> List ChooserItem -> ( State, Cmd Msg )
 init mode items =
     ( State (InternalState mode items), Cmd.none )
 
 
-{-| Updates the `State` of the component. Used by the parent application to
+{-| Updates the State of the component. Used by the parent application to
 dispatch messages to this component.
 -}
 update : Msg -> State -> ( State, Cmd Msg )
@@ -153,7 +163,7 @@ updateChooserItems slug list =
         list
 
 
-{-| Represents a single item which can be selected via `ListChooser`'s api.
+{-| Represents a single item which can be selected via ListChooser's api.
 -}
 type ChooserItem
     = ChooserItem ChooserItemConfiguration
@@ -166,9 +176,10 @@ type alias ChooserItemConfiguration =
     }
 
 
-{-| Creates a representation of a `ChooserItem`.
+{-| Creates a representation of a ChooserItem.
 
     ...
+
     myItem : ListChooser.ChooserItem
     myItem =
         let
@@ -195,7 +206,7 @@ type alias Slug =
     String
 
 
-{-| Renders the component by receiving a `State` and a `Config`.
+{-| Renders the component by receiving a State and a Config.
 -}
 render : State -> Config -> Html Msg
 render (State ({ mode, items } as internalState)) (Config conf) =
