@@ -8,6 +8,11 @@ module Prima.Pyxis.Table.Examples.Model exposing
 import Prima.Pyxis.Table.Table as Table
 
 
+type Msg
+    = Table
+    | SortBy String
+
+
 type alias Model =
     { headers : List String
     , rows : List (List String)
@@ -41,11 +46,6 @@ initialRows =
     , [ "Spagna", "Madrid" ]
     , [ "Olanda", "Amsterdam" ]
     ]
-
-
-type Msg
-    = Table
-    | SortBy String
 
 
 type Sort

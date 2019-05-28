@@ -1,26 +1,8 @@
 module Prima.Pyxis.AtrTable.AtrTable exposing
-    ( AtrDetail
-    , Config
-    , Msg
-    , atr
-    , init
-    , paritaria
-    , paritariaCose
-    , paritariaMista
-    , paritariaPersone
-    , principale
-    , principaleCose
-    , principaleMista
-    , principalePersone
+    ( Config, AtrDetail, Msg
+    , init, atr, update, paritaria, paritariaMista, paritariaCose, paritariaPersone, principale, principaleMista, principaleCose, principalePersone
     , render
-    , update
     )
-
-import Html exposing (Html, option, select, text)
-import Html.Attributes exposing (class, classList, selected, value)
-import Html.Events exposing (onInput)
-import Prima.Pyxis.Table.Table as Table
-
 
 {-| Creates a specific kind of table, the `ATR` table component.
 Uses `Prima.Pyxis.Table.Table` under the hood.
@@ -29,17 +11,22 @@ Uses `Prima.Pyxis.Table.Table` under the hood.
 
 #Configuration
 
-@docs Config, AtrDetail
+@docs Config, AtrDetail, Msg
 
 #Configuration Helpers
 
-@docs init, update, paritaria, paritariaMista, paritariaCose, paritariaPersone, principale, principaleMista, principaleCose, principalePersone
+@docs init, atr, update, paritaria, paritariaMista, paritariaCose, paritariaPersone, principale, principaleMista, principaleCose, principalePersone
 
 #Render
 
 @docs render
 
 -}
+
+import Html exposing (Html, option, select, text)
+import Html.Attributes exposing (class, classList, selected, value)
+import Html.Events exposing (onInput)
+import Prima.Pyxis.Table.Table as Table
 
 
 {-| Defines the configuration of an `Atr` table
@@ -63,6 +50,8 @@ init atrDetails =
     ( Config (Configuration atrDetails False False), Cmd.none )
 
 
+{-| Represents a changing AtrDetail action
+-}
 type Msg
     = AtrDetailChanged AtrDetailType Year String
     | NoOpSort String
@@ -132,6 +121,9 @@ updateAtrDetail atrType year value theAtrDetail =
             paritariaMista (Just value) theAtrDetail
 
 
+{-| Represents a detail for an `ATR` which contains information about
+the number of accidents in a specific year.
+-}
 type AtrDetail
     = AtrDetail AtrDetailConfiguration
 

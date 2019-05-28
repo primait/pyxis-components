@@ -1,14 +1,8 @@
 module Prima.Pyxis.Message.Message exposing
     ( Config
-    , messageErrorConfig
-    , messageInfoConfig
-    , messageSuccessConfig
+    , messageErrorConfig, messageInfoConfig, messageSuccessConfig
     , render
     )
-
-import Html exposing (..)
-import Html.Attributes exposing (..)
-
 
 {-| Creates a `Message` component by using predefined `Html` syntax.
 
@@ -24,6 +18,13 @@ import Html.Attributes exposing (..)
 
 @docs render
 
+-}
+
+import Html exposing (..)
+import Html.Attributes exposing (..)
+
+
+{-| Represents the config of a `Message`
 -}
 type Config msg
     = Config (Configuration msg)
@@ -75,6 +76,7 @@ isMessageSuccess =
 isMessageError : MessageType -> Bool
 isMessageError =
     (==) Error
+
 
 {-| Renders the `Message` by receiving it's `Config`.
 -}

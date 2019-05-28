@@ -30,7 +30,7 @@ import Html.Attributes exposing (class, classList, id)
 import Html.Events exposing (onClick)
 
 
-{-| Represent the static configuration of the component. Values
+{-| Represents the static configuration of the component. Values
 passed in are no more modified by the setter.
 -}
 type Config msg
@@ -44,7 +44,7 @@ type alias Configuration msg =
     }
 
 
-{-| Represent the state of the component. Values passed in are
+{-| Represents the state of the component. Values passed in are
 susceptible to change.
 -}
 type State msg
@@ -64,12 +64,17 @@ type alias InternalState msg =
     ...
     myAccordionState : Accordion.State
     myAccordionState =
-    let
-        isOpen = True
-        title = "My title"
-        content = [ text "Lorem ipsum dolor sit amet." ]
-    in
-    myAccordionState = Accordion.state
+        let
+            isOpen =
+                False
+
+            title =
+                "My title"
+
+            content =
+                [ text "Lorem ipsum dolor sit amet." ]
+        in
+        Accordion.state isOpen title content
     ...
 
 -}
@@ -167,11 +172,15 @@ isDarkAccordion =
     (==) Dark
 
 
-{-| Renders the `Accordion` component by receiving is `State` and `Config`.
---
+{-|
+
+
+## Renders the `Accordion` component by receiving is `State` and `Config`.
+
 ...
 Accordion.render myAccordionState myAccordionConfiguration
 ...
+
 -}
 render : State msg -> Config msg -> Html msg
 render ((State { isOpen, title, content }) as accordion) (Config { type_, tagger, slug }) =
