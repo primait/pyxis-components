@@ -4,12 +4,12 @@ import Browser
 import Html exposing (..)
 import Html.Attributes exposing (class)
 import Prima.Pyxis.Helpers as Helpers
+import Prima.Pyxis.ListChooser as ListChooser
 import Prima.Pyxis.ListChooser.Examples.Model
     exposing
         ( Model
         , Msg(..)
         )
-import Prima.Pyxis.ListChooser.ListChooser as ListChooser
 
 
 view : Model -> Browser.Document Msg

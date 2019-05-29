@@ -11,7 +11,7 @@ import Browser
 import Html exposing (Html, div, text)
 import Html.Attributes exposing (class)
 import Prima.Pyxis.Helpers as Helpers
-import Prima.Pyxis.Message.Message as Message
+import Prima.Pyxis.Message as Message
 
 
 main : Program () Model Msg

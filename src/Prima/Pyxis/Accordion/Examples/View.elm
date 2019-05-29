@@ -8,7 +8,7 @@ module Prima.Pyxis.Accordion.Examples.View exposing
 import Browser
 import Html exposing (..)
 import Html.Attributes exposing (class)
-import Prima.Pyxis.Accordion.Accordion as Accordion
+import Prima.Pyxis.Accordion as Accordion
 import Prima.Pyxis.Accordion.Examples.Model
     exposing
         ( Accordion

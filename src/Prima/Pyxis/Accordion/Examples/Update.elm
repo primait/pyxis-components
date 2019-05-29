@@ -1,6 +1,6 @@
 module Prima.Pyxis.Accordion.Examples.Update exposing (update)
 
-import Prima.Pyxis.Accordion.Accordion as Accordion
+import Prima.Pyxis.Accordion as Accordion
 import Prima.Pyxis.Accordion.Examples.Model
     exposing
         ( Accordion

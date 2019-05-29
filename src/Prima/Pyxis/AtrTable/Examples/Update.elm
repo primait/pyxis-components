@@ -1,6 +1,6 @@
 module Prima.Pyxis.AtrTable.Examples.Update exposing (update)
 
-import Prima.Pyxis.AtrTable.AtrTable as AtrTable
+import Prima.Pyxis.AtrTable as AtrTable
 import Prima.Pyxis.AtrTable.Examples.Model
     exposing
         ( Model

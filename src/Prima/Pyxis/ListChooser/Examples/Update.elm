@@ -1,7 +1,7 @@
 module Prima.Pyxis.ListChooser.Examples.Update exposing (update)
 
+import Prima.Pyxis.ListChooser as ListChooser
 import Prima.Pyxis.ListChooser.Examples.Model exposing (Model, Msg(..))
-import Prima.Pyxis.ListChooser.ListChooser as ListChooser
 import Tuple
 
 

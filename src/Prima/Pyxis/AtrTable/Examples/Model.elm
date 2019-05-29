@@ -4,7 +4,7 @@ module Prima.Pyxis.AtrTable.Examples.Model exposing
     , initialModel
     )
 
-import Prima.Pyxis.AtrTable.AtrTable as AtrTable
+import Prima.Pyxis.AtrTable as AtrTable
 
 
 type Msg

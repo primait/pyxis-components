@@ -3,7 +3,7 @@ module Prima.Pyxis.AtrTable.Examples.View exposing (view)
 import Browser
 import Html exposing (..)
 import Html.Attributes exposing (class)
-import Prima.Pyxis.AtrTable.AtrTable as AtrTable
+import Prima.Pyxis.AtrTable as AtrTable
 import Prima.Pyxis.AtrTable.Examples.Model
     exposing
         ( Model

@@ -3,8 +3,8 @@ module Prima.Pyxis.Table.Examples.View exposing (view)
 import Browser
 import Html exposing (Html)
 import Prima.Pyxis.Helpers as Helpers
+import Prima.Pyxis.Table as Table
 import Prima.Pyxis.Table.Examples.Model exposing (..)
-import Prima.Pyxis.Table.Table as Table
 
 
 view : Model -> Browser.Document Msg

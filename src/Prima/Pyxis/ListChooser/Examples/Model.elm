@@ -6,7 +6,7 @@ module Prima.Pyxis.ListChooser.Examples.Model exposing
 
 import Html exposing (..)
 import Prima.Pyxis.Helpers as Helpers
-import Prima.Pyxis.ListChooser.ListChooser as ListChooser exposing (ChooserItem)
+import Prima.Pyxis.ListChooser as ListChooser exposing (ChooserItem)
 import Tuple
 
 
