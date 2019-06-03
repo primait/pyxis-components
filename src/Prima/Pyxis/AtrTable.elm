@@ -47,23 +47,22 @@ type Config
 type alias Configuration =
     { atrDetails : List AtrDetail
     , alternateRows : Bool
-    , isSortable : Bool
+    , isEditable : Bool
     }
 
 
 {-| Returns a Tuple containing the Config and a possible batch of side effects to
 be managed by parent application. Requires a list of AtrDetail.
 -}
-init : List AtrDetail -> ( Config, Cmd Msg )
-init atrDetails =
-    ( Config (Configuration atrDetails False False), Cmd.none )
+init : Bool -> List AtrDetail -> ( Config, Cmd Msg )
+init isEditable atrDetails =
+    ( Config (Configuration atrDetails True isEditable), Cmd.none )
 
 
 {-| Represents a changing AtrDetail action
 -}
 type Msg
     = AtrDetailChanged AtrDetailType Year String
-    | NoOpSort String
 
 
 {-| Updates the configuration of the Atr table.
@@ -81,9 +80,6 @@ update msg (Config configuration) =
             , Cmd.none
             , updatedConf.atrDetails
             )
-
-        NoOpSort _ ->
-            ( Config configuration, Cmd.none, configuration.atrDetails )
 
 
 updateConfiguration : AtrDetailType -> Year -> String -> Configuration -> Configuration
@@ -298,7 +294,7 @@ type alias Year =
 {-| Renders the table by receiving a Configuration. The columns of this table are expressed by the length of the AtrDetail list.
 -}
 render : Config -> Html Msg
-render (Config ({ atrDetails, alternateRows, isSortable } as config)) =
+render (Config ({ atrDetails, alternateRows, isEditable } as config)) =
     let
         destructureAtrDetail (AtrDetail atrConfiguration) =
             atrConfiguration
@@ -307,20 +303,20 @@ render (Config ({ atrDetails, alternateRows, isSortable } as config)) =
             (buildHeaders << List.map (String.fromInt << .year << destructureAtrDetail)) atrDetails
 
         rows =
-            buildRows atrDetails
+            buildRows isEditable atrDetails
     in
-    Table.render Table.initialState <| Table.config headers rows alternateRows isSortable
+    Table.render Table.initialState <| Table.config Table.defaultType headers rows alternateRows
 
 
 buildHeaders : List String -> List (Table.Header Msg)
 buildHeaders yearsOfAtrDetail =
-    Table.header "" "" NoOpSort :: List.map (\year -> Table.header year year NoOpSort) yearsOfAtrDetail
+    Table.header "" "" Nothing :: List.map (\year -> Table.header year year Nothing) yearsOfAtrDetail
 
 
-buildRows : List AtrDetail -> List (Table.Row Msg)
-buildRows atrDetails =
+buildRows : Bool -> List AtrDetail -> List (Table.Row Msg)
+buildRows isEditable atrDetails =
     List.map
-        (\atrType -> Table.row <| Table.columnString (atrTypeToString atrType) :: List.map (buildColumn atrType) atrDetails)
+        (\atrType -> Table.row <| Table.columnString 1 (atrTypeToString atrType) :: List.map (buildColumn isEditable atrType) atrDetails)
         [ Principale
         , PrincipaleCose
         , PrincipalePersone
@@ -332,31 +328,44 @@ buildRows atrDetails =
         ]
 
 
-buildColumn : AtrDetailType -> AtrDetail -> Table.Column Msg
-buildColumn atrType atrDetail =
-    (Table.columnHtml << buildColumnContent atrType) atrDetail
+buildColumn : Bool -> AtrDetailType -> AtrDetail -> Table.Column Msg
+buildColumn isEditable atrType atrDetail =
+    (Table.columnHtml 1 << buildColumnContent isEditable atrType) atrDetail
 
 
-buildColumnContent : AtrDetailType -> AtrDetail -> List (Html Msg)
-buildColumnContent atrType (AtrDetail atrConfig) =
-    case ( atrType, isLegacy atrConfig.year ) of
-        ( Principale, True ) ->
+buildColumnContent : Bool -> AtrDetailType -> AtrDetail -> List (Html Msg)
+buildColumnContent isEditable atrType (AtrDetail atrConfig) =
+    let
+        atrDetailsAccidents =
+            (Maybe.withDefault "" << atrTypeExtractor atrType) atrConfig
+    in
+    case ( atrType, isEditable, isLegacy atrConfig.year ) of
+        ( Principale, True, True ) ->
             [ buildSelect atrType atrConfig ]
 
-        ( Paritaria, True ) ->
+        ( Principale, False, True ) ->
+            [ text atrDetailsAccidents ]
+
+        ( Paritaria, True, True ) ->
             [ buildSelect atrType atrConfig ]
 
-        ( Principale, False ) ->
+        ( Paritaria, False, True ) ->
+            [ text atrDetailsAccidents ]
+
+        ( Principale, _, False ) ->
             [ (text << String.fromInt << calculateTotalAccidents atrConfig) [ PrincipalePersone, PrincipaleCose, PrincipaleMista ] ]
 
-        ( Paritaria, False ) ->
+        ( Paritaria, _, False ) ->
             [ (text << String.fromInt << calculateTotalAccidents atrConfig) [ ParitariaPersone, ParitariaCose, ParitariaMista ] ]
 
-        ( _, True ) ->
+        ( _, _, True ) ->
             [ text "--" ]
 
-        ( _, _ ) ->
+        ( _, True, _ ) ->
             [ buildSelect atrType atrConfig ]
+
+        ( _, False, _ ) ->
+            [ text atrDetailsAccidents ]
 
 
 buildSelect : AtrDetailType -> AtrDetailConfiguration -> Html Msg

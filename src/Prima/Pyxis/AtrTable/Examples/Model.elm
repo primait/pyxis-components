@@ -19,7 +19,11 @@ type alias Model =
 
 initialModel : Model
 initialModel =
-    Model [] <| (Tuple.first << AtrTable.init << List.map createAtr) (List.range 2012 2019)
+    let
+        isEditable =
+            False
+    in
+    Model [] <| (Tuple.first << AtrTable.init isEditable << List.map createAtr) (List.range 2012 2019)
 
 
 createAtr : Int -> AtrTable.AtrDetail

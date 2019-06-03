@@ -24,10 +24,10 @@ appBody model =
 createTableConfiguration : Model -> Table.Config Msg
 createTableConfiguration model =
     Table.config
+        Table.defaultType
         (createHeaders model.headers)
         (createRows model.rows)
         True
-        False
 
 
 createHeaders : List String -> List (Table.Header Msg)
@@ -37,7 +37,7 @@ createHeaders headers =
 
 createHeaderItem : String -> Table.Header Msg
 createHeaderItem content =
-    Table.header (String.toLower content) content SortBy
+    Table.header (String.toLower content) content (Just SortBy)
 
 
 createRows : List (List String) -> List (Table.Row Msg)
@@ -47,4 +47,4 @@ createRows rows =
 
 createColumns : List String -> List (Table.Column Msg)
 createColumns columns =
-    List.map Table.columnString columns
+    List.map (Table.columnString 1) columns

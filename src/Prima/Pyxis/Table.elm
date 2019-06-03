@@ -1,6 +1,6 @@
 module Prima.Pyxis.Table exposing
-    ( Config, State, Header, Row, Column
-    , config, initialState
+    ( Config, TableType, State, Header, Row, Column, ColSpan
+    , config, initialState, defaultType, alternativeType
     , header, row
     , columnFloat, columnHtml, columnInteger, columnString
     , sortByAsc, sortByDesc, sortByNothing
@@ -12,12 +12,12 @@ module Prima.Pyxis.Table exposing
 
 # Configuration
 
-@docs Config, State, Header, Row, Column
+@docs Config, TableType, State, Header, Row, Column, ColSpan
 
 
 # Configuration Helpers
 
-@docs config, initialState
+@docs config, initialState, defaultType, alternativeType
 
 
 # Configuration for Rows & Headers
@@ -43,7 +43,7 @@ module Prima.Pyxis.Table exposing
 
 import Array exposing (Array)
 import Html exposing (Html, i, table, tbody, td, text, th, thead, tr)
-import Html.Attributes exposing (attribute, class, classList)
+import Html.Attributes exposing (attribute, class, classList, colspan)
 import Html.Events exposing (onClick)
 import List.Extra
 
@@ -55,10 +55,10 @@ type Config msg
 
 
 type alias Configuration msg =
-    { headers : List (Header msg)
+    { tableType : TableType
+    , headers : List (Header msg)
     , rows : List (Row msg)
     , alternateRows : Bool
-    , isSortable : Bool
     }
 
 
@@ -84,17 +84,41 @@ type alias Configuration msg =
             alternateRows =
                 True
 
-            isSortable =
-                True
         in
-        Table.config headers rows alternateRows isSortable
+        Table.config Table.defaultType headers rows alternateRows
 
     ...
 
 -}
-config : List (Header msg) -> List (Row msg) -> Bool -> Bool -> Config msg
-config headers rows alternateRows isSortable =
-    Config (Configuration headers rows alternateRows isSortable)
+config : TableType -> List (Header msg) -> List (Row msg) -> Bool -> Config msg
+config tableType headers rows alternateRows =
+    Config (Configuration tableType headers rows alternateRows)
+
+
+{-| Represents the table skin.
+-}
+type TableType
+    = Default
+    | Alternative
+
+
+{-| Represents the Default table skin.
+-}
+defaultType : TableType
+defaultType =
+    Default
+
+
+{-| Represents the Alternative table skin.
+-}
+alternativeType : TableType
+alternativeType =
+    Alternative
+
+
+isAlternativeTableType : TableType -> Bool
+isAlternativeTableType =
+    (==) Alternative
 
 
 {-| Represents the basic state of the component.
@@ -151,23 +175,20 @@ type Header msg
 type alias HeaderConfiguration msg =
     { slug : Slug
     , name : Name
-    , tagger : Slug -> msg
+    , tagger : Maybe (Slug -> msg)
     }
 
 
-{-|
-
-
-## Creates and Header.
+{-| Creates and Header.
 
     myHeader : String -> String -> (String -> Msg) -> Table.Header Msg
     myHeader slug content sortByTagger =
         Table.header slug content sortByTagger
 
 -}
-header : Slug -> Name -> (Slug -> msg) -> Header msg
-header slug name tagger =
-    Header <| HeaderConfiguration slug name tagger
+header : Slug -> Name -> Maybe (Slug -> msg) -> Header msg
+header slug name maybeTagger =
+    Header <| HeaderConfiguration slug name maybeTagger
 
 
 {-| Represents a Row which contains a list of Columns.
@@ -195,38 +216,38 @@ type Column msg
 
 
 type ColumnConfiguration msg
-    = StringColumn String
-    | IntegerColumn Int
-    | FloatColumn Float
-    | HtmlColumn (List (Html msg))
+    = StringColumn ColSpan String
+    | IntegerColumn ColSpan Int
+    | FloatColumn ColSpan Float
+    | HtmlColumn ColSpan (List (Html msg))
 
 
 {-| Creates a Column which content is String primitive.
 -}
-columnString : String -> Column msg
-columnString content =
-    Column (StringColumn content)
+columnString : ColSpan -> String -> Column msg
+columnString colSpan content =
+    Column (StringColumn colSpan content)
 
 
 {-| Creates a Column which content is Integer primitive.
 -}
-columnInteger : Int -> Column msg
-columnInteger content =
-    Column (IntegerColumn content)
+columnInteger : ColSpan -> Int -> Column msg
+columnInteger colSpan content =
+    Column (IntegerColumn colSpan content)
 
 
 {-| Creates a Column which content is Float primitive.
 -}
-columnFloat : Float -> Column msg
-columnFloat content =
-    Column (FloatColumn content)
+columnFloat : ColSpan -> Float -> Column msg
+columnFloat colSpan content =
+    Column (FloatColumn colSpan content)
 
 
 {-| Creates a Column which content is Html.
 -}
-columnHtml : List (Html msg) -> Column msg
-columnHtml content =
-    Column (HtmlColumn content)
+columnHtml : ColSpan -> List (Html msg) -> Column msg
+columnHtml colSpan content =
+    Column (HtmlColumn colSpan content)
 
 
 type alias Slug =
@@ -235,6 +256,12 @@ type alias Slug =
 
 type alias Name =
     String
+
+
+{-| Represents the colSpan of a column. Alias for Integer.
+-}
+type alias ColSpan =
+    Int
 
 
 sortRows : Int -> List (Row msg) -> List (Row msg)
@@ -252,16 +279,16 @@ sortRows columnIndex rows =
 columnToComparable : Column msg -> String
 columnToComparable (Column columnConf) =
     case columnConf of
-        StringColumn content ->
+        StringColumn _ content ->
             content
 
-        IntegerColumn content ->
+        IntegerColumn _ content ->
             String.fromInt content
 
-        FloatColumn content ->
+        FloatColumn _ content ->
             String.fromFloat content
 
-        HtmlColumn _ ->
+        HtmlColumn _ _ ->
             ""
 
 
@@ -280,7 +307,7 @@ retrieveHeaderIndexBySlug slug headers =
 {-| Renders a Table by receiving a State and a Config
 -}
 render : State -> Config msg -> Html msg
-render (State ({ sortBy, sortedColumn } as state)) (Config conf) =
+render (State ({ sortBy, sortedColumn } as internalState)) (Config conf) =
     let
         index =
             (Maybe.withDefault 0 << retrieveHeaderIndexBySlug sortedColumn) conf.headers
@@ -299,10 +326,11 @@ render (State ({ sortBy, sortedColumn } as state)) (Config conf) =
     table
         [ classList
             [ ( "m-table", True )
+            , ( "m-table--alt", isAlternativeTableType conf.tableType )
             , ( "m-table--alternateRows", conf.alternateRows )
             ]
         ]
-        [ renderTHead state conf
+        [ renderTHead internalState conf
         , renderTBody sortedRows
         ]
 
@@ -311,18 +339,19 @@ renderTHead : InternalState -> Configuration msg -> Html msg
 renderTHead internalState ({ headers } as conf) =
     thead
         [ class "m-table__header" ]
-        (List.map (renderTH internalState conf) headers)
+        (List.map (renderTH internalState) headers)
 
 
-renderTH : InternalState -> Configuration msg -> Header msg -> Html msg
-renderTH { sortBy } { isSortable } (Header { slug, name, tagger }) =
+renderTH : InternalState -> Header msg -> Html msg
+renderTH { sortBy } (Header ({ slug, name } as conf)) =
     let
         sortableAttribute =
-            if isSortable then
-                (onClick << tagger) slug
+            case conf.tagger of
+                Just tagger ->
+                    (onClick << tagger) slug
 
-            else
-                attribute "data-unsortable" ""
+                Nothing ->
+                    attribute "data-unsortable" ""
     in
     th
         (sortableAttribute
@@ -362,19 +391,37 @@ renderTR (Row columns) =
 
 
 renderTD : Column msg -> Html msg
-renderTD (Column columnType) =
+renderTD (Column conf) =
     td
-        [ class "m-table__body__row__col fsSmall" ]
-        (case columnType of
-            StringColumn content ->
+        [ class "m-table__body__row__col fsSmall"
+        , (colspan << pickColSpan) conf
+        ]
+        (case conf of
+            StringColumn _ content ->
                 (List.singleton << text) content
 
-            IntegerColumn content ->
+            IntegerColumn _ content ->
                 (List.singleton << text << String.fromInt) content
 
-            FloatColumn content ->
+            FloatColumn _ content ->
                 (List.singleton << text << String.fromFloat) content
 
-            HtmlColumn content ->
+            HtmlColumn _ content ->
                 content
         )
+
+
+pickColSpan : ColumnConfiguration msg -> Int
+pickColSpan conf =
+    case conf of
+        StringColumn colSpan _ ->
+            colSpan
+
+        IntegerColumn colSpan _ ->
+            colSpan
+
+        FloatColumn colSpan _ ->
+            colSpan
+
+        HtmlColumn colSpan _ ->
+            colSpan
