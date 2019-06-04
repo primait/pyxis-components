@@ -22,9 +22,11 @@ appBody _ =
     ]
 
 
+
+
 loaderVehicle : Loader.Config
 loaderVehicle =
-    Loader.vehicle Loader.medium (Just "Attendi. Stiamo caricando i tuoi dati...")
+    Loader.vehicle   (Just "Attendi. Stiamo caricando i tuoi dati...")
 
 
 loaderSpinnerSmall : Loader.Config

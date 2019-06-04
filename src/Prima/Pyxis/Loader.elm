@@ -19,7 +19,7 @@ type Config
 
 type alias Configuration =
     { type_ : LoaderType
-    , size : LoaderSize
+    , size : Maybe LoaderSize
     , text : Maybe String
     }
 
@@ -39,14 +39,14 @@ isLoaderMedium =
     (==) Medium
 
 
-small : LoaderSize
+small : Maybe LoaderSize
 small =
-    Small
+    Just Small
 
 
-medium : LoaderSize
+medium : Maybe LoaderSize
 medium =
-    Medium
+    Just Medium
 
 
 type LoaderType
@@ -54,14 +54,14 @@ type LoaderType
     | Vehicle
 
 
-spinner : LoaderSize -> Maybe String -> Config
+spinner : Maybe LoaderSize -> Maybe String -> Config
 spinner size text =
     Config (Configuration Spinner size text)
 
 
-vehicle : LoaderSize -> Maybe String -> Config
-vehicle size text =
-    Config (Configuration Vehicle size text)
+vehicle : Maybe String -> Config
+vehicle text =
+    Config (Configuration Vehicle Nothing text)
 
 
 render : Config -> Html msg
@@ -69,7 +69,7 @@ render (Config { size, type_, text }) =
     Html.div
         [ HA.classList
             [ ( "m-loader", True )
-            , ( "m-loader--small", isLoaderSmall size )
+            , ( "m-loader--small", (Maybe.withDefault False << Maybe.map isLoaderSmall) size )
             ]
         ]
         [ case type_ of
