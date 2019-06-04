@@ -1,11 +1,33 @@
 module Prima.Pyxis.Loader exposing
     ( Config
-    , medium
+    , spinner, vehicle
+    , medium, small
     , render
-    , small
-    , spinner
-    , vehicle
     )
+
+{-| Creates a Loader with svg animation.
+
+
+# Configuration
+
+@docs Config
+
+
+# Configuration Helpers
+
+@docs spinner, vehicle
+
+
+# Helpers
+
+@docs medium, small
+
+
+# Render
+
+@docs render
+
+-}
 
 import Html exposing (Html)
 import Html.Attributes as HA
@@ -13,6 +35,8 @@ import Svg exposing (Svg)
 import Svg.Attributes as SA
 
 
+{-| Represents the configuration of the loader.
+-}
 type Config
     = Config Configuration
 
@@ -24,6 +48,8 @@ type alias Configuration =
     }
 
 
+{-| Represents the configuration of the loader.
+-}
 type LoaderSize
     = Small
     | Medium
@@ -39,11 +65,15 @@ isLoaderMedium =
     (==) Medium
 
 
+{-| Define a Small size for the loader. You can use it only with Spinner loader.
+-}
 small : Maybe LoaderSize
 small =
     Just Small
 
 
+{-| Define a Medium size for the loader. You can use it only with Spinner loader.
+-}
 medium : Maybe LoaderSize
 medium =
     Just Medium
@@ -54,16 +84,53 @@ type LoaderType
     | Vehicle
 
 
+{-| Represents the configuration of the Spinner loader.
+
+    import Prima.Pyxis.Loader as Loader
+
+    ...
+
+    config : Loader.Config
+    config =
+        Loader.spinner Loader.small (Just "Please wait...")
+
+    ...
+
+-}
 spinner : Maybe LoaderSize -> Maybe String -> Config
 spinner size text =
     Config (Configuration Spinner size text)
 
 
+{-| Represents the configuration of the Vehicle loader.
+
+    import Prima.Pyxis.Loader as Loader
+
+    ...
+
+    config : Loader.Config
+    config =
+        Loader.vehicle (Just "Please wait...")
+
+    ...
+
+-}
 vehicle : Maybe String -> Config
 vehicle text =
     Config (Configuration Vehicle Nothing text)
 
 
+{-| Renders the loader and it's (infinite) animation.
+
+    import Prima.Pyxis.Loader as Loader
+
+    ...
+
+    Loader.render <| Loader.vehicle (Just "Please wait...")
+
+    ...
+
+-}
 render : Config -> Html msg
 render (Config { size, type_, text }) =
     Html.div
