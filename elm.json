@@ -3,11 +3,12 @@
     "name": "primait/pyxis-components",
     "summary": "Prima Design System components",
     "license": "BSD-3-Clause",
-    "version": "3.0.2",
+    "version": "3.1.0",
     "exposed-modules": [
         "Prima.Pyxis.Accordion",
         "Prima.Pyxis.AtrTable",
         "Prima.Pyxis.ListChooser",
+        "Prima.Pyxis.Loader",
         "Prima.Pyxis.Message",
         "Prima.Pyxis.Table"
     ],
