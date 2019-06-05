@@ -322,6 +322,9 @@ render (State ({ sortBy, sortedColumn } as internalState)) (Config conf) =
 
                 Just Desc ->
                     (List.reverse << sortRows index) conf.rows
+
+        headerSlugs =
+            List.map (\(Header { slug }) -> slug) conf.headers
     in
     table
         [ classList
@@ -331,7 +334,7 @@ render (State ({ sortBy, sortedColumn } as internalState)) (Config conf) =
             ]
         ]
         [ renderTHead internalState conf
-        , renderTBody sortedRows
+        , renderTBody headerSlugs sortedRows
         ]
 
 
@@ -376,25 +379,30 @@ renderSortIcon sort slug =
         []
 
 
-renderTBody : List (Row msg) -> Html msg
-renderTBody rows =
+renderTBody : List Slug -> List (Row msg) -> Html msg
+renderTBody headerSlugs rows =
     tbody
         [ class "m-table__body" ]
-        (List.map renderTR rows)
+        (List.map (renderTR headerSlugs) rows)
 
 
-renderTR : Row msg -> Html msg
-renderTR (Row columns) =
+renderTR : List Slug -> Row msg -> Html msg
+renderTR headerSlugs (Row columns) =
+    let
+        columnsDictionary =
+            List.map2 (\slug col -> ( slug, col )) headerSlugs columns
+    in
     tr
         [ class "m-table__body__row" ]
-        (List.map renderTD columns)
+        (List.map renderTD columnsDictionary)
 
 
-renderTD : Column msg -> Html msg
-renderTD (Column conf) =
+renderTD : ( Slug, Column msg ) -> Html msg
+renderTD ( slug, Column conf ) =
     td
         [ class "m-table__body__row__col fsSmall"
         , (colspan << pickColSpan) conf
+        , attribute "data-column" slug
         ]
         (case conf of
             StringColumn _ content ->
