@@ -1,6 +1,6 @@
 module Prima.Pyxis.Tooltip exposing
     ( Config
-    , tooltipUpConfig, tooltipDownConfig, tooltipLeftConfig, tooltipRightConfig
+    , upConfig, downConfig, leftConfig, rightConfig
     , render
     )
 
@@ -14,7 +14,7 @@ module Prima.Pyxis.Tooltip exposing
 
 # Configuration Helpers
 
-@docs tooltipUpConfig, tooltipDownConfig, tooltipLeftConfig, tooltipRightConfig
+@docs upConfig, downConfig, leftConfig, rightConfig
 
 
 # Render
@@ -23,8 +23,8 @@ module Prima.Pyxis.Tooltip exposing
 
 -}
 
-import Html exposing (..)
-import Html.Attributes exposing (..)
+import Html exposing (Html, div, text)
+import Html.Attributes exposing (classList)
 
 
 {-| Represents the config of a Tooltip
@@ -48,29 +48,29 @@ type TooltipType
 
 {-| Defines the configuration of an Up tooltip.
 -}
-tooltipUpConfig : String -> Config msg
-tooltipUpConfig content =
+upConfig : String -> Config msg
+upConfig content =
     Config (Configuration Up content)
 
 
 {-| Defines the configuration of a Down tooltip.
 -}
-tooltipDownConfig : String -> Config msg
-tooltipDownConfig content =
+downConfig : String -> Config msg
+downConfig content =
     Config (Configuration Down content)
 
 
 {-| Defines the configuration of an Left tooltip.
 -}
-tooltipLeftConfig : String -> Config msg
-tooltipLeftConfig content =
+leftConfig : String -> Config msg
+leftConfig content =
     Config (Configuration Left content)
 
 
 {-| Defines the configuration of an Right tooltip.
 -}
-tooltipRightConfig : String -> Config msg
-tooltipRightConfig content =
+rightConfig : String -> Config msg
+rightConfig content =
     Config (Configuration Right content)
 
 
