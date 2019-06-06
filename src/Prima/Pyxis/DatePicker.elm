@@ -340,14 +340,18 @@ picker model =
         [ div
             [ class "a-datepicker__picker__header" ]
             [ span
-                [ class "a-datepicker__picker__header__prevMonth", onClick PrevMonth ]
+                [ class "a-datepicker__picker__header__prevMonth"
+                , onClick PrevMonth
+                ]
                 []
             , div
                 [ class "a-datepicker__picker__header__currentMonth" ]
                 [ (text << formattedMonth) model
                 ]
             , span
-                [ class "a-datepicker__picker__header__nextMonth", onClick NextMonth ]
+                [ class "a-datepicker__picker__header__nextMonth"
+                , onClick NextMonth
+                ]
                 []
             ]
         , weekDays
