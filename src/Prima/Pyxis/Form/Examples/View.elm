@@ -19,37 +19,27 @@ view model =
 
 
 appBody : Model -> List (Html Msg)
-appBody model =
+appBody ({ isOpenCity } as model) =
     let
-        toggleDatePicker =
-            div
-                [ class "m-form__field__group__append"
-                ]
-                [ i
-                    [ class "a-icon a-icon-calendar cBrandAltDark"
-                    , onClick ToggleDatePicker
-                    ]
-                    []
-                ]
-    in
-    [ Helpers.pyxisStyle
-    , div
-        [ class "a-container" ]
-        [ fieldset
-            [ class "a-fieldset" ]
-            [ legend
-                [ class "a-fieldset__legend" ]
-                [ text "Form example" ]
-            , Form.wrapper <| (Form.render model Config.username ++ Form.render model Config.password)
-            , Form.wrapper <| Form.render model Config.note
-            , Form.wrapper <| Form.render model Config.gender
-            , Form.wrapper <| Form.render model Config.genderVertical
-            , Form.wrapper <| Form.render model Config.privacy
-            , Form.wrapper <| Form.render model (Config.visitedCountries model)
-            , Form.wrapper <| Form.render model (Config.city model.isOpenCity)
-            , Form.wrapper <| Form.renderWithGroup [ toggleDatePicker ] model (Config.dateOfBirth model)
-            , Form.wrapper <| Form.render model (Config.country model)
-            , Form.wrapper <| Form.render model (Config.staticHtml model)
+        renderModel =
+            [ ( Form.renderField model, [ Config.username, Config.password ] )
+            , ( Form.renderField model, [ Config.note ] )
+            , ( Form.renderField model, [ Config.gender ] )
+            , ( Form.renderField model, [ Config.genderVertical ] )
+            , ( Form.renderField model, [ Config.privacy ] )
+            , ( Form.renderField model, [ Config.visitedCountries model ] )
+            , ( Form.renderField model, [ Config.city isOpenCity ] )
+            , ( Form.renderField model, [ Config.country model ] )
+            , ( Form.renderFieldWithGroup model <| Form.appendGroup [ datePickerIcon ], [ Config.dateOfBirth model ] )
             ]
+    in
+    Helpers.pyxisStyle :: (Form.render model << Form.init) renderModel
+
+
+datePickerIcon : Html Msg
+datePickerIcon =
+    i
+        [ class "a-icon a-icon-calendar cBrandAltDark"
+        , onClick ToggleDatePicker
         ]
-    ]
+        []
