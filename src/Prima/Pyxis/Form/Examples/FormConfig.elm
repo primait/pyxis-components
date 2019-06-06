@@ -41,8 +41,10 @@ username =
         (Just "Username & Password")
         [ minlength 3, maxlength 12 ]
         .username
-        (UpdateField Username)
-        [ Form.Focus (OnFocus Username), Form.Blur (OnBlur Username) ]
+        [ Form.onInput (UpdateField Username)
+        , Form.onFocus (OnFocus Username)
+        , Form.onBlur (OnBlur Username)
+        ]
         [ NotEmpty "Empty value is not acceptable."
         , Custom ((<=) 3 << String.length << Maybe.withDefault "" << .username) "Value must be between 3 and 12 characters length."
         ]
@@ -55,8 +57,7 @@ password =
         Nothing
         []
         .password
-        (UpdateField Password)
-        []
+        [ Form.onInput (UpdateField Password) ]
         [ NotEmpty "Empty value is not acceptable."
         ]
 
@@ -68,8 +69,8 @@ note =
         (Just "Note")
         []
         .note
-        (UpdateField Note)
-        []
+        [ Form.onInput (UpdateField Note) ]
+        
         [ NotEmpty "Empty value is not acceptable." ]
 
 
@@ -140,7 +141,7 @@ city isOpen =
         .city
         (Toggle City)
         (UpdateField City)
-        [ Form.Focus (OnFocus City) ]
+        [ Form.onFocus (OnFocus City) ]
         (List.sortBy .label
             [ SelectOption "Milan" "MI"
             , SelectOption "Turin" "TO"
@@ -159,9 +160,8 @@ dateOfBirth { isVisibleDP, dateOfBirthDP } =
         (Just "Date of Birth")
         []
         .dateOfBirth
-        (UpdateField DateOfBirth)
         (UpdateDatePicker DateOfBirth)
-        []
+        [ Form.onInput (UpdateField DateOfBirth) ]
         dateOfBirthDP
         isVisibleDP
         [ Custom (Maybe.withDefault False << Maybe.map (always True) << .dateOfBirth) "This is not a valid date." ]
@@ -183,7 +183,7 @@ country { countryFilter, isOpenCountry } =
         .country
         (UpdateAutocomplete Country)
         (UpdateField Country)
-        [ Form.Focus (OnFocus Country) ]
+        [ Form.onFocus (OnFocus Country) ]
         ([ AutocompleteOption "Aland Islands" "ALA"
          , AutocompleteOption "Austria" "AUT"
          , AutocompleteOption "Belgium" "BEL"

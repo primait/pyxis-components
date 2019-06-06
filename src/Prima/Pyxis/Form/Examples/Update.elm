@@ -12,7 +12,7 @@ import Prima.Pyxis.Form.Examples.Model as Model
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-    case msg of
+    case Debug.log "update" msg of
         UpdateField Username value ->
             ( { model
                 | username = value

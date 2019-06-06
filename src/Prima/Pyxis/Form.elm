@@ -1,5 +1,5 @@
 module Prima.Pyxis.Form exposing
-    ( Form, FormField, FormFieldConfig, Validation(..), FormFieldGroup, Event(..)
+    ( Form, FormField, FormFieldConfig, Validation(..), FormFieldGroup, Event
     , init, textConfig, passwordConfig, textareaConfig, checkboxConfig, CheckboxOption, checkboxWithOptionsConfig, SelectOption, selectConfig, RadioOption, radioConfig
     , AutocompleteOption
     , autocompleteConfig
@@ -8,7 +8,7 @@ module Prima.Pyxis.Form exposing
     , render, renderField, renderFieldWithGroup, wrapper
     , isValid
     , isPristine
-    , appendGroup, prependGroup, setAsPristine, setAsSubmitted, setAsTouched
+    , appendGroup, onBlur, onFocus, onInput, prependGroup, setAsPristine, setAsSubmitted, setAsTouched
     )
 
 {-| Package to build a Form using [Prima Assicurazioni](https://www.prima.it)'s Design System.
@@ -69,13 +69,7 @@ import Html.Attributes
         , type_
         , value
         )
-import Html.Events
-    exposing
-        ( onBlur
-        , onClick
-        , onFocus
-        , onInput
-        )
+import Html.Events as Evt
 import Prima.Pyxis.DatePicker as DatePicker
 import Regex
 
@@ -158,8 +152,24 @@ type FormFieldConfig model msg
 
 
 type Event msg
-    = Focus msg
+    = Input (Maybe Value -> msg)
+    | Focus msg
     | Blur msg
+
+
+onFocus : msg -> Event msg
+onFocus =
+    Focus
+
+
+onBlur : msg -> Event msg
+onBlur =
+    Blur
+
+
+onInput : (Maybe Value -> msg) -> Event msg
+onInput =
+    Input
 
 
 type FormFieldGroup msg
@@ -182,7 +192,6 @@ type alias TextConfig model msg =
     , label : Maybe Label
     , attrs : List (Attribute msg)
     , reader : model -> Maybe Value
-    , tagger : Maybe Value -> msg
     , events : List (Event msg)
     }
 
@@ -192,7 +201,6 @@ type alias PasswordConfig model msg =
     , label : Maybe Label
     , attrs : List (Attribute msg)
     , reader : model -> Maybe Value
-    , tagger : Maybe Value -> msg
     , events : List (Event msg)
     }
 
@@ -202,7 +210,6 @@ type alias TextareaConfig model msg =
     , label : Maybe Label
     , attrs : List (Attribute msg)
     , reader : model -> Maybe Value
-    , tagger : Maybe Value -> msg
     , events : List (Event msg)
     }
 
@@ -301,7 +308,6 @@ type alias DatepickerConfig model msg =
     , label : Maybe Label
     , attrs : List (Attribute msg)
     , reader : model -> Maybe Value
-    , tagger : Maybe Value -> msg
     , datePickerTagger : DatePicker.Msg -> msg
     , events : List (Event msg)
     , instance : DatePicker.Model
@@ -356,23 +362,23 @@ type alias Value =
 
 {-| Input Text configuration method.
 -}
-textConfig : Slug -> Maybe Label -> List (Attribute msg) -> (model -> Maybe Value) -> (Maybe Value -> msg) -> List (Event msg) -> List (Validation model) -> FormField model msg
-textConfig slug label attrs reader tagger events validations =
-    FormField <| FormFieldTextConfig (TextConfig slug label attrs reader tagger events) validations
+textConfig : Slug -> Maybe Label -> List (Attribute msg) -> (model -> Maybe Value) -> List (Event msg) -> List (Validation model) -> FormField model msg
+textConfig slug label attrs reader events validations =
+    FormField <| FormFieldTextConfig (TextConfig slug label attrs reader events) validations
 
 
 {-| Input password configuration method. See `textConfig` for configuration options.
 -}
-passwordConfig : Slug -> Maybe Label -> List (Attribute msg) -> (model -> Maybe Value) -> (Maybe Value -> msg) -> List (Event msg) -> List (Validation model) -> FormField model msg
-passwordConfig slug label attrs reader tagger events validations =
-    FormField <| FormFieldPasswordConfig (PasswordConfig slug label attrs reader tagger events) validations
+passwordConfig : Slug -> Maybe Label -> List (Attribute msg) -> (model -> Maybe Value) -> List (Event msg) -> List (Validation model) -> FormField model msg
+passwordConfig slug label attrs reader events validations =
+    FormField <| FormFieldPasswordConfig (PasswordConfig slug label attrs reader events) validations
 
 
 {-| Textarea configuration method. See `textConfig` for configuration options.
 -}
-textareaConfig : Slug -> Maybe Label -> List (Attribute msg) -> (model -> Maybe Value) -> (Maybe Value -> msg) -> List (Event msg) -> List (Validation model) -> FormField model msg
-textareaConfig slug label attrs reader tagger events validations =
-    FormField <| FormFieldTextareaConfig (TextareaConfig slug label attrs reader tagger events) validations
+textareaConfig : Slug -> Maybe Label -> List (Attribute msg) -> (model -> Maybe Value) -> List (Event msg) -> List (Validation model) -> FormField model msg
+textareaConfig slug label attrs reader events validations =
+    FormField <| FormFieldTextareaConfig (TextareaConfig slug label attrs reader events) validations
 
 
 {-| Input Radio configuration method.
@@ -405,8 +411,8 @@ selectConfig slug label isDisabled isOpen placeholder attrs reader toggleTagger 
 
 {-| Datepicker configuration method.
 -}
-datepickerConfig : Slug -> Maybe Label -> List (Attribute msg) -> (model -> Maybe Value) -> (Maybe Value -> msg) -> (DatePicker.Msg -> msg) -> List (Event msg) -> DatePicker.Model -> Bool -> List (Validation model) -> FormField model msg
-datepickerConfig slug label attrs reader tagger datePickerTagger events datepicker showDatePicker validations =
+datepickerConfig : Slug -> Maybe Label -> List (Attribute msg) -> (model -> Maybe Value) -> (DatePicker.Msg -> msg) -> List (Event msg) -> DatePicker.Model -> Bool -> List (Validation model) -> FormField model msg
+datepickerConfig slug label attrs reader datePickerTagger events datepicker showDatePicker validations =
     FormField <|
         FormFieldDatepickerConfig
             (DatepickerConfig
@@ -414,7 +420,6 @@ datepickerConfig slug label attrs reader tagger datePickerTagger events datepick
                 label
                 attrs
                 reader
-                tagger
                 datePickerTagger
                 events
                 datepicker
@@ -614,7 +619,7 @@ renderError error =
 
 
 renderInput : model -> TextConfig model msg -> List (Validation model) -> List (Html msg)
-renderInput model ({ reader, tagger, slug, label, attrs } as config) validations =
+renderInput model ({ reader, slug, label, attrs } as config) validations =
     let
         opaqueConfig =
             FormField (FormFieldTextConfig config validations)
@@ -627,7 +632,6 @@ renderInput model ({ reader, tagger, slug, label, attrs } as config) validations
     in
     [ Html.input
         ([ type_ "text"
-         , onInput (tagger << normalizeInput)
          , (value << Maybe.withDefault "" << reader) model
          , id slug
          , name slug
@@ -647,7 +651,7 @@ renderInput model ({ reader, tagger, slug, label, attrs } as config) validations
 
 
 renderPassword : model -> PasswordConfig model msg -> List (Validation model) -> List (Html msg)
-renderPassword model ({ reader, tagger, slug, label, attrs } as config) validations =
+renderPassword model ({ reader, slug, label, attrs } as config) validations =
     let
         opaqueConfig =
             FormField (FormFieldTextConfig config validations)
@@ -660,7 +664,6 @@ renderPassword model ({ reader, tagger, slug, label, attrs } as config) validati
     in
     [ Html.input
         ([ type_ "password"
-         , onInput (tagger << normalizeInput)
          , (value << Maybe.withDefault "" << reader) model
          , id slug
          , name slug
@@ -680,7 +683,7 @@ renderPassword model ({ reader, tagger, slug, label, attrs } as config) validati
 
 
 renderTextarea : model -> TextareaConfig model msg -> List (Validation model) -> List (Html msg)
-renderTextarea model ({ reader, tagger, slug, label, attrs } as config) validations =
+renderTextarea model ({ reader, slug, label, attrs, events } as config) validations =
     let
         opaqueConfig =
             FormField (FormFieldTextareaConfig config validations)
@@ -692,8 +695,7 @@ renderTextarea model ({ reader, tagger, slug, label, attrs } as config) validati
             isPristine model opaqueConfig
     in
     [ Html.textarea
-        ([ onInput (tagger << normalizeInput)
-         , (value << Maybe.withDefault "" << reader) model
+        ([ (value << Maybe.withDefault "" << reader) model
          , id slug
          , name slug
          , classList
@@ -737,7 +739,7 @@ renderRadio model ({ slug, label, options } as config) validations =
 
 
 renderRadioOption : model -> RadioConfig model msg -> Int -> RadioOption -> List (Html msg)
-renderRadioOption model ({ reader, tagger, slug, label, options, attrs } as config) index option =
+renderRadioOption model ({ reader, slug, label, options, tagger, attrs } as config) index option =
     let
         optionSlug =
             (String.join "_" << List.map (String.trim << String.toLower)) [ slug, option.slug ]
@@ -746,7 +748,7 @@ renderRadioOption model ({ reader, tagger, slug, label, options, attrs } as conf
         ([ type_ "radio"
 
          {--IE 11 does not behave correctly with onInput --}
-         , (onClick << tagger << normalizeInput << .slug) option
+         , (Evt.onClick << tagger << normalizeInput << .slug) option
          , value option.slug
          , id optionSlug
          , name slug
@@ -788,7 +790,7 @@ renderCheckbox model ({ reader, tagger, slug, label, attrs } as config) validati
     in
     [ Html.input
         ([ type_ "checkbox"
-         , (onClick << tagger << not << reader) model
+         , (Evt.onClick << tagger << not << reader) model
          , (checked << reader) model
          , (value << boolToString << reader) model
          , id slug
@@ -830,7 +832,7 @@ renderCheckboxOption model ({ reader, tagger, attrs } as config) index option =
     in
     [ Html.input
         ([ type_ "checkbox"
-         , (onClick << tagger option.slug << not) option.isChecked
+         , (Evt.onClick << tagger option.slug << not) option.isChecked
          , value option.slug
          , id slug
          , name slug
@@ -852,7 +854,7 @@ renderCheckboxOption model ({ reader, tagger, attrs } as config) index option =
 
 
 renderSelect : model -> SelectConfig model msg -> List (Validation model) -> List (Html msg)
-renderSelect model ({ slug, label, reader, optionTagger, attrs } as config) validations =
+renderSelect model ({ slug, label, reader, optionTagger, attrs, events } as config) validations =
     let
         options =
             case ( config.placeholder, config.isOpen ) of
@@ -873,8 +875,7 @@ renderSelect model ({ slug, label, reader, optionTagger, attrs } as config) vali
     in
     [ renderCustomSelect model config validations
     , Html.select
-        ([ onInput (optionTagger << normalizeInput)
-         , id slug
+        ([ id slug
          , name slug
          , classList
             [ ( "a-form__field__select", True )
@@ -944,7 +945,7 @@ renderCustomSelect model ({ slug, label, reader, toggleTagger, isDisabled, isOpe
         )
         [ span
             [ class "a-form__field__customSelect__status"
-            , (onClick << toggleTagger << not) isOpen
+            , (Evt.onClick << toggleTagger << not) isOpen
             ]
             [ text currentValue
             ]
@@ -966,14 +967,14 @@ renderCustomSelectOption model { reader, optionTagger, slug, label } option =
             [ ( "a-form__field__customSelect__list__item", True )
             , ( "is-selected", ((==) option.slug << Maybe.withDefault "" << reader) model )
             ]
-        , (onClick << optionTagger << normalizeInput) option.slug
+        , (Evt.onClick << optionTagger << normalizeInput) option.slug
         ]
         [ text option.label
         ]
 
 
 renderDatepicker : model -> DatepickerConfig model msg -> List (Validation model) -> List (Html msg)
-renderDatepicker model ({ attrs, reader, tagger, datePickerTagger, slug, label, instance, showDatePicker } as config) validations =
+renderDatepicker model ({ attrs, reader, datePickerTagger, slug, label, instance, showDatePicker, events } as config) validations =
     let
         opaqueConfig =
             FormField (FormFieldDatepickerConfig config validations)
@@ -1000,7 +1001,6 @@ renderDatepicker model ({ attrs, reader, tagger, datePickerTagger, slug, label, 
     in
     [ Html.input
         ([ type_ "text"
-         , onInput (tagger << normalizeInput)
          , (value << Maybe.withDefault "" << Maybe.map inputTextFormat << reader) model
          , id slug
          , name slug
@@ -1019,7 +1019,6 @@ renderDatepicker model ({ attrs, reader, tagger, datePickerTagger, slug, label, 
     , (renderIf showDatePicker << Html.map datePickerTagger << DatePicker.view) instance
     , Html.input
         ([ attribute "type" "date"
-         , onInput (tagger << normalizeInput)
          , (value << Maybe.withDefault "" << Maybe.map inputDateFormat << reader) model
          , id slug
          , name slug
@@ -1074,7 +1073,7 @@ renderAutocomplete model ({ filterReader, filterTagger, choiceReader, choiceTagg
         ]
         [ Html.input
             ([ type_ "text"
-             , onInput (filterTagger << normalizeInput)
+             , Evt.onInput (filterTagger << normalizeInput)
              , valueAttr
              , id slug
              , name slug
@@ -1109,7 +1108,7 @@ renderAutocompleteOption model ({ choiceReader, choiceTagger } as config) option
             [ ( "a-form__field__autocomplete__list__item", True )
             , ( "is-selected", ((==) option.slug << Maybe.withDefault "" << choiceReader) model )
             ]
-        , (onClick << choiceTagger << normalizeInput) option.slug
+        , (Evt.onClick << choiceTagger << normalizeInput) option.slug
         ]
         [ text option.label
         ]
@@ -1134,11 +1133,14 @@ addEvents =
     List.map
         (\event ->
             case event of
+                Input tagger ->
+                    Evt.onInput (tagger << normalizeInput)
+
                 Focus tagger ->
-                    onFocus tagger
+                    Evt.onFocus tagger
 
                 Blur tagger ->
-                    onBlur tagger
+                    Evt.onBlur tagger
         )
 
 
@@ -1213,7 +1215,6 @@ isJust v =
 isNothing : Maybe a -> Bool
 isNothing =
     not << isJust
-
 
 validate : model -> FormFieldConfig model msg -> Validation model -> Bool
 validate model config validation =
