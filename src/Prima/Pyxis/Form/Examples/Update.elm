@@ -118,9 +118,9 @@ update msg model =
             , Cmd.none
             )
 
-        Toggle City isOpen ->
+        Toggle City ->
             ( { model
-                | isOpenCity = isOpen
+                | isOpenCity = not model.isOpenCity
               }
             , Cmd.none
             )

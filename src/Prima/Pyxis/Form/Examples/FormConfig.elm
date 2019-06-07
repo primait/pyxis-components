@@ -107,9 +107,11 @@ city isOpen =
         (Just "Seleziona")
         [ class "formSmall" ]
         .city
-        (Toggle City)
-        (UpdateField City)
-        [ Event.onFocus (OnFocus City) ]
+        [ Event.onToggle (Toggle City)
+        , Event.onInput (UpdateField City)
+        , Event.onSelect (UpdateField City)
+        , Event.onFocus (OnFocus City)
+        ]
         (List.sortBy .label
             [ SelectOption "Milan" "MI"
             , SelectOption "Turin" "TO"
@@ -150,7 +152,7 @@ country { countryFilter, isOpenCountry } =
         .countryFilter
         .country
         [ Event.onAutocompleteFilter (UpdateAutocomplete Country)
-        , Event.onInput (UpdateField Country)
+        , Event.onSelect (UpdateField Country)
         , Event.onFocus (OnFocus Country)
         ]
         ([ AutocompleteOption "Aland Islands" "ALA"

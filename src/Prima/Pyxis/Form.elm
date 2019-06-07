@@ -200,8 +200,6 @@ type alias SelectConfig model msg =
     , placeholder : Maybe String
     , attrs : List (Attribute msg)
     , reader : model -> Maybe Value
-    , toggleTagger : Bool -> msg
-    , optionTagger : Maybe Value -> msg
     , events : List (Event msg)
     , options : List SelectOption
     }
@@ -286,9 +284,9 @@ checkboxConfig slug label attrs reader events options validations =
     FormField <| FormFieldCheckboxConfig (CheckboxConfig slug label attrs reader events options) validations
 
 
-selectConfig : Slug -> Maybe Label -> Bool -> Bool -> Maybe String -> List (Attribute msg) -> (model -> Maybe Value) -> (Bool -> msg) -> (Maybe Value -> msg) -> List (Event msg) -> List SelectOption -> List (Validation model) -> FormField model msg
-selectConfig slug label isDisabled isOpen placeholder attrs reader toggleTagger optionTagger events options validations =
-    FormField <| FormFieldSelectConfig (SelectConfig slug label isDisabled isOpen placeholder attrs reader toggleTagger optionTagger events options) validations
+selectConfig : Slug -> Maybe Label -> Bool -> Bool -> Maybe String -> List (Attribute msg) -> (model -> Maybe Value) -> List (Event msg) -> List SelectOption -> List (Validation model) -> FormField model msg
+selectConfig slug label isDisabled isOpen placeholder attrs reader events options validations =
+    FormField <| FormFieldSelectConfig (SelectConfig slug label isDisabled isOpen placeholder attrs reader events options) validations
 
 
 datepickerConfig : Slug -> Maybe Label -> List (Attribute msg) -> (model -> Maybe Value) -> (DatePicker.Msg -> msg) -> List (Event msg) -> DatePicker.Model -> Bool -> List (Validation model) -> FormField model msg
@@ -678,7 +676,7 @@ renderCheckboxOption model ({ reader, attrs } as config) index option =
 
 
 renderSelect : model -> SelectConfig model msg -> List (Validation model) -> List (Html msg)
-renderSelect model ({ slug, label, reader, optionTagger, attrs, events } as config) validations =
+renderSelect model ({ slug, label, reader, attrs, events } as config) validations =
     let
         options =
             case ( config.placeholder, config.isOpen ) of
@@ -710,6 +708,9 @@ renderSelect model ({ slug, label, reader, optionTagger, attrs, events } as conf
             ]
          ]
             ++ attrs
+            ++ Events.onInputAttribute config.events
+            ++ Events.onFocusAttribute config.events
+            ++ Events.onBlurAttribute config.events
         )
         (List.map (renderSelectOption model config) options)
     ]
@@ -726,7 +727,7 @@ renderSelectOption model { reader, slug, label } option =
 
 
 renderCustomSelect : model -> SelectConfig model msg -> List (Validation model) -> Html msg
-renderCustomSelect model ({ slug, label, reader, toggleTagger, isDisabled, isOpen, attrs } as config) validations =
+renderCustomSelect model ({ slug, label, reader, isDisabled, isOpen, attrs } as config) validations =
     let
         options =
             case ( config.placeholder, isOpen ) of
@@ -764,11 +765,14 @@ renderCustomSelect model ({ slug, label, reader, toggleTagger, isDisabled, isOpe
             ]
          ]
             ++ attrs
+            ++ Events.onFocusAttribute config.events
+            ++ Events.onBlurAttribute config.events
         )
         [ span
-            [ class "a-form__field__customSelect__status"
-            , (Evt.onClick << toggleTagger << not) isOpen
-            ]
+            ([ class "a-form__field__customSelect__status"
+             ]
+                ++ Events.onToggleAttribute config.events
+            )
             [ text currentValue
             ]
         , ul
@@ -783,7 +787,7 @@ renderCustomSelect model ({ slug, label, reader, toggleTagger, isDisabled, isOpe
 
 
 renderCustomSelectOption : model -> SelectConfig model msg -> SelectOption -> Html msg
-renderCustomSelectOption model ({ reader, optionTagger, slug, label } as config) option =
+renderCustomSelectOption model ({ reader, slug, label } as config) option =
     li
         ([ classList
             [ ( "a-form__field__customSelect__list__item", True )
@@ -906,7 +910,7 @@ renderAutocomplete model ({ filterReader, choiceReader, slug, label, isOpen, noR
                 ]
              ]
                 ++ attrs
-                ++ Events.onInputAttribute config.events
+                ++ Events.onAutocompleteFilterAttribute config.events
             )
             []
         , ul

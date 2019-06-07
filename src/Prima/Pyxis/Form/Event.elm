@@ -13,6 +13,8 @@ module Prima.Pyxis.Form.Event exposing
     , onInputAttribute
     , onSelect
     , onSelectAttribute
+    , onToggle
+    , onToggleAttribute
     )
 
 import Html exposing (Attribute, Html)
@@ -31,6 +33,7 @@ type Event msg
     = Input (Maybe Value -> msg)
     | Focus msg
     | Blur msg
+    | Toggle msg
     | Select (Maybe Value -> msg)
     | Check (( Slug, Bool ) -> msg)
     | AutocompleteFilter (Maybe Value -> msg)
@@ -68,6 +71,11 @@ onSelect =
 onCheck : (( Slug, Bool ) -> msg) -> Event msg
 onCheck =
     Check
+
+
+onToggle : msg -> Event msg
+onToggle =
+    Toggle
 
 
 onAutocompleteFilter : (Maybe Value -> msg) -> Event msg
@@ -157,6 +165,23 @@ onCheckAttribute slug isChecked events =
             )
         |> List.head
         |> Maybe.map (\tagger -> [ (Events.onClick << tagger) ( slug, isChecked ) ])
+        |> Maybe.withDefault []
+
+
+onToggleAttribute : List (Event msg) -> List (Attribute msg)
+onToggleAttribute events =
+    events
+        |> List.filterMap
+            (\e ->
+                case e of
+                    Toggle tagger ->
+                        Just tagger
+
+                    _ ->
+                        Nothing
+            )
+        |> List.head
+        |> Maybe.map (\tagger -> [ Events.onClick tagger ])
         |> Maybe.withDefault []
 
 

@@ -100,7 +100,7 @@ type Msg
     | UpdateDate FieldName (Maybe Date)
     | UpdateFlag FieldName Bool
     | UpdateCheckbox FieldName ( Slug, Bool )
-    | Toggle FieldName Bool
+    | Toggle FieldName
     | FetchDateToday Date
     | OnFocus FieldName
     | OnBlur FieldName
