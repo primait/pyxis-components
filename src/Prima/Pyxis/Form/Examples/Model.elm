@@ -105,3 +105,5 @@ type Msg
     | OnFocus FieldName
     | OnBlur FieldName
     | ToggleDatePicker
+    | Submit
+    | Reset

@@ -57,7 +57,6 @@ type Form model msg
 
 type alias FormConfig model msg =
     { state : FormState
-    , showErrors : Bool
     , renderModel : List (RenderModel model msg)
     }
 
@@ -74,7 +73,7 @@ type FormState
 
 init : List (RenderModel model msg) -> Form model msg
 init renderModel =
-    Form (FormConfig Pristine False renderModel)
+    Form (FormConfig Pristine renderModel)
 
 
 setAsPristine : Form model msg -> Form model msg

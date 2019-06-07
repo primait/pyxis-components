@@ -158,6 +158,16 @@ update msg model =
             , Cmd.none
             )
 
+        Submit ->
+            ( model
+            , Cmd.none
+            )
+
+        Reset ->
+            ( model
+            , Cmd.none
+            )
+
         _ ->
             ( model
             , Cmd.none
