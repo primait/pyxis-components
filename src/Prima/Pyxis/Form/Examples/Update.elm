@@ -41,13 +41,6 @@ update msg model =
             , Cmd.none
             )
 
-        UpdateField GenderVertical value ->
-            ( { model
-                | genderVertical = value
-              }
-            , Cmd.none
-            )
-
         UpdateField City value ->
             ( { model
                 | city = value
@@ -89,13 +82,6 @@ update msg model =
             , Cmd.none
             )
 
-        UpdateFlag Privacy value ->
-            ( { model
-                | privacy = value
-              }
-            , Cmd.none
-            )
-
         UpdateDatePicker DateOfBirth dpMsg ->
             let
                 updatedInstance =
@@ -116,7 +102,7 @@ update msg model =
             , Cmd.none
             )
 
-        UpdateCheckbox VisitedCountries slug isChecked ->
+        UpdateCheckbox VisitedCountries ( slug, isChecked ) ->
             ( { model
                 | visitedCountries =
                     List.map

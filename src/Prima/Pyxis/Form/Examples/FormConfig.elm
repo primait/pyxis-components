@@ -3,10 +3,8 @@ module Prima.Pyxis.Form.Examples.FormConfig exposing
     , country
     , dateOfBirth
     , gender
-    , genderVertical
     , note
     , password
-    , privacy
     , staticHtml
     , username
     , visitedCountries
@@ -19,13 +17,13 @@ import Prima.Pyxis.Form as Form
     exposing
         ( AutocompleteOption
         , CheckboxOption
-        , Event
         , FormField
         , FormFieldConfig
         , RadioOption
         , SelectOption
         , Validation(..)
         )
+import Prima.Pyxis.Form.Event as Event
 import Prima.Pyxis.Form.Examples.Model
     exposing
         ( FieldName(..)
@@ -41,9 +39,9 @@ username =
         (Just "Username & Password")
         [ minlength 3, maxlength 12 ]
         .username
-        [ Form.onInput (UpdateField Username)
-        , Form.onFocus (OnFocus Username)
-        , Form.onBlur (OnBlur Username)
+        [ Event.onInput (UpdateField Username)
+        , Event.onFocus (OnFocus Username)
+        , Event.onBlur (OnBlur Username)
         ]
         [ NotEmpty "Empty value is not acceptable."
         , Custom ((<=) 3 << String.length << Maybe.withDefault "" << .username) "Value must be between 3 and 12 characters length."
@@ -57,7 +55,7 @@ password =
         Nothing
         []
         .password
-        [ Form.onInput (UpdateField Password) ]
+        [ Event.onInput (UpdateField Password) ]
         [ NotEmpty "Empty value is not acceptable."
         ]
 
@@ -69,8 +67,7 @@ note =
         (Just "Note")
         []
         .note
-        [ Form.onInput (UpdateField Note) ]
-        
+        [ Event.onInput (UpdateField Note) ]
         [ NotEmpty "Empty value is not acceptable." ]
 
 
@@ -81,50 +78,21 @@ gender =
         (Just "Gender")
         []
         .gender
-        (UpdateField Gender)
-        []
+        [ Event.onSelect (UpdateField Gender) ]
         [ RadioOption "Male" "male"
         , RadioOption "Female" "female"
         ]
         [ Custom ((==) "female" << Maybe.withDefault "female" << .gender) "You must select `Female` to proceed." ]
 
 
-genderVertical : FormField Model Msg
-genderVertical =
-    Form.radioConfig
-        "gender_vertical"
-        (Just "Gender")
-        []
-        .genderVertical
-        (UpdateField GenderVertical)
-        []
-        [ RadioOption "Always Male, but with more, more characters" "male"
-        , RadioOption "Always Female, but with longer label" "female"
-        ]
-        []
-
-
-privacy : FormField Model Msg
-privacy =
-    Form.checkboxConfig
-        "privacy"
-        (Just "Privacy")
-        []
-        .privacy
-        (UpdateFlag Privacy)
-        []
-        []
-
-
 visitedCountries : Model -> FormField Model Msg
 visitedCountries model =
-    Form.checkboxWithOptionsConfig
+    Form.checkboxConfig
         "visited_countries"
         (Just "Visited countries")
         []
         (List.map (\( label, slug, checked ) -> ( slug, checked )) << .visitedCountries)
-        (UpdateCheckbox VisitedCountries)
-        []
+        [ Event.onCheck (UpdateCheckbox VisitedCountries) ]
         (List.map (\( label, slug, checked ) -> CheckboxOption label slug checked) model.visitedCountries)
         []
 
@@ -141,7 +109,7 @@ city isOpen =
         .city
         (Toggle City)
         (UpdateField City)
-        [ Form.onFocus (OnFocus City) ]
+        [ Event.onFocus (OnFocus City) ]
         (List.sortBy .label
             [ SelectOption "Milan" "MI"
             , SelectOption "Turin" "TO"
@@ -161,7 +129,7 @@ dateOfBirth { isVisibleDP, dateOfBirthDP } =
         []
         .dateOfBirth
         (UpdateDatePicker DateOfBirth)
-        [ Form.onInput (UpdateField DateOfBirth) ]
+        [ Event.onInput (UpdateField DateOfBirth) ]
         dateOfBirthDP
         isVisibleDP
         [ Custom (Maybe.withDefault False << Maybe.map (always True) << .dateOfBirth) "This is not a valid date." ]
@@ -181,9 +149,10 @@ country { countryFilter, isOpenCountry } =
         []
         .countryFilter
         .country
-        (UpdateAutocomplete Country)
-        (UpdateField Country)
-        [ Form.onFocus (OnFocus Country) ]
+        [ Event.onAutocompleteFilter (UpdateAutocomplete Country)
+        , Event.onInput (UpdateField Country)
+        , Event.onFocus (OnFocus Country)
+        ]
         ([ AutocompleteOption "Aland Islands" "ALA"
          , AutocompleteOption "Austria" "AUT"
          , AutocompleteOption "Belgium" "BEL"

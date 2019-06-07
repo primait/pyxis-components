@@ -21,10 +21,8 @@ type alias Model =
     , password : Maybe String
     , note : Maybe String
     , gender : Maybe String
-    , genderVertical : Maybe String
     , city : Maybe String
     , isOpenCity : Bool
-    , privacy : Bool
     , dateOfBirth : Maybe String
     , dateOfBirthDP : DatePicker.Model
     , isVisibleDP : Bool
@@ -70,8 +68,6 @@ initialModel =
         Nothing
         Nothing
         Nothing
-        Nothing
-        False
         False
         Nothing
         (DatePicker.init initialDate ( lowDate, highDate ))
@@ -87,9 +83,7 @@ initialModel =
 
 
 type FieldName
-    = Privacy
-    | Gender
-    | GenderVertical
+    = Gender
     | Username
     | Password
     | City
@@ -105,7 +99,7 @@ type Msg
     | UpdateDatePicker FieldName DatePicker.Msg
     | UpdateDate FieldName (Maybe Date)
     | UpdateFlag FieldName Bool
-    | UpdateCheckbox FieldName Slug Bool
+    | UpdateCheckbox FieldName ( Slug, Bool )
     | Toggle FieldName Bool
     | FetchDateToday Date
     | OnFocus FieldName

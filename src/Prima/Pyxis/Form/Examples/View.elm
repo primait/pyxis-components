@@ -21,19 +21,20 @@ view model =
 appBody : Model -> List (Html Msg)
 appBody ({ isOpenCity } as model) =
     let
+        _ =
+            Debug.log "model is" model
+
         renderModel =
             [ ( Form.renderField model, [ Config.username, Config.password ] )
             , ( Form.renderField model, [ Config.note ] )
             , ( Form.renderField model, [ Config.gender ] )
-            , ( Form.renderField model, [ Config.genderVertical ] )
-            , ( Form.renderField model, [ Config.privacy ] )
             , ( Form.renderField model, [ Config.visitedCountries model ] )
             , ( Form.renderField model, [ Config.city isOpenCity ] )
             , ( Form.renderField model, [ Config.country model ] )
             , ( Form.renderFieldWithGroup model <| Form.appendGroup [ datePickerIcon ], [ Config.dateOfBirth model ] )
             ]
     in
-    Helpers.pyxisStyle :: (Form.render model << Form.init) renderModel
+    Helpers.pyxisStyle :: (Form.render << Form.init) renderModel
 
 
 datePickerIcon : Html Msg
