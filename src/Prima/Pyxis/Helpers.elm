@@ -1,10 +1,13 @@
 module Prima.Pyxis.Helpers exposing
-    ( loremIpsum
+    ( isJust
+    , isNothing
+    , loremIpsum
     , pyxisStyle
+    , renderIf
     , spacer
     )
 
-import Html exposing (Html, br)
+import Html exposing (Html, br, text)
 import Html.Attributes exposing (href, rel)
 
 
@@ -21,3 +24,27 @@ loremIpsum =
 spacer : Html msg
 spacer =
     br [] []
+
+
+isJust : Maybe a -> Bool
+isJust v =
+    case v of
+        Just _ ->
+            True
+
+        Nothing ->
+            False
+
+
+isNothing : Maybe a -> Bool
+isNothing =
+    not << isJust
+
+
+renderIf : Bool -> Html msg -> Html msg
+renderIf condition html =
+    if condition then
+        html
+
+    else
+        text ""
