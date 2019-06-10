@@ -5,16 +5,14 @@ module Prima.Pyxis.Form exposing
     , FormField
     , FormFieldConfig
     , FormFieldGroup
+    , FormState(..)
     , RadioOption
     , SelectOption
-    , Validation(..)
     , appendGroup
     , autocompleteConfig
     , checkboxConfig
     , datepickerConfig
     , init
-    , isPristine
-    , isValid
     , passwordConfig
     , prependGroup
     , pureHtmlConfig
@@ -45,9 +43,10 @@ import Html.Attributes
         , type_
         , value
         )
-import Html.Events as Evt
 import Prima.Pyxis.DatePicker as DatePicker
 import Prima.Pyxis.Form.Event as Events exposing (Event)
+import Prima.Pyxis.Helpers exposing (..)
+import Prima.Pyxis.Validation exposing (..)
 import Regex
 
 
@@ -361,6 +360,12 @@ renderField model (FormField opaqueConfig) =
 renderFieldWithGroup : model -> FormFieldGroup msg -> FormField model msg -> List (Html msg)
 renderFieldWithGroup model group (FormField opaqueConfig) =
     let
+        formState =
+            model
+
+        _ =
+            Debug.log "Model" formState
+
         errors =
             (List.singleton
                 << renderIf (canShowError model (FormField opaqueConfig))
@@ -952,12 +957,6 @@ renderPureHtml { content } =
     content
 
 
-type Validation model
-    = NotEmpty String
-    | Expression Regex.Regex String
-    | Custom (model -> Bool) String
-
-
 isValid : model -> FormField model msg -> Bool
 isValid model (FormField opaqueConfig) =
     List.all (validate model opaqueConfig) (pickValidationRules opaqueConfig)
@@ -994,21 +993,6 @@ isPristine model (FormField opaqueConfig) =
 
         _ ->
             True
-
-
-isJust : Maybe a -> Bool
-isJust v =
-    case v of
-        Just _ ->
-            True
-
-        Nothing ->
-            False
-
-
-isNothing : Maybe a -> Bool
-isNothing =
-    not << isJust
 
 
 validate : model -> FormFieldConfig model msg -> Validation model -> Bool
@@ -1125,12 +1109,3 @@ pickValidationError rule =
 canShowError : model -> FormField model msg -> Bool
 canShowError model config =
     (not << isValid model) config && (not << isPristine model) config
-
-
-renderIf : Bool -> Html msg -> Html msg
-renderIf condition html =
-    if condition then
-        html
-
-    else
-        text ""

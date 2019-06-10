@@ -13,6 +13,7 @@ module Prima.Pyxis.Form.Examples.Model exposing
 
 import Date exposing (Date)
 import Prima.Pyxis.DatePicker as DatePicker
+import Prima.Pyxis.Form exposing (..)
 import Time exposing (Month(..))
 
 
@@ -30,6 +31,7 @@ type alias Model =
     , countryFilter : Maybe String
     , isOpenCountry : Bool
     , visitedCountries : List ( Label, Slug, Bool )
+    , formState : Form Model Msg
     }
 
 
@@ -80,6 +82,7 @@ initialModel =
         , ( "U.S.A", "USA", False )
         , ( "Great Britain", "GB", False )
         ]
+        initialFormConfig
 
 
 type FieldName
@@ -105,5 +108,10 @@ type Msg
     | OnFocus FieldName
     | OnBlur FieldName
     | ToggleDatePicker
-    | Submit
+    | Submit (Form Model Msg)
     | Reset
+
+
+initialFormConfig =
+    init
+        []

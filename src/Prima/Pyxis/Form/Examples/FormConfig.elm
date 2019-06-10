@@ -12,7 +12,6 @@ module Prima.Pyxis.Form.Examples.FormConfig exposing
 
 import Html exposing (Html, p, text)
 import Html.Attributes exposing (class, maxlength, minlength)
-import Prima.Pyxis.DatePicker as DatePicker
 import Prima.Pyxis.Form as Form
     exposing
         ( AutocompleteOption
@@ -21,7 +20,6 @@ import Prima.Pyxis.Form as Form
         , FormFieldConfig
         , RadioOption
         , SelectOption
-        , Validation(..)
         )
 import Prima.Pyxis.Form.Event as Event
 import Prima.Pyxis.Form.Examples.Model
@@ -30,6 +28,7 @@ import Prima.Pyxis.Form.Examples.Model
         , Model
         , Msg(..)
         )
+import Prima.Pyxis.Validation exposing (..)
 
 
 username : FormField Model Msg

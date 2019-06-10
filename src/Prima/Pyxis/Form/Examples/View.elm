@@ -1,8 +1,7 @@
 module Prima.Pyxis.Form.Examples.View exposing (view)
 
 import Browser
-import Date exposing (Date)
-import Html exposing (Html, button, div, fieldset, i, legend, text)
+import Html exposing (Html, button, i, text)
 import Html.Attributes exposing (class)
 import Html.Events exposing (onClick)
 import Prima.Pyxis.Form as Form
@@ -33,14 +32,17 @@ appBody ({ isOpenCity } as model) =
             , ( Form.renderField model, [ Config.country model ] )
             , ( Form.renderFieldWithGroup model <| Form.appendGroup [ datePickerIcon ], [ Config.dateOfBirth model ] )
             ]
+
+        formConfiguration =
+            Form.init renderModel
     in
-    Helpers.pyxisStyle :: (Form.render << Form.init) renderModel ++ [ btnSubmit, btnReset ]
+    Helpers.pyxisStyle :: Form.render formConfiguration ++ [ btnSubmit formConfiguration, btnReset ]
 
 
-btnSubmit : Html Msg
-btnSubmit =
+btnSubmit : Form.Form Model Msg -> Html Msg
+btnSubmit config =
     button
-        [ onClick Submit ]
+        [ onClick (Submit config) ]
         [ text "Submit" ]
 
 

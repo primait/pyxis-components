@@ -2,6 +2,7 @@ module Prima.Pyxis.Form.Examples.Update exposing (update)
 
 import Date exposing (Date)
 import Prima.Pyxis.DatePicker as DatePicker
+import Prima.Pyxis.Form exposing (Form, FormState, setAsSubmitted)
 import Prima.Pyxis.Form.Examples.Model as Model
     exposing
         ( FieldName(..)
@@ -158,10 +159,12 @@ update msg model =
             , Cmd.none
             )
 
-        Submit ->
-            ( model
-            , Cmd.none
-            )
+        Submit config ->
+            let
+                updatedModel =
+                    { model | formState = setAsSubmitted config }
+            in
+            ( updatedModel, Cmd.none )
 
         Reset ->
             ( model
