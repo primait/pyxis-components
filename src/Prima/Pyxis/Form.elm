@@ -429,13 +429,13 @@ renderField (Form { state }) model (FormField opaqueConfig) =
     in
     (case opaqueConfig of
         FormFieldTextConfig config validation ->
-            lbl config :: renderInput model config validation
+            lbl config :: renderInput state model config validation
 
         FormFieldPasswordConfig config validation ->
-            lbl config :: renderPassword model config validation
+            lbl config :: renderPassword state model config validation
 
         FormFieldTextareaConfig config validation ->
-            lbl config :: renderTextarea model config validation
+            lbl config :: renderTextarea state model config validation
 
         FormFieldRadioConfig config validation ->
             lbl config :: renderRadio model config validation
@@ -444,13 +444,13 @@ renderField (Form { state }) model (FormField opaqueConfig) =
             lbl config :: renderCheckbox model config validation
 
         FormFieldSelectConfig config validation ->
-            lbl config :: renderSelect model config validation
+            lbl config :: renderSelect state model config validation
 
         FormFieldDatepickerConfig config validation ->
-            lbl config :: renderDatepicker model config validation
+            lbl config :: renderDatepicker state model config validation
 
         FormFieldAutocompleteConfig config validation ->
-            lbl config :: renderAutocomplete model config validation
+            lbl config :: renderAutocomplete state model config validation
 
         FormFieldPureHtmlConfig config ->
             renderPureHtml config
@@ -476,17 +476,17 @@ renderFieldWithGroup (Form { state }) model group (FormField opaqueConfig) =
     case opaqueConfig of
         FormFieldTextConfig config validation ->
             [ lbl config
-            , groupWrapper group <| (renderInput model config validation ++ errors)
+            , groupWrapper group <| (renderInput state model config validation ++ errors)
             ]
 
         FormFieldPasswordConfig config validation ->
             [ lbl config
-            , groupWrapper group <| (renderPassword model config validation ++ errors)
+            , groupWrapper group <| (renderPassword state model config validation ++ errors)
             ]
 
         FormFieldTextareaConfig config validation ->
             [ lbl config
-            , groupWrapper group <| (renderInput model config validation ++ errors)
+            , groupWrapper group <| (renderInput state model config validation ++ errors)
             ]
 
         FormFieldRadioConfig config validation ->
@@ -501,17 +501,17 @@ renderFieldWithGroup (Form { state }) model group (FormField opaqueConfig) =
 
         FormFieldSelectConfig config validation ->
             [ lbl config
-            , groupWrapper group <| (renderSelect model config validation ++ errors)
+            , groupWrapper group <| (renderSelect state model config validation ++ errors)
             ]
 
         FormFieldDatepickerConfig config validation ->
             [ lbl config
-            , groupWrapper group <| (renderDatepicker model config validation ++ errors)
+            , groupWrapper group <| (renderDatepicker state model config validation ++ errors)
             ]
 
         FormFieldAutocompleteConfig config validation ->
             [ lbl config
-            , groupWrapper group <| (renderAutocomplete model config validation ++ errors)
+            , groupWrapper group <| (renderAutocomplete state model config validation ++ errors)
             ]
 
         FormFieldPureHtmlConfig config ->
@@ -580,8 +580,8 @@ renderError error =
             [ text error ]
 
 
-renderInput : model -> TextConfig model msg -> List (Validation model) -> List (Html msg)
-renderInput model ({ reader, slug, label, attrs } as config) validations =
+renderInput : FormState -> model -> TextConfig model msg -> List (Validation model) -> List (Html msg)
+renderInput state model ({ reader, slug, label, attrs } as config) validations =
     let
         opaqueConfig =
             FormField (FormFieldTextConfig config validations)
@@ -600,7 +600,7 @@ renderInput model ({ reader, slug, label, attrs } as config) validations =
          , classList
             [ ( "a-form__field__input", True )
             , ( "is-valid", valid )
-            , ( "is-invalid", not valid )
+            , ( "is-invalid", isFormSubmitted state && not valid )
             , ( "is-pristine", pristine )
             , ( "is-touched", not pristine )
             ]
@@ -614,8 +614,8 @@ renderInput model ({ reader, slug, label, attrs } as config) validations =
     ]
 
 
-renderPassword : model -> PasswordConfig model msg -> List (Validation model) -> List (Html msg)
-renderPassword model ({ reader, slug, label, attrs } as config) validations =
+renderPassword : FormState -> model -> PasswordConfig model msg -> List (Validation model) -> List (Html msg)
+renderPassword state model ({ reader, slug, label, attrs } as config) validations =
     let
         opaqueConfig =
             FormField (FormFieldTextConfig config validations)
@@ -634,7 +634,7 @@ renderPassword model ({ reader, slug, label, attrs } as config) validations =
          , classList
             [ ( "a-form__field__input", True )
             , ( "is-valid", valid )
-            , ( "is-invalid", not valid )
+            , ( "is-invalid", isFormSubmitted state && not valid )
             , ( "is-pristine", pristine )
             , ( "is-touched", not pristine )
             ]
@@ -648,8 +648,8 @@ renderPassword model ({ reader, slug, label, attrs } as config) validations =
     ]
 
 
-renderTextarea : model -> TextareaConfig model msg -> List (Validation model) -> List (Html msg)
-renderTextarea model ({ reader, slug, label, attrs, events } as config) validations =
+renderTextarea : FormState -> model -> TextareaConfig model msg -> List (Validation model) -> List (Html msg)
+renderTextarea state model ({ reader, slug, label, attrs, events } as config) validations =
     let
         opaqueConfig =
             FormField (FormFieldTextareaConfig config validations)
@@ -667,7 +667,7 @@ renderTextarea model ({ reader, slug, label, attrs, events } as config) validati
          , classList
             [ ( "a-form__field__textarea", True )
             , ( "is-valid", valid )
-            , ( "is-invalid", not valid )
+            , ( "is-invalid", isFormSubmitted state && not valid )
             , ( "is-pristine", pristine )
             , ( "is-touched", not pristine )
             ]
@@ -684,12 +684,6 @@ renderTextarea model ({ reader, slug, label, attrs, events } as config) validati
 renderRadio : model -> RadioConfig model msg -> List (Validation model) -> List (Html msg)
 renderRadio model ({ slug, label, options } as config) validations =
     let
-        opaqueConfig =
-            FormField (FormFieldRadioConfig config validations)
-
-        valid =
-            isValid model opaqueConfig
-
         isVertical =
             List.any (hasReachedCharactersLimit << .label) options
 
@@ -777,8 +771,8 @@ renderCheckboxOption model ({ reader, attrs } as config) index option =
     ]
 
 
-renderSelect : model -> SelectConfig model msg -> List (Validation model) -> List (Html msg)
-renderSelect model ({ slug, label, reader, attrs, events } as config) validations =
+renderSelect : FormState -> model -> SelectConfig model msg -> List (Validation model) -> List (Html msg)
+renderSelect state model ({ slug, label, reader, attrs, events } as config) validations =
     let
         options =
             case ( config.placeholder, config.isOpen ) of
@@ -797,14 +791,14 @@ renderSelect model ({ slug, label, reader, attrs, events } as config) validation
         pristine =
             isPristine model opaqueConfig
     in
-    [ renderCustomSelect model config validations
+    [ renderCustomSelect state model config validations
     , Html.select
         ([ id slug
          , name slug
          , classList
             [ ( "a-form__field__select", True )
             , ( "is-valid", valid )
-            , ( "is-invalid", not valid )
+            , ( "is-invalid", isFormSubmitted state && not valid )
             , ( "is-pristine", pristine )
             , ( "is-touched", not pristine )
             ]
@@ -828,8 +822,8 @@ renderSelectOption model { reader, slug, label } option =
         ]
 
 
-renderCustomSelect : model -> SelectConfig model msg -> List (Validation model) -> Html msg
-renderCustomSelect model ({ slug, label, reader, isDisabled, isOpen, attrs } as config) validations =
+renderCustomSelect : FormState -> model -> SelectConfig model msg -> List (Validation model) -> Html msg
+renderCustomSelect state model ({ slug, label, reader, isDisabled, isOpen, attrs } as config) validations =
     let
         options =
             case ( config.placeholder, isOpen ) of
@@ -860,7 +854,7 @@ renderCustomSelect model ({ slug, label, reader, isDisabled, isOpen, attrs } as 
             [ ( "a-form__field__customSelect", True )
             , ( "is-open", isOpen )
             , ( "is-valid", valid )
-            , ( "is-invalid", not valid )
+            , ( "is-invalid", isFormSubmitted state && not valid )
             , ( "is-pristine", pristine )
             , ( "is-touched", not pristine )
             , ( "is-disabled", isDisabled )
@@ -902,8 +896,8 @@ renderCustomSelectOption model ({ reader, slug, label } as config) option =
         ]
 
 
-renderDatepicker : model -> DatepickerConfig model msg -> List (Validation model) -> List (Html msg)
-renderDatepicker model ({ attrs, reader, datePickerTagger, slug, label, instance, showDatePicker, events } as config) validations =
+renderDatepicker : FormState -> model -> DatepickerConfig model msg -> List (Validation model) -> List (Html msg)
+renderDatepicker state model ({ attrs, reader, datePickerTagger, slug, label, instance, showDatePicker, events } as config) validations =
     let
         opaqueConfig =
             FormField (FormFieldDatepickerConfig config validations)
@@ -936,7 +930,7 @@ renderDatepicker model ({ attrs, reader, datePickerTagger, slug, label, instance
          , classList
             [ ( "a-form__field__input a-form__field__datepicker", True )
             , ( "is-valid", valid )
-            , ( "is-invalid", not valid )
+            , ( "is-invalid", isFormSubmitted state && not valid )
             , ( "is-pristine", pristine )
             , ( "is-touched", not pristine )
             ]
@@ -964,8 +958,8 @@ renderDatepicker model ({ attrs, reader, datePickerTagger, slug, label, instance
     ]
 
 
-renderAutocomplete : model -> AutocompleteConfig model msg -> List (Validation model) -> List (Html msg)
-renderAutocomplete model ({ filterReader, choiceReader, slug, label, isOpen, noResults, attrs, options } as config) validations =
+renderAutocomplete : FormState -> model -> AutocompleteConfig model msg -> List (Validation model) -> List (Html msg)
+renderAutocomplete state model ({ filterReader, choiceReader, slug, label, isOpen, noResults, attrs, options } as config) validations =
     let
         opaqueConfig =
             FormField (FormFieldAutocompleteConfig config validations)
@@ -1006,7 +1000,7 @@ renderAutocomplete model ({ filterReader, choiceReader, slug, label, isOpen, noR
              , classList
                 [ ( "a-form__field__input", True )
                 , ( "is-valid", valid )
-                , ( "is-invalid", not valid )
+                , ( "is-invalid", isFormSubmitted state && not valid )
                 , ( "is-pristine", pristine )
                 , ( "is-touched", not pristine )
                 ]
