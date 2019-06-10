@@ -25,13 +25,14 @@ import Prima.Pyxis.Form.Event as Event
 import Prima.Pyxis.Form.Examples.Model
     exposing
         ( FieldName(..)
+        , FormData
         , Model
         , Msg(..)
         )
 import Prima.Pyxis.Validation exposing (..)
 
 
-username : FormField Model Msg
+username : FormField FormData Msg
 username =
     Form.textConfig
         "user_name"
@@ -47,7 +48,7 @@ username =
         ]
 
 
-password : FormField Model Msg
+password : FormField FormData Msg
 password =
     Form.passwordConfig
         "password"
@@ -59,7 +60,7 @@ password =
         ]
 
 
-note : FormField Model Msg
+note : FormField FormData Msg
 note =
     Form.textareaConfig
         "note"
@@ -70,7 +71,7 @@ note =
         [ NotEmpty "Empty value is not acceptable." ]
 
 
-gender : FormField Model Msg
+gender : FormField FormData Msg
 gender =
     Form.radioConfig
         "gender"
@@ -84,19 +85,19 @@ gender =
         [ Custom ((==) "female" << Maybe.withDefault "female" << .gender) "You must select `Female` to proceed." ]
 
 
-visitedCountries : Model -> FormField Model Msg
-visitedCountries model =
+visitedCountries : FormData -> FormField FormData Msg
+visitedCountries data =
     Form.checkboxConfig
         "visited_countries"
         (Just "Visited countries")
         []
         (List.map (\( label, slug, checked ) -> ( slug, checked )) << .visitedCountries)
         [ Event.onCheck (UpdateCheckbox VisitedCountries) ]
-        (List.map (\( label, slug, checked ) -> CheckboxOption label slug checked) model.visitedCountries)
+        (List.map (\( label, slug, checked ) -> CheckboxOption label slug checked) data.visitedCountries)
         []
 
 
-city : Bool -> FormField Model Msg
+city : Bool -> FormField FormData Msg
 city isOpen =
     Form.selectConfig
         "city"
@@ -122,7 +123,7 @@ city isOpen =
         [ NotEmpty "Empty value is not acceptable." ]
 
 
-dateOfBirth : Model -> FormField Model Msg
+dateOfBirth : FormData -> FormField FormData Msg
 dateOfBirth { isVisibleDP, dateOfBirthDP } =
     Form.datepickerConfig
         "date_of_birth"
@@ -136,7 +137,7 @@ dateOfBirth { isVisibleDP, dateOfBirthDP } =
         [ Custom (Maybe.withDefault False << Maybe.map (always True) << .dateOfBirth) "This is not a valid date." ]
 
 
-country : Model -> FormField Model Msg
+country : FormData -> FormField FormData Msg
 country { countryFilter, isOpenCountry } =
     let
         lowerFilter =
@@ -193,7 +194,7 @@ country { countryFilter, isOpenCountry } =
         [ NotEmpty "Empty value is not acceptable." ]
 
 
-staticHtml : Model -> FormField Model Msg
+staticHtml : Model -> FormField FormData Msg
 staticHtml model =
     Form.pureHtmlConfig
         [ p [] [ text "Lorem ipsum dolor sit amet." ]

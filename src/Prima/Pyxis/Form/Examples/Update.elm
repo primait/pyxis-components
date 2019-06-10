@@ -2,62 +2,59 @@ module Prima.Pyxis.Form.Examples.Update exposing (update)
 
 import Date exposing (Date)
 import Prima.Pyxis.DatePicker as DatePicker
-import Prima.Pyxis.Form exposing (Form, FormState, setAsSubmitted)
+import Prima.Pyxis.Form as Form exposing (Form, FormState)
 import Prima.Pyxis.Form.Examples.Model as Model
     exposing
         ( FieldName(..)
+        , FormData
         , Model
         , Msg(..)
+        , initialFormData
         )
+
+
+updateFormData : (FormData -> FormData) -> Model -> Model
+updateFormData mapper model =
+    { model | data = mapper model.data }
+
+
+withoutCmds : Model -> ( Model, Cmd Msg )
+withoutCmds model =
+    ( model, Cmd.none )
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case Debug.log "update" msg of
         UpdateField Username value ->
-            ( { model
-                | username = value
-              }
-            , Cmd.none
-            )
+            model
+                |> updateFormData (\f -> { f | username = value })
+                |> withoutCmds
 
         UpdateField Password value ->
-            ( { model
-                | password = value
-              }
-            , Cmd.none
-            )
+            model
+                |> updateFormData (\f -> { f | password = value })
+                |> withoutCmds
 
         UpdateField Note value ->
-            ( { model
-                | note = value
-              }
-            , Cmd.none
-            )
+            model
+                |> updateFormData (\f -> { f | note = value })
+                |> withoutCmds
 
         UpdateField Gender value ->
-            ( { model
-                | gender = value
-              }
-            , Cmd.none
-            )
+            model
+                |> updateFormData (\f -> { f | gender = value })
+                |> withoutCmds
 
         UpdateField City value ->
-            ( { model
-                | city = value
-                , isOpenCity = False
-              }
-            , Cmd.none
-            )
+            model
+                |> updateFormData (\f -> { f | city = value, isOpenCity = False })
+                |> withoutCmds
 
         UpdateField Country value ->
-            ( { model
-                | country = value
-                , countryFilter = Nothing
-                , isOpenCountry = False
-              }
-            , Cmd.none
-            )
+            model
+                |> updateFormData (\f -> { f | country = value, countryFilter = Nothing, isOpenCountry = False })
+                |> withoutCmds
 
         UpdateField DateOfBirth value ->
             let
@@ -70,108 +67,105 @@ update msg model =
                         Nothing ->
                             Nothing
             in
-            ( { model
-                | dateOfBirth = value
-                , dateOfBirthDP =
-                    case (unwrap << Maybe.map (Result.toMaybe << Date.fromIsoString)) value of
-                        Just date ->
-                            DatePicker.init date ( Model.lowDate, Model.highDate )
+            model
+                |> updateFormData
+                    (\f ->
+                        { f
+                            | dateOfBirth = value
+                            , dateOfBirthDP =
+                                case (unwrap << Maybe.map (Result.toMaybe << Date.fromIsoString)) value of
+                                    Just date ->
+                                        DatePicker.init date ( Model.lowDate, Model.highDate )
 
-                        _ ->
-                            model.dateOfBirthDP
-              }
-            , Cmd.none
-            )
+                                    _ ->
+                                        f.dateOfBirthDP
+                            , isOpenCountry = False
+                        }
+                    )
+                |> withoutCmds
 
         UpdateDatePicker DateOfBirth dpMsg ->
             let
-                updatedInstance =
-                    DatePicker.update dpMsg model.dateOfBirthDP
+                updatedInstance f =
+                    DatePicker.update dpMsg f.dateOfBirthDP
             in
-            ( { model
-                | dateOfBirthDP = updatedInstance
-                , dateOfBirth = (Just << Date.format "dd/MM/y" << DatePicker.selectedDate) updatedInstance
-              }
-            , Cmd.none
-            )
+            model
+                |> updateFormData (\f -> { f | dateOfBirthDP = updatedInstance f, dateOfBirth = (Just << Date.format "dd/MM/y" << DatePicker.selectedDate) (updatedInstance f) })
+                |> withoutCmds
 
         UpdateAutocomplete Country value ->
-            ( { model
-                | countryFilter = value
-                , isOpenCountry = True
-              }
-            , Cmd.none
-            )
+            model
+                |> updateFormData (\f -> { f | countryFilter = value, isOpenCountry = True })
+                |> withoutCmds
 
         UpdateCheckbox VisitedCountries ( slug, isChecked ) ->
-            ( { model
-                | visitedCountries =
-                    List.map
-                        (\( optLabel, optSlug, optChecked ) ->
-                            if optSlug == slug then
-                                ( optLabel, optSlug, isChecked )
+            model
+                |> updateFormData
+                    (\f ->
+                        { f
+                            | visitedCountries =
+                                List.map
+                                    (\( optLabel, optSlug, optChecked ) ->
+                                        if optSlug == slug then
+                                            ( optLabel, optSlug, isChecked )
 
-                            else
-                                ( optLabel, optSlug, optChecked )
-                        )
-                        model.visitedCountries
-              }
-            , Cmd.none
-            )
+                                        else
+                                            ( optLabel, optSlug, optChecked )
+                                    )
+                                    f.visitedCountries
+                        }
+                    )
+                |> withoutCmds
 
         Toggle City ->
-            ( { model
-                | isOpenCity = not model.isOpenCity
-              }
-            , Cmd.none
-            )
+            model
+                |> updateFormData (\f -> { f | isOpenCity = not f.isOpenCity })
+                |> withoutCmds
 
         ToggleDatePicker ->
-            ( { model
-                | isVisibleDP = not model.isVisibleDP
-              }
-            , Cmd.none
-            )
+            model
+                |> updateFormData
+                    (\f ->
+                        { f
+                            | isVisibleDP = not f.isVisibleDP
+                        }
+                    )
+                |> withoutCmds
 
         OnFocus City ->
-            ( { model
-                | isOpenCity = True
-                , isOpenCountry = False
-              }
-            , Cmd.none
-            )
+            model
+                |> updateFormData (\f -> { f | isOpenCity = True, isOpenCountry = False })
+                |> withoutCmds
 
         OnFocus Country ->
-            ( { model
-                | isOpenCountry = True
-                , isOpenCity = False
-              }
-            , Cmd.none
-            )
+            model
+                |> updateFormData
+                    (\f ->
+                        { f
+                            | isOpenCountry = True
+                            , isOpenCity = False
+                        }
+                    )
+                |> withoutCmds
 
         OnFocus _ ->
-            ( model
-            , Cmd.none
-            )
+            withoutCmds model
 
         OnBlur _ ->
-            ( model
-            , Cmd.none
-            )
+            withoutCmds model
 
-        Submit config ->
-            let
-                updatedModel =
-                    { model | formState = setAsSubmitted config }
-            in
-            ( updatedModel, Cmd.none )
+        Submit ->
+            { model
+                | formConfig = Form.setAsSubmitted model.formConfig
+            }
+                |> withoutCmds
 
         Reset ->
-            ( model
-            , Cmd.none
-            )
+            { model
+                | data = initialFormData
+                , formConfig = Form.setAsPristine model.formConfig
+            }
+                |> withoutCmds
 
         _ ->
-            ( model
-            , Cmd.none
-            )
+            withoutCmds model

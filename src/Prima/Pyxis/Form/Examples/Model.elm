@@ -1,23 +1,36 @@
 module Prima.Pyxis.Form.Examples.Model exposing
     ( FieldName(..)
     , Flags
+    , FormData
     , Label
     , Model
     , Msg(..)
     , Slug
     , highDate
     , initialDate
+    , initialFormData
     , initialModel
     , lowDate
     )
 
 import Date exposing (Date)
 import Prima.Pyxis.DatePicker as DatePicker
-import Prima.Pyxis.Form exposing (..)
+import Prima.Pyxis.Form as Form
 import Time exposing (Month(..))
 
 
 type alias Model =
+    { data : FormData
+    , formConfig : Form.Form FormData Msg
+    }
+
+
+initialModel : Model
+initialModel =
+    Model initialFormData Form.init
+
+
+type alias FormData =
     { username : Maybe String
     , password : Maybe String
     , note : Maybe String
@@ -31,8 +44,29 @@ type alias Model =
     , countryFilter : Maybe String
     , isOpenCountry : Bool
     , visitedCountries : List ( Label, Slug, Bool )
-    , formState : Form Model Msg
     }
+
+
+initialFormData : FormData
+initialFormData =
+    FormData
+        Nothing
+        Nothing
+        Nothing
+        Nothing
+        Nothing
+        False
+        Nothing
+        (DatePicker.init initialDate ( lowDate, highDate ))
+        False
+        Nothing
+        Nothing
+        False
+        [ ( "Italy", "ITA", False )
+        , ( "France", "FRA", False )
+        , ( "U.S.A", "USA", False )
+        , ( "Great Britain", "GB", False )
+        ]
 
 
 type alias Flags =
@@ -62,29 +96,6 @@ highDate =
     Date.fromCalendarDate 2019 Apr 29
 
 
-initialModel : Model
-initialModel =
-    Model
-        Nothing
-        Nothing
-        Nothing
-        Nothing
-        Nothing
-        False
-        Nothing
-        (DatePicker.init initialDate ( lowDate, highDate ))
-        False
-        Nothing
-        Nothing
-        False
-        [ ( "Italy", "ITA", False )
-        , ( "France", "FRA", False )
-        , ( "U.S.A", "USA", False )
-        , ( "Great Britain", "GB", False )
-        ]
-        initialFormConfig
-
-
 type FieldName
     = Gender
     | Username
@@ -108,10 +119,5 @@ type Msg
     | OnFocus FieldName
     | OnBlur FieldName
     | ToggleDatePicker
-    | Submit (Form Model Msg)
+    | Submit
     | Reset
-
-
-initialFormConfig =
-    init
-        []

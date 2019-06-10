@@ -8,6 +8,7 @@ module Prima.Pyxis.Form exposing
     , FormState(..)
     , RadioOption
     , SelectOption
+    , addFields
     , appendGroup
     , autocompleteConfig
     , checkboxConfig
@@ -70,9 +71,29 @@ type FormState
     | Submitted
 
 
-init : List (RenderModel model msg) -> Form model msg
-init renderModel =
-    Form (FormConfig Pristine renderModel)
+isFormPristine : FormState -> Bool
+isFormPristine =
+    (==) Pristine
+
+
+isFormTouched : FormState -> Bool
+isFormTouched =
+    (==) Touched
+
+
+isFormSubmitted : FormState -> Bool
+isFormSubmitted =
+    (==) Submitted
+
+
+init : Form model msg
+init =
+    Form (FormConfig Pristine [])
+
+
+addFields : List (RenderModel model msg) -> Form model msg -> Form model msg
+addFields renderModel (Form config) =
+    Form { config | renderModel = renderModel }
 
 
 setAsPristine : Form model msg -> Form model msg
@@ -259,32 +280,92 @@ type alias Value =
 
 textConfig : Slug -> Maybe Label -> List (Attribute msg) -> (model -> Maybe Value) -> List (Event msg) -> List (Validation model) -> FormField model msg
 textConfig slug label attrs reader events validations =
-    FormField <| FormFieldTextConfig (TextConfig slug label attrs reader events) validations
+    FormField <|
+        FormFieldTextConfig
+            (TextConfig
+                slug
+                label
+                attrs
+                reader
+                events
+            )
+            validations
 
 
 passwordConfig : Slug -> Maybe Label -> List (Attribute msg) -> (model -> Maybe Value) -> List (Event msg) -> List (Validation model) -> FormField model msg
 passwordConfig slug label attrs reader events validations =
-    FormField <| FormFieldPasswordConfig (PasswordConfig slug label attrs reader events) validations
+    FormField <|
+        FormFieldPasswordConfig
+            (PasswordConfig
+                slug
+                label
+                attrs
+                reader
+                events
+            )
+            validations
 
 
 textareaConfig : Slug -> Maybe Label -> List (Attribute msg) -> (model -> Maybe Value) -> List (Event msg) -> List (Validation model) -> FormField model msg
 textareaConfig slug label attrs reader events validations =
-    FormField <| FormFieldTextareaConfig (TextareaConfig slug label attrs reader events) validations
+    FormField <|
+        FormFieldTextareaConfig
+            (TextareaConfig
+                slug
+                label
+                attrs
+                reader
+                events
+            )
+            validations
 
 
 radioConfig : Slug -> Maybe Label -> List (Attribute msg) -> (model -> Maybe Value) -> List (Event msg) -> List RadioOption -> List (Validation model) -> FormField model msg
 radioConfig slug label attrs reader events options validations =
-    FormField <| FormFieldRadioConfig (RadioConfig slug label attrs reader events options) validations
+    FormField <|
+        FormFieldRadioConfig
+            (RadioConfig
+                slug
+                label
+                attrs
+                reader
+                events
+                options
+            )
+            validations
 
 
 checkboxConfig : Slug -> Maybe Label -> List (Attribute msg) -> (model -> List ( Slug, Bool )) -> List (Event msg) -> List CheckboxOption -> List (Validation model) -> FormField model msg
 checkboxConfig slug label attrs reader events options validations =
-    FormField <| FormFieldCheckboxConfig (CheckboxConfig slug label attrs reader events options) validations
+    FormField <|
+        FormFieldCheckboxConfig
+            (CheckboxConfig
+                slug
+                label
+                attrs
+                reader
+                events
+                options
+            )
+            validations
 
 
 selectConfig : Slug -> Maybe Label -> Bool -> Bool -> Maybe String -> List (Attribute msg) -> (model -> Maybe Value) -> List (Event msg) -> List SelectOption -> List (Validation model) -> FormField model msg
 selectConfig slug label isDisabled isOpen placeholder attrs reader events options validations =
-    FormField <| FormFieldSelectConfig (SelectConfig slug label isDisabled isOpen placeholder attrs reader events options) validations
+    FormField <|
+        FormFieldSelectConfig
+            (SelectConfig
+                slug
+                label
+                isDisabled
+                isOpen
+                placeholder
+                attrs
+                reader
+                events
+                options
+            )
+            validations
 
 
 datepickerConfig : Slug -> Maybe Label -> List (Attribute msg) -> (model -> Maybe Value) -> (DatePicker.Msg -> msg) -> List (Event msg) -> DatePicker.Model -> Bool -> List (Validation model) -> FormField model msg
@@ -306,20 +387,40 @@ datepickerConfig slug label attrs reader datePickerTagger events datepicker show
 
 autocompleteConfig : String -> Maybe String -> Bool -> Maybe String -> List (Attribute msg) -> (model -> Maybe Value) -> (model -> Maybe Value) -> List (Event msg) -> List AutocompleteOption -> List (Validation model) -> FormField model msg
 autocompleteConfig slug label isOpen noResults attrs filterReader choiceReader events options validations =
-    FormField <| FormFieldAutocompleteConfig (AutocompleteConfig slug label isOpen noResults attrs filterReader choiceReader events options) validations
+    FormField <|
+        FormFieldAutocompleteConfig
+            (AutocompleteConfig
+                slug
+                label
+                isOpen
+                noResults
+                attrs
+                filterReader
+                choiceReader
+                events
+                options
+            )
+            validations
 
 
 pureHtmlConfig : List (Html msg) -> FormField model msg
 pureHtmlConfig content =
-    FormField <| FormFieldPureHtmlConfig (PureHtmlConfig content)
+    FormField <|
+        FormFieldPureHtmlConfig
+            (PureHtmlConfig
+                content
+            )
 
 
-renderField : model -> FormField model msg -> List (Html msg)
-renderField model (FormField opaqueConfig) =
+renderField : Form model msg -> model -> FormField model msg -> List (Html msg)
+renderField (Form { state }) model (FormField opaqueConfig) =
     let
+        lbl config =
+            renderLabel config.slug config.label
+
         errors =
             (List.singleton
-                << renderIf (canShowError model (FormField opaqueConfig))
+                << renderIf (isFormSubmitted state && canShowError model (FormField opaqueConfig))
                 << renderError
                 << String.join " "
                 << pickError model
@@ -328,28 +429,28 @@ renderField model (FormField opaqueConfig) =
     in
     (case opaqueConfig of
         FormFieldTextConfig config validation ->
-            renderLabel config.slug config.label :: renderInput model config validation
+            lbl config :: renderInput model config validation
 
         FormFieldPasswordConfig config validation ->
-            renderLabel config.slug config.label :: renderPassword model config validation
+            lbl config :: renderPassword model config validation
 
         FormFieldTextareaConfig config validation ->
-            renderLabel config.slug config.label :: renderTextarea model config validation
+            lbl config :: renderTextarea model config validation
 
         FormFieldRadioConfig config validation ->
-            renderLabel config.slug config.label :: renderRadio model config validation
+            lbl config :: renderRadio model config validation
 
         FormFieldCheckboxConfig config validation ->
-            renderLabel config.slug config.label :: renderCheckbox model config validation
+            lbl config :: renderCheckbox model config validation
 
         FormFieldSelectConfig config validation ->
-            renderLabel config.slug config.label :: renderSelect model config validation
+            lbl config :: renderSelect model config validation
 
         FormFieldDatepickerConfig config validation ->
-            renderLabel config.slug config.label :: renderDatepicker model config validation
+            lbl config :: renderDatepicker model config validation
 
         FormFieldAutocompleteConfig config validation ->
-            renderLabel config.slug config.label :: renderAutocomplete model config validation
+            lbl config :: renderAutocomplete model config validation
 
         FormFieldPureHtmlConfig config ->
             renderPureHtml config
@@ -357,18 +458,15 @@ renderField model (FormField opaqueConfig) =
         ++ errors
 
 
-renderFieldWithGroup : model -> FormFieldGroup msg -> FormField model msg -> List (Html msg)
-renderFieldWithGroup model group (FormField opaqueConfig) =
+renderFieldWithGroup : Form model msg -> model -> FormFieldGroup msg -> FormField model msg -> List (Html msg)
+renderFieldWithGroup (Form { state }) model group (FormField opaqueConfig) =
     let
-        formState =
-            model
-
-        _ =
-            Debug.log "Model" formState
+        lbl config =
+            renderLabel config.slug config.label
 
         errors =
             (List.singleton
-                << renderIf (canShowError model (FormField opaqueConfig))
+                << renderIf (isFormSubmitted state && canShowError model (FormField opaqueConfig))
                 << renderError
                 << String.join " "
                 << pickError model
@@ -377,42 +475,42 @@ renderFieldWithGroup model group (FormField opaqueConfig) =
     in
     case opaqueConfig of
         FormFieldTextConfig config validation ->
-            [ renderLabel config.slug config.label
+            [ lbl config
             , groupWrapper group <| (renderInput model config validation ++ errors)
             ]
 
         FormFieldPasswordConfig config validation ->
-            [ renderLabel config.slug config.label
+            [ lbl config
             , groupWrapper group <| (renderPassword model config validation ++ errors)
             ]
 
         FormFieldTextareaConfig config validation ->
-            [ renderLabel config.slug config.label
+            [ lbl config
             , groupWrapper group <| (renderInput model config validation ++ errors)
             ]
 
         FormFieldRadioConfig config validation ->
-            [ renderLabel config.slug config.label
+            [ lbl config
             , groupWrapper group <| (renderRadio model config validation ++ errors)
             ]
 
         FormFieldCheckboxConfig config validation ->
-            [ renderLabel config.slug config.label
+            [ lbl config
             , groupWrapper group <| (renderCheckbox model config validation ++ errors)
             ]
 
         FormFieldSelectConfig config validation ->
-            [ renderLabel config.slug config.label
+            [ lbl config
             , groupWrapper group <| (renderSelect model config validation ++ errors)
             ]
 
         FormFieldDatepickerConfig config validation ->
-            [ renderLabel config.slug config.label
+            [ lbl config
             , groupWrapper group <| (renderDatepicker model config validation ++ errors)
             ]
 
         FormFieldAutocompleteConfig config validation ->
-            [ renderLabel config.slug config.label
+            [ lbl config
             , groupWrapper group <| (renderAutocomplete model config validation ++ errors)
             ]
 

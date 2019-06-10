@@ -18,31 +18,28 @@ view model =
 
 
 appBody : Model -> List (Html Msg)
-appBody ({ isOpenCity } as model) =
+appBody ({ data, formConfig } as model) =
     let
-        _ =
-            Debug.log "model is" model
-
         renderModel =
-            [ ( Form.renderField model, [ Config.username, Config.password ] )
-            , ( Form.renderField model, [ Config.note ] )
-            , ( Form.renderField model, [ Config.gender ] )
-            , ( Form.renderField model, [ Config.visitedCountries model ] )
-            , ( Form.renderField model, [ Config.city isOpenCity ] )
-            , ( Form.renderField model, [ Config.country model ] )
-            , ( Form.renderFieldWithGroup model <| Form.appendGroup [ datePickerIcon ], [ Config.dateOfBirth model ] )
+            [ ( Form.renderField formConfig data, [ Config.username, Config.password ] )
+            , ( Form.renderField formConfig data, [ Config.note ] )
+            , ( Form.renderField formConfig data, [ Config.gender ] )
+            , ( Form.renderField formConfig data, [ Config.visitedCountries data ] )
+            , ( Form.renderField formConfig data, [ Config.city data.isOpenCity ] )
+            , ( Form.renderField formConfig data, [ Config.country data ] )
+            , ( Form.renderFieldWithGroup formConfig data <| Form.appendGroup [ datePickerIcon ], [ Config.dateOfBirth data ] )
             ]
 
-        formConfiguration =
-            Form.init renderModel
+        form =
+            Form.addFields renderModel formConfig
     in
-    Helpers.pyxisStyle :: Form.render formConfiguration ++ [ btnSubmit formConfiguration, btnReset ]
+    Helpers.pyxisStyle :: Form.render form ++ [ btnSubmit, btnReset ]
 
 
-btnSubmit : Form.Form Model Msg -> Html Msg
-btnSubmit config =
+btnSubmit : Html Msg
+btnSubmit =
     button
-        [ onClick (Submit config) ]
+        [ onClick Submit ]
         [ text "Submit" ]
 
 
