@@ -5,11 +5,15 @@ module Prima.Pyxis.Form.Validation exposing
 
 {-| Allows to create Validation model for the form.
 
-    # Configuration
-    @docs Validation
 
-    # Helpers
-    @docs pickError
+# Configuration
+
+@docs Validation
+
+
+# Helpers
+
+@docs pickError
 
 -}
 

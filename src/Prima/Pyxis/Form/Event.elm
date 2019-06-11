@@ -1,28 +1,19 @@
 module Prima.Pyxis.Form.Event exposing
-    ( Event
-    , onAutocompleteFilter
-    , onAutocompleteFilterAttribute
-    , onBlur
-    , onBlurAttribute
-    , onCheck
-    , onCheckAttribute
-    , onFocus
-    , onFocusAttribute
-    , onInput
-    , onInputAttribute
-    , onSelect
-    , onSelectAttribute
-    , onToggle
-    , onToggleAttribute
+    ( Event, onInput, onSelect, onCheck, onAutocompleteFilter, onFocus, onBlur, onToggle
+    , onInputAttribute, onSelectAttribute, onCheckAttribute, onAutocompleteFilterAttribute, onFocusAttribute, onBlurAttribute, onToggleAttribute
     )
 
 {-| Allows to control events of the `Form` package.
 
-    # Configuration
-    @docs Event, onInput, onSelect, onCheck, onAutocompleteFilter, onFocus, onBlur, onToggle
 
-    # Helpers
-    @docs onInputAttribute, onSelectAttribute, onCheckAttribute, onAutocompleteFilterAttribute, onFocusAttribute, onBlurAttribute, onToggleAttribute
+# Configuration
+
+@docs Event, onInput, onSelect, onCheck, onAutocompleteFilter, onFocus, onBlur, onToggle
+
+
+# Helpers
+
+@docs onInputAttribute, onSelectAttribute, onCheckAttribute, onAutocompleteFilterAttribute, onFocusAttribute, onBlurAttribute, onToggleAttribute
 
 -}
 
