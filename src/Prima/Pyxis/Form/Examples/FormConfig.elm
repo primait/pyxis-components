@@ -12,15 +12,7 @@ module Prima.Pyxis.Form.Examples.FormConfig exposing
 
 import Html exposing (Html, p, text)
 import Html.Attributes exposing (class, maxlength, minlength)
-import Prima.Pyxis.Form as Form
-    exposing
-        ( AutocompleteOption
-        , CheckboxOption
-        , FormField
-        , FormFieldConfig
-        , RadioOption
-        , SelectOption
-        )
+import Prima.Pyxis.Form as Form exposing (FormField)
 import Prima.Pyxis.Form.Event as Event
 import Prima.Pyxis.Form.Examples.Model
     exposing
@@ -29,7 +21,7 @@ import Prima.Pyxis.Form.Examples.Model
         , Model
         , Msg(..)
         )
-import Prima.Pyxis.Validation exposing (..)
+import Prima.Pyxis.Form.Validation exposing (Validation(..))
 
 
 username : FormField FormData Msg
@@ -79,8 +71,8 @@ gender =
         []
         .gender
         [ Event.onSelect (UpdateField Gender) ]
-        [ RadioOption "Male" "male"
-        , RadioOption "Female" "female"
+        [ Form.radioOption "Male" "male"
+        , Form.radioOption "Female" "female"
         ]
         [ Custom ((==) "female" << Maybe.withDefault "female" << .gender) "You must select `Female` to proceed." ]
 
@@ -93,7 +85,7 @@ visitedCountries data =
         []
         (List.map (\( label, slug, checked ) -> ( slug, checked )) << .visitedCountries)
         [ Event.onCheck (UpdateCheckbox VisitedCountries) ]
-        (List.map (\( label, slug, checked ) -> CheckboxOption label slug checked) data.visitedCountries)
+        (List.map (\( label, slug, checked ) -> Form.checkboxOption label slug checked) data.visitedCountries)
         []
 
 
@@ -113,11 +105,11 @@ city isOpen =
         , Event.onFocus (OnFocus City)
         ]
         (List.sortBy .label
-            [ SelectOption "Milan" "MI"
-            , SelectOption "Turin" "TO"
-            , SelectOption "Rome" "RO"
-            , SelectOption "Naples" "NA"
-            , SelectOption "Genoa" "GE"
+            [ Form.selectOption "Milan" "MI"
+            , Form.selectOption "Turin" "TO"
+            , Form.selectOption "Rome" "RO"
+            , Form.selectOption "Naples" "NA"
+            , Form.selectOption "Genoa" "GE"
             ]
         )
         [ NotEmpty "Empty value is not acceptable." ]
@@ -155,39 +147,39 @@ country { countryFilter, isOpenCountry } =
         , Event.onSelect (UpdateField Country)
         , Event.onFocus (OnFocus Country)
         ]
-        ([ AutocompleteOption "Aland Islands" "ALA"
-         , AutocompleteOption "Austria" "AUT"
-         , AutocompleteOption "Belgium" "BEL"
-         , AutocompleteOption "Bulgaria" "BGR"
-         , AutocompleteOption "Croatia" "HRV"
-         , AutocompleteOption "Cyprus" "CYP"
-         , AutocompleteOption "Czech Republic" "CZE"
-         , AutocompleteOption "Denmark" "DNK"
-         , AutocompleteOption "Estonia" "EST"
-         , AutocompleteOption "Faroe Islands" "FRO"
-         , AutocompleteOption "Finland" "FIN"
-         , AutocompleteOption "France" "FRA"
-         , AutocompleteOption "French Guiana" "GUF"
-         , AutocompleteOption "Germany" "DEU"
-         , AutocompleteOption "Gibraltar" "GIB"
-         , AutocompleteOption "Greece" "GRC"
-         , AutocompleteOption "Hungary" "HUN"
-         , AutocompleteOption "Ireland" "IRL"
-         , AutocompleteOption "Isle of Man" "IMN"
-         , AutocompleteOption "Italy" "ITA"
-         , AutocompleteOption "Latvia" "LVA"
-         , AutocompleteOption "Lithuania" "LTU"
-         , AutocompleteOption "Luxembourg" "LUX"
-         , AutocompleteOption "Malta" "MLT"
-         , AutocompleteOption "Netherlands" "NLD"
-         , AutocompleteOption "Poland" "POL"
-         , AutocompleteOption "Portugal" "PRT"
-         , AutocompleteOption "Romania" "ROU"
-         , AutocompleteOption "Slovakia" "SVK"
-         , AutocompleteOption "Slovenia" "SVN"
-         , AutocompleteOption "Spain" "ESP"
-         , AutocompleteOption "Sweden" "SWE"
-         , AutocompleteOption "United Kingdom of Great Britain and Northern Ireland" "GBR"
+        ([ Form.autocompleteOption "Aland Islands" "ALA"
+         , Form.autocompleteOption "Austria" "AUT"
+         , Form.autocompleteOption "Belgium" "BEL"
+         , Form.autocompleteOption "Bulgaria" "BGR"
+         , Form.autocompleteOption "Croatia" "HRV"
+         , Form.autocompleteOption "Cyprus" "CYP"
+         , Form.autocompleteOption "Czech Republic" "CZE"
+         , Form.autocompleteOption "Denmark" "DNK"
+         , Form.autocompleteOption "Estonia" "EST"
+         , Form.autocompleteOption "Faroe Islands" "FRO"
+         , Form.autocompleteOption "Finland" "FIN"
+         , Form.autocompleteOption "France" "FRA"
+         , Form.autocompleteOption "French Guiana" "GUF"
+         , Form.autocompleteOption "Germany" "DEU"
+         , Form.autocompleteOption "Gibraltar" "GIB"
+         , Form.autocompleteOption "Greece" "GRC"
+         , Form.autocompleteOption "Hungary" "HUN"
+         , Form.autocompleteOption "Ireland" "IRL"
+         , Form.autocompleteOption "Isle of Man" "IMN"
+         , Form.autocompleteOption "Italy" "ITA"
+         , Form.autocompleteOption "Latvia" "LVA"
+         , Form.autocompleteOption "Lithuania" "LTU"
+         , Form.autocompleteOption "Luxembourg" "LUX"
+         , Form.autocompleteOption "Malta" "MLT"
+         , Form.autocompleteOption "Netherlands" "NLD"
+         , Form.autocompleteOption "Poland" "POL"
+         , Form.autocompleteOption "Portugal" "PRT"
+         , Form.autocompleteOption "Romania" "ROU"
+         , Form.autocompleteOption "Slovakia" "SVK"
+         , Form.autocompleteOption "Slovenia" "SVN"
+         , Form.autocompleteOption "Spain" "ESP"
+         , Form.autocompleteOption "Sweden" "SWE"
+         , Form.autocompleteOption "United Kingdom of Great Britain and Northern Ireland" "GBR"
          ]
             |> List.filter (String.contains lowerFilter << String.toLower << .label)
         )

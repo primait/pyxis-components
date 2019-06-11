@@ -1,34 +1,85 @@
 module Prima.Pyxis.Form exposing
-    ( AutocompleteOption
-    , CheckboxOption
-    , Form
-    , FormField
-    , FormFieldConfig
-    , FormFieldGroup
-    , FormState(..)
-    , RadioOption
-    , SelectOption
-    , addFields
-    , appendGroup
-    , autocompleteConfig
-    , checkboxConfig
+    ( Form, FormFieldGroup, FormRenderer, Label, Slug, Value
+    , init, setAsPristine, setAsTouched, setAsSubmitted
+    , FormField(..)
+    , textConfig, passwordConfig, textareaConfig
+    , checkboxConfig, checkboxOption
+    , radioConfig, radioOption
+    , selectConfig, selectOption
     , datepickerConfig
-    , init
-    , passwordConfig
-    , prependGroup
-    , pureHtmlConfig
-    , radioConfig
-    , render
-    , renderField
-    , renderFieldWithGroup
-    , selectConfig
-    , setAsPristine
-    , setAsSubmitted
-    , setAsTouched
-    , textConfig
-    , textareaConfig
-    , wrapper
+    , autocompleteConfig, autocompleteOption
+    , isValid, isPristine
+    , render, renderField, renderFieldWithGroup
+    , groupPrepend, groupAppend
+    , addFields, appendGroup, prependGroup, pureHtmlConfig
     )
+
+{-| Allows to create a Form and it's fields using predefined Html syntax.
+
+
+# Form Configuration
+
+@docs Form, FormFieldGroup, FormRenderer, Label, Slug, Value
+
+
+# Form Configuration Helpers
+
+@docs init, setAsPristine, setAsTouched, setAsSubmitted
+
+
+# Fields Configuration
+
+@docs FormField
+
+
+# Input
+
+@docs textConfig, passwordConfig, textareaConfig
+
+
+# Checkbox
+
+@docs checkboxConfig, checkboxOption
+
+
+# Radio
+
+@docs radioConfig, radioOption
+
+
+# Select
+
+@docs selectConfig, selectOption
+
+
+# Datepicker
+
+@docs datepickerConfig
+
+
+# Autocomplete
+
+@docs autocompleteConfig, autocompleteOption
+
+
+# Fields Configuration Helpers
+
+
+# Fields Helpers
+
+@docs isValid, isPristine
+
+
+# Render
+
+@docs render, renderField, renderFieldWithGroup
+
+
+# Render Helpers
+
+@docs groupPrepend, groupAppend
+
+-}
 
 import Html exposing (..)
 import Html.Attributes
@@ -46,22 +97,28 @@ import Html.Attributes
         )
 import Prima.Pyxis.DatePicker as DatePicker
 import Prima.Pyxis.Form.Event as Events exposing (Event)
-import Prima.Pyxis.Helpers exposing (..)
-import Prima.Pyxis.Validation exposing (..)
+import Prima.Pyxis.Form.Validation as Validation exposing (Validation(..))
+import Prima.Pyxis.Helpers as Helpers
 import Regex
 
 
+{-| Represents the `Form` configuration.
+-}
 type Form model msg
     = Form (FormConfig model msg)
 
 
 type alias FormConfig model msg =
     { state : FormState
-    , renderModel : List (RenderModel model msg)
+    , renderer : List (FormRenderer model msg)
     }
 
 
-type alias RenderModel model msg =
+{-| A list in which each item represents a row of the form.
+Each row has is own list of fields (`FormField model msg`) which
+will be rendered by the mapper function (`FormField model msg -> List (Html msg)`).
+-}
+type alias FormRenderer model msg =
     ( FormField model msg -> List (Html msg), List (FormField model msg) )
 
 
@@ -86,40 +143,95 @@ isFormSubmitted =
     (==) Submitted
 
 
+{-| Creates an empty, pristine form.
+-}
 init : Form model msg
 init =
     Form (FormConfig Pristine [])
 
 
-addFields : List (RenderModel model msg) -> Form model msg -> Form model msg
-addFields renderModel (Form config) =
-    Form { config | renderModel = renderModel }
+{-| Add rows of fields to the form.
+
+    --
+    import Prima.Pyxis.Form as Form
+    import Prima.Pyxis.Form.Event as Event
+
+    ...
+
+    type alias Model =
+        { data : FormData
+        , form : Form FormData Msg
+        }
+
+    type alias FormData =
+        { username : Maybe String
+        }
+
+    type Msg
+        = UpdateUsername (Maybe String)
+
+    ...
+
+    usernameConfig : FormField FormData Msg
+    usernameConfig =
+        Form.textConfig
+            "username"
+            (Just "Username")
+            [ minlength 3, maxlength 12 ]
+            .username
+            [ Event.onInput UpdateUsername ]
+            [ NotEmpty "Username must not be blank."
+            ]
+
+    ...
+
+    view : Model -> Html Msg
+    view ({ form, data } as model) =
+        ( Form.renderField form data, usernameConfig )
+            |> Form.addFields form
+            |> Form.render
+
+-}
+addFields : Form model msg -> List (FormRenderer model msg) -> Form model msg
+addFields (Form config) renderer =
+    Form { config | renderer = renderer }
 
 
+{-| Sets the form to Pristine state.
+-}
 setAsPristine : Form model msg -> Form model msg
 setAsPristine (Form config) =
     Form { config | state = Pristine }
 
 
+{-| Sets the form to Touched state.
+-}
 setAsTouched : Form model msg -> Form model msg
 setAsTouched (Form config) =
     Form { config | state = Touched }
 
 
+{-| Sets the form to Submitted state. When submitted the form will eventually show errors.
+-}
 setAsSubmitted : Form model msg -> Form model msg
 setAsSubmitted (Form config) =
     Form { config | state = Submitted }
 
 
+{-| Renders a form with all it's fields.
+Requires a `Form model msg` created via `Form.init` and `Form.addFields`.
+-}
 render : Form model msg -> List (Html msg)
-render (Form { renderModel }) =
+render (Form { renderer }) =
     let
-        renderWrappedFields ( renderer, fieldConfigs ) =
-            (wrapper << List.concat << List.map renderer) fieldConfigs
+        renderWrappedFields ( mapper, fieldConfigs ) =
+            (wrapper << List.concat << List.map mapper) fieldConfigs
     in
-    List.map renderWrappedFields renderModel
+    List.map renderWrappedFields renderer
 
 
+{-| Represents the configuration of a single form field.
+-}
 type FormField model msg
     = FormField (FormFieldConfig model msg)
 
@@ -136,19 +248,26 @@ type FormFieldConfig model msg
     | FormFieldPureHtmlConfig (PureHtmlConfig msg)
 
 
+{-| Represents the type of group which can wrap a form field.
+Used to add a boxed icon in a form field (for instance the calendar icon of the datepicker).
+-}
 type FormFieldGroup msg
     = Prepend (List (Html msg))
     | Append (List (Html msg))
 
 
-appendGroup : List (Html msg) -> FormFieldGroup msg
-appendGroup =
-    Append
-
-
+{-| Represents an html which prepends to the form field.
+-}
 prependGroup : List (Html msg) -> FormFieldGroup msg
 prependGroup =
     Prepend
+
+
+{-| Represents an html which appends to the form field.
+-}
+appendGroup : List (Html msg) -> FormFieldGroup msg
+appendGroup =
+    Append
 
 
 type alias TextConfig model msg =
@@ -189,9 +308,16 @@ type alias RadioConfig model msg =
 
 
 type alias RadioOption =
-    { label : String
+    { label : Label
     , slug : Slug
     }
+
+
+{-| Creates a radio option.
+-}
+radioOption : Label -> Slug -> RadioOption
+radioOption =
+    RadioOption
 
 
 type alias CheckboxConfig model msg =
@@ -211,6 +337,13 @@ type alias CheckboxOption =
     }
 
 
+{-| Creates a radio option.
+-}
+checkboxOption : Label -> Slug -> Bool -> CheckboxOption
+checkboxOption =
+    CheckboxOption
+
+
 type alias SelectConfig model msg =
     { slug : Slug
     , label : Maybe Label
@@ -225,9 +358,16 @@ type alias SelectConfig model msg =
 
 
 type alias SelectOption =
-    { label : String
+    { label : Label
     , slug : Slug
     }
+
+
+{-| Creates a select option.
+-}
+selectOption : Label -> Slug -> SelectOption
+selectOption =
+    SelectOption
 
 
 type alias DatepickerConfig model msg =
@@ -261,23 +401,70 @@ type alias AutocompleteOption =
     }
 
 
+{-| Creates an autocomplete option.
+-}
+autocompleteOption : Label -> Slug -> AutocompleteOption
+autocompleteOption =
+    AutocompleteOption
+
+
 type alias PureHtmlConfig msg =
     { content : List (Html msg)
     }
 
 
+{-| Alias for String. Useful to have easy-to-read signatures.
+-}
 type alias Slug =
     String
 
 
+{-| Alias for String. Useful to have easy-to-read signatures.
+-}
 type alias Label =
     String
 
 
+{-| Alias for String. Useful to have easy-to-read signatures.
+-}
 type alias Value =
     String
 
 
+{-| Creates an input text field.
+This field can handle only onInput, onFocus, onBlur events. Other events will be ignored.
+
+    --
+    import Prima.Pyxis.Form as Form exposing (FormField)
+    import Prima.Pyxis.Form.Event as Event
+
+    ...
+
+    type alias Msg
+        = OnInput (Maybe String)
+        | OnFocus
+        | OnBlur
+
+    type alias Model =
+        { username : Maybe String }
+
+    ...
+
+    usernameConfig : FormField Model Msg
+    usernameConfig =
+        Form.textConfig
+            "username"
+            (Just "Username")
+            [ minlength 3, maxlength 12 ]
+            .username
+            [ Event.onInput OnInput
+            , Event.onFocus OnFocus
+            , Event.onBlur OnBlur
+            ]
+            [ NotEmpty "Empty value is not acceptable."
+            ]
+
+-}
 textConfig : Slug -> Maybe Label -> List (Attribute msg) -> (model -> Maybe Value) -> List (Event msg) -> List (Validation model) -> FormField model msg
 textConfig slug label attrs reader events validations =
     FormField <|
@@ -292,6 +479,8 @@ textConfig slug label attrs reader events validations =
             validations
 
 
+{-| Creates a password text field. Same configuration as `textConfig`.
+-}
 passwordConfig : Slug -> Maybe Label -> List (Attribute msg) -> (model -> Maybe Value) -> List (Event msg) -> List (Validation model) -> FormField model msg
 passwordConfig slug label attrs reader events validations =
     FormField <|
@@ -306,6 +495,8 @@ passwordConfig slug label attrs reader events validations =
             validations
 
 
+{-| Creates a texarea field. Same configuration as `textConfig`.
+-}
 textareaConfig : Slug -> Maybe Label -> List (Attribute msg) -> (model -> Maybe Value) -> List (Event msg) -> List (Validation model) -> FormField model msg
 textareaConfig slug label attrs reader events validations =
     FormField <|
@@ -320,6 +511,40 @@ textareaConfig slug label attrs reader events validations =
             validations
 
 
+{-| Creates a radio field.
+This field can handle only onSelect event. Other events will be ignored.
+
+    --
+    import Prima.Pyxis.Form as Form exposing (FormField, RadioOption)
+    import Prima.Pyxis.Form.Event as Event
+
+    ...
+
+    type alias Msg
+        = OnSelect (Maybe String)
+
+    type alias Model =
+        { gender : Maybe String }
+
+    ...
+
+    genderConfig : FormField Model Msg
+    genderConfig =
+        let
+            options : List RadioOption
+            options =
+                [ Form.radioOption "Male" "male", Form.radioOption "Female", "female" ]
+        in
+        Form.radioConfig
+            "gender"
+            (Just "Gender")
+            []
+            .gender
+            [ Event.onSelect OnSelect ]
+            options
+            []
+
+-}
 radioConfig : Slug -> Maybe Label -> List (Attribute msg) -> (model -> Maybe Value) -> List (Event msg) -> List RadioOption -> List (Validation model) -> FormField model msg
 radioConfig slug label attrs reader events options validations =
     FormField <|
@@ -335,6 +560,46 @@ radioConfig slug label attrs reader events options validations =
             validations
 
 
+{-| Creates a checkbox field.
+This field can handle only onCheck event. Other events will be ignored.
+
+    --
+    import Prima.Pyxis.Form as Form exposing (FormField, Label, Slug, CheckboxOption)
+    import Prima.Pyxis.Form.Event as Event
+
+    ...
+
+    type alias Msg
+        = OnCheck ( Slug, Bool )
+
+    type alias Model =
+        { country : Maybe String
+        , countries: List (Label, Slug, Bool)
+        }
+
+    ...
+
+    countries : Model -> FormField Model Msg
+    countries model =
+        let
+            reader : (Model -> List (Slug, Bool))
+            reader =
+                (List.map (\( _, slug, checked ) -> ( slug, checked )) << .countries)
+
+            options : List CheckboxOption
+            options =
+                List.map (( label, slug, isChecked ) -> Form.checkboxOption label slug isChecked) model.countries
+        in
+        Form.checkboxConfig
+            "countries"
+            (Just "Countries")
+            []
+            reader
+            [ Event.onCheck OnCheck ]
+            options
+            []
+
+-}
 checkboxConfig : Slug -> Maybe Label -> List (Attribute msg) -> (model -> List ( Slug, Bool )) -> List (Event msg) -> List CheckboxOption -> List (Validation model) -> FormField model msg
 checkboxConfig slug label attrs reader events options validations =
     FormField <|
@@ -350,6 +615,53 @@ checkboxConfig slug label attrs reader events options validations =
             validations
 
 
+{-| Creates a select field. This field is a custom component on desktop devices. It fallbacks to a
+native `Html Select` tag on mobile devices.
+Infact we need to express `isDisabled` flag as an `Html Attribute` and also as a parameter for this method.
+
+This field can handle only onToggle, onInput, onSelect, onFocus and onBlur events. Other events will be ignored.
+
+    --
+    import Prima.Pyxis.Form as Form exposing (FormField, Label, Slug, SelectOption)
+    import Prima.Pyxis.Form.Event as Event
+    import Html.Attributes
+    ...
+
+    type alias Msg
+        = OnInput (Maybe String)
+        | OnToggle
+        | OnSelect (Maybe String)
+        | OnFocus
+        | OnBlur
+
+    type alias Model =
+        { city : Maybe String
+        , isOpen : Bool
+        , isDisabled : Bool
+        }
+
+    ...
+
+    cities : Model -> FormField Model Msg
+    cities model =
+        let
+            options : List SelectOption
+            options =
+                [ Form.selectOption "Milan" "MI", Form.selectOption "Turin" "TO", Form.selectOption "Rome" "RO" ]
+        in
+        Form.selectConfig
+            "city"
+            (Just "City")
+            model.isDisabled
+            model.isOpen
+            (Just "Select a city")
+            [ Html.Attributes.disabled model.isDisabled ]
+            .city
+            [ Event.onToggle OnToggle, Event.onInput OnInput, Event.onSelect OnSelect, Event.onFocus, Event.onBlur ]
+            options
+            [ NotEmpty "Empty value is not acceptable." ]
+
+-}
 selectConfig : Slug -> Maybe Label -> Bool -> Bool -> Maybe String -> List (Attribute msg) -> (model -> Maybe Value) -> List (Event msg) -> List SelectOption -> List (Validation model) -> FormField model msg
 selectConfig slug label isDisabled isOpen placeholder attrs reader events options validations =
     FormField <|
@@ -368,6 +680,41 @@ selectConfig slug label isDisabled isOpen placeholder attrs reader events option
             validations
 
 
+{-| Creates a datepicker field.
+This field can handle only onInput event. Other events will be ignored.
+
+    --
+    import Prima.Pyxis.Form as Form exposing (FormField)
+    import Prima.Pyxis.Form.Event as Event
+    import Prima.Pyxis.DatePicker as DatePicker
+    ...
+
+    type alias Msg
+        = OnInput (Maybe String)
+        | OnDatePickerChange DatePicker.Msg
+
+    type alias Model =
+        { datePicker : DatePicker.Model
+        , birthDate : Maybe String
+        , isDatePickerOpen : Bool
+        }
+
+    ...
+
+    dateOfBirth : Model -> FormField Model Msg
+    dateOfBirth model =
+        Form.datepickerConfig
+            "birthdate"
+            (Just "Date of Birth")
+            []
+            .birthDate
+            OnDatePickerChange
+            [ Event.onInput OnInput ]
+            model.datePicker
+            model.isDatePickerOpen
+            []
+
+-}
 datepickerConfig : Slug -> Maybe Label -> List (Attribute msg) -> (model -> Maybe Value) -> (DatePicker.Msg -> msg) -> List (Event msg) -> DatePicker.Model -> Bool -> List (Validation model) -> FormField model msg
 datepickerConfig slug label attrs reader datePickerTagger events datepicker showDatePicker validations =
     FormField <|
@@ -385,6 +732,57 @@ datepickerConfig slug label attrs reader datePickerTagger events datepicker show
             validations
 
 
+{-| Creates an autocomplete field.
+This field can handle only onSelect, onAutocompleteFilter, onFocus and onBlur events. Other events will be ignored.
+
+    --
+    import Prima.Pyxis.Form as Form exposing (FormField)
+    import Prima.Pyxis.Form.Event as Event
+    import Tuple
+    ...
+
+    type alias Msg
+        = OnSelect (Maybe String)
+        | OnFilter (Maybe String)
+
+    type alias Model =
+        { empireFilter : Maybe String
+        , empire : Maybe String
+        , isOpen : Bool
+        }
+
+    ...
+
+    empire : Model -> FormField Model Msg
+    empire model =
+        let
+            filter : String
+            filter =
+                Maybe.withDefault "" model.empireFilter
+
+            options : List AutocompleteOption
+            options =
+                [ ("Roman Empire", "roman")
+                , ("Ottoman Empire", "ottoman")
+                , ("French Empire", "french")
+                , ("British Empire", "british")
+                ]
+                |> List.filter (String.contains filter << Tuple.first)
+                |> List.map (\(label, slug) -> Form.autocompleteOption label slug)
+        in
+        Form.autocompleteConfig
+            "empire"
+            (Just "empire")
+            model.isOpen
+            (Just "No results")
+            []
+            .empireFilter
+            .empire
+            [ Event.onAutocompleteFilter OnFilter, Event.onSelect OnSelect ]
+            options
+            []
+
+-}
 autocompleteConfig : String -> Maybe String -> Bool -> Maybe String -> List (Attribute msg) -> (model -> Maybe Value) -> (model -> Maybe Value) -> List (Event msg) -> List AutocompleteOption -> List (Validation model) -> FormField model msg
 autocompleteConfig slug label isOpen noResults attrs filterReader choiceReader events options validations =
     FormField <|
@@ -403,6 +801,18 @@ autocompleteConfig slug label isOpen noResults attrs filterReader choiceReader e
             validations
 
 
+{-| Creates a pure html field. No events accepeted.
+
+    --
+    import Prima.Pyxis.Form as Form exposing (FormField)
+
+    ...
+
+    loremIpsum : FormField Model Msg
+    loremIpsum =
+        Form.pureHtmlConfig [ text "Lorem ipsum dolor sit amet" ]
+
+-}
 pureHtmlConfig : List (Html msg) -> FormField model msg
 pureHtmlConfig content =
     FormField <|
@@ -412,6 +822,35 @@ pureHtmlConfig content =
             )
 
 
+{-| Renders a field by receiving the `Form` and the `FormField` configuration.
+
+    --
+    import Html exposing (Html)
+    import Prima.Pyxis.Form as Form exposing (Form, FormField)
+    import FieldConfig exposing (usernameConfig)
+
+    ...
+
+    type Msg
+        = OnInput (Maybe String)
+
+    type alias Model =
+        { form : Form FormData Msg
+        , data : FormData
+        }
+
+    type alias FormData =
+        { username: Maybe String
+        }
+
+    ...
+
+    view : Model -> Html Msg
+    view model =
+        ( Form.renderField model.form model.data, [ usernameConfig ] )
+            |> Form.render model.form
+
+-}
 renderField : Form model msg -> model -> FormField model msg -> List (Html msg)
 renderField (Form { state }) model (FormField opaqueConfig) =
     let
@@ -420,7 +859,7 @@ renderField (Form { state }) model (FormField opaqueConfig) =
 
         errors =
             (List.singleton
-                << renderIf (isFormSubmitted state && canShowError model (FormField opaqueConfig))
+                << Helpers.renderIf (isFormSubmitted state && canShowError model (FormField opaqueConfig))
                 << renderError
                 << String.join " "
                 << pickError model
@@ -458,6 +897,46 @@ renderField (Form { state }) model (FormField opaqueConfig) =
         ++ errors
 
 
+{-| Renders a field by receiving the `Form`, the `FormFieldGroup`, and the `FormField` configuration.
+Useful to build a field with an icon to the left (prepend), or to the right (append).
+You can pass any html to this function, but be careful, UI can be broken.
+
+    --
+    import Html exposing (Html, i)
+    import Html.Attributes exposing (class)
+    import Html.Events exposing (onClick)
+    import Prima.Pyxis.Form as Form exposing (Form, FormField)
+    import FieldConfig exposing (datePickerConfig)
+
+    ...
+
+    type Msg
+        = ToggleDatePicker
+
+    type alias Model =
+        { form : Form FormData Msg
+        , data : FormData
+        }
+
+    type alias FormData =
+        { birthDate: Maybe String
+        }
+
+    ...
+
+    datePickerIcon : Html Msg
+    datePickerIcon =
+        i
+            [ class "a-icon a-icon-calendar cBrandAltDark"
+            , onClick ToggleDatePicker
+            ]
+
+    view : Model -> Html Msg
+    view model =
+        ( Form.renderFieldWithGroup model.form model.data <| Form.appendGroup [ datePickerIcon ], [ datePickerConfig ] )
+            |> Form.render model.form
+
+-}
 renderFieldWithGroup : Form model msg -> model -> FormFieldGroup msg -> FormField model msg -> List (Html msg)
 renderFieldWithGroup (Form { state }) model group (FormField opaqueConfig) =
     let
@@ -466,7 +945,7 @@ renderFieldWithGroup (Form { state }) model group (FormField opaqueConfig) =
 
         errors =
             (List.singleton
-                << renderIf (isFormSubmitted state && canShowError model (FormField opaqueConfig))
+                << Helpers.renderIf (isFormSubmitted state && canShowError model (FormField opaqueConfig))
                 << renderError
                 << String.join " "
                 << pickError model
@@ -729,15 +1208,6 @@ renderRadioOption model ({ reader, slug, label, options, attrs } as config) inde
     ]
 
 
-boolToString : Bool -> String
-boolToString v =
-    if v then
-        "y"
-
-    else
-        "n"
-
-
 renderCheckbox : model -> CheckboxConfig model msg -> List (Validation model) -> List (Html msg)
 renderCheckbox model ({ slug, label, options } as config) validations =
     (List.concat << List.indexedMap (\index option -> renderCheckboxOption model config index option)) options
@@ -938,7 +1408,7 @@ renderDatepicker state model ({ attrs, reader, datePickerTagger, slug, label, in
             ++ attrs
         )
         []
-    , (renderIf showDatePicker << Html.map datePickerTagger << DatePicker.view) instance
+    , (Helpers.renderIf showDatePicker << Html.map datePickerTagger << DatePicker.view) instance
     , Html.input
         ([ attribute "type" "date"
          , (value << Maybe.withDefault "" << Maybe.map inputDateFormat << reader) model
@@ -1049,11 +1519,15 @@ renderPureHtml { content } =
     content
 
 
+{-| Check if a `FormField` is valid
+-}
 isValid : model -> FormField model msg -> Bool
 isValid model (FormField opaqueConfig) =
     List.all (validate model opaqueConfig) (pickValidationRules opaqueConfig)
 
 
+{-| Check if a `FormField` is pristine
+-}
 isPristine : model -> FormField model msg -> Bool
 isPristine model (FormField opaqueConfig) =
     let
@@ -1081,7 +1555,7 @@ isPristine model (FormField opaqueConfig) =
             (isEmpty << choiceReader) model
 
         FormFieldDatepickerConfig { reader } _ ->
-            (isNothing << reader) model
+            (Helpers.isNothing << reader) model
 
         _ ->
             True
@@ -1114,7 +1588,7 @@ validate model config validation =
             (not << isEmpty << choiceReader) model
 
         ( NotEmpty _, FormFieldDatepickerConfig { reader } _ ) ->
-            (not << isJust << reader) model
+            (not << Helpers.isJust << reader) model
 
         ( NotEmpty _, FormFieldCheckboxConfig { reader } _ ) ->
             (List.any Tuple.second << reader) model
@@ -1180,22 +1654,9 @@ pickError model opaqueConfig =
                 Nothing
 
             else
-                (Just << pickValidationError) rule
+                (Just << Validation.pickError) rule
         )
         (pickValidationRules opaqueConfig)
-
-
-pickValidationError : Validation model -> String
-pickValidationError rule =
-    case rule of
-        NotEmpty error ->
-            error
-
-        Expression exp error ->
-            error
-
-        Custom customRule error ->
-            error
 
 
 canShowError : model -> FormField model msg -> Bool

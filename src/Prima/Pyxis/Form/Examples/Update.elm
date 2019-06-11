@@ -2,7 +2,7 @@ module Prima.Pyxis.Form.Examples.Update exposing (update)
 
 import Date exposing (Date)
 import Prima.Pyxis.DatePicker as DatePicker
-import Prima.Pyxis.Form as Form exposing (Form, FormState)
+import Prima.Pyxis.Form as Form exposing (Form)
 import Prima.Pyxis.Form.Examples.Model as Model
     exposing
         ( FieldName(..)

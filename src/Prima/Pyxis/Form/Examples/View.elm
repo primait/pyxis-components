@@ -31,7 +31,7 @@ appBody ({ data, formConfig } as model) =
             ]
 
         form =
-            Form.addFields renderModel formConfig
+            Form.addFields formConfig renderModel
     in
     Helpers.pyxisStyle :: Form.render form ++ [ btnSubmit, btnReset ]
 
