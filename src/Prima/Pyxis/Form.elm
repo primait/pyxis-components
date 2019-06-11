@@ -1,6 +1,6 @@
 module Prima.Pyxis.Form exposing
     ( Form, FormFieldGroup, FormRenderer, Label, Slug, Value
-    , init, setAsPristine, setAsTouched, setAsSubmitted
+    , init, addFields, setAsPristine, setAsTouched, setAsSubmitted
     , FormField(..)
     , textConfig, passwordConfig, textareaConfig
     , checkboxConfig, checkboxOption
@@ -8,10 +8,10 @@ module Prima.Pyxis.Form exposing
     , selectConfig, selectOption
     , datepickerConfig
     , autocompleteConfig, autocompleteOption
+    , pureHtmlConfig
     , isValid, isPristine
     , render, renderField, renderFieldWithGroup
-    , groupPrepend, groupAppend
-    , addFields, appendGroup, prependGroup, pureHtmlConfig
+    , prependGroup, appendGroup
     )
 
 {-| Allows to create a Form and it's fields using predefined Html syntax.
@@ -24,7 +24,7 @@ module Prima.Pyxis.Form exposing
 
 # Form Configuration Helpers
 
-@docs init, setAsPristine, setAsTouched, setAsSubmitted
+@docs init, addFields, setAsPristine, setAsTouched, setAsSubmitted
 
 
 # Fields Configuration
@@ -62,7 +62,9 @@ module Prima.Pyxis.Form exposing
 @docs autocompleteConfig, autocompleteOption
 
 
-# Fields Configuration Helpers
+# Pure Html
+
+@docs pureHtmlConfig
 
 
 # Fields Helpers
@@ -77,7 +79,7 @@ module Prima.Pyxis.Form exposing
 
 # Render Helpers
 
-@docs groupPrepend, groupAppend
+@docs prependGroup, appendGroup
 
 -}
 

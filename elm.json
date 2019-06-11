@@ -3,7 +3,7 @@
     "name": "primait/pyxis-components",
     "summary": "Prima Design System components",
     "license": "BSD-3-Clause",
-    "version": "3.1.1",
+    "version": "3.2.0",
     "exposed-modules": [
         "Prima.Pyxis.Accordion",
         "Prima.Pyxis.AtrTable",
@@ -12,7 +12,6 @@
         "Prima.Pyxis.Message",
         "Prima.Pyxis.Table",
         "Prima.Pyxis.Tooltip",
-        "Prima.Pyxis.Separator",
         "Prima.Pyxis.Form",
         "Prima.Pyxis.DatePicker"
     ],
