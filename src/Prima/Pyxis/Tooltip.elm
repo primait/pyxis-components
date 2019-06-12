@@ -104,7 +104,7 @@ render (Config config) =
             , ( "tooltip--up", isTooltipUp config.type_ )
             , ( "tooltip--down", isTooltipDown config.type_ )
             , ( "tooltip--left", isTooltipLeft config.type_ )
-            , ( "tooltip--down", isTooltipRight config.type_ )
+            , ( "tooltip--right", isTooltipRight config.type_ )
             ]
         ]
         [ text config.content ]
