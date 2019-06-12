@@ -10,7 +10,7 @@ module Prima.Pyxis.Tooltip.Example exposing
     )
 
 import Browser
-import Html exposing (Html, div)
+import Html exposing (Html, div, text)
 import Html.Attributes exposing (class, style)
 import Prima.Pyxis.Helpers as Helpers
 import Prima.Pyxis.Tooltip as Tooltip
@@ -58,8 +58,9 @@ appBody : Model -> List (Html Msg)
 appBody _ =
     [ Helpers.pyxisStyle
     , div
-        [ class "a-container a-container--medium directionColumn"
+        [ class "a-container a-container--small directionColumn"
         , style "position" "relative"
+        , style "top" "100px"
         ]
         ([ Tooltip.upConfig
          , Tooltip.downConfig
@@ -72,6 +73,12 @@ appBody _ =
     ]
 
 
-tooltipBuilder : (String -> Tooltip.Config msg) -> Html msg
+tooltipBuilder : (List (Html Msg) -> Tooltip.Config msg) -> Html msg
 tooltipBuilder mapper =
-    (Tooltip.render << mapper) "Lorem ipsum dolor sit amet."
+    (Tooltip.render << mapper) contentTooltip
+
+
+contentTooltip : List (Html Msg)
+contentTooltip =
+    [ div [ class "cose" ] [ text "Lorem ipsum dolor sit amet" ]
+    ]
