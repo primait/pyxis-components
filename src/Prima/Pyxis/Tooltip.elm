@@ -30,12 +30,12 @@ import Html.Attributes exposing (classList)
 {-| Represents the config of a Tooltip
 -}
 type Config msg
-    = Config Configuration
+    = Config (Configuration msg)
 
 
-type alias Configuration =
+type alias Configuration msg =
     { type_ : TooltipType
-    , content : String
+    , content : List (Html msg)
     }
 
 
@@ -48,28 +48,28 @@ type TooltipType
 
 {-| Defines the configuration of an Up tooltip.
 -}
-upConfig : String -> Config msg
+upConfig : List (Html msg) -> Config msg
 upConfig content =
     Config (Configuration Up content)
 
 
 {-| Defines the configuration of a Down tooltip.
 -}
-downConfig : String -> Config msg
+downConfig : List (Html msg) -> Config msg
 downConfig content =
     Config (Configuration Down content)
 
 
 {-| Defines the configuration of an Left tooltip.
 -}
-leftConfig : String -> Config msg
+leftConfig : List (Html msg) -> Config msg
 leftConfig content =
     Config (Configuration Left content)
 
 
 {-| Defines the configuration of an Right tooltip.
 -}
-rightConfig : String -> Config msg
+rightConfig : List (Html msg) -> Config msg
 rightConfig content =
     Config (Configuration Right content)
 
@@ -107,4 +107,4 @@ render (Config config) =
             , ( "tooltip--right", isTooltipRight config.type_ )
             ]
         ]
-        [ text config.content ]
+        config.content
