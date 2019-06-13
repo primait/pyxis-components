@@ -1,6 +1,6 @@
 module Prima.Pyxis.Form exposing
     ( Form, FormFieldGroup, FormRenderer, Label, Slug, Value
-    , init, addFields, setAsPristine, setAsTouched, setAsSubmitted
+    , init, setAsPristine, setAsTouched, setAsSubmitted
     , FormField(..)
     , textConfig, passwordConfig, textareaConfig
     , checkboxConfig, checkboxOption
@@ -12,6 +12,7 @@ module Prima.Pyxis.Form exposing
     , isValid, isPristine
     , render, renderField, renderFieldWithGroup
     , prependGroup, appendGroup
+    , addFieldsRows, formRenderer
     )
 
 {-| Allows to create a Form and it's fields using predefined Html syntax.
@@ -124,6 +125,11 @@ type alias FormRenderer model msg =
     ( FormField model msg -> List (Html msg), List (FormField model msg) )
 
 
+formRenderer : (FormField model msg -> List (Html msg)) -> List (FormField model msg) -> FormRenderer model msg
+formRenderer rendererFunc fields =
+    ( rendererFunc, fields )
+
+
 type FormState
     = Pristine
     | Touched
@@ -189,13 +195,13 @@ init =
 
     view : Model -> Html Msg
     view ({ form, data } as model) =
-        ( Form.renderField form data, usernameConfig )
-            |> Form.addFields form
+        form
+            |> Form.addFieldsRow [( Form.renderField form data, usernameConfig )]
             |> Form.render
 
 -}
-addFields : Form model msg -> List (FormRenderer model msg) -> Form model msg
-addFields (Form config) renderer =
+addFieldsRows : List (FormRenderer model msg) -> Form model msg -> Form model msg
+addFieldsRows renderer (Form config) =
     Form { config | renderer = renderer }
 
 
@@ -223,13 +229,14 @@ setAsSubmitted (Form config) =
 {-| Renders a form with all it's fields.
 Requires a `Form model msg` created via `Form.init` and `Form.addFields`.
 -}
-render : Form model msg -> List (Html msg)
+render : Form model msg -> Html msg
 render (Form { renderer }) =
     let
+        renderWrappedFields : FormRenderer model msg -> Html msg
         renderWrappedFields ( mapper, fieldConfigs ) =
             (wrapper << List.concat << List.map mapper) fieldConfigs
     in
-    List.map renderWrappedFields renderer
+    div [] (List.map renderWrappedFields renderer)
 
 
 {-| Represents the configuration of a single form field.

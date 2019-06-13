@@ -13,7 +13,7 @@ import Html.Attributes exposing (href, rel)
 
 pyxisStyle : Html msg
 pyxisStyle =
-    Html.node "link" [ href "https://d3be8952cnveif.cloudfront.net/pyxis/1.7.7/prima.css", rel "stylesheet" ] []
+    Html.node "link" [ href "https://d3be8952cnveif.cloudfront.net/pyxis/1.8.1/prima.css", rel "stylesheet" ] []
 
 
 loremIpsum : String
