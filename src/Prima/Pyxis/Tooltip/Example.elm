@@ -80,5 +80,4 @@ tooltipBuilder mapper =
 
 contentTooltip : List (Html Msg)
 contentTooltip =
-    [ div [ class "cose" ] [ text "Lorem ipsum dolor sit amet" ]
-    ]
+    [ text "Lorem ipsum dolor sit amet" ]
