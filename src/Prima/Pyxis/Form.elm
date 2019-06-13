@@ -1,6 +1,6 @@
 module Prima.Pyxis.Form exposing
     ( Form, FormFieldGroup, FormRenderer, Label, Slug, Value
-    , init, setAsPristine, setAsTouched, setAsSubmitted
+    , init, addFields, setAsPristine, setAsTouched, setAsSubmitted
     , FormField(..)
     , textConfig, passwordConfig, textareaConfig
     , checkboxConfig, checkboxOption
@@ -12,7 +12,7 @@ module Prima.Pyxis.Form exposing
     , isValid, isPristine
     , render, renderField, renderFieldWithGroup
     , prependGroup, appendGroup
-    , addFieldsRows, formRenderer
+    , formRenderer
     )
 
 {-| Allows to create a Form and it's fields using predefined Html syntax.
@@ -196,12 +196,12 @@ init =
     view : Model -> Html Msg
     view ({ form, data } as model) =
         form
-            |> Form.addFieldsRow [( Form.renderField form data, usernameConfig )]
+            |> Form.addFields [( Form.renderField form data, usernameConfig )]
             |> Form.render
 
 -}
-addFieldsRows : List (FormRenderer model msg) -> Form model msg -> Form model msg
-addFieldsRows renderer (Form config) =
+addFields : List (FormRenderer model msg) -> Form model msg -> Form model msg
+addFields renderer (Form config) =
     Form { config | renderer = renderer }
 
 
