@@ -236,7 +236,7 @@ render (Form { renderer }) =
         renderWrappedFields ( mapper, fieldConfigs ) =
             (wrapper << List.concat << List.map mapper) fieldConfigs
     in
-    div [] (List.map renderWrappedFields renderer)
+    form [] (List.map renderWrappedFields renderer)
 
 
 {-| Represents the configuration of a single form field.
