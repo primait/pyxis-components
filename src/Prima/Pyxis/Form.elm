@@ -1,5 +1,5 @@
 module Prima.Pyxis.Form exposing
-    ( Form, FormFieldGroup, FormRenderer, Label, Slug, Value
+    ( Form, FormFieldGroup, FormRenderer, Label, Slug, Value, formRenderer
     , init, addFields, setAsPristine, setAsTouched, setAsSubmitted
     , FormField(..)
     , textConfig, passwordConfig, textareaConfig
@@ -12,7 +12,6 @@ module Prima.Pyxis.Form exposing
     , isValid, isPristine
     , render, renderField, renderFieldWithGroup
     , prependGroup, appendGroup
-    , formRenderer
     )
 
 {-| Allows to create a Form and it's fields using predefined Html syntax.
@@ -20,7 +19,7 @@ module Prima.Pyxis.Form exposing
 
 # Form Configuration
 
-@docs Form, FormFieldGroup, FormRenderer, Label, Slug, Value
+@docs Form, FormFieldGroup, FormRenderer, Label, Slug, Value, formRenderer
 
 
 # Form Configuration Helpers
@@ -125,6 +124,8 @@ type alias FormRenderer model msg =
     ( FormField model msg -> List (Html msg), List (FormField model msg) )
 
 
+{-| Utility function to create a FormRenderer instance
+-}
 formRenderer : (FormField model msg -> List (Html msg)) -> List (FormField model msg) -> FormRenderer model msg
 formRenderer rendererFunc fields =
     ( rendererFunc, fields )
