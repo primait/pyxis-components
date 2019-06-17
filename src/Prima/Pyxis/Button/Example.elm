@@ -39,12 +39,18 @@ type alias Model =
 initialModel : Model
 initialModel =
     Model
-        [ Button.primary "Primary" NoOp False
-        , Button.primarySmall "Primary small" NoOp False
-        , Button.secondary "Secondary" NoOp False
-        , Button.secondarySmall "Secondary small" NoOp False
-        , Button.tertiarySmall "Tertiary" NoOp False
-        , Button.tertiarySmall "Tertiary small" NoOp False
+        [ Button.primary Button.brand "Primary" NoOp False
+        , Button.primarySmall Button.brand "Primary small" NoOp False
+        , Button.primary Button.dark "Primary dark" NoOp False
+        , Button.primarySmall Button.dark "Primary dark small" NoOp False
+        , Button.secondary Button.brand "Secondary" NoOp False
+        , Button.secondarySmall Button.brand "Secondary small" NoOp False
+        , Button.secondary Button.dark "Secondary dark" NoOp False
+        , Button.secondarySmall Button.dark "Secondary dark small" NoOp False
+        , Button.tertiarySmall Button.brand "Tertiary" NoOp False
+        , Button.tertiarySmall Button.brand "Tertiary small" NoOp False
+        , Button.tertiarySmall Button.dark "Tertiary dark" NoOp False
+        , Button.tertiarySmall Button.dark "Tertiary dark small" NoOp False
         ]
 
 
