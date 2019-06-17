@@ -11,7 +11,7 @@ module Prima.Pyxis.Tooltip.Example exposing
 
 import Browser
 import Html exposing (Html, div, text)
-import Html.Attributes exposing (class, style)
+import Html.Attributes exposing (class, classList, style)
 import Prima.Pyxis.Button as Button
 import Prima.Pyxis.Helpers as Helpers
 
@@ -33,24 +33,22 @@ init _ =
 
 type alias Model =
     { buttons : List (Button.Config Msg)
+    , darkButtons : List (Button.Config Msg)
     }
 
 
 initialModel : Model
 initialModel =
     Model
-        [ Button.primary Button.brand "Primary" NoOp False
-        , Button.primarySmall Button.brand "Primary small" NoOp False
-        , Button.primary Button.dark "Primary dark" NoOp False
-        , Button.primarySmall Button.dark "Primary dark small" NoOp False
-        , Button.secondary Button.brand "Secondary" NoOp False
-        , Button.secondarySmall Button.brand "Secondary small" NoOp False
-        , Button.secondary Button.dark "Secondary dark" NoOp False
-        , Button.secondarySmall Button.dark "Secondary dark small" NoOp False
-        , Button.tertiarySmall Button.brand "Tertiary" NoOp False
-        , Button.tertiarySmall Button.brand "Tertiary small" NoOp False
-        , Button.tertiarySmall Button.dark "Tertiary dark" NoOp False
-        , Button.tertiarySmall Button.dark "Tertiary dark small" NoOp False
+        [ Button.callOut Button.brand "CallOut" NoOp
+        , Button.primary Button.brand "Primary" NoOp
+        , Button.secondary Button.brand "Secondary" NoOp
+        , Button.tertiary Button.brand "Tertiary" NoOp
+        ]
+        [ Button.callOut Button.dark "CallOut dark" NoOp
+        , Button.primary Button.dark "Primary dark" NoOp
+        , Button.secondary Button.dark "Secondary dark" NoOp
+        , Button.tertiary Button.dark "Tertiary dark" NoOp
         ]
 
 
@@ -71,8 +69,26 @@ view model =
 appBody : Model -> List (Html Msg)
 appBody model =
     [ Helpers.pyxisStyle
-    , div
-        [ class "a-container a-container--small directionColumn"
-        ]
-        ((List.intersperse Helpers.spacer << List.map Button.render) model.buttons)
+    , model.buttons
+        |> List.map (\btn -> ( True, btn ))
+        |> Button.group
+        |> List.singleton
+        |> wrapper False
+    , model.darkButtons
+        |> List.map (\btn -> ( True, btn ))
+        |> Button.group
+        |> List.singleton
+        |> wrapper True
     ]
+
+
+wrapper : Bool -> List (Html Msg) -> Html Msg
+wrapper isDark content =
+    div
+        [ classList
+            [ ( "a-container", True )
+            , ( "directionColumn", True )
+            , ( "bgBackgroundAltLight", isDark )
+            ]
+        ]
+        content
