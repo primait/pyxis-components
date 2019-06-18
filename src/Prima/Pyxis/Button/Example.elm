@@ -40,15 +40,15 @@ type alias Model =
 initialModel : Model
 initialModel =
     Model
-        [ Button.callOut Button.brand "CallOut" NoOp
-        , Button.primary Button.brand "Primary" NoOp
-        , Button.secondary Button.brand "Secondary" NoOp
-        , Button.tertiary Button.brand "Tertiary" NoOp
+        [ Button.callOut Button.Brand "CallOut" NoOp
+        , Button.primary Button.Brand "Primary" NoOp
+        , Button.secondary Button.Brand "Secondary" NoOp
+        , Button.tertiary Button.Brand "Tertiary" NoOp
         ]
-        [ Button.callOut Button.dark "CallOut dark" NoOp
-        , Button.primary Button.dark "Primary dark" NoOp
-        , Button.secondary Button.dark "Secondary dark" NoOp
-        , Button.tertiary Button.dark "Tertiary dark" NoOp
+        [ Button.callOut Button.BrandDark "CallOut dark" NoOp
+        , Button.primary Button.BrandDark "Primary dark" NoOp
+        , Button.secondary Button.BrandDark "Secondary dark" NoOp
+        , Button.tertiary Button.BrandDark "Tertiary dark" NoOp
         ]
 
 

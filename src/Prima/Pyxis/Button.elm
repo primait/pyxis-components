@@ -1,6 +1,5 @@
 module Prima.Pyxis.Button exposing
-    ( Config, Emphasis, Scheme
-    , brand, dark
+    ( Config, Emphasis, Scheme(..)
     , callOut, callOutSmall, primary, primarySmall, secondary, secondarySmall, tertiary, tertiarySmall
     , render, group
     )
@@ -11,11 +10,6 @@ module Prima.Pyxis.Button exposing
 # Configuration
 
 @docs Config, Emphasis, Scheme
-
-
-# Color Scheme Helpers
-
-@docs brand, dark
 
 
 # Configuration Helpers
@@ -88,20 +82,6 @@ type Scheme
 isDark : Scheme -> Bool
 isDark =
     (==) BrandDark
-
-
-{-| Represents the default color scheme of the button. Used on light backgrounds.
--}
-brand : Scheme
-brand =
-    Brand
-
-
-{-| Represents the alternative color scheme of the button. Used on dark backgrounds.
--}
-dark : Scheme
-dark =
-    BrandDark
 
 
 type Size
@@ -202,7 +182,7 @@ tertiarySmall scheme label action =
 
     myBtn : Button.Config Msg
     myBtn =
-        Button.callOut Button.brand "Click me!" Clicked isDisabled
+        Button.callOut Button.Brand "Click me!" Clicked isDisabled
 
     ...
 
@@ -227,7 +207,7 @@ render isEnabled (Config config) =
             , ( "a-btn--small", isSmall config.size )
             , ( "a-btn--dark", isDark config.scheme )
             ]
-        , (disabled << not) isEnabled
+        , disabled (not isEnabled)
         , onClick config.action
         ]
         [ span
