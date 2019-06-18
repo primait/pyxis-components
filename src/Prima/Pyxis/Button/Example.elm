@@ -1,4 +1,4 @@
-module Prima.Pyxis.Tooltip.Example exposing
+module Prima.Pyxis.Button.Example exposing
     ( Model
     , Msg(..)
     , appBody
