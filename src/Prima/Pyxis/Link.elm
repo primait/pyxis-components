@@ -112,6 +112,8 @@ withIcon label path icon =
     Config (Configuration Simple label path (Just icon))
 
 
+{-| Represents an icon from Pyxis Iconset.
+-}
 type Icon
     = ArrowRight
     | ChevronDown
