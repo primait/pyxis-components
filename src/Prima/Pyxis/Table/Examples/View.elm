@@ -25,6 +25,7 @@ createTableConfiguration : Model -> Table.Config Msg
 createTableConfiguration model =
     Table.config
         Table.defaultType
+        True -- clientSort
         (createHeaders model.headers)
         (createRows model.rows)
         True
@@ -32,8 +33,10 @@ createTableConfiguration model =
 
 createHeaders : List String -> List (Table.Header Msg)
 createHeaders headers =
-    List.map createHeaderItem headers
-
+    -- List.map createHeaderItem headers
+    [ Table.header (String.toLower "Nazione") "Nazione" (Just SortBy)
+    , Table.header (String.toLower "Paese") "Paese" (Just SortBy)
+    ]
 
 createHeaderItem : String -> Table.Header Msg
 createHeaderItem content =

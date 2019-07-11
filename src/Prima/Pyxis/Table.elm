@@ -56,6 +56,7 @@ type Config msg
 
 type alias Configuration msg =
     { tableType : TableType
+    , clientSort : Bool
     , headers : List (Header msg)
     , rows : List (Row msg)
     , alternateRows : Bool
@@ -90,9 +91,9 @@ type alias Configuration msg =
     ...
 
 -}
-config : TableType -> List (Header msg) -> List (Row msg) -> Bool -> Config msg
-config tableType headers rows alternateRows =
-    Config (Configuration tableType headers rows alternateRows)
+config : TableType -> Bool -> List (Header msg) -> List (Row msg) -> Bool -> Config msg
+config tableType clientSort headers rows alternateRows =
+    Config (Configuration tableType clientSort headers rows alternateRows)
 
 
 {-| Represents the table skin.
@@ -313,15 +314,18 @@ render (State ({ sortBy, sortedColumn } as internalState)) (Config conf) =
             (Maybe.withDefault 0 << retrieveHeaderIndexBySlug sortedColumn) conf.headers
 
         sortedRows =
-            case sortBy of
-                Nothing ->
-                    conf.rows
+            if conf.clientSort then
+                case sortBy of
+                    Nothing ->
+                        conf.rows
 
-                Just Asc ->
-                    sortRows index conf.rows
+                    Just Asc ->
+                        sortRows index conf.rows
 
-                Just Desc ->
-                    (List.reverse << sortRows index) conf.rows
+                    Just Desc ->
+                        (List.reverse << sortRows index) conf.rows
+            else
+                conf.rows
 
         headerSlugs =
             List.map (\(Header { slug }) -> slug) conf.headers
@@ -346,7 +350,7 @@ renderTHead internalState ({ headers } as conf) =
 
 
 renderTH : InternalState -> Header msg -> Html msg
-renderTH { sortBy } (Header ({ slug, name } as conf)) =
+renderTH { sortBy, sortedColumn } (Header ({ slug, name } as conf)) =
     let
         sortableAttribute =
             case conf.tagger of
@@ -355,6 +359,25 @@ renderTH { sortBy } (Header ({ slug, name } as conf)) =
 
                 Nothing ->
                     attribute "data-unsortable" ""
+
+        sortIcon : Html msg
+        sortIcon =
+            case conf.tagger of
+                Just tagger ->
+                    renderSortIcon sortBy slug
+
+                Nothing ->
+                    text ""
+
+        sortColumn : String
+        sortColumn =
+            case sortedColumn of
+                Just columnName ->
+                    columnName
+
+                Nothing ->
+                    ""
+
     in
     th
         (sortableAttribute
@@ -362,7 +385,7 @@ renderTH { sortBy } (Header ({ slug, name } as conf)) =
                ]
         )
         [ text name
-        , renderSortIcon sortBy slug
+        , if sortColumn == slug then sortIcon else text ""
         ]
 
 
@@ -372,8 +395,8 @@ renderSortIcon sort slug =
         [ classList
             [ ( "a-icon", True )
             , ( "m-table__header__item", True )
-            , ( "a-icon--chevron-up", sort == Just Asc )
-            , ( "a-icon--chevron-down", sort == Just Desc )
+            , ( "a-icon-caret-up", sort == Just Asc )
+            , ( "a-icon-caret-down", sort == Just Desc )
             ]
         ]
         []
