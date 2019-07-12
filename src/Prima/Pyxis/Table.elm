@@ -352,22 +352,16 @@ renderTHead internalState ({ headers } as conf) =
 renderTH : InternalState -> Header msg -> Html msg
 renderTH { sortBy, sortedColumn } (Header ({ slug, name } as conf)) =
     let
-        sortableAttribute =
+
+        sort : { sortableAttribute : Html.Attribute msg, sortIcon : Html msg }
+        sort =
             case conf.tagger of
                 Just tagger ->
-                    (onClick << tagger) slug
+                    { sortableAttribute = (onClick << tagger) slug, sortIcon = renderSortIcon sortBy slug }
 
                 Nothing ->
-                    attribute "data-unsortable" ""
+                    { sortableAttribute = attribute "data-unsortable" "", sortIcon = text "" }
 
-        sortIcon : Html msg
-        sortIcon =
-            case conf.tagger of
-                Just tagger ->
-                    renderSortIcon sortBy slug
-
-                Nothing ->
-                    text ""
 
         sortColumn : String
         sortColumn =
@@ -380,12 +374,12 @@ renderTH { sortBy, sortedColumn } (Header ({ slug, name } as conf)) =
 
     in
     th
-        (sortableAttribute
+        (sort.sortableAttribute
             :: [ class "m-table__header__item fsSmall"
                ]
         )
         [ text name
-        , if sortColumn == slug then sortIcon else text ""
+        , if sortColumn == slug then sort.sortIcon else text ""
         ]
 
 
