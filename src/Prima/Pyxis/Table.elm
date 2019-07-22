@@ -5,6 +5,7 @@ module Prima.Pyxis.Table exposing
     , columnFloat, columnHtml, columnInteger, columnString
     , sortByAsc, sortByDesc, sortByNothing
     , render
+    , customInitialState
     )
 
 {-| Creates a customizable Table component by using predefined Html syntax.
@@ -56,7 +57,7 @@ type Config msg
 
 type alias Configuration msg =
     { tableType : TableType
-    , clientSort : Bool
+    , enableSorting : Bool
     , headers : List (Header msg)
     , rows : List (Row msg)
     , alternateRows : Bool
@@ -86,14 +87,14 @@ type alias Configuration msg =
                 True
 
         in
-        Table.config Table.defaultType headers rows alternateRows
+        Table.config Table.defaultType enableSorting headers rows alternateRows
 
     ...
 
 -}
 config : TableType -> Bool -> List (Header msg) -> List (Row msg) -> Bool -> Config msg
-config tableType clientSort headers rows alternateRows =
-    Config (Configuration tableType clientSort headers rows alternateRows)
+config tableType enableSorting headers rows alternateRows =
+    Config (Configuration tableType enableSorting headers rows alternateRows)
 
 
 {-| Represents the table skin.
@@ -133,6 +134,28 @@ type State
 initialState : State
 initialState =
     State (InternalState Nothing Nothing)
+
+
+{-| Creates an initial State with parameters.
+-}
+customInitialState : String -> String -> State
+customInitialState sortBy sortedColumn =
+    State (InternalState (stringFromSort <| sortBy) (Just sortedColumn))
+
+
+{-| Converts a String to a Maybe Sort
+-}
+stringFromSort : String -> Maybe Sort
+stringFromSort sort =
+    case sort of
+        "Asc" ->
+            Just Asc
+
+        "Desc" ->
+            Just Desc
+
+        _ ->
+            Nothing
 
 
 type alias InternalState =
@@ -314,7 +337,7 @@ render (State ({ sortBy, sortedColumn } as internalState)) (Config conf) =
             (Maybe.withDefault 0 << retrieveHeaderIndexBySlug sortedColumn) conf.headers
 
         sortedRows =
-            if conf.clientSort then
+            if conf.enableSorting then
                 case sortBy of
                     Nothing ->
                         conf.rows
