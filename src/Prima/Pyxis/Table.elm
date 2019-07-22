@@ -324,6 +324,7 @@ render (State ({ sortBy, sortedColumn } as internalState)) (Config conf) =
 
                     Just Desc ->
                         (List.reverse << sortRows index) conf.rows
+
             else
                 conf.rows
 
@@ -352,7 +353,6 @@ renderTHead internalState ({ headers } as conf) =
 renderTH : InternalState -> Header msg -> Html msg
 renderTH { sortBy, sortedColumn } (Header ({ slug, name } as conf)) =
     let
-
         sort : { sortableAttribute : Html.Attribute msg, sortIcon : Html msg }
         sort =
             case conf.tagger of
@@ -362,7 +362,6 @@ renderTH { sortBy, sortedColumn } (Header ({ slug, name } as conf)) =
                 Nothing ->
                     { sortableAttribute = attribute "data-unsortable" "", sortIcon = text "" }
 
-
         sortColumn : String
         sortColumn =
             case sortedColumn of
@@ -371,7 +370,6 @@ renderTH { sortBy, sortedColumn } (Header ({ slug, name } as conf)) =
 
                 Nothing ->
                     ""
-
     in
     th
         (sort.sortableAttribute
@@ -379,7 +377,11 @@ renderTH { sortBy, sortedColumn } (Header ({ slug, name } as conf)) =
                ]
         )
         [ text name
-        , if sortColumn == slug then sort.sortIcon else text ""
+        , if sortColumn == slug then
+            sort.sortIcon
+
+          else
+            text ""
         ]
 
 
