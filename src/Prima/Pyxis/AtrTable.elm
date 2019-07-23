@@ -305,7 +305,7 @@ render (Config ({ atrDetails, alternateRows, isEditable } as config)) =
         rows =
             buildRows isEditable atrDetails
     in
-    Table.render Table.initialState <| Table.config Table.defaultType True headers rows alternateRows
+    Table.render (Table.initialState Nothing Nothing) <| Table.config Table.defaultType True headers rows alternateRows
 
 
 buildHeaders : List String -> List (Table.Header Msg)

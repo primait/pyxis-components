@@ -5,7 +5,7 @@ module Prima.Pyxis.Table exposing
     , columnFloat, columnHtml, columnInteger, columnString
     , sortByAsc, sortByDesc, sortByNothing
     , render
-    , customInitialState
+    , sortAsc, sortDesc
     )
 
 {-| Creates a customizable Table component by using predefined Html syntax.
@@ -129,33 +129,11 @@ type State
     = State InternalState
 
 
-{-| Creates an initial State with no sort applied.
+{-| Creates an initial State defined by Sort and Column.
 -}
-initialState : State
-initialState =
-    State (InternalState Nothing Nothing)
-
-
-{-| Creates an initial State with parameters.
--}
-customInitialState : String -> String -> State
-customInitialState sortBy sortedColumn =
-    State (InternalState (stringFromSort <| sortBy) (Just sortedColumn))
-
-
-{-| Converts a String to a Maybe Sort
--}
-stringFromSort : String -> Maybe Sort
-stringFromSort sort =
-    case sort of
-        "Asc" ->
-            Just Asc
-
-        "Desc" ->
-            Just Desc
-
-        _ ->
-            Nothing
+initialState : Maybe Sort -> Maybe String -> State
+initialState sortBy sortedColumn =
+    State (InternalState sortBy sortedColumn)
 
 
 type alias InternalState =
@@ -167,6 +145,20 @@ type alias InternalState =
 type Sort
     = Asc
     | Desc
+
+
+{-| Exposes Asc.
+-}
+sortAsc : Maybe Sort
+sortAsc =
+    Just Asc
+
+
+{-| Exposes Desc.
+-}
+sortDesc : Maybe Sort
+sortDesc =
+    Just Desc
 
 
 {-| Sorts the column defined by Slug in Asc order.
