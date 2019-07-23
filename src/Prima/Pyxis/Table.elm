@@ -57,7 +57,7 @@ type Config msg
 
 type alias Configuration msg =
     { tableType : TableType
-    , enableSorting : Bool
+    , sorting : Bool
     , headers : List (Header msg)
     , rows : List (Row msg)
     , alternateRows : Bool
@@ -87,14 +87,14 @@ type alias Configuration msg =
                 True
 
         in
-        Table.config Table.defaultType enableSorting headers rows alternateRows
+        Table.config Table.defaultType sorting headers rows alternateRows
 
     ...
 
 -}
 config : TableType -> Bool -> List (Header msg) -> List (Row msg) -> Bool -> Config msg
-config tableType enableSorting headers rows alternateRows =
-    Config (Configuration tableType enableSorting headers rows alternateRows)
+config tableType sorting headers rows alternateRows =
+    Config (Configuration tableType sorting headers rows alternateRows)
 
 
 {-| Represents the table skin.
@@ -337,7 +337,7 @@ render (State ({ sortBy, sortedColumn } as internalState)) (Config conf) =
             (Maybe.withDefault 0 << retrieveHeaderIndexBySlug sortedColumn) conf.headers
 
         sortedRows =
-            if conf.enableSorting then
+            if conf.sorting then
                 case sortBy of
                     Nothing ->
                         conf.rows
