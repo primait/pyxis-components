@@ -164,6 +164,7 @@ init =
     --
     import Prima.Pyxis.Form as Form
     import Prima.Pyxis.Form.Event as Event
+    import Prima.Pyxis.Form.Validation as PrimaFormValidation exposing (typeError, typeWarning)
 
     ...
 
@@ -447,6 +448,7 @@ This field can handle only onInput, onFocus, onBlur events. Other events will be
     --
     import Prima.Pyxis.Form as Form exposing (FormField)
     import Prima.Pyxis.Form.Event as Event
+    import Prima.Pyxis.Form.Validation as PrimaFormValidation exposing (typeError, typeWarning)
 
     ...
 
@@ -576,6 +578,7 @@ This field can handle only onCheck event. Other events will be ignored.
     --
     import Prima.Pyxis.Form as Form exposing (FormField, Label, Slug, CheckboxOption)
     import Prima.Pyxis.Form.Event as Event
+    import Prima.Pyxis.Form.Validation as PrimaFormValidation exposing (typeError, typeWarning)
 
     ...
 
