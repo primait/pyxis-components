@@ -1,9 +1,9 @@
 module Prima.Pyxis.Table exposing
-    ( Config, TableType, State, Header, Row, Column, ColSpan
+    ( Config, TableType, State, Header, Row, Column, ColSpan, Sort
     , config, initialState, defaultType, alternativeType
     , header, row
     , columnFloat, columnHtml, columnInteger, columnString
-    , sortByAsc, sortByDesc, sortByNothing
+    , sort, sortAsc, sortDesc
     , render
     )
 
@@ -12,7 +12,7 @@ module Prima.Pyxis.Table exposing
 
 # Configuration
 
-@docs Config, TableType, State, Header, Row, Column, ColSpan
+@docs Config, TableType, State, Header, Row, Column, ColSpan, Sort
 
 
 # Configuration Helpers
@@ -32,7 +32,7 @@ module Prima.Pyxis.Table exposing
 
 # Helpers
 
-@docs sortByAsc, sortByDesc, sortByNothing
+@docs sort, sortAsc, sortDesc
 
 
 # Render
@@ -56,6 +56,7 @@ type Config msg
 
 type alias Configuration msg =
     { tableType : TableType
+    , sorting : Bool
     , headers : List (Header msg)
     , rows : List (Row msg)
     , alternateRows : Bool
@@ -85,14 +86,14 @@ type alias Configuration msg =
                 True
 
         in
-        Table.config Table.defaultType headers rows alternateRows
+        Table.config Table.defaultType sorting headers rows alternateRows
 
     ...
 
 -}
-config : TableType -> List (Header msg) -> List (Row msg) -> Bool -> Config msg
-config tableType headers rows alternateRows =
-    Config (Configuration tableType headers rows alternateRows)
+config : TableType -> Bool -> List (Header msg) -> List (Row msg) -> Bool -> Config msg
+config tableType sorting headers rows alternateRows =
+    Config (Configuration tableType sorting headers rows alternateRows)
 
 
 {-| Represents the table skin.
@@ -127,11 +128,11 @@ type State
     = State InternalState
 
 
-{-| Creates an initial State with no sort applied.
+{-| Creates an initial State defined by Sort and Column.
 -}
-initialState : State
-initialState =
-    State (InternalState Nothing Nothing)
+initialState : Maybe Sort -> Maybe String -> State
+initialState sortBy sortedColumn =
+    State (InternalState sortBy sortedColumn)
 
 
 type alias InternalState =
@@ -140,30 +141,32 @@ type alias InternalState =
     }
 
 
+{-| Represents the sort algorithm
+-}
 type Sort
     = Asc
     | Desc
 
 
-{-| Sorts the column defined by Slug in Asc order.
+{-| Returns the Ascending sort algorithm.
 -}
-sortByAsc : Slug -> State -> State
-sortByAsc sortBySlug (State internalState) =
-    State { internalState | sortBy = Just Asc, sortedColumn = Just sortBySlug }
+sortAsc : Maybe Sort
+sortAsc =
+    Just Asc
 
 
-{-| Sorts the column defined by Slug in Desc order.
+{-| Returns the Descending sort algorithm.
 -}
-sortByDesc : Slug -> State -> State
-sortByDesc sortBySlug (State internalState) =
-    State { internalState | sortBy = Just Desc, sortedColumn = Just sortBySlug }
+sortDesc : Maybe Sort
+sortDesc =
+    Just Desc
 
 
-{-| Unsets sorting for any column.
+{-| Sets the sorting algorithm for a specific column.
 -}
-sortByNothing : Slug -> State -> State
-sortByNothing _ (State internalState) =
-    State { internalState | sortBy = Nothing, sortedColumn = Nothing }
+sort : Maybe Slug -> Maybe Sort -> State -> State
+sort sortedColumnSlug sortAlgorithm (State internalState) =
+    State { internalState | sortBy = sortAlgorithm, sortedColumn = sortedColumnSlug }
 
 
 {-| Represents an Header of the table. It's gonna be rendered as a <th/> tag.
@@ -313,15 +316,19 @@ render (State ({ sortBy, sortedColumn } as internalState)) (Config conf) =
             (Maybe.withDefault 0 << retrieveHeaderIndexBySlug sortedColumn) conf.headers
 
         sortedRows =
-            case sortBy of
-                Nothing ->
-                    conf.rows
+            if conf.sorting then
+                case sortBy of
+                    Nothing ->
+                        conf.rows
 
-                Just Asc ->
-                    sortRows index conf.rows
+                    Just Asc ->
+                        sortRows index conf.rows
 
-                Just Desc ->
-                    (List.reverse << sortRows index) conf.rows
+                    Just Desc ->
+                        (List.reverse << sortRows index) conf.rows
+
+            else
+                conf.rows
 
         headerSlugs =
             List.map (\(Header { slug }) -> slug) conf.headers
@@ -346,9 +353,10 @@ renderTHead internalState ({ headers } as conf) =
 
 
 renderTH : InternalState -> Header msg -> Html msg
-renderTH { sortBy } (Header ({ slug, name } as conf)) =
+renderTH { sortBy, sortedColumn } (Header ({ slug, name } as conf)) =
     let
-        sortableAttribute =
+        sortAttr : Html.Attribute msg
+        sortAttr =
             case conf.tagger of
                 Just tagger ->
                     (onClick << tagger) slug
@@ -357,23 +365,27 @@ renderTH { sortBy } (Header ({ slug, name } as conf)) =
                     attribute "data-unsortable" ""
     in
     th
-        (sortableAttribute
+        (sortAttr
             :: [ class "m-table__header__item fsSmall"
                ]
         )
         [ text name
-        , renderSortIcon sortBy slug
+        , if Maybe.withDefault "" sortedColumn == slug then
+            renderSortIcon sortBy slug
+
+          else
+            text ""
         ]
 
 
 renderSortIcon : Maybe Sort -> Slug -> Html msg
-renderSortIcon sort slug =
+renderSortIcon sortAlgorithm slug =
     i
         [ classList
-            [ ( "a-icon", True )
-            , ( "m-table__header__item", True )
-            , ( "a-icon--chevron-up", sort == Just Asc )
-            , ( "a-icon--chevron-down", sort == Just Desc )
+            [ ( "m-table__header__item__icon", True )
+            , ( "a-icon", True )
+            , ( "a-icon-caret-up", sortAlgorithm == Just Asc )
+            , ( "a-icon-caret-down", sortAlgorithm == Just Desc )
             ]
         ]
         []
