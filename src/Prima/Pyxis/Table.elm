@@ -1,11 +1,10 @@
 module Prima.Pyxis.Table exposing
-    ( Config, TableType, State, Header, Row, Column, ColSpan
+    ( Config, TableType, State, Header, Row, Column, ColSpan, Sort
     , config, initialState, defaultType, alternativeType
     , header, row
     , columnFloat, columnHtml, columnInteger, columnString
-    , sortByAsc, sortByDesc, sortByNothing
+    , sort, sortAsc, sortDesc
     , render
-    , sortAsc, sortDesc
     )
 
 {-| Creates a customizable Table component by using predefined Html syntax.
@@ -13,7 +12,7 @@ module Prima.Pyxis.Table exposing
 
 # Configuration
 
-@docs Config, TableType, State, Header, Row, Column, ColSpan
+@docs Config, TableType, State, Header, Row, Column, ColSpan, Sort
 
 
 # Configuration Helpers
@@ -33,7 +32,7 @@ module Prima.Pyxis.Table exposing
 
 # Helpers
 
-@docs sortByAsc, sortByDesc, sortByNothing
+@docs sort, sortAsc, sortDesc
 
 
 # Render
@@ -142,44 +141,32 @@ type alias InternalState =
     }
 
 
+{-| Represents the sort algorithm
+-}
 type Sort
     = Asc
     | Desc
 
 
-{-| Exposes Asc.
+{-| Returns the Ascending sort algorithm.
 -}
 sortAsc : Maybe Sort
 sortAsc =
     Just Asc
 
 
-{-| Exposes Desc.
+{-| Returns the Descending sort algorithm.
 -}
 sortDesc : Maybe Sort
 sortDesc =
     Just Desc
 
 
-{-| Sorts the column defined by Slug in Asc order.
+{-| Sets the sorting algorithm for a specific column.
 -}
-sortByAsc : Slug -> State -> State
-sortByAsc sortBySlug (State internalState) =
-    State { internalState | sortBy = Just Asc, sortedColumn = Just sortBySlug }
-
-
-{-| Sorts the column defined by Slug in Desc order.
--}
-sortByDesc : Slug -> State -> State
-sortByDesc sortBySlug (State internalState) =
-    State { internalState | sortBy = Just Desc, sortedColumn = Just sortBySlug }
-
-
-{-| Unsets sorting for any column.
--}
-sortByNothing : Slug -> State -> State
-sortByNothing _ (State internalState) =
-    State { internalState | sortBy = Nothing, sortedColumn = Nothing }
+sort : Maybe Slug -> Maybe Sort -> State -> State
+sort sortedColumnSlug sortAlgorithm (State internalState) =
+    State { internalState | sortBy = sortAlgorithm, sortedColumn = sortedColumnSlug }
 
 
 {-| Represents an Header of the table. It's gonna be rendered as a <th/> tag.
@@ -368,32 +355,23 @@ renderTHead internalState ({ headers } as conf) =
 renderTH : InternalState -> Header msg -> Html msg
 renderTH { sortBy, sortedColumn } (Header ({ slug, name } as conf)) =
     let
-        sort : { sortableAttribute : Html.Attribute msg, sortIcon : Html msg }
-        sort =
+        sortAttr : Html.Attribute msg
+        sortAttr =
             case conf.tagger of
                 Just tagger ->
-                    { sortableAttribute = (onClick << tagger) slug, sortIcon = renderSortIcon sortBy slug }
+                    (onClick << tagger) slug
 
                 Nothing ->
-                    { sortableAttribute = attribute "data-unsortable" "", sortIcon = text "" }
-
-        sortColumn : String
-        sortColumn =
-            case sortedColumn of
-                Just columnName ->
-                    columnName
-
-                Nothing ->
-                    ""
+                    attribute "data-unsortable" ""
     in
     th
-        (sort.sortableAttribute
+        (sortAttr
             :: [ class "m-table__header__item fsSmall"
                ]
         )
         [ text name
-        , if sortColumn == slug then
-            sort.sortIcon
+        , if Maybe.withDefault "" sortedColumn == slug then
+            renderSortIcon sortBy slug
 
           else
             text ""
@@ -401,13 +379,13 @@ renderTH { sortBy, sortedColumn } (Header ({ slug, name } as conf)) =
 
 
 renderSortIcon : Maybe Sort -> Slug -> Html msg
-renderSortIcon sort slug =
+renderSortIcon sortAlgorithm slug =
     i
         [ classList
-            [ ( "a-icon", True )
-            , ( "m-table__header__item", True )
-            , ( "a-icon-caret-up", sort == Just Asc )
-            , ( "a-icon-caret-down", sort == Just Desc )
+            [ ( "m-table__header__item__icon", True )
+            , ( "a-icon", True )
+            , ( "a-icon-caret-up", sortAlgorithm == Just Asc )
+            , ( "a-icon-caret-down", sortAlgorithm == Just Desc )
             ]
         ]
         []

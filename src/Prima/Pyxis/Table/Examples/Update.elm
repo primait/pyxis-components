@@ -12,20 +12,24 @@ update msg model =
 
         SortBy headerSlug ->
             let
-                ( sortAlgorithm, sortMapper ) =
-                    case model.sortBy of
-                        Nothing ->
-                            ( Just Asc, Table.sortByAsc )
+                sortAlgorithm =
+                    if isNothing model.sortBy then
+                        Table.sortAsc
 
-                        Just Asc ->
-                            ( Just Desc, Table.sortByDesc )
+                    else if model.sortBy == Table.sortAsc then
+                        Table.sortDesc
 
-                        Just Desc ->
-                            ( Nothing, Table.sortByNothing )
+                    else
+                        Nothing
             in
             ( { model
                 | sortBy = sortAlgorithm
-                , tableState = sortMapper headerSlug model.tableState
+                , tableState = Table.sort (Just headerSlug) sortAlgorithm model.tableState
               }
             , Cmd.none
             )
+
+
+isNothing : Maybe Table.Sort -> Bool
+isNothing =
+    (==) Nothing

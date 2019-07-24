@@ -1,7 +1,6 @@
 module Prima.Pyxis.Table.Examples.Model exposing
     ( Model
     , Msg(..)
-    , Sort(..)
     , initialModel
     )
 
@@ -18,7 +17,7 @@ type alias Model =
     , rows : List (List String)
     , tableState : Table.State
     , sortByColumn : Maybe String
-    , sortBy : Maybe Sort
+    , sortBy : Maybe Table.Sort
     }
 
 
@@ -27,7 +26,7 @@ initialModel =
     Model
         initialHeaders
         initialRows
-        Table.initialState
+        (Table.initialState Nothing Nothing)
         Nothing
         Nothing
 
@@ -46,8 +45,3 @@ initialRows =
     , [ "Spagna", "Madrid" ]
     , [ "Olanda", "Amsterdam" ]
     ]
-
-
-type Sort
-    = Asc
-    | Desc
