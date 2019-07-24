@@ -189,7 +189,7 @@ init =
             [ minlength 3, maxlength 12 ]
             .username
             [ Event.onInput UpdateUsername ]
-            [ NotEmpty "Username must not be blank."
+            [ NotEmpty typeError "Username must not be blank."
             ]
 
     ...
@@ -471,7 +471,7 @@ This field can handle only onInput, onFocus, onBlur events. Other events will be
             , Event.onFocus OnFocus
             , Event.onBlur OnBlur
             ]
-            [ NotEmpty "Empty value is not acceptable."
+            [ NotEmpty typeError "Empty value is not acceptable."
             ]
 
 -}
@@ -669,7 +669,7 @@ This field can handle only onToggle, onInput, onSelect, onFocus and onBlur event
             .city
             [ Event.onToggle OnToggle, Event.onInput OnInput, Event.onSelect OnSelect, Event.onFocus, Event.onBlur ]
             options
-            [ NotEmpty "Empty value is not acceptable." ]
+            [ NotEmpty typeError "Empty value is not acceptable." ]
 
 -}
 selectConfig : Slug -> Maybe Label -> Bool -> Bool -> Maybe String -> List (Attribute msg) -> (model -> Maybe Value) -> List (Event msg) -> List SelectOption -> List (Validation model) -> FormField model msg
