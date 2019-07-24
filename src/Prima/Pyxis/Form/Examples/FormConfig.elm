@@ -21,7 +21,7 @@ import Prima.Pyxis.Form.Examples.Model
         , Model
         , Msg(..)
         )
-import Prima.Pyxis.Form.Validation exposing (Validation(..))
+import Prima.Pyxis.Form.Validation exposing (Validation(..), typeError)
 
 
 username : FormField FormData Msg
@@ -35,8 +35,8 @@ username =
         , Event.onFocus (OnFocus Username)
         , Event.onBlur (OnBlur Username)
         ]
-        [ NotEmpty "Empty value is not acceptable."
-        , Custom ((<=) 3 << String.length << Maybe.withDefault "" << .username) "Value must be between 3 and 12 characters length."
+        [ NotEmpty typeError "Empty value is not acceptable."
+        , Custom typeError ((<=) 3 << String.length << Maybe.withDefault "" << .username) "Value must be between 3 and 12 characters length."
         ]
 
 
@@ -48,7 +48,7 @@ password =
         []
         .password
         [ Event.onInput (UpdateField Password) ]
-        [ NotEmpty "Empty value is not acceptable."
+        [ NotEmpty typeError "Empty value is not acceptable."
         ]
 
 
@@ -60,7 +60,7 @@ note =
         []
         .note
         [ Event.onInput (UpdateField Note) ]
-        [ NotEmpty "Empty value is not acceptable." ]
+        [ NotEmpty typeError "Empty value is not acceptable." ]
 
 
 gender : FormField FormData Msg
@@ -74,7 +74,7 @@ gender =
         [ Form.radioOption "Male" "male"
         , Form.radioOption "Female" "female"
         ]
-        [ Custom ((==) "female" << Maybe.withDefault "female" << .gender) "You must select `Female` to proceed." ]
+        [ Custom typeError ((==) "female" << Maybe.withDefault "female" << .gender) "You must select `Female` to proceed." ]
 
 
 visitedCountries : FormData -> FormField FormData Msg
@@ -112,7 +112,7 @@ city isOpen =
             , Form.selectOption "Genoa" "GE"
             ]
         )
-        [ NotEmpty "Empty value is not acceptable." ]
+        [ NotEmpty typeError "Empty value is not acceptable." ]
 
 
 dateOfBirth : FormData -> FormField FormData Msg
@@ -126,7 +126,7 @@ dateOfBirth { isVisibleDP, dateOfBirthDP } =
         [ Event.onInput (UpdateField DateOfBirth) ]
         dateOfBirthDP
         isVisibleDP
-        [ Custom (Maybe.withDefault False << Maybe.map (always True) << .dateOfBirth) "This is not a valid date." ]
+        [ Custom typeError (Maybe.withDefault False << Maybe.map (always True) << .dateOfBirth) "This is not a valid date." ]
 
 
 country : FormData -> FormField FormData Msg
@@ -183,7 +183,7 @@ country { countryFilter, isOpenCountry } =
          ]
             |> List.filter (String.contains lowerFilter << String.toLower << .label)
         )
-        [ NotEmpty "Empty value is not acceptable." ]
+        [ NotEmpty typeError "Empty value is not acceptable." ]
 
 
 staticHtml : Model -> FormField FormData Msg

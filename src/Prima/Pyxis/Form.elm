@@ -99,7 +99,7 @@ import Html.Attributes
         )
 import Prima.Pyxis.DatePicker as DatePicker
 import Prima.Pyxis.Form.Event as Events exposing (Event)
-import Prima.Pyxis.Form.Validation as Validation exposing (Validation(..))
+import Prima.Pyxis.Form.Validation as Validation exposing (Validation(..), ValidationType(..))
 import Prima.Pyxis.Helpers as Helpers
 import Regex
 
@@ -875,6 +875,15 @@ renderField (Form { state }) model (FormField opaqueConfig) =
                 << pickError model
             )
                 opaqueConfig
+
+        warnings =
+            (List.singleton
+                << Helpers.renderIf (canShowWarning model (FormField opaqueConfig))
+                << renderWarning
+                << String.join " "
+                << pickWarning model
+            )
+                opaqueConfig
     in
     (case opaqueConfig of
         FormFieldTextConfig config validation ->
@@ -905,6 +914,7 @@ renderField (Form { state }) model (FormField opaqueConfig) =
             renderPureHtml config
     )
         ++ errors
+        ++ warnings
 
 
 {-| Renders a field by receiving the `Form`, the `FormFieldGroup`, and the `FormField` configuration.
@@ -1069,6 +1079,17 @@ renderError error =
             [ text error ]
 
 
+renderWarning : String -> Html msg
+renderWarning warning =
+    if (String.isEmpty << String.trim) warning then
+        text ""
+
+    else
+        span
+            [ class "a-form__field__warning" ]
+            [ text warning ]
+
+
 renderInput : FormState -> model -> TextConfig model msg -> List (Validation model) -> List (Html msg)
 renderInput state model ({ reader, slug, label, attrs } as config) validations =
     let
@@ -1080,6 +1101,9 @@ renderInput state model ({ reader, slug, label, attrs } as config) validations =
 
         pristine =
             isPristine model opaqueConfig
+
+        warning =
+            hasNoWarning model opaqueConfig
     in
     [ Html.input
         ([ type_ "text"
@@ -1092,6 +1116,7 @@ renderInput state model ({ reader, slug, label, attrs } as config) validations =
             , ( "is-invalid", isFormSubmitted state && not valid )
             , ( "is-pristine", pristine )
             , ( "is-touched", not pristine )
+            , ( "has-warning", not warning )
             ]
          ]
             ++ attrs
@@ -1536,6 +1561,13 @@ isValid model (FormField opaqueConfig) =
     List.all (validate model opaqueConfig) (pickValidationRules opaqueConfig)
 
 
+{-| Check if a `FormField` has warning
+-}
+hasNoWarning : model -> FormField model msg -> Bool
+hasNoWarning model (FormField opaqueConfig) =
+    List.all (validateWarning model opaqueConfig) (pickValidationRules opaqueConfig)
+
+
 {-| Check if a `FormField` is pristine
 -}
 isPristine : model -> FormField model msg -> Bool
@@ -1579,49 +1611,247 @@ validate model config validation =
             String.isEmpty << Maybe.withDefault ""
     in
     case ( validation, config ) of
-        ( NotEmpty _, FormFieldTextConfig { reader } _ ) ->
+        ( NotEmpty Error _, FormFieldTextConfig { reader } _ ) ->
             (not << isEmpty << reader) model
 
-        ( NotEmpty _, FormFieldTextareaConfig { reader } _ ) ->
+        ( NotEmpty Error _, FormFieldTextareaConfig { reader } _ ) ->
             (not << isEmpty << reader) model
 
-        ( NotEmpty _, FormFieldPasswordConfig { reader } _ ) ->
+        ( NotEmpty Error _, FormFieldPasswordConfig { reader } _ ) ->
             (not << isEmpty << reader) model
 
-        ( NotEmpty _, FormFieldRadioConfig { reader } _ ) ->
+        ( NotEmpty Error _, FormFieldRadioConfig { reader } _ ) ->
             (not << isEmpty << reader) model
 
-        ( NotEmpty _, FormFieldSelectConfig { reader } _ ) ->
+        ( NotEmpty Error _, FormFieldSelectConfig { reader } _ ) ->
             (not << isEmpty << reader) model
 
-        ( NotEmpty _, FormFieldAutocompleteConfig { choiceReader } _ ) ->
+        ( NotEmpty Error _, FormFieldAutocompleteConfig { choiceReader } _ ) ->
             (not << isEmpty << choiceReader) model
 
-        ( NotEmpty _, FormFieldDatepickerConfig { reader } _ ) ->
+        ( NotEmpty Error _, FormFieldDatepickerConfig { reader } _ ) ->
             (not << Helpers.isJust << reader) model
 
-        ( NotEmpty _, FormFieldCheckboxConfig { reader } _ ) ->
+        ( NotEmpty Error _, FormFieldCheckboxConfig { reader } _ ) ->
             (List.any Tuple.second << reader) model
 
-        ( Expression exp _, FormFieldTextConfig { reader } _ ) ->
+        ( Expression Error exp _, FormFieldTextConfig { reader } _ ) ->
             (Regex.contains exp << Maybe.withDefault "" << reader) model
 
-        ( Expression exp _, FormFieldPasswordConfig { reader } _ ) ->
+        ( Expression Error exp _, FormFieldPasswordConfig { reader } _ ) ->
             (Regex.contains exp << Maybe.withDefault "" << reader) model
 
-        ( Expression exp _, FormFieldTextareaConfig { reader } _ ) ->
+        ( Expression Error exp _, FormFieldTextareaConfig { reader } _ ) ->
             (Regex.contains exp << Maybe.withDefault "" << reader) model
 
-        ( Expression exp _, FormFieldAutocompleteConfig { choiceReader } _ ) ->
+        ( Expression Error exp _, FormFieldAutocompleteConfig { choiceReader } _ ) ->
             (Regex.contains exp << Maybe.withDefault "" << choiceReader) model
 
-        ( Expression exp _, _ ) ->
+        ( Expression Error exp _, _ ) ->
             True
 
-        ( Custom validator _, _ ) ->
+        ( Custom Error validator _, _ ) ->
             validator model
 
         ( _, FormFieldPureHtmlConfig _ ) ->
+            True
+
+        ( NotEmpty Warning _, FormFieldAutocompleteConfig _ _ ) ->
+            True
+
+        ( NotEmpty Warning _, FormFieldCheckboxConfig _ _ ) ->
+            True
+
+        ( NotEmpty Warning _, FormFieldDatepickerConfig _ _ ) ->
+            True
+
+        ( NotEmpty Warning _, FormFieldPasswordConfig _ _ ) ->
+            True
+
+        ( NotEmpty Warning _, FormFieldRadioConfig _ _ ) ->
+            True
+
+        ( NotEmpty Warning _, FormFieldSelectConfig _ _ ) ->
+            True
+
+        ( NotEmpty Warning _, FormFieldTextareaConfig _ _ ) ->
+            True
+
+        ( NotEmpty Warning _, FormFieldTextConfig _ _ ) ->
+            True
+
+        ( Expression Warning _ _, FormFieldAutocompleteConfig _ _ ) ->
+            True
+
+        ( Expression Warning _ _, FormFieldCheckboxConfig _ _ ) ->
+            True
+
+        ( Expression Warning _ _, FormFieldDatepickerConfig _ _ ) ->
+            True
+
+        ( Expression Warning _ _, FormFieldPasswordConfig _ _ ) ->
+            True
+
+        ( Expression Warning _ _, FormFieldRadioConfig _ _ ) ->
+            True
+
+        ( Expression Warning _ _, FormFieldSelectConfig _ _ ) ->
+            True
+
+        ( Expression Warning _ _, FormFieldTextareaConfig _ _ ) ->
+            True
+
+        ( Expression Warning _ _, FormFieldTextConfig _ _ ) ->
+            True
+
+        ( Custom Warning _ _, FormFieldAutocompleteConfig _ _ ) ->
+            True
+
+        ( Custom Warning _ _, FormFieldCheckboxConfig _ _ ) ->
+            True
+
+        ( Custom Warning _ _, FormFieldDatepickerConfig _ _ ) ->
+            True
+
+        ( Custom Warning _ _, FormFieldPasswordConfig _ _ ) ->
+            True
+
+        ( Custom Warning _ _, FormFieldRadioConfig _ _ ) ->
+            True
+
+        ( Custom Warning _ _, FormFieldSelectConfig _ _ ) ->
+            True
+
+        ( Custom Warning _ _, FormFieldTextareaConfig _ _ ) ->
+            True
+
+        ( Custom Warning _ _, FormFieldTextConfig _ _ ) ->
+            True
+
+
+validateWarning : model -> FormFieldConfig model msg -> Validation model -> Bool
+validateWarning model config validation =
+    let
+        isEmpty : Maybe String -> Bool
+        isEmpty =
+            String.isEmpty << Maybe.withDefault ""
+    in
+    case ( validation, config ) of
+        ( NotEmpty Warning _, FormFieldTextConfig { reader } _ ) ->
+            (not << isEmpty << reader) model
+
+        ( NotEmpty Warning _, FormFieldTextareaConfig { reader } _ ) ->
+            (not << isEmpty << reader) model
+
+        ( NotEmpty Warning _, FormFieldPasswordConfig { reader } _ ) ->
+            (not << isEmpty << reader) model
+
+        ( NotEmpty Warning _, FormFieldRadioConfig { reader } _ ) ->
+            (not << isEmpty << reader) model
+
+        ( NotEmpty Warning _, FormFieldSelectConfig { reader } _ ) ->
+            (not << isEmpty << reader) model
+
+        ( NotEmpty Warning _, FormFieldAutocompleteConfig { choiceReader } _ ) ->
+            (not << isEmpty << choiceReader) model
+
+        ( NotEmpty Warning _, FormFieldDatepickerConfig { reader } _ ) ->
+            (not << Helpers.isJust << reader) model
+
+        ( NotEmpty Warning _, FormFieldCheckboxConfig { reader } _ ) ->
+            (List.any Tuple.second << reader) model
+
+        ( Expression Warning exp _, FormFieldTextConfig { reader } _ ) ->
+            (Regex.contains exp << Maybe.withDefault "" << reader) model
+
+        ( Expression Warning exp _, FormFieldPasswordConfig { reader } _ ) ->
+            (Regex.contains exp << Maybe.withDefault "" << reader) model
+
+        ( Expression Warning exp _, FormFieldTextareaConfig { reader } _ ) ->
+            (Regex.contains exp << Maybe.withDefault "" << reader) model
+
+        ( Expression Warning exp _, FormFieldAutocompleteConfig { choiceReader } _ ) ->
+            (Regex.contains exp << Maybe.withDefault "" << choiceReader) model
+
+        ( Expression Warning exp _, _ ) ->
+            True
+
+        ( Custom Warning validator _, _ ) ->
+            validator model
+
+        ( _, FormFieldPureHtmlConfig _ ) ->
+            True
+
+        ( NotEmpty Error _, FormFieldAutocompleteConfig _ _ ) ->
+            True
+
+        ( NotEmpty Error _, FormFieldCheckboxConfig _ _ ) ->
+            True
+
+        ( NotEmpty Error _, FormFieldDatepickerConfig _ _ ) ->
+            True
+
+        ( NotEmpty Error _, FormFieldPasswordConfig _ _ ) ->
+            True
+
+        ( NotEmpty Error _, FormFieldRadioConfig _ _ ) ->
+            True
+
+        ( NotEmpty Error _, FormFieldSelectConfig _ _ ) ->
+            True
+
+        ( NotEmpty Error _, FormFieldTextareaConfig _ _ ) ->
+            True
+
+        ( NotEmpty Error _, FormFieldTextConfig _ _ ) ->
+            True
+
+        ( Expression Error _ _, FormFieldAutocompleteConfig _ _ ) ->
+            True
+
+        ( Expression Error _ _, FormFieldCheckboxConfig _ _ ) ->
+            True
+
+        ( Expression Error _ _, FormFieldDatepickerConfig _ _ ) ->
+            True
+
+        ( Expression Error _ _, FormFieldPasswordConfig _ _ ) ->
+            True
+
+        ( Expression Error _ _, FormFieldRadioConfig _ _ ) ->
+            True
+
+        ( Expression Error _ _, FormFieldSelectConfig _ _ ) ->
+            True
+
+        ( Expression Error _ _, FormFieldTextareaConfig _ _ ) ->
+            True
+
+        ( Expression Error _ _, FormFieldTextConfig _ _ ) ->
+            True
+
+        ( Custom Error _ _, FormFieldAutocompleteConfig _ _ ) ->
+            True
+
+        ( Custom Error _ _, FormFieldCheckboxConfig _ _ ) ->
+            True
+
+        ( Custom Error _ _, FormFieldDatepickerConfig _ _ ) ->
+            True
+
+        ( Custom Error _ _, FormFieldPasswordConfig _ _ ) ->
+            True
+
+        ( Custom Error _ _, FormFieldRadioConfig _ _ ) ->
+            True
+
+        ( Custom Error _ _, FormFieldSelectConfig _ _ ) ->
+            True
+
+        ( Custom Error _ _, FormFieldTextareaConfig _ _ ) ->
+            True
+
+        ( Custom Error _ _, FormFieldTextConfig _ _ ) ->
             True
 
 
@@ -1663,7 +1893,7 @@ hasNotEmptyValidation opaqueConfig =
         |> List.any
             (\validation ->
                 case validation of
-                    NotEmpty _ ->
+                    NotEmpty typeError _ ->
                         True
 
                     _ ->
@@ -1688,3 +1918,21 @@ canShowError : model -> FormField model msg -> Bool
 canShowError model ((FormField opaqueConfig) as config) =
     (not << isValid model) config
         && ((not << isPristine model) config || hasNotEmptyValidation opaqueConfig)
+
+
+pickWarning : model -> FormFieldConfig model msg -> List String
+pickWarning model opaqueConfig =
+    List.filterMap
+        (\rule ->
+            if validateWarning model opaqueConfig rule then
+                Nothing
+
+            else
+                (Just << Validation.pickError) rule
+        )
+        (pickValidationRules opaqueConfig)
+
+
+canShowWarning : model -> FormField model msg -> Bool
+canShowWarning model ((FormField opaqueConfig) as config) =
+    (not << isPristine model) config
