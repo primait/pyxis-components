@@ -9,7 +9,7 @@ module Prima.Pyxis.Form exposing
     , datepickerConfig
     , autocompleteConfig, autocompleteOption
     , pureHtmlConfig
-    , isValid, isPristine
+    , isValid, isPristine, hasNoWarning
     , render, renderField, renderFieldWithGroup
     , prependGroup, appendGroup
     )
@@ -69,7 +69,7 @@ module Prima.Pyxis.Form exposing
 
 # Fields Helpers
 
-@docs isValid, isPristine
+@docs isValid, isPristine, hasNoWarning
 
 
 # Render
@@ -164,7 +164,7 @@ init =
     --
     import Prima.Pyxis.Form as Form
     import Prima.Pyxis.Form.Event as Event
-    import Prima.Pyxis.Form.Validation as PrimaFormValidation exposing (typeError, typeWarning)
+    import Prima.Pyxis.Form.Validation as PrimaFormValidation exposing (severityError, severityWarning)
 
     ...
 
@@ -190,7 +190,7 @@ init =
             [ minlength 3, maxlength 12 ]
             .username
             [ Event.onInput UpdateUsername ]
-            [ NotEmpty typeError "Username must not be blank."
+            [ NotEmpty severityError "Username must not be blank."
             ]
 
     ...
@@ -448,7 +448,7 @@ This field can handle only onInput, onFocus, onBlur events. Other events will be
     --
     import Prima.Pyxis.Form as Form exposing (FormField)
     import Prima.Pyxis.Form.Event as Event
-    import Prima.Pyxis.Form.Validation as PrimaFormValidation exposing (typeError, typeWarning)
+    import Prima.Pyxis.Form.Validation as PrimaFormValidation exposing (severityError, severityWarning)
 
     ...
 
@@ -473,7 +473,7 @@ This field can handle only onInput, onFocus, onBlur events. Other events will be
             , Event.onFocus OnFocus
             , Event.onBlur OnBlur
             ]
-            [ NotEmpty typeError "Empty value is not acceptable."
+            [ NotEmpty severityError "Empty value is not acceptable."
             ]
 
 -}
@@ -578,7 +578,7 @@ This field can handle only onCheck event. Other events will be ignored.
     --
     import Prima.Pyxis.Form as Form exposing (FormField, Label, Slug, CheckboxOption)
     import Prima.Pyxis.Form.Event as Event
-    import Prima.Pyxis.Form.Validation as PrimaFormValidation exposing (typeError, typeWarning)
+    import Prima.Pyxis.Form.Validation as PrimaFormValidation exposing (severityError, severityWarning)
 
     ...
 
@@ -672,7 +672,7 @@ This field can handle only onToggle, onInput, onSelect, onFocus and onBlur event
             .city
             [ Event.onToggle OnToggle, Event.onInput OnInput, Event.onSelect OnSelect, Event.onFocus, Event.onBlur ]
             options
-            [ NotEmpty typeError "Empty value is not acceptable." ]
+            [ NotEmpty severityError "Empty value is not acceptable." ]
 
 -}
 selectConfig : Slug -> Maybe Label -> Bool -> Bool -> Maybe String -> List (Attribute msg) -> (model -> Maybe Value) -> List (Event msg) -> List SelectOption -> List (Validation model) -> FormField model msg
@@ -1142,6 +1142,9 @@ renderPassword state model ({ reader, slug, label, attrs } as config) validation
 
         pristine =
             isPristine model opaqueConfig
+
+        warning =
+            hasNoWarning model opaqueConfig
     in
     [ Html.input
         ([ type_ "password"
@@ -1154,6 +1157,7 @@ renderPassword state model ({ reader, slug, label, attrs } as config) validation
             , ( "is-invalid", isFormSubmitted state && not valid )
             , ( "is-pristine", pristine )
             , ( "is-touched", not pristine )
+            , ( "has-warning", not warning )
             ]
          ]
             ++ attrs
@@ -1176,6 +1180,9 @@ renderTextarea state model ({ reader, slug, label, attrs, events } as config) va
 
         pristine =
             isPristine model opaqueConfig
+
+        warning =
+            hasNoWarning model opaqueConfig
     in
     [ Html.textarea
         ([ (value << Maybe.withDefault "" << reader) model
@@ -1187,6 +1194,7 @@ renderTextarea state model ({ reader, slug, label, attrs, events } as config) va
             , ( "is-invalid", isFormSubmitted state && not valid )
             , ( "is-pristine", pristine )
             , ( "is-touched", not pristine )
+            , ( "has-warning", not warning )
             ]
          ]
             ++ attrs
@@ -1298,6 +1306,9 @@ renderSelect state model ({ slug, label, reader, attrs, events } as config) vali
 
         pristine =
             isPristine model opaqueConfig
+
+        warning =
+            hasNoWarning model opaqueConfig
     in
     [ renderCustomSelect state model config validations
     , Html.select
@@ -1309,6 +1320,7 @@ renderSelect state model ({ slug, label, reader, attrs, events } as config) vali
             , ( "is-invalid", isFormSubmitted state && not valid )
             , ( "is-pristine", pristine )
             , ( "is-touched", not pristine )
+            , ( "has-warning", not warning )
             ]
          ]
             ++ attrs
@@ -1356,6 +1368,9 @@ renderCustomSelect state model ({ slug, label, reader, isDisabled, isOpen, attrs
                 |> List.map .label
                 |> List.head
                 |> Maybe.withDefault (Maybe.withDefault "" config.placeholder)
+
+        warning =
+            hasNoWarning model opaqueConfig
     in
     div
         ([ classList
@@ -1366,6 +1381,7 @@ renderCustomSelect state model ({ slug, label, reader, isDisabled, isOpen, attrs
             , ( "is-pristine", pristine )
             , ( "is-touched", not pristine )
             , ( "is-disabled", isDisabled )
+            , ( "has-warning", not warning )
             ]
          ]
             ++ attrs
@@ -1429,6 +1445,9 @@ renderDatepicker state model ({ attrs, reader, datePickerTagger, slug, label, in
                 << String.split "/"
             )
                 str
+
+        warning =
+            hasNoWarning model opaqueConfig
     in
     [ Html.input
         ([ type_ "text"
@@ -1441,6 +1460,7 @@ renderDatepicker state model ({ attrs, reader, datePickerTagger, slug, label, in
             , ( "is-invalid", isFormSubmitted state && not valid )
             , ( "is-pristine", pristine )
             , ( "is-touched", not pristine )
+            , ( "has-warning", not warning )
             ]
          ]
             ++ attrs
@@ -1458,6 +1478,7 @@ renderDatepicker state model ({ attrs, reader, datePickerTagger, slug, label, in
             , ( "is-invalid", not valid )
             , ( "is-pristine", pristine )
             , ( "is-touched", not pristine )
+            , ( "has-warning", not warning )
             ]
          ]
             ++ attrs
@@ -1477,6 +1498,9 @@ renderAutocomplete state model ({ filterReader, choiceReader, slug, label, isOpe
 
         pristine =
             isPristine model opaqueConfig
+
+        warning =
+            hasNoWarning model opaqueConfig
 
         pickLabelByValue opts value =
             (List.head << List.map .label << List.filter ((==) value << .slug)) opts
@@ -1511,6 +1535,7 @@ renderAutocomplete state model ({ filterReader, choiceReader, slug, label, isOpe
                 , ( "is-invalid", isFormSubmitted state && not valid )
                 , ( "is-pristine", pristine )
                 , ( "is-touched", not pristine )
+                , ( "has-warning", not warning )
                 ]
              ]
                 ++ attrs
@@ -1564,7 +1589,7 @@ isValid model (FormField opaqueConfig) =
     List.all (validate model opaqueConfig) (pickValidationRules opaqueConfig)
 
 
-{-| Check if a `FormField` has warning
+{-| Check if a `FormField` has no warnings
 -}
 hasNoWarning : model -> FormField model msg -> Bool
 hasNoWarning model (FormField opaqueConfig) =

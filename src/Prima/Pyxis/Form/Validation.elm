@@ -1,7 +1,7 @@
 module Prima.Pyxis.Form.Validation exposing
     ( Validation(..)
     , ValidationType(..)
-    , pickError, typeError, typeWarning
+    , pickError, severityError, severityWarning
     )
 
 {-| Allows to create Validation model for the form.
@@ -11,7 +11,7 @@ module Prima.Pyxis.Form.Validation exposing
 
 @docs Validation
 
-    import Prima.Pyxis.Form.Validation as PrimaFormValidation exposing (typeError, typeWarning)
+    import Prima.Pyxis.Form.Validation as PrimaFormValidation exposing (severityError, severityWarning)
     import Regex
 
     usernameConfig : Bool -> PrimaForm.FormField LoginData Msg
@@ -22,8 +22,8 @@ module Prima.Pyxis.Form.Validation exposing
             [ minlength 3, placeholder "username", disabled (not enabled) ]
             .email
             [ PrimaFormEvent.onInput (OnInput UsernameField) ]
-            [ PrimaFormValidation.NotEmpty typeError "insert username"
-            , PrimaFormValidation.Expression typeWarning lowerCase "Must contain lowercase"
+            [ PrimaFormValidation.NotEmpty severityError "insert username"
+            , PrimaFormValidation.Expression severityWarning lowerCase "Must contain lowercase"
             ]
 
     lowerCase : Regex.Regex
@@ -39,7 +39,7 @@ module Prima.Pyxis.Form.Validation exposing
 
 # Helpers
 
-@docs pickError, typeError, typeWarning
+@docs pickError, severityError, severityWarning
 
 -}
 
@@ -61,17 +61,17 @@ type ValidationType
     | Warning
 
 
-{-| Exposing a validation type Error.
+{-| Returns ValidationType Error.
 -}
-typeError : ValidationType
-typeError =
+severityError : ValidationType
+severityError =
     Error
 
 
-{-| Exposing a validation type Waring.
+{-| Returns ValidationType Waring.
 -}
-typeWarning : ValidationType
-typeWarning =
+severityWarning : ValidationType
+severityWarning =
     Warning
 
 
