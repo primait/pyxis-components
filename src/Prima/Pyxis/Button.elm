@@ -1,7 +1,7 @@
 module Prima.Pyxis.Button exposing
     ( Config, Emphasis, Scheme(..)
     , callOut, callOutSmall, primary, primarySmall, secondary, secondarySmall, tertiary, tertiarySmall
-    , render, group
+    , render, group, groupFluid
     )
 
 {-| Allows to create a `Button` using predefined Html syntax.
@@ -19,7 +19,7 @@ module Prima.Pyxis.Button exposing
 
 # Rendering
 
-@docs render, group
+@docs render, group, groupFluid
 
 -}
 
@@ -254,4 +254,13 @@ group : List ( Bool, Config msg ) -> Html msg
 group buttonsConfig =
     div
         [ class "m-btnGroup" ]
+        (List.map (\( isEnabled, button ) -> render isEnabled button) buttonsConfig)
+
+
+{-| Creates a button wrapper which can hold a set of fluid `Button`s.
+-}
+groupFluid : List ( Bool, Config msg ) -> Html msg
+groupFluid buttonsConfig =
+    div
+        [ class "m-btnGroup m-btnGroup--coverFluid" ]
         (List.map (\( isEnabled, button ) -> render isEnabled button) buttonsConfig)
