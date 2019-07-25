@@ -2,7 +2,7 @@ module Prima.Pyxis.Accordion exposing
     ( Config, State
     , baseConfig, lightConfig, darkConfig, state
     , open, close
-    , render
+    , render, renderGroup
     )
 
 {-| Creates an Accordion component by using predefined Html syntax.
@@ -25,7 +25,7 @@ module Prima.Pyxis.Accordion exposing
 
 # Render
 
-@docs render
+@docs render, renderGroup
 
 -}
 
@@ -187,10 +187,10 @@ render ((State { isOpen, title, content }) as accordion) (Config { type_, tagger
         [ id slug
         , classList
             [ ( "a-accordion", True )
-            , ( "is-open", isOpen )
             , ( "a-accordion--base", isBaseAccordion type_ )
             , ( "a-accordion--light", isLightAccordion type_ )
             , ( "a-accordion--dark", isDarkAccordion type_ )
+            , ( "is-open", isOpen )
             ]
         ]
         [ span
@@ -199,11 +199,7 @@ render ((State { isOpen, title, content }) as accordion) (Config { type_, tagger
             ]
             [ text title
             , i
-                [ classList
-                    [ ( "a-icon", True )
-                    , ( "a-icon-info", True )
-                    ]
-                ]
+                [ class "a-icon" ]
                 []
             ]
         , div
@@ -211,3 +207,19 @@ render ((State { isOpen, title, content }) as accordion) (Config { type_, tagger
             ]
             content
         ]
+
+
+{-| Renders a group of Accordion(s) inside an AccordionGroup.
+
+    Accordion.renderGroup
+        [ ( myAccordionState1, myAccordionConfiguration1 )
+        , ( myAccordionState2, myAccordionConfiguration2 )
+        , ( myAccordionState3, myAccordionConfiguration3 )
+        ]
+
+-}
+renderGroup : List ( State msg, Config msg ) -> Html msg
+renderGroup dataSet =
+    div
+        [ class "m-accordionGroup" ]
+        (List.map (\( accordionState, accordionConfig ) -> render accordionState accordionConfig) dataSet)

@@ -11,6 +11,7 @@ import Browser
 import Html exposing (Html, div, text)
 import Html.Attributes exposing (class)
 import Prima.Pyxis.Helpers as Helpers
+import Prima.Pyxis.Container as Container
 import Prima.Pyxis.Message as Message
 
 
@@ -55,8 +56,7 @@ view model =
 appBody : Model -> List (Html Msg)
 appBody _ =
     [ Helpers.pyxisStyle
-    , div
-        [ class "a-container a-container--medium directionColumn" ]
+    , Container.default
         ([ Message.messageInfoConfig
          , Message.messageSuccessConfig
          , Message.messageErrorConfig

@@ -4,6 +4,7 @@ import Browser
 import Html exposing (..)
 import Html.Attributes exposing (class)
 import Prima.Pyxis.Helpers as Helpers
+import Prima.Pyxis.Default as Default
 import Prima.Pyxis.Loader as Loader
 import Prima.Pyxis.Loader.Examples.Model exposing (Model, Msg)
 
@@ -16,8 +17,7 @@ view model =
 appBody : Model -> List (Html Msg)
 appBody _ =
     [ Helpers.pyxisStyle
-    , div
-        [ class "a-container a-container--medium directionColumn" ]
+    , Container.default
         (List.map Loader.render [ loaderVehicle, loaderSpinnerSmall, loaderSpinnerMedium ])
     ]
 
