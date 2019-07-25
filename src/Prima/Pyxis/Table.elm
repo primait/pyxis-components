@@ -367,6 +367,7 @@ renderTH { sortBy, sortedColumn } (Header ({ slug, name } as conf)) =
     th
         (sortAttr
             :: [ class "m-table__header__item fsSmall"
+               , attribute "data-column" slug
                ]
         )
         [ text name
