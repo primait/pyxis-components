@@ -16,6 +16,7 @@ import Prima.Pyxis.Accordion.Examples.Model
         , Model
         , Msg(..)
         )
+import Prima.Pyxis.Container as Container
 import Prima.Pyxis.Helpers as Helpers
 
 
@@ -27,8 +28,7 @@ view model =
 appBody : Model -> List (Html Msg)
 appBody model =
     [ Helpers.pyxisStyle
-    , div
-        [ class "a-container a-container--medium directionColumn" ]
+    , Container.default
         ((List.intersperse Helpers.spacer << List.map accordionRender) model.accordionList)
     ]
 

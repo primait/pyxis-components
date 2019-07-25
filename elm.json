@@ -8,6 +8,7 @@
         "Prima.Pyxis.Accordion",
         "Prima.Pyxis.AtrTable",
         "Prima.Pyxis.Button",
+        "Prima.Pyxis.Container",
         "Prima.Pyxis.DatePicker",
         "Prima.Pyxis.Form",
         "Prima.Pyxis.Form.Event",
