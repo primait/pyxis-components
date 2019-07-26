@@ -21,7 +21,7 @@ import Prima.Pyxis.Form.Examples.Model
         , Model
         , Msg(..)
         )
-import Prima.Pyxis.Form.Validation exposing (Severity(..), Validation(..), ValidationType(..))
+import Prima.Pyxis.Form.Validation exposing (SeverityLevel(..), Validation(..), ValidationType(..))
 
 
 username : FormField FormData Msg
@@ -35,8 +35,8 @@ username =
         , Event.onFocus (OnFocus Username)
         , Event.onBlur (OnBlur Username)
         ]
-        [ NotEmpty (Severity Warning) "Empty value is not acceptable."
-        , Custom (Severity Error) ((<=) 3 << String.length << Maybe.withDefault "" << .username) "Value must be between 3 and 12 characters length."
+        [ NotEmpty (SeverityLevel Error) "Empty value is not acceptable."
+        , Custom (SeverityLevel Error) ((<=) 3 << String.length << Maybe.withDefault "" << .username) "Value must be between 3 and 12 characters length."
         ]
 
 
@@ -48,7 +48,7 @@ password =
         []
         .password
         [ Event.onInput (UpdateField Password) ]
-        [ NotEmpty (Severity Error) "Empty value is not acceptable."
+        [ NotEmpty (SeverityLevel Error) "Empty value is not acceptable."
         ]
 
 
@@ -60,14 +60,14 @@ note =
         []
         .note
         [ Event.onInput (UpdateField Note) ]
-        [ NotEmpty (Severity Error) "Empty value is not acceptable." ]
+        [ NotEmpty (SeverityLevel Warning) "Better enter a note." ]
 
 
 gender : FormField FormData Msg
 gender =
     let
         something =
-            Severity Error
+            SeverityLevel Error
     in
     Form.radioConfig
         "gender"
@@ -78,7 +78,7 @@ gender =
         [ Form.radioOption "Male" "male"
         , Form.radioOption "Female" "female"
         ]
-        [ Custom (Severity Error) ((==) "female" << Maybe.withDefault "female" << .gender) "You must select `Female` to proceed." ]
+        [ Custom (SeverityLevel Error) ((==) "female" << Maybe.withDefault "female" << .gender) "You must select `Female` to proceed." ]
 
 
 visitedCountries : FormData -> FormField FormData Msg
@@ -116,7 +116,7 @@ city isOpen =
             , Form.selectOption "Genoa" "GE"
             ]
         )
-        [ NotEmpty (Severity Error) "Empty value is not acceptable." ]
+        [ NotEmpty (SeverityLevel Error) "Empty value is not acceptable." ]
 
 
 dateOfBirth : FormData -> FormField FormData Msg
@@ -130,7 +130,7 @@ dateOfBirth { isVisibleDP, dateOfBirthDP } =
         [ Event.onInput (UpdateField DateOfBirth) ]
         dateOfBirthDP
         isVisibleDP
-        [ Custom (Severity Error) (Maybe.withDefault False << Maybe.map (always True) << .dateOfBirth) "This is not a valid date." ]
+        [ Custom (SeverityLevel Error) (Maybe.withDefault False << Maybe.map (always True) << .dateOfBirth) "This is not a valid date." ]
 
 
 country : FormData -> FormField FormData Msg
@@ -187,7 +187,7 @@ country { countryFilter, isOpenCountry } =
          ]
             |> List.filter (String.contains lowerFilter << String.toLower << .label)
         )
-        [ NotEmpty (Severity Error) "Empty value is not acceptable." ]
+        [ NotEmpty (SeverityLevel Error) "Empty value is not acceptable." ]
 
 
 staticHtml : Model -> FormField FormData Msg

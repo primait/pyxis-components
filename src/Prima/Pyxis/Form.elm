@@ -99,7 +99,7 @@ import Html.Attributes
         )
 import Prima.Pyxis.DatePicker as DatePicker
 import Prima.Pyxis.Form.Event as Events exposing (Event)
-import Prima.Pyxis.Form.Validation as Validation exposing (Severity(..), Validation(..), ValidationType(..))
+import Prima.Pyxis.Form.Validation as Validation exposing (SeverityLevel(..), Validation(..), ValidationType(..))
 import Prima.Pyxis.Helpers as Helpers
 import Regex
 
@@ -164,7 +164,7 @@ init =
     --
     import Prima.Pyxis.Form as Form
     import Prima.Pyxis.Form.Event as Event
-    import Prima.Pyxis.Form.Validation as PrimaFormValidation exposing (Validation(..), Severity(..), ValidationType(..))
+    import Prima.Pyxis.Form.Validation as PrimaFormValidation exposing (Validation(..), SeverityLevel(..), ValidationType(..))
 
     ...
 
@@ -190,7 +190,7 @@ init =
             [ minlength 3, maxlength 12 ]
             .username
             [ Event.onInput UpdateUsername ]
-            [ NotEmpty (Severity Error) "Username must not be blank."
+            [ NotEmpty (SeverityLevel Error) "Username must not be blank."
             ]
 
     ...
@@ -448,7 +448,7 @@ This field can handle only onInput, onFocus, onBlur events. Other events will be
     --
     import Prima.Pyxis.Form as Form exposing (FormField)
     import Prima.Pyxis.Form.Event as Event
-    import Prima.Pyxis.Form.Validation as PrimaFormValidation exposing (Validation(..), Severity(..), ValidationType(..))
+    import Prima.Pyxis.Form.Validation as PrimaFormValidation exposing (Validation(..), SeverityLevel(..), ValidationType(..))
 
     ...
 
@@ -473,7 +473,7 @@ This field can handle only onInput, onFocus, onBlur events. Other events will be
             , Event.onFocus OnFocus
             , Event.onBlur OnBlur
             ]
-            [ NotEmpty (Severity Error) "Empty value is not acceptable."
+            [ NotEmpty (SeverityLevel Error) "Empty value is not acceptable."
             ]
 
 -}
@@ -578,7 +578,7 @@ This field can handle only onCheck event. Other events will be ignored.
     --
     import Prima.Pyxis.Form as Form exposing (FormField, Label, Slug, CheckboxOption)
     import Prima.Pyxis.Form.Event as Event
-    import Prima.Pyxis.Form.Validation as PrimaFormValidation exposing (Validation(..), Severity(..), ValidationType(..))
+    import Prima.Pyxis.Form.Validation as PrimaFormValidation exposing (Validation(..), SeverityLevel(..), ValidationType(..))
 
     ...
 
@@ -672,7 +672,7 @@ This field can handle only onToggle, onInput, onSelect, onFocus and onBlur event
             .city
             [ Event.onToggle OnToggle, Event.onInput OnInput, Event.onSelect OnSelect, Event.onFocus, Event.onBlur ]
             options
-            [ NotEmpty (Severity Error) "Empty value is not acceptable." ]
+            [ NotEmpty (SeverityLevel Error) "Empty value is not acceptable." ]
 
 -}
 selectConfig : Slug -> Maybe Label -> Bool -> Bool -> Maybe String -> List (Attribute msg) -> (model -> Maybe Value) -> List (Event msg) -> List SelectOption -> List (Validation model) -> FormField model msg
@@ -1639,121 +1639,121 @@ validate model config validation =
             String.isEmpty << Maybe.withDefault ""
     in
     case ( validation, config ) of
-        ( NotEmpty (Severity Error) _, FormFieldTextConfig { reader } _ ) ->
+        ( NotEmpty (SeverityLevel Error) _, FormFieldTextConfig { reader } _ ) ->
             (not << isEmpty << reader) model
 
-        ( NotEmpty (Severity Error) _, FormFieldTextareaConfig { reader } _ ) ->
+        ( NotEmpty (SeverityLevel Error) _, FormFieldTextareaConfig { reader } _ ) ->
             (not << isEmpty << reader) model
 
-        ( NotEmpty (Severity Error) _, FormFieldPasswordConfig { reader } _ ) ->
+        ( NotEmpty (SeverityLevel Error) _, FormFieldPasswordConfig { reader } _ ) ->
             (not << isEmpty << reader) model
 
-        ( NotEmpty (Severity Error) _, FormFieldRadioConfig { reader } _ ) ->
+        ( NotEmpty (SeverityLevel Error) _, FormFieldRadioConfig { reader } _ ) ->
             (not << isEmpty << reader) model
 
-        ( NotEmpty (Severity Error) _, FormFieldSelectConfig { reader } _ ) ->
+        ( NotEmpty (SeverityLevel Error) _, FormFieldSelectConfig { reader } _ ) ->
             (not << isEmpty << reader) model
 
-        ( NotEmpty (Severity Error) _, FormFieldAutocompleteConfig { choiceReader } _ ) ->
+        ( NotEmpty (SeverityLevel Error) _, FormFieldAutocompleteConfig { choiceReader } _ ) ->
             (not << isEmpty << choiceReader) model
 
-        ( NotEmpty (Severity Error) _, FormFieldDatepickerConfig { reader } _ ) ->
+        ( NotEmpty (SeverityLevel Error) _, FormFieldDatepickerConfig { reader } _ ) ->
             (not << Helpers.isJust << reader) model
 
-        ( NotEmpty (Severity Error) _, FormFieldCheckboxConfig { reader } _ ) ->
+        ( NotEmpty (SeverityLevel Error) _, FormFieldCheckboxConfig { reader } _ ) ->
             (List.any Tuple.second << reader) model
 
-        ( Expression (Severity Error) exp _, FormFieldTextConfig { reader } _ ) ->
+        ( Expression (SeverityLevel Error) exp _, FormFieldTextConfig { reader } _ ) ->
             (Regex.contains exp << Maybe.withDefault "" << reader) model
 
-        ( Expression (Severity Error) exp _, FormFieldPasswordConfig { reader } _ ) ->
+        ( Expression (SeverityLevel Error) exp _, FormFieldPasswordConfig { reader } _ ) ->
             (Regex.contains exp << Maybe.withDefault "" << reader) model
 
-        ( Expression (Severity Error) exp _, FormFieldTextareaConfig { reader } _ ) ->
+        ( Expression (SeverityLevel Error) exp _, FormFieldTextareaConfig { reader } _ ) ->
             (Regex.contains exp << Maybe.withDefault "" << reader) model
 
-        ( Expression (Severity Error) exp _, FormFieldAutocompleteConfig { choiceReader } _ ) ->
+        ( Expression (SeverityLevel Error) exp _, FormFieldAutocompleteConfig { choiceReader } _ ) ->
             (Regex.contains exp << Maybe.withDefault "" << choiceReader) model
 
-        ( Expression (Severity Error) exp _, _ ) ->
+        ( Expression (SeverityLevel Error) exp _, _ ) ->
             True
 
-        ( Custom (Severity Error) validator _, _ ) ->
+        ( Custom (SeverityLevel Error) validator _, _ ) ->
             validator model
 
         ( _, FormFieldPureHtmlConfig _ ) ->
             True
 
-        ( NotEmpty (Severity Warning) _, FormFieldAutocompleteConfig _ _ ) ->
+        ( NotEmpty (SeverityLevel Warning) _, FormFieldAutocompleteConfig _ _ ) ->
             True
 
-        ( NotEmpty (Severity Warning) _, FormFieldCheckboxConfig _ _ ) ->
+        ( NotEmpty (SeverityLevel Warning) _, FormFieldCheckboxConfig _ _ ) ->
             True
 
-        ( NotEmpty (Severity Warning) _, FormFieldDatepickerConfig _ _ ) ->
+        ( NotEmpty (SeverityLevel Warning) _, FormFieldDatepickerConfig _ _ ) ->
             True
 
-        ( NotEmpty (Severity Warning) _, FormFieldPasswordConfig _ _ ) ->
+        ( NotEmpty (SeverityLevel Warning) _, FormFieldPasswordConfig _ _ ) ->
             True
 
-        ( NotEmpty (Severity Warning) _, FormFieldRadioConfig _ _ ) ->
+        ( NotEmpty (SeverityLevel Warning) _, FormFieldRadioConfig _ _ ) ->
             True
 
-        ( NotEmpty (Severity Warning) _, FormFieldSelectConfig _ _ ) ->
+        ( NotEmpty (SeverityLevel Warning) _, FormFieldSelectConfig _ _ ) ->
             True
 
-        ( NotEmpty (Severity Warning) _, FormFieldTextareaConfig _ _ ) ->
+        ( NotEmpty (SeverityLevel Warning) _, FormFieldTextareaConfig _ _ ) ->
             True
 
-        ( NotEmpty (Severity Warning) _, FormFieldTextConfig _ _ ) ->
+        ( NotEmpty (SeverityLevel Warning) _, FormFieldTextConfig _ _ ) ->
             True
 
-        ( Expression (Severity Warning) _ _, FormFieldAutocompleteConfig _ _ ) ->
+        ( Expression (SeverityLevel Warning) _ _, FormFieldAutocompleteConfig _ _ ) ->
             True
 
-        ( Expression (Severity Warning) _ _, FormFieldCheckboxConfig _ _ ) ->
+        ( Expression (SeverityLevel Warning) _ _, FormFieldCheckboxConfig _ _ ) ->
             True
 
-        ( Expression (Severity Warning) _ _, FormFieldDatepickerConfig _ _ ) ->
+        ( Expression (SeverityLevel Warning) _ _, FormFieldDatepickerConfig _ _ ) ->
             True
 
-        ( Expression (Severity Warning) _ _, FormFieldPasswordConfig _ _ ) ->
+        ( Expression (SeverityLevel Warning) _ _, FormFieldPasswordConfig _ _ ) ->
             True
 
-        ( Expression (Severity Warning) _ _, FormFieldRadioConfig _ _ ) ->
+        ( Expression (SeverityLevel Warning) _ _, FormFieldRadioConfig _ _ ) ->
             True
 
-        ( Expression (Severity Warning) _ _, FormFieldSelectConfig _ _ ) ->
+        ( Expression (SeverityLevel Warning) _ _, FormFieldSelectConfig _ _ ) ->
             True
 
-        ( Expression (Severity Warning) _ _, FormFieldTextareaConfig _ _ ) ->
+        ( Expression (SeverityLevel Warning) _ _, FormFieldTextareaConfig _ _ ) ->
             True
 
-        ( Expression (Severity Warning) _ _, FormFieldTextConfig _ _ ) ->
+        ( Expression (SeverityLevel Warning) _ _, FormFieldTextConfig _ _ ) ->
             True
 
-        ( Custom (Severity Warning) _ _, FormFieldAutocompleteConfig _ _ ) ->
+        ( Custom (SeverityLevel Warning) _ _, FormFieldAutocompleteConfig _ _ ) ->
             True
 
-        ( Custom (Severity Warning) _ _, FormFieldCheckboxConfig _ _ ) ->
+        ( Custom (SeverityLevel Warning) _ _, FormFieldCheckboxConfig _ _ ) ->
             True
 
-        ( Custom (Severity Warning) _ _, FormFieldDatepickerConfig _ _ ) ->
+        ( Custom (SeverityLevel Warning) _ _, FormFieldDatepickerConfig _ _ ) ->
             True
 
-        ( Custom (Severity Warning) _ _, FormFieldPasswordConfig _ _ ) ->
+        ( Custom (SeverityLevel Warning) _ _, FormFieldPasswordConfig _ _ ) ->
             True
 
-        ( Custom (Severity Warning) _ _, FormFieldRadioConfig _ _ ) ->
+        ( Custom (SeverityLevel Warning) _ _, FormFieldRadioConfig _ _ ) ->
             True
 
-        ( Custom (Severity Warning) _ _, FormFieldSelectConfig _ _ ) ->
+        ( Custom (SeverityLevel Warning) _ _, FormFieldSelectConfig _ _ ) ->
             True
 
-        ( Custom (Severity Warning) _ _, FormFieldTextareaConfig _ _ ) ->
+        ( Custom (SeverityLevel Warning) _ _, FormFieldTextareaConfig _ _ ) ->
             True
 
-        ( Custom (Severity Warning) _ _, FormFieldTextConfig _ _ ) ->
+        ( Custom (SeverityLevel Warning) _ _, FormFieldTextConfig _ _ ) ->
             True
 
 
@@ -1765,121 +1765,121 @@ validateWarning model config validation =
             String.isEmpty << Maybe.withDefault ""
     in
     case ( validation, config ) of
-        ( NotEmpty (Severity Warning) _, FormFieldTextConfig { reader } _ ) ->
+        ( NotEmpty (SeverityLevel Warning) _, FormFieldTextConfig { reader } _ ) ->
             (not << isEmpty << reader) model
 
-        ( NotEmpty (Severity Warning) _, FormFieldTextareaConfig { reader } _ ) ->
+        ( NotEmpty (SeverityLevel Warning) _, FormFieldTextareaConfig { reader } _ ) ->
             (not << isEmpty << reader) model
 
-        ( NotEmpty (Severity Warning) _, FormFieldPasswordConfig { reader } _ ) ->
+        ( NotEmpty (SeverityLevel Warning) _, FormFieldPasswordConfig { reader } _ ) ->
             (not << isEmpty << reader) model
 
-        ( NotEmpty (Severity Warning) _, FormFieldRadioConfig { reader } _ ) ->
+        ( NotEmpty (SeverityLevel Warning) _, FormFieldRadioConfig { reader } _ ) ->
             (not << isEmpty << reader) model
 
-        ( NotEmpty (Severity Warning) _, FormFieldSelectConfig { reader } _ ) ->
+        ( NotEmpty (SeverityLevel Warning) _, FormFieldSelectConfig { reader } _ ) ->
             (not << isEmpty << reader) model
 
-        ( NotEmpty (Severity Warning) _, FormFieldAutocompleteConfig { choiceReader } _ ) ->
+        ( NotEmpty (SeverityLevel Warning) _, FormFieldAutocompleteConfig { choiceReader } _ ) ->
             (not << isEmpty << choiceReader) model
 
-        ( NotEmpty (Severity Warning) _, FormFieldDatepickerConfig { reader } _ ) ->
+        ( NotEmpty (SeverityLevel Warning) _, FormFieldDatepickerConfig { reader } _ ) ->
             (not << Helpers.isJust << reader) model
 
-        ( NotEmpty (Severity Warning) _, FormFieldCheckboxConfig { reader } _ ) ->
+        ( NotEmpty (SeverityLevel Warning) _, FormFieldCheckboxConfig { reader } _ ) ->
             (List.any Tuple.second << reader) model
 
-        ( Expression (Severity Warning) exp _, FormFieldTextConfig { reader } _ ) ->
+        ( Expression (SeverityLevel Warning) exp _, FormFieldTextConfig { reader } _ ) ->
             (Regex.contains exp << Maybe.withDefault "" << reader) model
 
-        ( Expression (Severity Warning) exp _, FormFieldPasswordConfig { reader } _ ) ->
+        ( Expression (SeverityLevel Warning) exp _, FormFieldPasswordConfig { reader } _ ) ->
             (Regex.contains exp << Maybe.withDefault "" << reader) model
 
-        ( Expression (Severity Warning) exp _, FormFieldTextareaConfig { reader } _ ) ->
+        ( Expression (SeverityLevel Warning) exp _, FormFieldTextareaConfig { reader } _ ) ->
             (Regex.contains exp << Maybe.withDefault "" << reader) model
 
-        ( Expression (Severity Warning) exp _, FormFieldAutocompleteConfig { choiceReader } _ ) ->
+        ( Expression (SeverityLevel Warning) exp _, FormFieldAutocompleteConfig { choiceReader } _ ) ->
             (Regex.contains exp << Maybe.withDefault "" << choiceReader) model
 
-        ( Expression (Severity Warning) exp _, _ ) ->
+        ( Expression (SeverityLevel Warning) exp _, _ ) ->
             True
 
-        ( Custom (Severity Warning) validator _, _ ) ->
+        ( Custom (SeverityLevel Warning) validator _, _ ) ->
             validator model
 
         ( _, FormFieldPureHtmlConfig _ ) ->
             True
 
-        ( NotEmpty (Severity Error) _, FormFieldAutocompleteConfig _ _ ) ->
+        ( NotEmpty (SeverityLevel Error) _, FormFieldAutocompleteConfig _ _ ) ->
             True
 
-        ( NotEmpty (Severity Error) _, FormFieldCheckboxConfig _ _ ) ->
+        ( NotEmpty (SeverityLevel Error) _, FormFieldCheckboxConfig _ _ ) ->
             True
 
-        ( NotEmpty (Severity Error) _, FormFieldDatepickerConfig _ _ ) ->
+        ( NotEmpty (SeverityLevel Error) _, FormFieldDatepickerConfig _ _ ) ->
             True
 
-        ( NotEmpty (Severity Error) _, FormFieldPasswordConfig _ _ ) ->
+        ( NotEmpty (SeverityLevel Error) _, FormFieldPasswordConfig _ _ ) ->
             True
 
-        ( NotEmpty (Severity Error) _, FormFieldRadioConfig _ _ ) ->
+        ( NotEmpty (SeverityLevel Error) _, FormFieldRadioConfig _ _ ) ->
             True
 
-        ( NotEmpty (Severity Error) _, FormFieldSelectConfig _ _ ) ->
+        ( NotEmpty (SeverityLevel Error) _, FormFieldSelectConfig _ _ ) ->
             True
 
-        ( NotEmpty (Severity Error) _, FormFieldTextareaConfig _ _ ) ->
+        ( NotEmpty (SeverityLevel Error) _, FormFieldTextareaConfig _ _ ) ->
             True
 
-        ( NotEmpty (Severity Error) _, FormFieldTextConfig _ _ ) ->
+        ( NotEmpty (SeverityLevel Error) _, FormFieldTextConfig _ _ ) ->
             True
 
-        ( Expression (Severity Error) _ _, FormFieldAutocompleteConfig _ _ ) ->
+        ( Expression (SeverityLevel Error) _ _, FormFieldAutocompleteConfig _ _ ) ->
             True
 
-        ( Expression (Severity Error) _ _, FormFieldCheckboxConfig _ _ ) ->
+        ( Expression (SeverityLevel Error) _ _, FormFieldCheckboxConfig _ _ ) ->
             True
 
-        ( Expression (Severity Error) _ _, FormFieldDatepickerConfig _ _ ) ->
+        ( Expression (SeverityLevel Error) _ _, FormFieldDatepickerConfig _ _ ) ->
             True
 
-        ( Expression (Severity Error) _ _, FormFieldPasswordConfig _ _ ) ->
+        ( Expression (SeverityLevel Error) _ _, FormFieldPasswordConfig _ _ ) ->
             True
 
-        ( Expression (Severity Error) _ _, FormFieldRadioConfig _ _ ) ->
+        ( Expression (SeverityLevel Error) _ _, FormFieldRadioConfig _ _ ) ->
             True
 
-        ( Expression (Severity Error) _ _, FormFieldSelectConfig _ _ ) ->
+        ( Expression (SeverityLevel Error) _ _, FormFieldSelectConfig _ _ ) ->
             True
 
-        ( Expression (Severity Error) _ _, FormFieldTextareaConfig _ _ ) ->
+        ( Expression (SeverityLevel Error) _ _, FormFieldTextareaConfig _ _ ) ->
             True
 
-        ( Expression (Severity Error) _ _, FormFieldTextConfig _ _ ) ->
+        ( Expression (SeverityLevel Error) _ _, FormFieldTextConfig _ _ ) ->
             True
 
-        ( Custom (Severity Error) _ _, FormFieldAutocompleteConfig _ _ ) ->
+        ( Custom (SeverityLevel Error) _ _, FormFieldAutocompleteConfig _ _ ) ->
             True
 
-        ( Custom (Severity Error) _ _, FormFieldCheckboxConfig _ _ ) ->
+        ( Custom (SeverityLevel Error) _ _, FormFieldCheckboxConfig _ _ ) ->
             True
 
-        ( Custom (Severity Error) _ _, FormFieldDatepickerConfig _ _ ) ->
+        ( Custom (SeverityLevel Error) _ _, FormFieldDatepickerConfig _ _ ) ->
             True
 
-        ( Custom (Severity Error) _ _, FormFieldPasswordConfig _ _ ) ->
+        ( Custom (SeverityLevel Error) _ _, FormFieldPasswordConfig _ _ ) ->
             True
 
-        ( Custom (Severity Error) _ _, FormFieldRadioConfig _ _ ) ->
+        ( Custom (SeverityLevel Error) _ _, FormFieldRadioConfig _ _ ) ->
             True
 
-        ( Custom (Severity Error) _ _, FormFieldSelectConfig _ _ ) ->
+        ( Custom (SeverityLevel Error) _ _, FormFieldSelectConfig _ _ ) ->
             True
 
-        ( Custom (Severity Error) _ _, FormFieldTextareaConfig _ _ ) ->
+        ( Custom (SeverityLevel Error) _ _, FormFieldTextareaConfig _ _ ) ->
             True
 
-        ( Custom (Severity Error) _ _, FormFieldTextConfig _ _ ) ->
+        ( Custom (SeverityLevel Error) _ _, FormFieldTextConfig _ _ ) ->
             True
 
 
