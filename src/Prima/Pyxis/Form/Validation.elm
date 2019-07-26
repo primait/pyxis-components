@@ -1,7 +1,7 @@
 module Prima.Pyxis.Form.Validation exposing
     ( Validation(..)
-    , ValidationType(..)
-    , pickError, severityError, severityWarning
+    , ValidationType(..), Severity(..)
+    , pickError
     )
 
 {-| Allows to create Validation model for the form.
@@ -11,7 +11,7 @@ module Prima.Pyxis.Form.Validation exposing
 
 @docs Validation
 
-    import Prima.Pyxis.Form.Validation as PrimaFormValidation exposing (severityError, severityWarning)
+    import Prima.Pyxis.Form.Validation as PrimaFormValidation exposing (Severity(..), Validation(..), ValidationType(..))
     import Regex
 
     usernameConfig : Bool -> PrimaForm.FormField LoginData Msg
@@ -22,8 +22,8 @@ module Prima.Pyxis.Form.Validation exposing
             [ minlength 3, placeholder "username", disabled (not enabled) ]
             .email
             [ PrimaFormEvent.onInput (OnInput UsernameField) ]
-            [ PrimaFormValidation.NotEmpty severityError "insert username"
-            , PrimaFormValidation.Expression severityWarning lowerCase "Must contain lowercase"
+            [ PrimaFormValidation.NotEmpty (Severity Error) "insert username"
+            , PrimaFormValidation.Expression (Severity Warning) lowerCase "Should contain lowercase"
             ]
 
     lowerCase : Regex.Regex
@@ -34,12 +34,12 @@ module Prima.Pyxis.Form.Validation exposing
 
 # ValidationType
 
-@docs ValidationType
+@docs ValidationType, Severity
 
 
 # Helpers
 
-@docs pickError, severityError, severityWarning
+@docs pickError
 
 -}
 
@@ -49,9 +49,9 @@ import Regex
 {-| Represents a validation entry.
 -}
 type Validation model
-    = NotEmpty ValidationType String
-    | Expression ValidationType Regex.Regex String
-    | Custom ValidationType (model -> Bool) String
+    = NotEmpty Severity String
+    | Expression Severity Regex.Regex String
+    | Custom Severity (model -> Bool) String
 
 
 {-| Represents a validation type.
@@ -61,18 +61,10 @@ type ValidationType
     | Warning
 
 
-{-| Returns ValidationType Error.
+{-| Represents Severity level.
 -}
-severityError : ValidationType
-severityError =
-    Error
-
-
-{-| Returns ValidationType Waring.
--}
-severityWarning : ValidationType
-severityWarning =
-    Warning
+type Severity
+    = Severity ValidationType
 
 
 {-| Pick the error string from a Validation model.
@@ -80,20 +72,20 @@ severityWarning =
 pickError : Validation model -> String
 pickError rule =
     case rule of
-        NotEmpty Error error ->
+        NotEmpty (Severity Error) error ->
             error
 
-        Expression Error exp error ->
+        Expression (Severity Error) exp error ->
             error
 
-        Custom Error customRule error ->
+        Custom (Severity Error) customRule error ->
             error
 
-        NotEmpty Warning warning ->
+        NotEmpty (Severity Warning) warning ->
             warning
 
-        Expression Warning exp warning ->
+        Expression (Severity Warning) exp warning ->
             warning
 
-        Custom Warning customRule warning ->
+        Custom (Severity Warning) customRule warning ->
             warning
