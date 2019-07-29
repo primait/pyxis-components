@@ -49,6 +49,7 @@ password =
         .password
         [ Event.onInput (UpdateField Password) ]
         [ NotEmpty (SeverityLevel Error) "Empty value is not acceptable."
+        , Custom (SeverityLevel Warning) ((<=) 6 << String.length << Maybe.withDefault "" << .password) "Value should be between 6 and 12 characters length."
         ]
 
 
@@ -60,7 +61,7 @@ note =
         []
         .note
         [ Event.onInput (UpdateField Note) ]
-        [ NotEmpty (SeverityLevel Warning) "Better enter a note." ]
+        [ NotEmpty (SeverityLevel Error) "Better enter a note." ]
 
 
 gender : FormField FormData Msg

@@ -238,7 +238,7 @@ render (Form { renderer }) =
         renderWrappedFields ( mapper, fieldConfigs ) =
             (wrapper << List.concat << List.map mapper) fieldConfigs
     in
-    form [] (List.map renderWrappedFields renderer)
+    div [ class "m-form" ] (List.map renderWrappedFields renderer)
 
 
 {-| Represents the configuration of a single form field.
@@ -1100,13 +1100,13 @@ renderInput state model ({ reader, slug, label, attrs } as config) validations =
             FormField (FormFieldTextConfig config validations)
 
         valid =
-            isValid model opaqueConfig
+            isValid model opaqueConfig && not warning
 
         pristine =
             isPristine model opaqueConfig
 
         warning =
-            not (hasWarning model opaqueConfig)
+            hasWarning model opaqueConfig
     in
     [ Html.input
         ([ type_ "text"
@@ -1119,7 +1119,7 @@ renderInput state model ({ reader, slug, label, attrs } as config) validations =
             , ( "is-invalid", isFormSubmitted state && not valid )
             , ( "is-pristine", pristine )
             , ( "is-touched", not pristine )
-            , ( "has-warning", warning )
+            , ( "has-warn", warning )
             ]
          ]
             ++ attrs
@@ -1138,13 +1138,13 @@ renderPassword state model ({ reader, slug, label, attrs } as config) validation
             FormField (FormFieldTextConfig config validations)
 
         valid =
-            isValid model opaqueConfig
+            isValid model opaqueConfig && not warning
 
         pristine =
             isPristine model opaqueConfig
 
         warning =
-            not (hasWarning model opaqueConfig)
+            hasWarning model opaqueConfig
     in
     [ Html.input
         ([ type_ "password"
@@ -1157,7 +1157,7 @@ renderPassword state model ({ reader, slug, label, attrs } as config) validation
             , ( "is-invalid", isFormSubmitted state && not valid )
             , ( "is-pristine", pristine )
             , ( "is-touched", not pristine )
-            , ( "has-warning", not warning )
+            , ( "has-warn", warning )
             ]
          ]
             ++ attrs
@@ -1176,13 +1176,13 @@ renderTextarea state model ({ reader, slug, label, attrs, events } as config) va
             FormField (FormFieldTextareaConfig config validations)
 
         valid =
-            isValid model opaqueConfig
+            isValid model opaqueConfig && not warning
 
         pristine =
             isPristine model opaqueConfig
 
         warning =
-            not (hasWarning model opaqueConfig)
+            hasWarning model opaqueConfig
     in
     [ Html.textarea
         ([ (value << Maybe.withDefault "" << reader) model
@@ -1194,7 +1194,7 @@ renderTextarea state model ({ reader, slug, label, attrs, events } as config) va
             , ( "is-invalid", isFormSubmitted state && not valid )
             , ( "is-pristine", pristine )
             , ( "is-touched", not pristine )
-            , ( "has-warning", not warning )
+            , ( "has-warn", warning )
             ]
          ]
             ++ attrs
@@ -1302,13 +1302,13 @@ renderSelect state model ({ slug, label, reader, attrs, events } as config) vali
             FormField (FormFieldSelectConfig config validations)
 
         valid =
-            isValid model opaqueConfig
+            isValid model opaqueConfig && not warning
 
         pristine =
             isPristine model opaqueConfig
 
         warning =
-            not (hasWarning model opaqueConfig)
+            hasWarning model opaqueConfig
     in
     [ renderCustomSelect state model config validations
     , Html.select
@@ -1320,7 +1320,7 @@ renderSelect state model ({ slug, label, reader, attrs, events } as config) vali
             , ( "is-invalid", isFormSubmitted state && not valid )
             , ( "is-pristine", pristine )
             , ( "is-touched", not pristine )
-            , ( "has-warning", not warning )
+            , ( "has-warn", warning )
             ]
          ]
             ++ attrs
@@ -1357,7 +1357,7 @@ renderCustomSelect state model ({ slug, label, reader, isDisabled, isOpen, attrs
             FormField (FormFieldSelectConfig config validations)
 
         valid =
-            isValid model opaqueConfig
+            isValid model opaqueConfig && not warning
 
         pristine =
             isPristine model opaqueConfig
@@ -1370,7 +1370,7 @@ renderCustomSelect state model ({ slug, label, reader, isDisabled, isOpen, attrs
                 |> Maybe.withDefault (Maybe.withDefault "" config.placeholder)
 
         warning =
-            not (hasWarning model opaqueConfig)
+            hasWarning model opaqueConfig
     in
     div
         ([ classList
@@ -1381,7 +1381,7 @@ renderCustomSelect state model ({ slug, label, reader, isDisabled, isOpen, attrs
             , ( "is-pristine", pristine )
             , ( "is-touched", not pristine )
             , ( "is-disabled", isDisabled )
-            , ( "has-warning", not warning )
+            , ( "has-warn", warning )
             ]
          ]
             ++ attrs
@@ -1427,7 +1427,7 @@ renderDatepicker state model ({ attrs, reader, datePickerTagger, slug, label, in
             FormField (FormFieldDatepickerConfig config validations)
 
         valid =
-            isValid model opaqueConfig
+            isValid model opaqueConfig && not warning
 
         pristine =
             isPristine model opaqueConfig
@@ -1447,7 +1447,7 @@ renderDatepicker state model ({ attrs, reader, datePickerTagger, slug, label, in
                 str
 
         warning =
-            not (hasWarning model opaqueConfig)
+            hasWarning model opaqueConfig
     in
     [ Html.input
         ([ type_ "text"
@@ -1460,7 +1460,7 @@ renderDatepicker state model ({ attrs, reader, datePickerTagger, slug, label, in
             , ( "is-invalid", isFormSubmitted state && not valid )
             , ( "is-pristine", pristine )
             , ( "is-touched", not pristine )
-            , ( "has-warning", not warning )
+            , ( "has-warn", warning )
             ]
          ]
             ++ attrs
@@ -1478,7 +1478,7 @@ renderDatepicker state model ({ attrs, reader, datePickerTagger, slug, label, in
             , ( "is-invalid", not valid )
             , ( "is-pristine", pristine )
             , ( "is-touched", not pristine )
-            , ( "has-warning", not warning )
+            , ( "has-warn", warning )
             ]
          ]
             ++ attrs
@@ -1494,7 +1494,7 @@ renderAutocomplete state model ({ filterReader, choiceReader, slug, label, isOpe
             FormField (FormFieldAutocompleteConfig config validations)
 
         valid =
-            isValid model opaqueConfig
+            isValid model opaqueConfig && not warning
 
         pristine =
             isPristine model opaqueConfig
@@ -1535,7 +1535,7 @@ renderAutocomplete state model ({ filterReader, choiceReader, slug, label, isOpe
                 , ( "is-invalid", isFormSubmitted state && not valid )
                 , ( "is-pristine", pristine )
                 , ( "is-touched", not pristine )
-                , ( "has-warning", not warning )
+                , ( "has-warn", warning )
                 ]
              ]
                 ++ attrs
