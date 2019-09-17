@@ -5,6 +5,7 @@ module Prima.Pyxis.Table exposing
     , columnFloat, columnHtml, columnInteger, columnString
     , sort, sortAsc, sortDesc
     , render
+    , renderWithAttributes
     )
 
 {-| Creates a customizable Table component by using predefined Html syntax.
@@ -42,10 +43,11 @@ module Prima.Pyxis.Table exposing
 -}
 
 import Array exposing (Array)
-import Html exposing (Html, i, table, tbody, td, text, th, thead, tr)
+import Html exposing (Attribute, Html, i, table, tbody, td, text, th, thead, tr)
 import Html.Attributes exposing (attribute, class, classList, colspan)
 import Html.Events exposing (onClick)
 import List.Extra
+import Prima.Pyxis.Table.TableWithAttributes exposing (AttributeConfiguration, AttributeConfigurationPosition(..))
 
 
 {-| Represents the static configuration of the component.
@@ -310,7 +312,14 @@ retrieveHeaderIndexBySlug slug headers =
 {-| Renders a Table by receiving a State and a Config
 -}
 render : State -> Config msg -> Html msg
-render (State ({ sortBy, sortedColumn } as internalState)) (Config conf) =
+render state conf =
+    renderWithAttributes state conf []
+
+
+{-| Renders a Table by receiving a State, a Config and a list of AttributeConfiguration
+-}
+renderWithAttributes : State -> Config msg -> List (AttributeConfiguration msg) -> Html msg
+renderWithAttributes (State ({ sortBy, sortedColumn } as internalState)) (Config conf) attributes =
     let
         index =
             (Maybe.withDefault 0 << retrieveHeaderIndexBySlug sortedColumn) conf.headers
@@ -332,23 +341,33 @@ render (State ({ sortBy, sortedColumn } as internalState)) (Config conf) =
 
         headerSlugs =
             List.map (\(Header { slug }) -> slug) conf.headers
+
+        tableAttrs =
+            List.filter (\attribute -> attribute.position == AttributePositionTable) attributes
+
+        bodyAttrs =
+            List.filter (\attribute -> attribute.position == AttributePositionBody) attributes
+
+        headerAttrs =
+            List.filter (\attribute -> attribute.position == AttributePositionHeader) attributes
     in
     table
-        [ classList
+        (classList
             [ ( "m-table", True )
             , ( "m-table--alt", isAlternativeTableType conf.tableType )
             , ( "m-table--alternateRows", conf.alternateRows )
             ]
-        ]
-        [ renderTHead internalState conf
-        , renderTBody headerSlugs sortedRows
+            :: List.concatMap .attributes tableAttrs
+        )
+        [ renderTHead internalState conf headerAttrs
+        , renderTBody headerSlugs sortedRows bodyAttrs
         ]
 
 
-renderTHead : InternalState -> Configuration msg -> Html msg
-renderTHead internalState ({ headers } as conf) =
+renderTHead : InternalState -> Configuration msg -> List (AttributeConfiguration msg) -> Html msg
+renderTHead internalState ({ headers } as conf) attrs =
     thead
-        [ class "m-table__header" ]
+        (class "m-table__header" :: List.concatMap .attributes attrs)
         (List.map (renderTH internalState) headers)
 
 
@@ -392,10 +411,10 @@ renderSortIcon sortAlgorithm slug =
         []
 
 
-renderTBody : List Slug -> List (Row msg) -> Html msg
-renderTBody headerSlugs rows =
+renderTBody : List Slug -> List (Row msg) -> List (AttributeConfiguration msg) -> Html msg
+renderTBody headerSlugs rows attrs =
     tbody
-        [ class "m-table__body" ]
+        (class "m-table__body" :: List.concatMap .attributes attrs)
         (List.map (renderTR headerSlugs) rows)
 
 
