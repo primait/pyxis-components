@@ -24,7 +24,7 @@ appBody model =
     , h3 [] [ text "Table with attributes" ]
     , Table.renderWithAttributes model.tableState
         (createTableConfiguration model)
-        [ Table.tableAttributes [ style "background-color" "antiquewhite" ] ]
+        [ Table.headerAttributes [ style "background-color" "black", style "color" "white" ] ]
     ]
 
 
