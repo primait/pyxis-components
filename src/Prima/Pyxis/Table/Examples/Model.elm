@@ -18,6 +18,7 @@ type alias Model =
     , tableState : Table.State
     , sortByColumn : Maybe String
     , sortBy : Maybe Table.Sort
+    , footers : List String
     }
 
 
@@ -29,6 +30,7 @@ initialModel =
         (Table.initialState Nothing Nothing)
         Nothing
         Nothing
+        initialHeaders
 
 
 initialHeaders : List String

@@ -5,6 +5,7 @@ module Prima.Pyxis.Table exposing
     , columnFloat, columnHtml, columnInteger, columnString
     , sort, sortAsc, sortDesc
     , render
+    , Footer, footer
     )
 
 {-| Creates a customizable Table component by using predefined Html syntax.
@@ -42,7 +43,7 @@ module Prima.Pyxis.Table exposing
 -}
 
 import Array exposing (Array)
-import Html exposing (Html, i, table, tbody, td, text, th, thead, tr)
+import Html exposing (Html, i, table, tbody, td, text, tfoot, th, thead, tr)
 import Html.Attributes exposing (attribute, class, classList, colspan)
 import Html.Events exposing (onClick)
 import List.Extra
@@ -60,6 +61,7 @@ type alias Configuration msg =
     , headers : List (Header msg)
     , rows : List (Row msg)
     , alternateRows : Bool
+    , footers : List (Footer msg)
     }
 
 
@@ -91,9 +93,9 @@ type alias Configuration msg =
     ...
 
 -}
-config : TableType -> Bool -> List (Header msg) -> List (Row msg) -> Bool -> Config msg
-config tableType sorting headers rows alternateRows =
-    Config (Configuration tableType sorting headers rows alternateRows)
+config : TableType -> Bool -> List (Header msg) -> List (Row msg) -> Bool -> List (Footer msg) -> Config msg
+config tableType sorting headers rows alternateRows footers =
+    Config (Configuration tableType sorting headers rows alternateRows footers)
 
 
 {-| Represents the table skin.
@@ -175,10 +177,22 @@ type Header msg
     = Header (HeaderConfiguration msg)
 
 
+{-| Represents a Footer of the table. It's gonna be rendered as a <th/> tag inside a tfoot.
+-}
+type Footer msg
+    = Footer FooterConfiguration
+
+
 type alias HeaderConfiguration msg =
     { slug : Slug
     , name : Name
     , tagger : Maybe (Slug -> msg)
+    }
+
+
+type alias FooterConfiguration =
+    { slug : Slug
+    , name : Name
     }
 
 
@@ -192,6 +206,18 @@ type alias HeaderConfiguration msg =
 header : Slug -> Name -> Maybe (Slug -> msg) -> Header msg
 header slug name maybeTagger =
     Header <| HeaderConfiguration slug name maybeTagger
+
+
+{-| Creates a Footer.
+
+    myFooter : String -> String -> Table.Footer
+    myFooter slug content =
+        Table.footer slug content
+
+-}
+footer : Slug -> Name -> Footer msg
+footer slug name =
+    Footer <| FooterConfiguration slug name
 
 
 {-| Represents a Row which contains a list of Columns.
@@ -342,6 +368,7 @@ render (State ({ sortBy, sortedColumn } as internalState)) (Config conf) =
         ]
         [ renderTHead internalState conf
         , renderTBody headerSlugs sortedRows
+        , renderTFoot internalState conf
         ]
 
 
@@ -350,6 +377,13 @@ renderTHead internalState ({ headers } as conf) =
     thead
         [ class "m-table__header" ]
         (List.map (renderTH internalState) headers)
+
+
+renderTFoot : InternalState -> Configuration msg -> Html msg
+renderTFoot internalState ({ footers } as conf) =
+    tfoot
+        [ class "m-table__footer" ]
+        (List.map (renderTHFooter internalState) footers)
 
 
 renderTH : InternalState -> Header msg -> Html msg
@@ -376,6 +410,16 @@ renderTH { sortBy, sortedColumn } (Header ({ slug, name } as conf)) =
 
           else
             text ""
+        ]
+
+
+renderTHFooter : InternalState -> Footer msg -> Html msg
+renderTHFooter { sortBy, sortedColumn } (Footer ({ slug, name } as conf)) =
+    th
+        [ class "m-table__footer__item fsSmall"
+        , attribute "data-column" slug
+        ]
+        [ text name
         ]
 
 
