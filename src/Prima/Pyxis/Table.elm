@@ -61,7 +61,7 @@ type alias Configuration msg =
     , headers : List (Header msg)
     , rows : List (Row msg)
     , alternateRows : Bool
-    , footers : List (Footer msg)
+    , footerColumns : List (Footer msg)
     }
 
 
@@ -87,15 +87,18 @@ type alias Configuration msg =
             alternateRows =
                 True
 
+            footerColumns =
+                []
+
         in
-        Table.config Table.defaultType sorting headers rows alternateRows
+        Table.config Table.defaultType sorting headers rows alternateRows footerColumns
 
     ...
 
 -}
 config : TableType -> Bool -> List (Header msg) -> List (Row msg) -> Bool -> List (Footer msg) -> Config msg
-config tableType sorting headers rows alternateRows footers =
-    Config (Configuration tableType sorting headers rows alternateRows footers)
+config tableType sorting headers rows alternateRows footerColumns =
+    Config (Configuration tableType sorting headers rows alternateRows footerColumns)
 
 
 {-| Represents the table skin.
@@ -215,9 +218,9 @@ header slug name maybeTagger =
         Table.footer slug content
 
 -}
-footer : Slug -> Name -> Footer msg
-footer slug name =
-    Footer <| FooterConfiguration slug name
+footer : Slug -> Value -> Footer msg
+footer slug value =
+    Footer <| FooterConfiguration slug value
 
 
 {-| Represents a Row which contains a list of Columns.
@@ -284,6 +287,10 @@ type alias Slug =
 
 
 type alias Name =
+    String
+
+
+type alias Value =
     String
 
 
@@ -380,10 +387,10 @@ renderTHead internalState ({ headers } as conf) =
 
 
 renderTFoot : InternalState -> Configuration msg -> Html msg
-renderTFoot internalState ({ footers } as conf) =
+renderTFoot internalState ({ footerColumns } as conf) =
     tfoot
         [ class "m-table__footer" ]
-        (List.map (renderTHFooter internalState) footers)
+        (List.map (renderFooterColumns internalState) footerColumns)
 
 
 renderTH : InternalState -> Header msg -> Html msg
@@ -413,8 +420,8 @@ renderTH { sortBy, sortedColumn } (Header ({ slug, name } as conf)) =
         ]
 
 
-renderTHFooter : InternalState -> Footer msg -> Html msg
-renderTHFooter { sortBy, sortedColumn } (Footer ({ slug, name } as conf)) =
+renderFooterColumns : InternalState -> Footer msg -> Html msg
+renderFooterColumns { sortBy, sortedColumn } (Footer ({ slug, name } as conf)) =
     th
         [ class "m-table__footer__item fsSmall"
         , attribute "data-column" slug
