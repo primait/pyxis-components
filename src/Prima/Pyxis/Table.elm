@@ -5,7 +5,7 @@ module Prima.Pyxis.Table exposing
     , columnFloat, columnHtml, columnInteger, columnString
     , sort, sortAsc, sortDesc
     , render
-    , Footer, footer
+    , Footer, FooterColumn, FooterRow, footerColumnFloat, footerColumnHtml, footerColumnInteger, footerColumnString, footerRow
     )
 
 {-| Creates a customizable Table component by using predefined Html syntax.
@@ -61,7 +61,7 @@ type alias Configuration msg =
     , headers : List (Header msg)
     , rows : List (Row msg)
     , alternateRows : Bool
-    , footerColumns : List (Footer msg)
+    , footerColumns : List (FooterRow msg)
     }
 
 
@@ -96,7 +96,7 @@ type alias Configuration msg =
     ...
 
 -}
-config : TableType -> Bool -> List (Header msg) -> List (Row msg) -> Bool -> List (Footer msg) -> Config msg
+config : TableType -> Bool -> List (Header msg) -> List (Row msg) -> Bool -> List (FooterRow msg) -> Config msg
 config tableType sorting headers rows alternateRows footerColumns =
     Config (Configuration tableType sorting headers rows alternateRows footerColumns)
 
@@ -180,22 +180,16 @@ type Header msg
     = Header (HeaderConfiguration msg)
 
 
-{-| Represents a Footer of the table. It's gonna be rendered as a <th/> tag inside a tfoot.
+{-| Represents a Footer of the table. It's gonna be rendered as a <tr/> tag inside a tfoot.
 -}
 type Footer msg
-    = Footer FooterConfiguration
+    = Footer (FooterColumnConfiguration msg)
 
 
 type alias HeaderConfiguration msg =
     { slug : Slug
     , name : Name
     , tagger : Maybe (Slug -> msg)
-    }
-
-
-type alias FooterConfiguration =
-    { slug : Slug
-    , name : Name
     }
 
 
@@ -209,18 +203,6 @@ type alias FooterConfiguration =
 header : Slug -> Name -> Maybe (Slug -> msg) -> Header msg
 header slug name maybeTagger =
     Header <| HeaderConfiguration slug name maybeTagger
-
-
-{-| Creates a Footer.
-
-    myFooter : String -> String -> Table.Footer
-    myFooter slug content =
-        Table.footer slug content
-
--}
-footer : Slug -> Value -> Footer msg
-footer slug value =
-    Footer <| FooterConfiguration slug value
 
 
 {-| Represents a Row which contains a list of Columns.
@@ -241,6 +223,24 @@ row columns =
     Row columns
 
 
+{-| Represents a Footer Row which contains a list of Columns.
+-}
+type FooterRow msg
+    = FooterRow (List (FooterColumn msg))
+
+
+{-| Creates a FooterRow
+
+    myRow : List (FooterColumn Msg) -> Table.footerRow Msg
+    myRow columns =
+        Table.footerRow columns
+
+-}
+footerRow : List (FooterColumn msg) -> FooterRow msg
+footerRow columns =
+    FooterRow columns
+
+
 {-| Represents a Column which can manage a specific kind of data.
 -}
 type Column msg
@@ -252,6 +252,19 @@ type ColumnConfiguration msg
     | IntegerColumn ColSpan Int
     | FloatColumn ColSpan Float
     | HtmlColumn ColSpan (List (Html msg))
+
+
+{-| Represents a Footer Column which can manage a specific kind of data.
+-}
+type FooterColumn msg
+    = FooterColumn (FooterColumnConfiguration msg)
+
+
+type FooterColumnConfiguration msg
+    = HtmlFooterColumn ColSpan (List (Html msg))
+    | StringFooterColumn ColSpan String
+    | IntegerFooterColumn ColSpan Int
+    | FloatFooterColumn ColSpan Float
 
 
 {-| Creates a Column which content is String primitive.
@@ -280,6 +293,34 @@ columnFloat colSpan content =
 columnHtml : ColSpan -> List (Html msg) -> Column msg
 columnHtml colSpan content =
     Column (HtmlColumn colSpan content)
+
+
+{-| Creates a FooterColumn which content is Html.
+-}
+footerColumnHtml : ColSpan -> List (Html msg) -> FooterColumn msg
+footerColumnHtml colSpan content =
+    FooterColumn (HtmlFooterColumn colSpan content)
+
+
+{-| Creates a FooterColumn which content is String primitive.
+-}
+footerColumnString : ColSpan -> String -> FooterColumn msg
+footerColumnString colSpan content =
+    FooterColumn (StringFooterColumn colSpan content)
+
+
+{-| Creates a FooterColumn which content is Integer primitive.
+-}
+footerColumnInteger : ColSpan -> Int -> FooterColumn msg
+footerColumnInteger colSpan content =
+    FooterColumn (IntegerFooterColumn colSpan content)
+
+
+{-| Creates a FooterColumn which content is Float primitive.
+-}
+footerColumnFloat : ColSpan -> Float -> FooterColumn msg
+footerColumnFloat colSpan content =
+    FooterColumn (FloatFooterColumn colSpan content)
 
 
 type alias Slug =
@@ -375,7 +416,7 @@ render (State ({ sortBy, sortedColumn } as internalState)) (Config conf) =
         ]
         [ renderTHead internalState conf
         , renderTBody headerSlugs sortedRows
-        , renderTFoot internalState conf
+        , renderTFoot headerSlugs conf.footerColumns
         ]
 
 
@@ -386,11 +427,11 @@ renderTHead internalState ({ headers } as conf) =
         (List.map (renderTH internalState) headers)
 
 
-renderTFoot : InternalState -> Configuration msg -> Html msg
-renderTFoot internalState ({ footerColumns } as conf) =
-    tfoot
+renderTFoot : List Slug -> List (FooterRow msg) -> Html msg
+renderTFoot headerSlugs footerRows =
+    tbody
         [ class "m-table__footer" ]
-        (List.map (renderFooterColumns internalState) footerColumns)
+        (List.map (renderFooterTR headerSlugs) footerRows)
 
 
 renderTH : InternalState -> Header msg -> Html msg
@@ -417,16 +458,6 @@ renderTH { sortBy, sortedColumn } (Header ({ slug, name } as conf)) =
 
           else
             text ""
-        ]
-
-
-renderFooterColumns : InternalState -> Footer msg -> Html msg
-renderFooterColumns { sortBy, sortedColumn } (Footer ({ slug, name } as conf)) =
-    th
-        [ class "m-table__footer__item fsSmall"
-        , attribute "data-column" slug
-        ]
-        [ text name
         ]
 
 
@@ -461,6 +492,17 @@ renderTR headerSlugs (Row columns) =
         (List.map renderTD columnsDictionary)
 
 
+renderFooterTR : List Slug -> FooterRow msg -> Html msg
+renderFooterTR headerSlugs (FooterRow columns) =
+    let
+        columnsDictionary =
+            List.map2 (\slug col -> ( slug, col )) headerSlugs columns
+    in
+    tr
+        [ class "m-table__footer__row" ]
+        (List.map renderFooterTD columnsDictionary)
+
+
 renderTD : ( Slug, Column msg ) -> Html msg
 renderTD ( slug, Column conf ) =
     td
@@ -483,6 +525,28 @@ renderTD ( slug, Column conf ) =
         )
 
 
+renderFooterTD : ( Slug, FooterColumn msg ) -> Html msg
+renderFooterTD ( slug, FooterColumn conf ) =
+    td
+        [ class "m-table__footer__row__col fsSmall"
+        , (colspan << pickFooterColSpan) conf
+        , attribute "data-column" slug
+        ]
+        (case conf of
+            HtmlFooterColumn _ content ->
+                content
+
+            StringFooterColumn _ content ->
+                (List.singleton << text) content
+
+            IntegerFooterColumn _ content ->
+                (List.singleton << text << String.fromInt) content
+
+            FloatFooterColumn _ content ->
+                (List.singleton << text << String.fromFloat) content
+        )
+
+
 pickColSpan : ColumnConfiguration msg -> Int
 pickColSpan conf =
     case conf of
@@ -496,4 +560,20 @@ pickColSpan conf =
             colSpan
 
         HtmlColumn colSpan _ ->
+            colSpan
+
+
+pickFooterColSpan : FooterColumnConfiguration msg -> Int
+pickFooterColSpan conf =
+    case conf of
+        HtmlFooterColumn colSpan _ ->
+            colSpan
+
+        StringFooterColumn colSpan string ->
+            colSpan
+
+        IntegerFooterColumn colSpan int ->
+            colSpan
+
+        FloatFooterColumn colSpan float ->
             colSpan
