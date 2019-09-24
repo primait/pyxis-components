@@ -29,6 +29,7 @@ createTableConfiguration model =
         (createHeaders model.headers)
         (createRows model.rows)
         True
+        createFooters
 
 
 createHeaders : List String -> List (Table.Header Msg)
@@ -36,6 +37,11 @@ createHeaders headers =
     [ Table.header (String.toLower "Nazione") "Nazione" (Just SortBy)
     , Table.header (String.toLower "Paese") "Paese" (Just SortBy)
     ]
+
+
+createFooters : List (Table.FooterRow Msg)
+createFooters =
+    [ Table.footerRow (createFooterColumns [ "Nazione", "Paese" ]) ]
 
 
 createHeaderItem : String -> Table.Header Msg
@@ -51,3 +57,8 @@ createRows rows =
 createColumns : List String -> List (Table.Column Msg)
 createColumns columns =
     List.map (Table.columnString 1) columns
+
+
+createFooterColumns : List String -> List (Table.FooterColumn Msg)
+createFooterColumns columns =
+    List.map (Table.footerColumnString 1) columns
