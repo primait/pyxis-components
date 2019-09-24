@@ -61,7 +61,7 @@ note =
         []
         .note
         [ Event.onInput (UpdateField Note) ]
-        [ NotEmpty (SeverityLevel Error) "Better enter a note." ]
+        [ Custom (SeverityLevel Warning) ((<=) 3 << String.length << Maybe.withDefault "" << .note) "Value should be between 3 and 12 characters length." ]
 
 
 gender : FormField FormData Msg
