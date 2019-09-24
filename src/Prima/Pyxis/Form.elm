@@ -1963,4 +1963,4 @@ pickWarning model opaqueConfig =
 
 shouldShowWarning : model -> FormField model msg -> Bool
 shouldShowWarning model ((FormField opaqueConfig) as config) =
-    (not << isPristine model) config || hasNotEmptyValidation opaqueConfig
+    (not << isPristine model) config
