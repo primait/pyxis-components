@@ -1,11 +1,10 @@
 module Prima.Pyxis.Table exposing
-    ( Config, TableType, State, Header, Row, Column, ColSpan, Sort
+    ( Config, TableType, State, Header, Row, Column, ColSpan, Sort, Footer, FooterColumn, FooterRow
     , config, initialState, defaultType, alternativeType
-    , header, row
-    , columnFloat, columnHtml, columnInteger, columnString
+    , header, row, footerRow
+    , columnFloat, columnHtml, columnInteger, columnString, footerColumnFloat, footerColumnHtml, footerColumnInteger, footerColumnString
     , sort, sortAsc, sortDesc
     , render
-    , Footer, FooterColumn, FooterRow, footerColumnFloat, footerColumnHtml, footerColumnInteger, footerColumnString, footerRow
     )
 
 {-| Creates a customizable Table component by using predefined Html syntax.
@@ -13,7 +12,7 @@ module Prima.Pyxis.Table exposing
 
 # Configuration
 
-@docs Config, TableType, State, Header, Row, Column, ColSpan, Sort
+@docs Config, TableType, State, Header, Row, Column, ColSpan, Sort, Footer, FooterColumn, FooterRow
 
 
 # Configuration Helpers
@@ -23,12 +22,12 @@ module Prima.Pyxis.Table exposing
 
 # Configuration for Rows & Headers
 
-@docs header, row
+@docs header, row, footerRow
 
 
 # Configuration for Columns
 
-@docs columnFloat, columnHtml, columnInteger, columnString
+@docs columnFloat, columnHtml, columnInteger, columnString, footerColumnFloat, footerColumnHtml, footerColumnInteger, footerColumnString
 
 
 # Helpers
@@ -87,8 +86,13 @@ type alias Configuration msg =
             alternateRows =
                 True
 
-            footerColumns =
-                []
+            createFooterColumns : List String -> List (Table.FooterColumn Msg)
+            createFooterColumns columns =
+                List.map (Table.footerColumnString 1) columns
+
+            footer : List (Table.FooterRow Msg)
+            footer =
+                [ Table.footerRow (createFooterColumns [ "Country", "Capital city" ]) ]
 
         in
         Table.config Table.defaultType sorting headers rows alternateRows footerColumns
