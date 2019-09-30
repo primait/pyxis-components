@@ -36,12 +36,11 @@ username =
         , Event.onBlur (OnBlur Username)
         ]
         [ NotEmpty (SeverityLevel Error) "Empty value is not acceptable."
-        , Custom (SeverityLevel Error) ((<=) 3 << String.length << Maybe.withDefault "" << .username) "Value must be between 3 and 12 characters length."
         ]
 
 
-password : FormField FormData Msg
-password =
+password : Bool -> FormField FormData Msg
+password isSubmitted =
     Form.passwordConfig
         "password"
         Nothing
@@ -49,7 +48,11 @@ password =
         .password
         [ Event.onInput (UpdateField Password) ]
         [ NotEmpty (SeverityLevel Error) "Empty value is not acceptable."
-        , Custom (SeverityLevel Warning) ((<=) 6 << String.length << Maybe.withDefault "" << .password) "Value should be between 6 and 12 characters length."
+        , Custom (SeverityLevel Error)
+            (\m ->
+                isSubmitted && String.length (Maybe.withDefault "" m.username) <= 6
+            )
+            "Value must be between 3 and 12 characters length."
         ]
 
 
