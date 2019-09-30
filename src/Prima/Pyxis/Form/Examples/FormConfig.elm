@@ -48,9 +48,9 @@ password isSubmitted =
         .password
         [ Event.onInput (UpdateField Password) ]
         [ NotEmpty (SeverityLevel Error) "Empty value is not acceptable."
-        , Custom (SeverityLevel Error)
+        , Custom (SeverityLevel Warning)
             (\m ->
-                isSubmitted && String.length (Maybe.withDefault "" m.username) <= 6
+                not isSubmitted && String.length (Maybe.withDefault "" m.username) <= 6
             )
             "Value must be between 3 and 12 characters length."
         ]
