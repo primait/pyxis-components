@@ -21,7 +21,7 @@ appBody : Model -> List (Html Msg)
 appBody ({ data, formConfig } as model) =
     let
         renderModel =
-            [ ( Form.renderField formConfig data, [ Config.username, Config.password ] )
+            [ ( Form.renderField formConfig data, [ Config.username, Config.password (Form.isFormSubmitted <| Form.state formConfig) ] )
             , ( Form.renderField formConfig data, [ Config.note ] )
             , ( Form.renderField formConfig data, [ Config.gender ] )
             , ( Form.renderField formConfig data, [ Config.visitedCountries data ] )
