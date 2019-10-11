@@ -2,6 +2,7 @@ module Prima.Pyxis.Form.Examples.FormConfig exposing
     ( city
     , country
     , dateOfBirth
+    , formFieldGroup
     , gender
     , note
     , password
@@ -12,7 +13,7 @@ module Prima.Pyxis.Form.Examples.FormConfig exposing
 
 import Html exposing (Html, p, text)
 import Html.Attributes exposing (class, maxlength, minlength)
-import Prima.Pyxis.Form as Form exposing (FormField)
+import Prima.Pyxis.Form as Form exposing (FormField, FormFieldGroup)
 import Prima.Pyxis.Form.Event as Event
 import Prima.Pyxis.Form.Examples.Model
     exposing
@@ -21,7 +22,7 @@ import Prima.Pyxis.Form.Examples.Model
         , Model
         , Msg(..)
         )
-import Prima.Pyxis.Form.Validation exposing (SeverityLevel(..), Validation(..), ValidationType(..))
+import Prima.Pyxis.Form.Validation exposing (SeverityLevel(..), Validation, ValidationType(..), validationConfig)
 
 
 username : FormField FormData Msg
@@ -35,8 +36,7 @@ username =
         , Event.onFocus (OnFocus Username)
         , Event.onBlur (OnBlur Username)
         ]
-        [ NotEmpty (SeverityLevel Error) "Empty value is not acceptable."
-        ]
+        []
 
 
 password : Bool -> FormField FormData Msg
@@ -47,13 +47,18 @@ password isSubmitted =
         []
         .password
         [ Event.onInput (UpdateField Password) ]
-        [ NotEmpty (SeverityLevel Error) "Empty value is not acceptable."
-        , Custom (SeverityLevel Warning)
-            (\m ->
-                not isSubmitted && String.length (Maybe.withDefault "" m.username) <= 6
-            )
+        [ validationConfig (SeverityLevel Error)
+            (always False)
             "Value must be between 3 and 12 characters length."
         ]
+
+
+formFieldGroup : FormFieldGroup FormData Msg
+formFieldGroup =
+    Form.fieldGroupConfig
+        "Username & Password"
+        [ username, password False ]
+        []
 
 
 note : FormField FormData Msg
@@ -64,7 +69,7 @@ note =
         []
         .note
         [ Event.onInput (UpdateField Note) ]
-        [ Custom (SeverityLevel Warning) ((<=) 3 << String.length << Maybe.withDefault "" << .note) "Value should be between 3 and 12 characters length." ]
+        []
 
 
 gender : FormField FormData Msg
@@ -82,7 +87,7 @@ gender =
         [ Form.radioOption "Male" "male"
         , Form.radioOption "Female" "female"
         ]
-        [ Custom (SeverityLevel Error) ((==) "female" << Maybe.withDefault "female" << .gender) "You must select `Female` to proceed." ]
+        []
 
 
 visitedCountries : FormData -> FormField FormData Msg
@@ -120,7 +125,7 @@ city isOpen =
             , Form.selectOption "Genoa" "GE"
             ]
         )
-        [ NotEmpty (SeverityLevel Error) "Empty value is not acceptable." ]
+        []
 
 
 dateOfBirth : FormData -> FormField FormData Msg
@@ -134,7 +139,7 @@ dateOfBirth { isVisibleDP, dateOfBirthDP } =
         [ Event.onInput (UpdateField DateOfBirth) ]
         dateOfBirthDP
         isVisibleDP
-        [ Custom (SeverityLevel Error) (Maybe.withDefault False << Maybe.map (always True) << .dateOfBirth) "This is not a valid date." ]
+        []
 
 
 country : FormData -> FormField FormData Msg
@@ -191,7 +196,7 @@ country { countryFilter, isOpenCountry } =
          ]
             |> List.filter (String.contains lowerFilter << String.toLower << .label)
         )
-        [ NotEmpty (SeverityLevel Error) "Empty value is not acceptable." ]
+        []
 
 
 staticHtml : Model -> FormField FormData Msg

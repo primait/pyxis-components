@@ -1,7 +1,8 @@
 module Prima.Pyxis.Form.Validation exposing
-    ( Validation(..)
+    ( Validation
     , ValidationType(..), SeverityLevel(..)
     , pickError
+    , pickValidationFunction, validationConfig
     )
 
 {-| Allows to create Validation model for the form.
@@ -49,9 +50,24 @@ import Regex
 {-| Represents a validation entry.
 -}
 type Validation model
-    = NotEmpty SeverityLevel String
-    | Expression SeverityLevel Regex.Regex String
-    | Custom SeverityLevel (model -> Bool) String
+    = Validation (ValidationConfig model)
+
+
+type alias ValidationConfig model =
+    { severityLevel : SeverityLevel
+    , validationFunction : model -> Bool
+    , message : String
+    }
+
+
+validationConfig : SeverityLevel -> (model -> Bool) -> String -> Validation model
+validationConfig severity validationFunction message =
+    Validation
+        (ValidationConfig
+            severity
+            validationFunction
+            message
+        )
 
 
 {-| Represents a validation type.
@@ -70,22 +86,10 @@ type SeverityLevel
 {-| Pick the error string from a Validation model.
 -}
 pickError : Validation model -> String
-pickError rule =
-    case rule of
-        NotEmpty (SeverityLevel Error) error ->
-            error
+pickError (Validation { message }) =
+    message
 
-        Expression (SeverityLevel Error) exp error ->
-            error
 
-        Custom (SeverityLevel Error) customRule error ->
-            error
-
-        NotEmpty (SeverityLevel Warning) warning ->
-            warning
-
-        Expression (SeverityLevel Warning) exp warning ->
-            warning
-
-        Custom (SeverityLevel Warning) customRule warning ->
-            warning
+pickValidationFunction : Validation model -> (model -> Bool)
+pickValidationFunction (Validation { validationFunction }) =
+    validationFunction
