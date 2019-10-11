@@ -1,7 +1,7 @@
 module Prima.Pyxis.Form.Examples.View exposing (view)
 
 import Browser
-import Html exposing (Html, button, i, text)
+import Html exposing (Html, button, div, i, text)
 import Html.Attributes exposing (class)
 import Html.Events exposing (onClick)
 import Prima.Pyxis.Form as Form
@@ -27,13 +27,13 @@ appBody ({ data, formConfig } as model) =
             , ( Form.renderField formConfig data, [ Config.visitedCountries data ] )
             , ( Form.renderField formConfig data, [ Config.city data.isOpenCity ] )
             , ( Form.renderField formConfig data, [ Config.country data ] )
-            , ( Form.renderFieldWithGroup formConfig data <| Form.appendGroup [ datePickerIcon ], [ Config.dateOfBirth data ] )
+            , ( Form.renderFieldWithGroup formConfig data <| Form.appendInputGroup [ datePickerIcon ], [ Config.dateOfBirth data ] )
             ]
 
         form =
             Form.addFields renderModel formConfig
     in
-    [ Helpers.pyxisStyle, Form.render form, btnSubmit, btnReset ]
+    [ div [ class "a-container directionColumn" ] [ Helpers.pyxisStyle, Form.render form, btnSubmit, btnReset ] ]
 
 
 btnSubmit : Html Msg

@@ -1,5 +1,5 @@
 module Prima.Pyxis.Form exposing
-    ( Form, FormFieldGroup, FormRenderer, Label, Slug, Value, formRenderer
+    ( Form, InputGroup, FormRenderer, Label, Slug, Value, formRenderer
     , init, state, addFields, setAsPristine, setAsTouched, setAsSubmitted
     , isFormSubmitted, isFormPristine, isFormTouched
     , FormField(..)
@@ -12,7 +12,7 @@ module Prima.Pyxis.Form exposing
     , pureHtmlConfig
     , isValid, isPristine, hasWarning
     , render, renderField, renderFieldWithGroup
-    , prependGroup, appendGroup
+    , prependInputGroup, appendInputGroup
     )
 
 {-| Allows to create a Form and it's fields using predefined Html syntax.
@@ -20,7 +20,7 @@ module Prima.Pyxis.Form exposing
 
 # Form Configuration
 
-@docs Form, FormFieldGroup, FormRenderer, Label, Slug, Value, formRenderer
+@docs Form, InputGroup, FormRenderer, Label, Slug, Value, formRenderer
 
 
 # Form Configuration Helpers
@@ -85,7 +85,7 @@ module Prima.Pyxis.Form exposing
 
 # Render Helpers
 
-@docs prependGroup, appendGroup
+@docs prependInputGroup, appendInputGroup
 
 -}
 
@@ -281,22 +281,22 @@ type FormFieldConfig model msg
 {-| Represents the type of group which can wrap a form field.
 Used to add a boxed icon in a form field (for instance the calendar icon of the datepicker).
 -}
-type FormFieldGroup msg
+type InputGroup msg
     = Prepend (List (Html msg))
     | Append (List (Html msg))
 
 
 {-| Represents an html which prepends to the form field.
 -}
-prependGroup : List (Html msg) -> FormFieldGroup msg
-prependGroup =
+prependInputGroup : List (Html msg) -> InputGroup msg
+prependInputGroup =
     Prepend
 
 
 {-| Represents an html which appends to the form field.
 -}
-appendGroup : List (Html msg) -> FormFieldGroup msg
-appendGroup =
+appendInputGroup : List (Html msg) -> InputGroup msg
+appendInputGroup =
     Append
 
 
@@ -939,7 +939,7 @@ renderField (Form formConfig) model (FormField opaqueConfig) =
         ++ warnings
 
 
-{-| Renders a field by receiving the `Form`, the `FormFieldGroup`, and the `FormField` configuration.
+{-| Renders a field by receiving the `Form`, the `InputGroup`, and the `FormField` configuration.
 Useful to build a field with an icon to the left (prepend), or to the right (append).
 You can pass any html to this function, but be careful, UI can be broken.
 
@@ -975,11 +975,11 @@ You can pass any html to this function, but be careful, UI can be broken.
 
     view : Model -> Html Msg
     view model =
-        ( Form.renderFieldWithGroup model.form model.data <| Form.appendGroup [ datePickerIcon ], [ datePickerConfig ] )
+        ( Form.renderFieldWithGroup model.form model.data <| Form.appendInputGroup [ datePickerIcon ], [ datePickerConfig ] )
             |> Form.render model.form
 
 -}
-renderFieldWithGroup : Form model msg -> model -> FormFieldGroup msg -> FormField model msg -> List (Html msg)
+renderFieldWithGroup : Form model msg -> model -> InputGroup msg -> FormField model msg -> List (Html msg)
 renderFieldWithGroup (Form formConfig) model group (FormField opaqueConfig) =
     let
         lbl config =
@@ -997,42 +997,42 @@ renderFieldWithGroup (Form formConfig) model group (FormField opaqueConfig) =
     case opaqueConfig of
         FormFieldTextConfig config validation ->
             [ lbl config
-            , groupWrapper group <| (renderInput formConfig.state model config validation ++ errors)
+            , inputGroupWrapper group <| (renderInput formConfig.state model config validation ++ errors)
             ]
 
         FormFieldPasswordConfig config validation ->
             [ lbl config
-            , groupWrapper group <| (renderPassword formConfig.state model config validation ++ errors)
+            , inputGroupWrapper group <| (renderPassword formConfig.state model config validation ++ errors)
             ]
 
         FormFieldTextareaConfig config validation ->
             [ lbl config
-            , groupWrapper group <| (renderInput formConfig.state model config validation ++ errors)
+            , inputGroupWrapper group <| (renderInput formConfig.state model config validation ++ errors)
             ]
 
         FormFieldRadioConfig config validation ->
             [ lbl config
-            , groupWrapper group <| (renderRadio model config validation ++ errors)
+            , inputGroupWrapper group <| (renderRadio model config validation ++ errors)
             ]
 
         FormFieldCheckboxConfig config validation ->
             [ lbl config
-            , groupWrapper group <| (renderCheckbox model config validation ++ errors)
+            , inputGroupWrapper group <| (renderCheckbox model config validation ++ errors)
             ]
 
         FormFieldSelectConfig config validation ->
             [ lbl config
-            , groupWrapper group <| (renderSelect formConfig.state model config validation ++ errors)
+            , inputGroupWrapper group <| (renderSelect formConfig.state model config validation ++ errors)
             ]
 
         FormFieldDatepickerConfig config validation ->
             [ lbl config
-            , groupWrapper group <| (renderDatepicker formConfig.state model config validation ++ errors)
+            , inputGroupWrapper group <| (renderDatepicker formConfig.state model config validation ++ errors)
             ]
 
         FormFieldAutocompleteConfig config validation ->
             [ lbl config
-            , groupWrapper group <| (renderAutocomplete formConfig.state model config validation ++ errors)
+            , inputGroupWrapper group <| (renderAutocomplete formConfig.state model config validation ++ errors)
             ]
 
         FormFieldPureHtmlConfig config ->
@@ -1046,30 +1046,30 @@ wrapper =
         ]
 
 
-groupWrapper : FormFieldGroup msg -> List (Html msg) -> Html msg
-groupWrapper group content =
+inputGroupWrapper : InputGroup msg -> List (Html msg) -> Html msg
+inputGroupWrapper group content =
     div
         [ class "m-form__field__group" ]
         ((case group of
             Prepend groupContent ->
-                groupPrepend groupContent
+                inputGroupPrepend groupContent
 
             Append groupContent ->
-                groupAppend groupContent
+                inputGroupAppend groupContent
          )
             :: content
         )
 
 
-groupPrepend : List (Html msg) -> Html msg
-groupPrepend =
+inputGroupPrepend : List (Html msg) -> Html msg
+inputGroupPrepend =
     div
         [ class "m-form__field__group__prepend"
         ]
 
 
-groupAppend : List (Html msg) -> Html msg
-groupAppend =
+inputGroupAppend : List (Html msg) -> Html msg
+inputGroupAppend =
     div
         [ class "m-form__field__group__append"
         ]
