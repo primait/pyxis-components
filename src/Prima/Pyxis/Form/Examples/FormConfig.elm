@@ -22,7 +22,13 @@ import Prima.Pyxis.Form.Examples.Model
         , Model
         , Msg(..)
         )
-import Prima.Pyxis.Form.Validation exposing (SeverityLevel(..), Validation, ValidationType(..), validationConfig)
+import Prima.Pyxis.Form.Validation
+    exposing
+        ( Validation
+        , ValidationType(..)
+        , validationConfig
+        )
+import Prima.Pyxis.Helpers exposing (isJust)
 
 
 username : FormField FormData Msg
@@ -36,7 +42,10 @@ username =
         , Event.onFocus (OnFocus Username)
         , Event.onBlur (OnBlur Username)
         ]
-        []
+        [ validationConfig Error
+            (\formData -> Maybe.withDefault False <| Maybe.map ((<) 3 << String.length) formData.username)
+            "Username must be greater than 3 digits"
+        ]
 
 
 password : Bool -> FormField FormData Msg
@@ -47,9 +56,9 @@ password isSubmitted =
         []
         .password
         [ Event.onInput (UpdateField Password) ]
-        [ validationConfig (SeverityLevel Error)
-            (always False)
-            "Value must be between 3 and 12 characters length."
+        [ validationConfig Error
+            (\formData -> isJust formData.password)
+            "Password can't be empty"
         ]
 
 
@@ -58,7 +67,10 @@ formFieldGroup =
     Form.fieldGroupConfig
         "Username & Password"
         [ username, password False ]
-        []
+        [ validationConfig Warning
+            (\formData -> not (formData.username == formData.password))
+            "Username and password shouldn't be equal"
+        ]
 
 
 note : FormField FormData Msg
@@ -74,10 +86,6 @@ note =
 
 gender : FormField FormData Msg
 gender =
-    let
-        something =
-            SeverityLevel Error
-    in
     Form.radioConfig
         "gender"
         (Just "Gender")

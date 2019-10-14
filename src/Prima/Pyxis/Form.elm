@@ -106,7 +106,7 @@ import Html.Attributes
         )
 import Prima.Pyxis.DatePicker as DatePicker
 import Prima.Pyxis.Form.Event as Events exposing (Event)
-import Prima.Pyxis.Form.Validation as FormValidation exposing (SeverityLevel(..), Validation(..), ValidationType(..))
+import Prima.Pyxis.Form.Validation as FormValidation exposing (Validation(..), ValidationType(..))
 import Prima.Pyxis.Helpers as Helpers
 
 
@@ -277,6 +277,39 @@ fieldGroupConfig label fields validations =
 
 renderFieldGroup : Form model msg -> model -> FormFieldGroup model msg -> Html msg
 renderFieldGroup formConfig model (FormFieldGroup { label, fields } validations) =
+    let
+        fieldGroupValidationMessages type_ =
+            validations
+                |> List.filter
+                    (\v ->
+                        model
+                            |> FormValidation.pickValidationFunction v
+                            |> not
+                    )
+                |> List.filterMap (FormValidation.pickValidationMessage type_)
+
+        singleFieldsValidationMessages type_ =
+            fields
+                |> List.map (\(FormField opaqueConfig) -> pickValidationMessages type_ model opaqueConfig)
+                |> List.concat
+
+        validationMessageList type_ =
+            fieldGroupValidationMessages type_
+                |> List.append (singleFieldsValidationMessages type_)
+                |> List.map (renderValidationMessage type_)
+
+        messageList : List (Html msg)
+        messageList =
+            if hasErrors then
+                validationMessageList Error
+
+            else
+                validationMessageList Warning
+
+        hasErrors : Bool
+        hasErrors =
+            List.length (validationMessageList Error) > 0
+    in
     div
         [ class "a-form__field-group" ]
         [ div
@@ -287,12 +320,12 @@ renderFieldGroup formConfig model (FormFieldGroup { label, fields } validations)
             [ div
                 [ class "a-form__field-group__fields-list" ]
                 (fields
-                    |> List.map (renderField formConfig model)
+                    |> List.map (renderField2 Group formConfig model)
                     |> List.concat
                 )
             , div
                 [ class "a-form__field-group__validation-messages-list" ]
-                [ text "lista messaggi di validazione" ]
+                messageList
             ]
         ]
 
@@ -921,28 +954,58 @@ pureHtmlConfig content =
 
 -}
 renderField : Form model msg -> model -> FormField model msg -> List (Html msg)
-renderField (Form formConfig) model (FormField opaqueConfig) =
+renderField =
+    renderField2 Single
+
+
+type RenderFieldMode
+    = Group
+    | Single
+
+
+isRenderFieldGroup : RenderFieldMode -> Bool
+isRenderFieldGroup =
+    (==) Group
+
+
+isRenderFieldSingle : RenderFieldMode -> Bool
+isRenderFieldSingle =
+    (==) Single
+
+
+renderField2 : RenderFieldMode -> Form model msg -> model -> FormField model msg -> List (Html msg)
+renderField2 mode (Form formConfig) model (FormField opaqueConfig) =
     let
         lbl config =
-            renderLabel config.slug config.label
+            if isRenderFieldSingle mode then
+                renderLabel config.slug config.label
+
+            else
+                text ""
 
         errors =
-            (List.singleton
-                -- << Helpers.renderIf (isFormSubmitted formConfig.state && shouldShowError model (FormField opaqueConfig))
-                << renderError
-                << String.join " "
-                << pickError model
-            )
+            if isRenderFieldSingle mode then
                 opaqueConfig
+                    |> pickValidationMessages Error model
+                    |> String.join " "
+                    |> renderValidationMessage Error
+                    -- |> Helpers.renderIf (isFormSubmitted formConfig.state && shouldShowError model (FormField opaqueConfig))
+                    |> List.singleton
+
+            else
+                []
 
         warnings =
-            (List.singleton
-                << Helpers.renderIf (shouldShowWarning model (FormField opaqueConfig))
-                << renderWarning
-                << String.join " "
-                << pickWarning model
-            )
+            if isRenderFieldSingle mode then
                 opaqueConfig
+                    |> pickValidationMessages Warning model
+                    |> String.join " "
+                    |> renderValidationMessage Warning
+                    -- |> Helpers.renderIf (isFormSubmitted formConfig.state && shouldShowWarning model (FormField opaqueConfig))
+                    |> List.singleton
+
+            else
+                []
     in
     (case opaqueConfig of
         FormFieldTextConfig config validation ->
@@ -1025,9 +1088,9 @@ renderInputGroupField (Form formConfig) model group (FormField opaqueConfig) =
         errors =
             (List.singleton
                 << Helpers.renderIf (isFormSubmitted formConfig.state && shouldShowError model (FormField opaqueConfig))
-                << renderError
+                << renderValidationMessage Error
                 << String.join " "
-                << pickError model
+                << pickValidationMessages Error model
             )
                 opaqueConfig
     in
@@ -1127,26 +1190,19 @@ renderLabel slug theLabel =
                 ]
 
 
-renderError : String -> Html msg
-renderError error =
+renderValidationMessage : ValidationType -> String -> Html msg
+renderValidationMessage type_ error =
     if (String.isEmpty << String.trim) error then
         text ""
 
     else
         span
-            [ class "a-form__field__error" ]
+            [ classList
+                [ ( "a-form__field__error", FormValidation.isErrorValidation type_ )
+                , ( "a-form__field__warning", FormValidation.isWarningValidation type_ )
+                ]
+            ]
             [ text error ]
-
-
-renderWarning : String -> Html msg
-renderWarning warning =
-    if (String.isEmpty << String.trim) warning then
-        text ""
-
-    else
-        span
-            [ class "a-form__field__warning" ]
-            [ text warning ]
 
 
 renderInput : FormState -> model -> TextConfig model msg -> List (Validation model) -> List (Html msg)
@@ -1729,15 +1785,15 @@ pickValidationRules opaqueConfig =
             []
 
 
-pickError : model -> FormFieldConfig model msg -> List String
-pickError model opaqueConfig =
+pickValidationMessages : ValidationType -> model -> FormFieldConfig model msg -> List String
+pickValidationMessages type_ model opaqueConfig =
     List.filterMap
         (\rule ->
             if validate model opaqueConfig rule then
                 Nothing
 
             else
-                Just (FormValidation.pickError rule)
+                FormValidation.pickValidationMessage type_ rule
         )
         (pickValidationRules opaqueConfig)
 
@@ -1745,19 +1801,6 @@ pickError model opaqueConfig =
 shouldShowError : model -> FormField model msg -> Bool
 shouldShowError model ((FormField opaqueConfig) as config) =
     (not << isValid model) config && (not << isPristine model) config
-
-
-pickWarning : model -> FormFieldConfig model msg -> List String
-pickWarning model opaqueConfig =
-    List.filterMap
-        (\rule ->
-            if validateWarning model opaqueConfig rule then
-                Nothing
-
-            else
-                Just (FormValidation.pickError rule)
-        )
-        (pickValidationRules opaqueConfig)
 
 
 shouldShowWarning : model -> FormField model msg -> Bool
