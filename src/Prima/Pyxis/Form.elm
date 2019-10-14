@@ -278,37 +278,21 @@ fieldGroupConfig label fields validations =
 renderFieldGroup : Form model msg -> model -> FormFieldGroup model msg -> Html msg
 renderFieldGroup formConfig model (FormFieldGroup { label, fields } validations) =
     let
-        fieldGroupValidationMessages type_ =
-            validations
-                |> List.filter
-                    (\v ->
-                        model
-                            |> FormValidation.pickValidationFunction v
-                            |> not
-                    )
-                |> List.filterMap (FormValidation.pickValidationMessage type_)
-
-        singleFieldsValidationMessages type_ =
-            fields
-                |> List.map (\(FormField opaqueConfig) -> pickValidationMessages type_ model opaqueConfig)
-                |> List.concat
-
-        validationMessageList type_ =
-            fieldGroupValidationMessages type_
-                |> List.append (singleFieldsValidationMessages type_)
-                |> List.map (renderValidationMessage type_)
-
         messageList : List (Html msg)
         messageList =
-            if hasErrors then
+            if formFieldGroupHasErrors then
                 validationMessageList Error
 
             else
                 validationMessageList Warning
 
-        hasErrors : Bool
-        hasErrors =
+        formFieldGroupHasErrors : Bool
+        formFieldGroupHasErrors =
             List.length (validationMessageList Error) > 0
+
+        formFieldGroupHasWarnings : Bool
+        formFieldGroupHasWarnings =
+            List.length (validationMessageList Warning) > 0
     in
     div
         [ class "a-form__field-group" ]
@@ -320,7 +304,7 @@ renderFieldGroup formConfig model (FormFieldGroup { label, fields } validations)
             [ div
                 [ class "a-form__field-group__fields-list" ]
                 (fields
-                    |> List.map (renderField2 Group formConfig model)
+                    |> List.map (renderField2 (Group Nothing) formConfig model)
                     |> List.concat
                 )
             , div
@@ -328,6 +312,39 @@ renderFieldGroup formConfig model (FormFieldGroup { label, fields } validations)
                 messageList
             ]
         ]
+
+
+singleFieldsValidationMessages : model -> ValidationType -> FormFieldGroup model msg -> List String
+singleFieldsValidationMessages model type_ (FormFieldGroup { fields } _) =
+    fields
+        |> List.map (\(FormField opaqueConfig) -> pickValidationMessages type_ model opaqueConfig)
+        |> List.concat
+
+
+formFieldGroupValidationMessageList : model -> ValidationType -> FormFieldGroup model msg -> List (Html msg)
+formFieldGroupValidationMessageList model type_ validations =
+    validations
+        |> pickNotPassedFieldGroupValidationMessages model type_
+        |> List.append (singleFieldsValidationMessages type_)
+        |> List.map (renderValidationMessage type_)
+
+
+pickNotPassedValidations : model -> List (Validation model) -> List (Validation model)
+pickNotPassedValidations model validations =
+    List.filter
+        (\v ->
+            model
+                |> FormValidation.pickValidationFunction v
+                |> not
+        )
+        validations
+
+
+pickNotPassedFieldGroupValidationMessages : model -> ValidationType -> List (Validation model) -> List String
+pickNotPassedFieldGroupValidationMessages model type_ validations =
+    validations
+        |> pickNotPassedValidations model
+        |> List.filterMap (FormValidation.pickValidationMessage type_)
 
 
 {-| Represents the configuration of a single form field.
@@ -959,13 +976,18 @@ renderField =
 
 
 type RenderFieldMode
-    = Group
+    = Group (Maybe ValidationType)
     | Single
 
 
 isRenderFieldGroup : RenderFieldMode -> Bool
-isRenderFieldGroup =
-    (==) Group
+isRenderFieldGroup mode =
+    case mode of
+        Group _ ->
+            True
+
+        Single ->
+            False
 
 
 isRenderFieldSingle : RenderFieldMode -> Bool
@@ -1743,46 +1765,14 @@ isPristine model (FormField opaqueConfig) =
             True
 
 
-validate : model -> FormFieldConfig model msg -> Validation model -> Bool
-validate model config validation =
-    model
-        |> FormValidation.pickValidationFunction validation
+validate : model -> Validation model -> Bool
+validate model validation =
+    FormValidation.pickValidationFunction validation model
 
 
 validateWarning : model -> FormFieldConfig model msg -> Validation model -> Bool
 validateWarning =
     validate
-
-
-pickValidationRules : FormFieldConfig model msg -> List (Validation model)
-pickValidationRules opaqueConfig =
-    case opaqueConfig of
-        FormFieldTextConfig _ validations ->
-            validations
-
-        FormFieldPasswordConfig _ validations ->
-            validations
-
-        FormFieldTextareaConfig _ validations ->
-            validations
-
-        FormFieldRadioConfig _ validations ->
-            validations
-
-        FormFieldSelectConfig _ validations ->
-            validations
-
-        FormFieldCheckboxConfig _ validations ->
-            validations
-
-        FormFieldDatepickerConfig _ validations ->
-            validations
-
-        FormFieldAutocompleteConfig _ validations ->
-            validations
-
-        FormFieldPureHtmlConfig config ->
-            []
 
 
 pickValidationMessages : ValidationType -> model -> FormFieldConfig model msg -> List String
@@ -1806,3 +1796,34 @@ shouldShowError model ((FormField opaqueConfig) as config) =
 shouldShowWarning : model -> FormField model msg -> Bool
 shouldShowWarning model ((FormField opaqueConfig) as config) =
     (not << isPristine model) config
+
+
+hasError : model -> FormField model msg -> Bool
+hasError model (FormField opaqueConfig) =
+    case opaqueConfig of
+        FormFieldAutocompleteConfig _ validations -> List.any (\{v}) validations
+
+
+        FormFieldCheckboxConfig _ validations ->
+
+
+        FormFieldDatepickerConfig _ validations ->
+
+
+        FormFieldPasswordConfig _ validations ->
+
+
+        FormFieldRadioConfig _ validations ->
+
+
+        FormFieldSelectConfig _ validations ->
+
+
+        FormFieldTextareaConfig _ validations ->
+
+
+        FormFieldTextConfig _ validations ->
+
+
+        FormFieldPureHtmlConfig _ -> False
+

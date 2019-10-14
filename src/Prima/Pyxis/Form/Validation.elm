@@ -1,8 +1,8 @@
 module Prima.Pyxis.Form.Validation exposing
     ( Validation
     , ValidationType(..)
-    , pickValidationFunction, pickValidationMessage, isErrorValidation, isWarningValidation
-    , validationConfig
+    , pickFunction, pickValidationMessage, pickType, isError, isWarning
+    , config
     )
 
 {-| Allows to create Validation model for the form.
@@ -40,7 +40,7 @@ module Prima.Pyxis.Form.Validation exposing
 
 # Helpers
 
-@docs pickValidationFunction, pickValidationMessage, isErrorValidation, isWarningValidation
+@docs pickFunction, pickValidationMessage, pickType, isError, isWarning
 
 -}
 
@@ -54,18 +54,18 @@ type Validation model
 
 
 type alias ValidationConfig model =
-    { validationType : ValidationType
-    , validationFunction : model -> Bool
+    { type_ : ValidationType
+    , function : model -> Bool
     , message : String
     }
 
 
-validationConfig : ValidationType -> (model -> Bool) -> String -> Validation model
-validationConfig validationType validationFunction message =
+config : ValidationType -> (model -> Bool) -> String -> Validation model
+config type_ function message =
     Validation
         (ValidationConfig
-            validationType
-            validationFunction
+            type_
+            function
             message
         )
 
@@ -77,26 +77,26 @@ type ValidationType
     | Warning
 
 
-{-| Check if given validationType is warning
+{-| Check if given type\_ is warning
 -}
-isWarningValidation : ValidationType -> Bool
-isWarningValidation =
+isWarning : ValidationType -> Bool
+isWarning =
     (==) Warning
 
 
-{-| Check if given validationType is error
+{-| Check if given type\_ is error
 -}
-isErrorValidation : ValidationType -> Bool
-isErrorValidation =
+isError : ValidationType -> Bool
+isError =
     (==) Error
 
 
 {-| Pick the validation string message from a Validation model.
 -}
 pickValidationMessage : ValidationType -> Validation model -> Maybe String
-pickValidationMessage type_ (Validation { message, validationType }) =
-    if type_ == validationType then
-        Just message
+pickValidationMessage type_ (Validation validationConfig) =
+    if type_ == validationConfig.type_ then
+        Just validationConfig.message
 
     else
         Nothing
@@ -104,6 +104,13 @@ pickValidationMessage type_ (Validation { message, validationType }) =
 
 {-| Pick the validation evaluation function from a Validation model.
 -}
-pickValidationFunction : Validation model -> (model -> Bool)
-pickValidationFunction (Validation { validationFunction }) =
-    validationFunction
+pickFunction : Validation model -> (model -> Bool)
+pickFunction (Validation { function }) =
+    function
+
+
+{-| Pick the validation type from a Validation model.
+-}
+pickType : Validation model -> ValidationType
+pickType (Validation { type_ }) =
+    type_
