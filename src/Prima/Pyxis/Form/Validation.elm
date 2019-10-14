@@ -93,8 +93,15 @@ isError =
 
 {-| Pick the validation string message from a Validation model.
 -}
-pickValidationMessage : ValidationType -> Validation model -> Maybe String
-pickValidationMessage type_ (Validation validationConfig) =
+pickValidationMessage : Validation model -> String
+pickValidationMessage (Validation { message }) =
+    message
+
+
+{-| Pick the validation string message from a Validation model only if type matches.
+-}
+pickValidationMessageByType : ValidationType -> Validation model -> Maybe String
+pickValidationMessageByType type_ (Validation validationConfig) =
     if type_ == validationConfig.type_ then
         Just validationConfig.message
 

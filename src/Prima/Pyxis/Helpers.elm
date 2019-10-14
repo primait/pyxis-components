@@ -1,5 +1,6 @@
 module Prima.Pyxis.Helpers exposing
-    ( isJust
+    ( flip
+    , isJust
     , isNothing
     , loremIpsum
     , pyxisStyle
@@ -48,3 +49,8 @@ renderIf condition html =
 
     else
         text ""
+
+
+flip : (a -> b -> c) -> b -> a -> c
+flip mapper b a =
+    mapper a b

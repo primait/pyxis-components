@@ -1,7 +1,7 @@
 module Prima.Pyxis.Form exposing
     ( Form, InputGroup, FormRenderer, Label, Slug, Value, formRenderer
-    , init, state, addFields, setAsPristine, setAsTouched, setAsSubmitted
-    , isFormSubmitted, isFormPristine, isFormTouched
+    , init, state, addFields, setAsSubmitted
+    , isFormSubmitted
     , FormField(..)
     , textConfig, passwordConfig, textareaConfig
     , checkboxConfig, checkboxOption
@@ -10,7 +10,8 @@ module Prima.Pyxis.Form exposing
     , datepickerConfig
     , autocompleteConfig, autocompleteOption
     , pureHtmlConfig
-    , isValid, isPristine, hasWarning
+    , fieldIsValid, fieldHasError, fieldHasWarning, fieldIsPristine, fieldIsTouched
+    , fieldGroupIsValid, fieldGroupHasError, fieldGroupHasWarning
     , render, renderField, renderInputGroupField
     , prependInputGroup, appendInputGroup
     , FormFieldGroup, fieldGroupConfig, renderFieldGroup
@@ -31,7 +32,7 @@ module Prima.Pyxis.Form exposing
 
 # Form State Helpers
 
-@docs isFormSubmitted, isFormPristine, isFormTouched
+@docs isFormSubmitted
 
 
 # Fields Configuration
@@ -76,7 +77,12 @@ module Prima.Pyxis.Form exposing
 
 # Fields Helpers
 
-@docs isValid, isPristine, hasWarning
+@docs fieldIsValid, fieldHasError, fieldHasWarning, fieldIsPristine, fieldIsTouched
+
+
+# FieldGroup Helpers
+
+@docs fieldGroupIsValid, fieldGroupHasError, fieldGroupHasWarning
 
 
 # Render
@@ -106,12 +112,10 @@ import Html.Attributes
         )
 import Prima.Pyxis.DatePicker as DatePicker
 import Prima.Pyxis.Form.Event as Events exposing (Event)
-import Prima.Pyxis.Form.Validation as FormValidation exposing (Validation(..), ValidationType(..))
+import Prima.Pyxis.Form.Validation as FormValidation
 import Prima.Pyxis.Helpers as Helpers
 
 
-{-| Represents the `Form` configuration.
--}
 type Form model msg
     = Form (FormConfig model msg)
 
@@ -130,6 +134,185 @@ type alias FormRenderer model msg =
     ( FormField model msg -> List (Html msg), List (FormField model msg) )
 
 
+type FormState
+    = NotSubmitted
+    | Submitted
+
+
+type FormFieldGroup model msg
+    = FormFieldGroup (FormFieldGroupConfig model msg) (List (FormValidation.Validation model))
+
+
+type alias FormFieldGroupConfig model msg =
+    { label : Label
+    , fields : List (FormField model msg)
+    }
+
+
+{-| Represents the configuration of a single form field.
+-}
+type FormField model msg
+    = FormField (FormFieldConfig model msg)
+
+
+type FormFieldConfig model msg
+    = FormFieldAutocompleteConfig (AutocompleteConfig model msg) (List (FormValidation.Validation model))
+    | FormFieldCheckboxConfig (CheckboxConfig model msg) (List (FormValidation.Validation model))
+    | FormFieldDatepickerConfig (DatepickerConfig model msg) (List (FormValidation.Validation model))
+    | FormFieldPasswordConfig (PasswordConfig model msg) (List (FormValidation.Validation model))
+    | FormFieldRadioConfig (RadioConfig model msg) (List (FormValidation.Validation model))
+    | FormFieldSelectConfig (SelectConfig model msg) (List (FormValidation.Validation model))
+    | FormFieldTextareaConfig (TextareaConfig model msg) (List (FormValidation.Validation model))
+    | FormFieldTextConfig (TextConfig model msg) (List (FormValidation.Validation model))
+    | FormFieldPureHtmlConfig (PureHtmlConfig msg)
+
+
+{-| Represents the type of group which can wrap a form field.
+Used to add a boxed icon in a form field (for instance the calendar icon of the datepicker).
+-}
+type InputGroup msg
+    = Prepend (List (Html msg))
+    | Append (List (Html msg))
+
+
+type alias TextConfig model msg =
+    { slug : Slug
+    , label : Maybe Label
+    , attrs : List (Attribute msg)
+    , reader : model -> Maybe Value
+    , events : List (Event msg)
+    }
+
+
+type alias PasswordConfig model msg =
+    { slug : Slug
+    , label : Maybe Label
+    , attrs : List (Attribute msg)
+    , reader : model -> Maybe Value
+    , events : List (Event msg)
+    }
+
+
+type alias TextareaConfig model msg =
+    { slug : Slug
+    , label : Maybe Label
+    , attrs : List (Attribute msg)
+    , reader : model -> Maybe Value
+    , events : List (Event msg)
+    }
+
+
+type alias RadioConfig model msg =
+    { slug : Slug
+    , label : Maybe Label
+    , attrs : List (Attribute msg)
+    , reader : model -> Maybe Value
+    , events : List (Event msg)
+    , options : List RadioOption
+    }
+
+
+type alias RadioOption =
+    { label : Label
+    , slug : Slug
+    }
+
+
+type alias CheckboxConfig model msg =
+    { slug : Slug
+    , label : Maybe Label
+    , attrs : List (Attribute msg)
+    , reader : model -> List ( Slug, Bool )
+    , events : List (Event msg)
+    , options : List CheckboxOption
+    }
+
+
+type alias CheckboxOption =
+    { label : Label
+    , slug : Slug
+    , isChecked : Bool
+    }
+
+
+type alias SelectConfig model msg =
+    { slug : Slug
+    , label : Maybe Label
+    , isDisabled : Bool
+    , isOpen : Bool
+    , placeholder : Maybe String
+    , attrs : List (Attribute msg)
+    , reader : model -> Maybe Value
+    , events : List (Event msg)
+    , options : List SelectOption
+    }
+
+
+type alias SelectOption =
+    { label : Label
+    , slug : Slug
+    }
+
+
+type alias DatepickerConfig model msg =
+    { slug : Slug
+    , label : Maybe Label
+    , attrs : List (Attribute msg)
+    , reader : model -> Maybe Value
+    , datePickerTagger : DatePicker.Msg -> msg
+    , events : List (Event msg)
+    , instance : DatePicker.Model
+    , showDatePicker : Bool
+    }
+
+
+type alias AutocompleteConfig model msg =
+    { slug : Slug
+    , label : Maybe Label
+    , isOpen : Bool
+    , noResults : Maybe Label
+    , attrs : List (Attribute msg)
+    , filterReader : model -> Maybe Value
+    , choiceReader : model -> Maybe Value
+    , events : List (Event msg)
+    , options : List AutocompleteOption
+    }
+
+
+type alias AutocompleteOption =
+    { label : Label
+    , slug : Slug
+    }
+
+
+type alias PureHtmlConfig msg =
+    { content : List (Html msg)
+    }
+
+
+{-| Alias for String. Useful to have easy-to-read signatures.
+-}
+type alias Slug =
+    String
+
+
+{-| Alias for String. Useful to have easy-to-read signatures.
+-}
+type alias Label =
+    String
+
+
+{-| Alias for String. Useful to have easy-to-read signatures.
+-}
+type alias Value =
+    String
+
+
+type RenderFieldMode
+    = Group
+    | Single
+
+
 {-| Utility function to create a FormRenderer instance
 -}
 formRenderer : (FormField model msg -> List (Html msg)) -> List (FormField model msg) -> FormRenderer model msg
@@ -137,31 +320,11 @@ formRenderer rendererFunc fields =
     ( rendererFunc, fields )
 
 
-type FormState
-    = Pristine
-    | Touched
-    | Submitted
-
-
 {-| Returns the Form state
 -}
 state : Form model msg -> FormState
 state (Form formConfig) =
     formConfig.state
-
-
-{-| Checks if the Form is Pristine.
--}
-isFormPristine : FormState -> Bool
-isFormPristine =
-    (==) Pristine
-
-
-{-| Checks if the Form is Touched.
--}
-isFormTouched : FormState -> Bool
-isFormTouched =
-    (==) Touched
 
 
 {-| Checks if the Form is Submitted.
@@ -175,7 +338,7 @@ isFormSubmitted =
 -}
 init : Form model msg
 init =
-    Form (FormConfig Pristine [])
+    Form (FormConfig NotSubmitted [])
 
 
 {-| Add rows of fields to the form.
@@ -226,20 +389,6 @@ addFields renderer (Form config) =
     Form { config | renderer = renderer }
 
 
-{-| Sets the form to Pristine state.
--}
-setAsPristine : Form model msg -> Form model msg
-setAsPristine (Form config) =
-    Form { config | state = Pristine }
-
-
-{-| Sets the form to Touched state.
--}
-setAsTouched : Form model msg -> Form model msg
-setAsTouched (Form config) =
-    Form { config | state = Touched }
-
-
 {-| Sets the form to Submitted state. When submitted the form will eventually show errors.
 -}
 setAsSubmitted : Form model msg -> Form model msg
@@ -260,40 +409,13 @@ render (Form { renderer }) =
     div [ class "m-form" ] (List.map renderWrappedFields renderer)
 
 
-type FormFieldGroup model msg
-    = FormFieldGroup (FormFieldGroupConfig model msg) (List (Validation model))
-
-
-type alias FormFieldGroupConfig model msg =
-    { label : Label
-    , fields : List (FormField model msg)
-    }
-
-
-fieldGroupConfig : Label -> List (FormField model msg) -> List (Validation model) -> FormFieldGroup model msg
+fieldGroupConfig : Label -> List (FormField model msg) -> List (FormValidation.Validation model) -> FormFieldGroup model msg
 fieldGroupConfig label fields validations =
     FormFieldGroup (FormFieldGroupConfig label fields) validations
 
 
 renderFieldGroup : Form model msg -> model -> FormFieldGroup model msg -> Html msg
-renderFieldGroup formConfig model (FormFieldGroup { label, fields } validations) =
-    let
-        messageList : List (Html msg)
-        messageList =
-            if formFieldGroupHasErrors then
-                validationMessageList Error
-
-            else
-                validationMessageList Warning
-
-        formFieldGroupHasErrors : Bool
-        formFieldGroupHasErrors =
-            List.length (validationMessageList Error) > 0
-
-        formFieldGroupHasWarnings : Bool
-        formFieldGroupHasWarnings =
-            List.length (validationMessageList Warning) > 0
-    in
+renderFieldGroup formConfig model ((FormFieldGroup { label, fields } validations) as formFieldGroup) =
     div
         [ class "a-form__field-group" ]
         [ div
@@ -304,73 +426,37 @@ renderFieldGroup formConfig model (FormFieldGroup { label, fields } validations)
             [ div
                 [ class "a-form__field-group__fields-list" ]
                 (fields
-                    |> List.map (renderField2 (Group Nothing) formConfig model)
+                    |> List.map (renderField2 Group formConfig model)
                     |> List.concat
                 )
-            , div
-                [ class "a-form__field-group__validation-messages-list" ]
-                messageList
+            , renderFieldGroupValidationMessages model validations formFieldGroup
             ]
         ]
 
 
-singleFieldsValidationMessages : model -> ValidationType -> FormFieldGroup model msg -> List String
-singleFieldsValidationMessages model type_ (FormFieldGroup { fields } _) =
-    fields
-        |> List.map (\(FormField opaqueConfig) -> pickValidationMessages type_ model opaqueConfig)
-        |> List.concat
+renderFieldGroupValidationMessages : model -> List (FormValidation.Validation model) -> FormFieldGroup model msg -> Html msg
+renderFieldGroupValidationMessages model validations formFieldGroup =
+    let
+        filterType : FormValidation.ValidationType
+        filterType =
+            if fieldGroupHasError model formFieldGroup then
+                FormValidation.Error
 
-
-formFieldGroupValidationMessageList : model -> ValidationType -> FormFieldGroup model msg -> List (Html msg)
-formFieldGroupValidationMessageList model type_ validations =
-    validations
-        |> pickNotPassedFieldGroupValidationMessages model type_
-        |> List.append (singleFieldsValidationMessages type_)
-        |> List.map (renderValidationMessage type_)
-
-
-pickNotPassedValidations : model -> List (Validation model) -> List (Validation model)
-pickNotPassedValidations model validations =
-    List.filter
-        (\v ->
-            model
-                |> FormValidation.pickValidationFunction v
-                |> not
+            else
+                FormValidation.Warning
+    in
+    div
+        [ class "a-form__field-group__validation-messages-list" ]
+        (validations
+            |> pickOnly filterType
+            |> List.map FormValidation.pickValidationMessage
+            |> List.map renderFieldGroupSingleValidationMessage
         )
-        validations
 
 
-pickNotPassedFieldGroupValidationMessages : model -> ValidationType -> List (Validation model) -> List String
-pickNotPassedFieldGroupValidationMessages model type_ validations =
-    validations
-        |> pickNotPassedValidations model
-        |> List.filterMap (FormValidation.pickValidationMessage type_)
-
-
-{-| Represents the configuration of a single form field.
--}
-type FormField model msg
-    = FormField (FormFieldConfig model msg)
-
-
-type FormFieldConfig model msg
-    = FormFieldAutocompleteConfig (AutocompleteConfig model msg) (List (Validation model))
-    | FormFieldCheckboxConfig (CheckboxConfig model msg) (List (Validation model))
-    | FormFieldDatepickerConfig (DatepickerConfig model msg) (List (Validation model))
-    | FormFieldPasswordConfig (PasswordConfig model msg) (List (Validation model))
-    | FormFieldRadioConfig (RadioConfig model msg) (List (Validation model))
-    | FormFieldSelectConfig (SelectConfig model msg) (List (Validation model))
-    | FormFieldTextareaConfig (TextareaConfig model msg) (List (Validation model))
-    | FormFieldTextConfig (TextConfig model msg) (List (Validation model))
-    | FormFieldPureHtmlConfig (PureHtmlConfig msg)
-
-
-{-| Represents the type of group which can wrap a form field.
-Used to add a boxed icon in a form field (for instance the calendar icon of the datepicker).
--}
-type InputGroup msg
-    = Prepend (List (Html msg))
-    | Append (List (Html msg))
+renderFieldGroupSingleValidationMessage : String -> Html msg
+renderFieldGroupSingleValidationMessage message =
+    span [ class "a-form-field-group-validation-message-list__item" ] [ text message ]
 
 
 {-| Represents an html which prepends to the form field.
@@ -387,71 +473,11 @@ appendInputGroup =
     Append
 
 
-type alias TextConfig model msg =
-    { slug : Slug
-    , label : Maybe Label
-    , attrs : List (Attribute msg)
-    , reader : model -> Maybe Value
-    , events : List (Event msg)
-    }
-
-
-type alias PasswordConfig model msg =
-    { slug : Slug
-    , label : Maybe Label
-    , attrs : List (Attribute msg)
-    , reader : model -> Maybe Value
-    , events : List (Event msg)
-    }
-
-
-type alias TextareaConfig model msg =
-    { slug : Slug
-    , label : Maybe Label
-    , attrs : List (Attribute msg)
-    , reader : model -> Maybe Value
-    , events : List (Event msg)
-    }
-
-
-type alias RadioConfig model msg =
-    { slug : Slug
-    , label : Maybe Label
-    , attrs : List (Attribute msg)
-    , reader : model -> Maybe Value
-    , events : List (Event msg)
-    , options : List RadioOption
-    }
-
-
-type alias RadioOption =
-    { label : Label
-    , slug : Slug
-    }
-
-
 {-| Creates a radio option.
 -}
 radioOption : Label -> Slug -> RadioOption
 radioOption =
     RadioOption
-
-
-type alias CheckboxConfig model msg =
-    { slug : Slug
-    , label : Maybe Label
-    , attrs : List (Attribute msg)
-    , reader : model -> List ( Slug, Bool )
-    , events : List (Event msg)
-    , options : List CheckboxOption
-    }
-
-
-type alias CheckboxOption =
-    { label : Label
-    , slug : Slug
-    , isChecked : Bool
-    }
 
 
 {-| Creates a radio option.
@@ -461,25 +487,6 @@ checkboxOption =
     CheckboxOption
 
 
-type alias SelectConfig model msg =
-    { slug : Slug
-    , label : Maybe Label
-    , isDisabled : Bool
-    , isOpen : Bool
-    , placeholder : Maybe String
-    , attrs : List (Attribute msg)
-    , reader : model -> Maybe Value
-    , events : List (Event msg)
-    , options : List SelectOption
-    }
-
-
-type alias SelectOption =
-    { label : Label
-    , slug : Slug
-    }
-
-
 {-| Creates a select option.
 -}
 selectOption : Label -> Slug -> SelectOption
@@ -487,65 +494,11 @@ selectOption =
     SelectOption
 
 
-type alias DatepickerConfig model msg =
-    { slug : Slug
-    , label : Maybe Label
-    , attrs : List (Attribute msg)
-    , reader : model -> Maybe Value
-    , datePickerTagger : DatePicker.Msg -> msg
-    , events : List (Event msg)
-    , instance : DatePicker.Model
-    , showDatePicker : Bool
-    }
-
-
-type alias AutocompleteConfig model msg =
-    { slug : Slug
-    , label : Maybe Label
-    , isOpen : Bool
-    , noResults : Maybe Label
-    , attrs : List (Attribute msg)
-    , filterReader : model -> Maybe Value
-    , choiceReader : model -> Maybe Value
-    , events : List (Event msg)
-    , options : List AutocompleteOption
-    }
-
-
-type alias AutocompleteOption =
-    { label : Label
-    , slug : Slug
-    }
-
-
 {-| Creates an autocomplete option.
 -}
 autocompleteOption : Label -> Slug -> AutocompleteOption
 autocompleteOption =
     AutocompleteOption
-
-
-type alias PureHtmlConfig msg =
-    { content : List (Html msg)
-    }
-
-
-{-| Alias for String. Useful to have easy-to-read signatures.
--}
-type alias Slug =
-    String
-
-
-{-| Alias for String. Useful to have easy-to-read signatures.
--}
-type alias Label =
-    String
-
-
-{-| Alias for String. Useful to have easy-to-read signatures.
--}
-type alias Value =
-    String
 
 
 {-| Creates an input text field.
@@ -583,7 +536,7 @@ This field can handle only onInput, onFocus, onBlur events. Other events will be
             ]
 
 -}
-textConfig : Slug -> Maybe Label -> List (Attribute msg) -> (model -> Maybe Value) -> List (Event msg) -> List (Validation model) -> FormField model msg
+textConfig : Slug -> Maybe Label -> List (Attribute msg) -> (model -> Maybe Value) -> List (Event msg) -> List (FormValidation.Validation model) -> FormField model msg
 textConfig slug label attrs reader events validations =
     FormField <|
         FormFieldTextConfig
@@ -599,7 +552,7 @@ textConfig slug label attrs reader events validations =
 
 {-| Creates a password text field. Same configuration as `textConfig`.
 -}
-passwordConfig : Slug -> Maybe Label -> List (Attribute msg) -> (model -> Maybe Value) -> List (Event msg) -> List (Validation model) -> FormField model msg
+passwordConfig : Slug -> Maybe Label -> List (Attribute msg) -> (model -> Maybe Value) -> List (Event msg) -> List (FormValidation.Validation model) -> FormField model msg
 passwordConfig slug label attrs reader events validations =
     FormField <|
         FormFieldPasswordConfig
@@ -615,7 +568,7 @@ passwordConfig slug label attrs reader events validations =
 
 {-| Creates a texarea field. Same configuration as `textConfig`.
 -}
-textareaConfig : Slug -> Maybe Label -> List (Attribute msg) -> (model -> Maybe Value) -> List (Event msg) -> List (Validation model) -> FormField model msg
+textareaConfig : Slug -> Maybe Label -> List (Attribute msg) -> (model -> Maybe Value) -> List (Event msg) -> List (FormValidation.Validation model) -> FormField model msg
 textareaConfig slug label attrs reader events validations =
     FormField <|
         FormFieldTextareaConfig
@@ -663,7 +616,7 @@ This field can handle only onSelect event. Other events will be ignored.
             []
 
 -}
-radioConfig : Slug -> Maybe Label -> List (Attribute msg) -> (model -> Maybe Value) -> List (Event msg) -> List RadioOption -> List (Validation model) -> FormField model msg
+radioConfig : Slug -> Maybe Label -> List (Attribute msg) -> (model -> Maybe Value) -> List (Event msg) -> List RadioOption -> List (FormValidation.Validation model) -> FormField model msg
 radioConfig slug label attrs reader events options validations =
     FormField <|
         FormFieldRadioConfig
@@ -719,7 +672,7 @@ This field can handle only onCheck event. Other events will be ignored.
             []
 
 -}
-checkboxConfig : Slug -> Maybe Label -> List (Attribute msg) -> (model -> List ( Slug, Bool )) -> List (Event msg) -> List CheckboxOption -> List (Validation model) -> FormField model msg
+checkboxConfig : Slug -> Maybe Label -> List (Attribute msg) -> (model -> List ( Slug, Bool )) -> List (Event msg) -> List CheckboxOption -> List (FormValidation.Validation model) -> FormField model msg
 checkboxConfig slug label attrs reader events options validations =
     FormField <|
         FormFieldCheckboxConfig
@@ -781,7 +734,7 @@ This field can handle only onToggle, onInput, onSelect, onFocus and onBlur event
             [ NotEmpty (SeverityLevel Error) "Empty value is not acceptable." ]
 
 -}
-selectConfig : Slug -> Maybe Label -> Bool -> Bool -> Maybe String -> List (Attribute msg) -> (model -> Maybe Value) -> List (Event msg) -> List SelectOption -> List (Validation model) -> FormField model msg
+selectConfig : Slug -> Maybe Label -> Bool -> Bool -> Maybe String -> List (Attribute msg) -> (model -> Maybe Value) -> List (Event msg) -> List SelectOption -> List (FormValidation.Validation model) -> FormField model msg
 selectConfig slug label isDisabled isOpen placeholder attrs reader events options validations =
     FormField <|
         FormFieldSelectConfig
@@ -834,7 +787,7 @@ This field can handle only onInput event. Other events will be ignored.
             []
 
 -}
-datepickerConfig : Slug -> Maybe Label -> List (Attribute msg) -> (model -> Maybe Value) -> (DatePicker.Msg -> msg) -> List (Event msg) -> DatePicker.Model -> Bool -> List (Validation model) -> FormField model msg
+datepickerConfig : Slug -> Maybe Label -> List (Attribute msg) -> (model -> Maybe Value) -> (DatePicker.Msg -> msg) -> List (Event msg) -> DatePicker.Model -> Bool -> List (FormValidation.Validation model) -> FormField model msg
 datepickerConfig slug label attrs reader datePickerTagger events datepicker showDatePicker validations =
     FormField <|
         FormFieldDatepickerConfig
@@ -902,7 +855,7 @@ This field can handle only onSelect, onAutocompleteFilter, onFocus and onBlur ev
             []
 
 -}
-autocompleteConfig : String -> Maybe String -> Bool -> Maybe String -> List (Attribute msg) -> (model -> Maybe Value) -> (model -> Maybe Value) -> List (Event msg) -> List AutocompleteOption -> List (Validation model) -> FormField model msg
+autocompleteConfig : String -> Maybe String -> Bool -> Maybe String -> List (Attribute msg) -> (model -> Maybe Value) -> (model -> Maybe Value) -> List (Event msg) -> List AutocompleteOption -> List (FormValidation.Validation model) -> FormField model msg
 autocompleteConfig slug label isOpen noResults attrs filterReader choiceReader events options validations =
     FormField <|
         FormFieldAutocompleteConfig
@@ -976,18 +929,13 @@ renderField =
 
 
 type RenderFieldMode
-    = Group (Maybe ValidationType)
+    = Group
     | Single
 
 
 isRenderFieldGroup : RenderFieldMode -> Bool
-isRenderFieldGroup mode =
-    case mode of
-        Group _ ->
-            True
-
-        Single ->
-            False
+isRenderFieldGroup =
+    (==) Group
 
 
 isRenderFieldSingle : RenderFieldMode -> Bool
@@ -996,7 +944,7 @@ isRenderFieldSingle =
 
 
 renderField2 : RenderFieldMode -> Form model msg -> model -> FormField model msg -> List (Html msg)
-renderField2 mode (Form formConfig) model (FormField opaqueConfig) =
+renderField2 mode (Form formConfig) model ((FormField opaqueConfig) as formField) =
     let
         lbl config =
             if isRenderFieldSingle mode then
@@ -1004,30 +952,6 @@ renderField2 mode (Form formConfig) model (FormField opaqueConfig) =
 
             else
                 text ""
-
-        errors =
-            if isRenderFieldSingle mode then
-                opaqueConfig
-                    |> pickValidationMessages Error model
-                    |> String.join " "
-                    |> renderValidationMessage Error
-                    -- |> Helpers.renderIf (isFormSubmitted formConfig.state && shouldShowError model (FormField opaqueConfig))
-                    |> List.singleton
-
-            else
-                []
-
-        warnings =
-            if isRenderFieldSingle mode then
-                opaqueConfig
-                    |> pickValidationMessages Warning model
-                    |> String.join " "
-                    |> renderValidationMessage Warning
-                    -- |> Helpers.renderIf (isFormSubmitted formConfig.state && shouldShowWarning model (FormField opaqueConfig))
-                    |> List.singleton
-
-            else
-                []
     in
     (case opaqueConfig of
         FormFieldTextConfig config validation ->
@@ -1057,8 +981,24 @@ renderField2 mode (Form formConfig) model (FormField opaqueConfig) =
         FormFieldPureHtmlConfig config ->
             renderPureHtml config
     )
-        ++ errors
-        ++ warnings
+        ++ (case ( mode, fieldHasError model formField, fieldHasWarning model formField ) of
+                ( Single, True, _ ) ->
+                    formField
+                        |> pickFieldValidations
+                        |> List.filter (FormValidation.isError << FormValidation.pickType)
+                        |> List.map FormValidation.pickValidationMessage
+                        |> List.map text
+
+                ( Single, False, _ ) ->
+                    formField
+                        |> pickFieldValidations
+                        |> List.filter (FormValidation.isWarning << FormValidation.pickType)
+                        |> List.map FormValidation.pickValidationMessage
+                        |> List.map text
+
+                ( Group, _, _ ) ->
+                    []
+           )
 
 
 {-| Renders a field by receiving the `Form`, the `InputGroup`, and the `FormField` configuration.
@@ -1108,13 +1048,7 @@ renderInputGroupField (Form formConfig) model group (FormField opaqueConfig) =
             renderLabel config.slug config.label
 
         errors =
-            (List.singleton
-                << Helpers.renderIf (isFormSubmitted formConfig.state && shouldShowError model (FormField opaqueConfig))
-                << renderValidationMessage Error
-                << String.join " "
-                << pickValidationMessages Error model
-            )
-                opaqueConfig
+            []
     in
     case opaqueConfig of
         FormFieldTextConfig config validation ->
@@ -1212,7 +1146,7 @@ renderLabel slug theLabel =
                 ]
 
 
-renderValidationMessage : ValidationType -> String -> Html msg
+renderValidationMessage : FormValidation.ValidationType -> String -> Html msg
 renderValidationMessage type_ error =
     if (String.isEmpty << String.trim) error then
         text ""
@@ -1220,27 +1154,22 @@ renderValidationMessage type_ error =
     else
         span
             [ classList
-                [ ( "a-form__field__error", FormValidation.isErrorValidation type_ )
-                , ( "a-form__field__warning", FormValidation.isWarningValidation type_ )
+                [ ( "a-form__field__error", FormValidation.isError type_ )
+                , ( "a-form__field__warning", FormValidation.isWarning type_ )
                 ]
             ]
             [ text error ]
 
 
-renderInput : FormState -> model -> TextConfig model msg -> List (Validation model) -> List (Html msg)
+renderInput : FormState -> model -> TextConfig model msg -> List (FormValidation.Validation model) -> List (Html msg)
 renderInput formState model ({ reader, slug, label, attrs } as config) validations =
     let
-        opaqueConfig =
+        formField =
             FormField (FormFieldTextConfig config validations)
 
-        valid =
-            isValid model opaqueConfig && not warning
-
-        pristine =
-            isPristine model opaqueConfig
-
-        warning =
-            hasWarning model opaqueConfig
+        compute : (model -> FormField model msg -> Bool) -> Bool
+        compute mapper =
+            mapper model formField
     in
     [ Html.input
         ([ type_ "text"
@@ -1249,11 +1178,11 @@ renderInput formState model ({ reader, slug, label, attrs } as config) validatio
          , name slug
          , classList
             [ ( "a-form__field__input", True )
-            , ( "is-valid", valid )
-            , ( "is-invalid", isFormSubmitted formState && not valid )
-            , ( "is-pristine", pristine )
-            , ( "is-touched", not pristine )
-            , ( "has-warn", warning )
+            , ( "is-valid", compute fieldIsValid )
+            , ( "is-pristine", compute fieldIsPristine )
+            , ( "is-touched", compute fieldIsTouched )
+            , ( "has-error", compute fieldHasError )
+            , ( "has-warning", compute fieldHasWarning )
             ]
          ]
             ++ attrs
@@ -1265,20 +1194,15 @@ renderInput formState model ({ reader, slug, label, attrs } as config) validatio
     ]
 
 
-renderPassword : FormState -> model -> PasswordConfig model msg -> List (Validation model) -> List (Html msg)
+renderPassword : FormState -> model -> PasswordConfig model msg -> List (FormValidation.Validation model) -> List (Html msg)
 renderPassword formState model ({ reader, slug, label, attrs } as config) validations =
     let
-        opaqueConfig =
-            FormField (FormFieldTextConfig config validations)
+        formField =
+            FormField (FormFieldPasswordConfig config validations)
 
-        valid =
-            isValid model opaqueConfig && not warning
-
-        pristine =
-            isPristine model opaqueConfig
-
-        warning =
-            hasWarning model opaqueConfig
+        compute : (model -> FormField model msg -> Bool) -> Bool
+        compute mapper =
+            mapper model formField
     in
     [ Html.input
         ([ type_ "password"
@@ -1287,11 +1211,11 @@ renderPassword formState model ({ reader, slug, label, attrs } as config) valida
          , name slug
          , classList
             [ ( "a-form__field__input", True )
-            , ( "is-valid", valid )
-            , ( "is-invalid", isFormSubmitted formState && not valid )
-            , ( "is-pristine", pristine )
-            , ( "is-touched", not pristine )
-            , ( "has-warn", warning )
+            , ( "is-valid", compute fieldIsValid )
+            , ( "is-pristine", compute fieldIsPristine )
+            , ( "is-touched", compute fieldIsTouched )
+            , ( "has-error", compute fieldHasError )
+            , ( "has-warning", compute fieldHasWarning )
             ]
          ]
             ++ attrs
@@ -1303,20 +1227,15 @@ renderPassword formState model ({ reader, slug, label, attrs } as config) valida
     ]
 
 
-renderTextarea : FormState -> model -> TextareaConfig model msg -> List (Validation model) -> List (Html msg)
+renderTextarea : FormState -> model -> TextareaConfig model msg -> List (FormValidation.Validation model) -> List (Html msg)
 renderTextarea formState model ({ reader, slug, label, attrs, events } as config) validations =
     let
-        opaqueConfig =
+        formField =
             FormField (FormFieldTextareaConfig config validations)
 
-        valid =
-            isValid model opaqueConfig && not warning
-
-        pristine =
-            isPristine model opaqueConfig
-
-        warning =
-            hasWarning model opaqueConfig
+        compute : (model -> FormField model msg -> Bool) -> Bool
+        compute mapper =
+            mapper model formField
     in
     [ Html.textarea
         ([ (value << Maybe.withDefault "" << reader) model
@@ -1324,11 +1243,11 @@ renderTextarea formState model ({ reader, slug, label, attrs, events } as config
          , name slug
          , classList
             [ ( "a-form__field__textarea", True )
-            , ( "is-valid", valid )
-            , ( "is-invalid", isFormSubmitted formState && not valid )
-            , ( "is-pristine", pristine )
-            , ( "is-touched", not pristine )
-            , ( "has-warn", warning )
+            , ( "is-valid", compute fieldIsValid )
+            , ( "is-pristine", compute fieldIsPristine )
+            , ( "is-touched", compute fieldIsTouched )
+            , ( "has-error", compute fieldHasError )
+            , ( "has-warning", compute fieldHasWarning )
             ]
          ]
             ++ attrs
@@ -1340,7 +1259,7 @@ renderTextarea formState model ({ reader, slug, label, attrs, events } as config
     ]
 
 
-renderRadio : model -> RadioConfig model msg -> List (Validation model) -> List (Html msg)
+renderRadio : model -> RadioConfig model msg -> List (FormValidation.Validation model) -> List (Html msg)
 renderRadio model ({ slug, label, options } as config) validations =
     let
         isVertical =
@@ -1388,7 +1307,7 @@ renderRadioOption model ({ reader, slug, label, options, attrs } as config) inde
     ]
 
 
-renderCheckbox : model -> CheckboxConfig model msg -> List (Validation model) -> List (Html msg)
+renderCheckbox : model -> CheckboxConfig model msg -> List (FormValidation.Validation model) -> List (Html msg)
 renderCheckbox model ({ slug, label, options } as config) validations =
     (List.concat << List.indexedMap (\index option -> renderCheckboxOption model config index option)) options
 
@@ -1421,7 +1340,7 @@ renderCheckboxOption model ({ reader, attrs } as config) index option =
     ]
 
 
-renderSelect : FormState -> model -> SelectConfig model msg -> List (Validation model) -> List (Html msg)
+renderSelect : FormState -> model -> SelectConfig model msg -> List (FormValidation.Validation model) -> List (Html msg)
 renderSelect formState model ({ slug, label, reader, attrs, events } as config) validations =
     let
         options =
@@ -1432,17 +1351,12 @@ renderSelect formState model ({ slug, label, reader, attrs, events } as config) 
                 ( _, _ ) ->
                     config.options
 
-        opaqueConfig =
+        formField =
             FormField (FormFieldSelectConfig config validations)
 
-        valid =
-            isValid model opaqueConfig && not warning
-
-        pristine =
-            isPristine model opaqueConfig
-
-        warning =
-            hasWarning model opaqueConfig
+        compute : (model -> FormField model msg -> Bool) -> Bool
+        compute mapper =
+            mapper model formField
     in
     [ renderCustomSelect formState model config validations
     , Html.select
@@ -1450,11 +1364,11 @@ renderSelect formState model ({ slug, label, reader, attrs, events } as config) 
          , name slug
          , classList
             [ ( "a-form__field__select", True )
-            , ( "is-valid", valid )
-            , ( "is-invalid", isFormSubmitted formState && not valid )
-            , ( "is-pristine", pristine )
-            , ( "is-touched", not pristine )
-            , ( "has-warn", warning )
+            , ( "is-valid", compute fieldIsValid )
+            , ( "is-pristine", compute fieldIsPristine )
+            , ( "is-touched", compute fieldIsTouched )
+            , ( "has-error", compute fieldHasError )
+            , ( "has-warning", compute fieldHasWarning )
             ]
          ]
             ++ attrs
@@ -1476,7 +1390,7 @@ renderSelectOption model { reader, slug, label } option =
         ]
 
 
-renderCustomSelect : FormState -> model -> SelectConfig model msg -> List (Validation model) -> Html msg
+renderCustomSelect : FormState -> model -> SelectConfig model msg -> List (FormValidation.Validation model) -> Html msg
 renderCustomSelect formState model ({ slug, label, reader, isDisabled, isOpen, attrs } as config) validations =
     let
         options =
@@ -1487,14 +1401,8 @@ renderCustomSelect formState model ({ slug, label, reader, isDisabled, isOpen, a
                 ( _, _ ) ->
                     config.options
 
-        opaqueConfig =
+        formField =
             FormField (FormFieldSelectConfig config validations)
-
-        valid =
-            isValid model opaqueConfig && not warning
-
-        pristine =
-            isPristine model opaqueConfig
 
         currentValue =
             options
@@ -1503,19 +1411,20 @@ renderCustomSelect formState model ({ slug, label, reader, isDisabled, isOpen, a
                 |> List.head
                 |> Maybe.withDefault (Maybe.withDefault "" config.placeholder)
 
-        warning =
-            hasWarning model opaqueConfig
+        compute : (model -> FormField model msg -> Bool) -> Bool
+        compute mapper =
+            mapper model formField
     in
     div
         ([ classList
             [ ( "a-form__field__customSelect", True )
             , ( "is-open", isOpen )
-            , ( "is-valid", valid )
-            , ( "is-invalid", isFormSubmitted formState && not valid )
-            , ( "is-pristine", pristine )
-            , ( "is-touched", not pristine )
             , ( "is-disabled", isDisabled )
-            , ( "has-warn", warning )
+            , ( "is-valid", compute fieldIsValid )
+            , ( "is-pristine", compute fieldIsPristine )
+            , ( "is-touched", compute fieldIsTouched )
+            , ( "has-error", compute fieldHasError )
+            , ( "has-warning", compute fieldHasWarning )
             ]
          ]
             ++ attrs
@@ -1554,17 +1463,11 @@ renderCustomSelectOption model ({ reader, slug, label } as config) option =
         ]
 
 
-renderDatepicker : FormState -> model -> DatepickerConfig model msg -> List (Validation model) -> List (Html msg)
+renderDatepicker : FormState -> model -> DatepickerConfig model msg -> List (FormValidation.Validation model) -> List (Html msg)
 renderDatepicker formState model ({ attrs, reader, datePickerTagger, slug, label, instance, showDatePicker, events } as config) validations =
     let
-        opaqueConfig =
+        formField =
             FormField (FormFieldDatepickerConfig config validations)
-
-        valid =
-            isValid model opaqueConfig && not warning
-
-        pristine =
-            isPristine model opaqueConfig
 
         inputTextFormat str =
             (String.join "/"
@@ -1580,8 +1483,9 @@ renderDatepicker formState model ({ attrs, reader, datePickerTagger, slug, label
             )
                 str
 
-        warning =
-            hasWarning model opaqueConfig
+        compute : (model -> FormField model msg -> Bool) -> Bool
+        compute mapper =
+            mapper model formField
     in
     [ Html.input
         ([ type_ "text"
@@ -1590,11 +1494,11 @@ renderDatepicker formState model ({ attrs, reader, datePickerTagger, slug, label
          , name slug
          , classList
             [ ( "a-form__field__input a-form__field__datepicker", True )
-            , ( "is-valid", valid )
-            , ( "is-invalid", isFormSubmitted formState && not valid )
-            , ( "is-pristine", pristine )
-            , ( "is-touched", not pristine )
-            , ( "has-warn", warning )
+            , ( "is-valid", compute fieldIsValid )
+            , ( "is-pristine", compute fieldIsPristine )
+            , ( "is-touched", compute fieldIsTouched )
+            , ( "has-error", compute fieldHasError )
+            , ( "has-warning", compute fieldHasWarning )
             ]
          ]
             ++ attrs
@@ -1608,11 +1512,11 @@ renderDatepicker formState model ({ attrs, reader, datePickerTagger, slug, label
          , name slug
          , classList
             [ ( "a-form__field__date", True )
-            , ( "is-valid", valid )
-            , ( "is-invalid", not valid )
-            , ( "is-pristine", pristine )
-            , ( "is-touched", not pristine )
-            , ( "has-warn", warning )
+            , ( "is-valid", compute fieldIsValid )
+            , ( "is-pristine", compute fieldIsPristine )
+            , ( "is-touched", compute fieldIsTouched )
+            , ( "has-error", compute fieldHasError )
+            , ( "has-warning", compute fieldHasWarning )
             ]
          ]
             ++ attrs
@@ -1621,20 +1525,11 @@ renderDatepicker formState model ({ attrs, reader, datePickerTagger, slug, label
     ]
 
 
-renderAutocomplete : FormState -> model -> AutocompleteConfig model msg -> List (Validation model) -> List (Html msg)
+renderAutocomplete : FormState -> model -> AutocompleteConfig model msg -> List (FormValidation.Validation model) -> List (Html msg)
 renderAutocomplete formState model ({ filterReader, choiceReader, slug, label, isOpen, noResults, attrs, options } as config) validations =
     let
-        opaqueConfig =
+        formField =
             FormField (FormFieldAutocompleteConfig config validations)
-
-        valid =
-            isValid model opaqueConfig && not warning
-
-        pristine =
-            isPristine model opaqueConfig
-
-        warning =
-            not (hasWarning model opaqueConfig)
 
         pickLabelByValue opts value =
             (List.head << List.map .label << List.filter ((==) value << .slug)) opts
@@ -1651,6 +1546,10 @@ renderAutocomplete formState model ({ filterReader, choiceReader, slug, label, i
 
                 _ ->
                     (value << Maybe.withDefault "" << filterReader) model
+
+        compute : (model -> FormField model msg -> Bool) -> Bool
+        compute mapper =
+            mapper model formField
     in
     [ div
         [ classList
@@ -1665,11 +1564,11 @@ renderAutocomplete formState model ({ filterReader, choiceReader, slug, label, i
              , name slug
              , classList
                 [ ( "a-form__field__input", True )
-                , ( "is-valid", valid )
-                , ( "is-invalid", isFormSubmitted formState && not valid )
-                , ( "is-pristine", pristine )
-                , ( "is-touched", not pristine )
-                , ( "has-warn", warning )
+                , ( "is-valid", compute fieldIsValid )
+                , ( "is-pristine", compute fieldIsPristine )
+                , ( "is-touched", compute fieldIsTouched )
+                , ( "has-error", compute fieldHasError )
+                , ( "has-warning", compute fieldHasWarning )
                 ]
              ]
                 ++ attrs
@@ -1716,24 +1615,138 @@ renderPureHtml { content } =
     content
 
 
-{-| Check if a `FormField` is valid
--}
-isValid : model -> FormField model msg -> Bool
-isValid model (FormField opaqueConfig) =
-    List.all (validate model opaqueConfig) (pickValidationRules opaqueConfig)
+shouldShowError : model -> FormField model msg -> Bool
+shouldShowError model ((FormField opaqueConfig) as config) =
+    True
 
 
-{-| Check if a `FormField` has warnings
--}
-hasWarning : model -> FormField model msg -> Bool
-hasWarning model (FormField opaqueConfig) =
-    not <| List.all (validateWarning model opaqueConfig) (pickValidationRules opaqueConfig)
+shouldShowWarning : model -> FormField model msg -> Bool
+shouldShowWarning model ((FormField opaqueConfig) as config) =
+    True
 
 
-{-| Check if a `FormField` is pristine
--}
-isPristine : model -> FormField model msg -> Bool
-isPristine model (FormField opaqueConfig) =
+
+{--
+~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~ Helpers
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~
+--}
+
+
+pickFieldGroupValidations : FormFieldGroup model msg -> List (FormValidation.Validation model)
+pickFieldGroupValidations (FormFieldGroup _ validations) =
+    validations
+
+
+pickOnly : FormValidation.ValidationType -> List (FormValidation.Validation model) -> List (FormValidation.Validation model)
+pickOnly type_ validations =
+    let
+        mapper =
+            case type_ of
+                FormValidation.Error ->
+                    FormValidation.isError
+
+                FormValidation.Warning ->
+                    FormValidation.isWarning
+    in
+    List.filter (mapper << FormValidation.pickType) validations
+
+
+fieldGroupIsValid : model -> FormFieldGroup model msg -> Bool
+fieldGroupIsValid model formFieldGroup =
+    not (fieldGroupHasError model formFieldGroup) && not (fieldGroupHasWarning model formFieldGroup)
+
+
+fieldGroupHasError : model -> FormFieldGroup model msg -> Bool
+fieldGroupHasError model (FormFieldGroup { fields } validations) =
+    let
+        formGroupOwnErrors =
+            validations
+                |> pickOnly FormValidation.Error
+                |> List.any (Helpers.flip FormValidation.pickFunction model)
+
+        fieldsOwnErrors =
+            List.any (fieldHasError model) fields
+    in
+    formGroupOwnErrors || fieldsOwnErrors
+
+
+fieldGroupHasWarning : model -> FormFieldGroup model msg -> Bool
+fieldGroupHasWarning model (FormFieldGroup { fields } validations) =
+    let
+        formGroupOwnWarning =
+            validations
+                |> pickOnly FormValidation.Warning
+                |> List.any (Helpers.flip FormValidation.pickFunction model)
+
+        fieldsOwnWarning =
+            List.any (fieldHasError model) fields
+    in
+    formGroupOwnWarning || fieldsOwnWarning
+
+
+pickFieldValidations : FormField model msg -> List (FormValidation.Validation model)
+pickFieldValidations (FormField opaqueConfig) =
+    case opaqueConfig of
+        FormFieldTextConfig _ validations ->
+            validations
+
+        FormFieldPasswordConfig _ validations ->
+            validations
+
+        FormFieldTextareaConfig _ validations ->
+            validations
+
+        FormFieldRadioConfig _ validations ->
+            validations
+
+        FormFieldSelectConfig _ validations ->
+            validations
+
+        FormFieldCheckboxConfig _ validations ->
+            validations
+
+        FormFieldDatepickerConfig _ validations ->
+            validations
+
+        FormFieldAutocompleteConfig _ validations ->
+            validations
+
+        FormFieldPureHtmlConfig _ ->
+            []
+
+
+fieldIsValid : model -> FormField model msg -> Bool
+fieldIsValid model formField =
+    formField
+        |> pickFieldValidations
+        |> List.all (Helpers.flip FormValidation.pickFunction model)
+
+
+fieldHasError : model -> FormField model msg -> Bool
+fieldHasError model formField =
+    formField
+        |> pickFieldValidations
+        |> List.filter (FormValidation.isError << FormValidation.pickType)
+        |> List.all (Helpers.flip FormValidation.pickFunction model)
+        |> not
+
+
+fieldHasWarning : model -> FormField model msg -> Bool
+fieldHasWarning model formField =
+    formField
+        |> pickFieldValidations
+        |> List.filter (FormValidation.isWarning << FormValidation.pickType)
+        |> List.all (Helpers.flip FormValidation.pickFunction model)
+        |> not
+
+
+fieldIsPristine : model -> FormField model msg -> Bool
+fieldIsPristine model (FormField opaqueConfig) =
     let
         isEmpty : Maybe String -> Bool
         isEmpty =
@@ -1765,65 +1778,6 @@ isPristine model (FormField opaqueConfig) =
             True
 
 
-validate : model -> Validation model -> Bool
-validate model validation =
-    FormValidation.pickValidationFunction validation model
-
-
-validateWarning : model -> FormFieldConfig model msg -> Validation model -> Bool
-validateWarning =
-    validate
-
-
-pickValidationMessages : ValidationType -> model -> FormFieldConfig model msg -> List String
-pickValidationMessages type_ model opaqueConfig =
-    List.filterMap
-        (\rule ->
-            if validate model opaqueConfig rule then
-                Nothing
-
-            else
-                FormValidation.pickValidationMessage type_ rule
-        )
-        (pickValidationRules opaqueConfig)
-
-
-shouldShowError : model -> FormField model msg -> Bool
-shouldShowError model ((FormField opaqueConfig) as config) =
-    (not << isValid model) config && (not << isPristine model) config
-
-
-shouldShowWarning : model -> FormField model msg -> Bool
-shouldShowWarning model ((FormField opaqueConfig) as config) =
-    (not << isPristine model) config
-
-
-hasError : model -> FormField model msg -> Bool
-hasError model (FormField opaqueConfig) =
-    case opaqueConfig of
-        FormFieldAutocompleteConfig _ validations -> List.any (\{v}) validations
-
-
-        FormFieldCheckboxConfig _ validations ->
-
-
-        FormFieldDatepickerConfig _ validations ->
-
-
-        FormFieldPasswordConfig _ validations ->
-
-
-        FormFieldRadioConfig _ validations ->
-
-
-        FormFieldSelectConfig _ validations ->
-
-
-        FormFieldTextareaConfig _ validations ->
-
-
-        FormFieldTextConfig _ validations ->
-
-
-        FormFieldPureHtmlConfig _ -> False
-
+fieldIsTouched : model -> FormField model msg -> Bool
+fieldIsTouched model formField =
+    not <| fieldIsPristine model formField
