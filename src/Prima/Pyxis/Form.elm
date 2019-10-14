@@ -928,11 +928,6 @@ renderField =
     renderField2 Single
 
 
-type RenderFieldMode
-    = Group
-    | Single
-
-
 isRenderFieldGroup : RenderFieldMode -> Bool
 isRenderFieldGroup =
     (==) Group

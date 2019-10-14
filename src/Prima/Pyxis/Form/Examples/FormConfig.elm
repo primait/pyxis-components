@@ -22,12 +22,7 @@ import Prima.Pyxis.Form.Examples.Model
         , Model
         , Msg(..)
         )
-import Prima.Pyxis.Form.Validation
-    exposing
-        ( Validation
-        , ValidationType(..)
-        , validationConfig
-        )
+import Prima.Pyxis.Form.Validation as FormValidation
 import Prima.Pyxis.Helpers exposing (isJust)
 
 
@@ -42,7 +37,7 @@ username =
         , Event.onFocus (OnFocus Username)
         , Event.onBlur (OnBlur Username)
         ]
-        [ validationConfig Error
+        [ FormValidation.config FormValidation.Error
             (\formData -> Maybe.withDefault False <| Maybe.map ((<) 3 << String.length) formData.username)
             "Username must be greater than 3 digits"
         ]
@@ -56,7 +51,7 @@ password isSubmitted =
         []
         .password
         [ Event.onInput (UpdateField Password) ]
-        [ validationConfig Error
+        [ FormValidation.config FormValidation.Error
             (\formData -> isJust formData.password)
             "Password can't be empty"
         ]
@@ -67,7 +62,7 @@ formFieldGroup =
     Form.fieldGroupConfig
         "Username & Password"
         [ username, password False ]
-        [ validationConfig Warning
+        [ FormValidation.config FormValidation.Warning
             (\formData -> not (formData.username == formData.password))
             "Username and password shouldn't be equal"
         ]

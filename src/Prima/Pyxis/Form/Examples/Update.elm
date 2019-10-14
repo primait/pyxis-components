@@ -163,7 +163,6 @@ update msg model =
         Reset ->
             { model
                 | data = initialFormData
-                , formConfig = Form.setAsPristine model.formConfig
             }
                 |> withoutCmds
 
