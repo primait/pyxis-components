@@ -2,9 +2,8 @@ module Prima.Pyxis.Loader.Examples.View exposing (view)
 
 import Browser
 import Html exposing (..)
-import Html.Attributes exposing (class)
+import Prima.Pyxis.Container as Container
 import Prima.Pyxis.Helpers as Helpers
-import Prima.Pyxis.Default as Default
 import Prima.Pyxis.Loader as Loader
 import Prima.Pyxis.Loader.Examples.Model exposing (Model, Msg)
 
@@ -22,11 +21,9 @@ appBody _ =
     ]
 
 
-
-
 loaderVehicle : Loader.Config
 loaderVehicle =
-    Loader.vehicle   (Just "Attendi. Stiamo caricando i tuoi dati...")
+    Loader.vehicle (Just "Attendi. Stiamo caricando i tuoi dati...")
 
 
 loaderSpinnerSmall : Loader.Config
