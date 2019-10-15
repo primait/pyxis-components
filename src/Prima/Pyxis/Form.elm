@@ -475,9 +475,6 @@ renderFieldGroupWrapper formConfig model formFieldGroup =
 renderFieldGroupValidationMessages : model -> FormFieldGroup model msg -> List (FormValidation.Validation model) -> Html msg
 renderFieldGroupValidationMessages model formFieldGroup allValidations =
     let
-        _ =
-            Debug.log "Stocazzo: " ( fieldGroupHasError model formFieldGroup, fieldGroupHasWarning model formFieldGroup )
-
         filterType : FormValidation.ValidationType
         filterType =
             if fieldGroupHasError model formFieldGroup then
@@ -1707,11 +1704,9 @@ fieldGroupHasError model (FormFieldGroup { fields } validations) =
             validations
                 |> pickOnly FormValidation.Error
                 |> List.any (not << Helpers.flip FormValidation.pickFunction model)
-                |> Debug.log "formGroupOwnErrors:"
 
         fieldsOwnErrors =
             List.any (fieldHasError model) fields
-                |> Debug.log "fieldsOwnErrors: "
     in
     formGroupOwnErrors || fieldsOwnErrors
 
