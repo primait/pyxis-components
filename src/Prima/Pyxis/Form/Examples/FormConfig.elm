@@ -30,7 +30,7 @@ username : FormField FormData Msg
 username =
     Form.textConfig
         "user_name"
-        (Just "Username & Password")
+        (Just "Username")
         [ minlength 3, maxlength 12 ]
         .username
         [ Event.onInput (UpdateField Username)
@@ -41,8 +41,8 @@ username =
             (\formData -> Maybe.withDefault False <| Maybe.map ((<) 3 << String.length) formData.username)
             "Username must be greater than 3 digits"
         , FormValidation.config FormValidation.Warning
-            (\formData -> not (formData.username == Just "1234"))
-            "Can't you be more creative?"
+            (\formData -> not (formData.username == Just "Prisco"))
+            "Dovresti lavorare più su te stesso Prisco!"
         ]
 
 
@@ -50,13 +50,16 @@ password : Bool -> FormField FormData Msg
 password isSubmitted =
     Form.passwordConfig
         "password"
-        Nothing
+        (Just "Password")
         []
         .password
         [ Event.onInput (UpdateField Password) ]
         [ FormValidation.config FormValidation.Error
             (\formData -> isJust formData.password)
             "Password can't be empty"
+        , FormValidation.config FormValidation.Warning
+            (\formData -> not (formData.username == Just "1234"))
+            "You should be more creative"
         ]
 
 
@@ -65,7 +68,7 @@ formFieldGroup =
     Form.fieldGroupConfig
         "Username & Password"
         [ username, password False ]
-        [ FormValidation.config FormValidation.Warning
+        [ FormValidation.config FormValidation.Error
             (\formData -> not (formData.username == formData.password))
             "Username and password shouldn't be equal"
         ]

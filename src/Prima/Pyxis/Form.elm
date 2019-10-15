@@ -1,6 +1,6 @@
 module Prima.Pyxis.Form exposing
-    ( Form, InputGroup, FormRenderer, Label, Slug, Value, formRenderer
-    , init, state, addFields, setAsSubmitted
+    ( Form, InputGroup, Label, Slug, Value
+    , init, state, setAsSubmitted
     , isFormSubmitted
     , FormField(..)
     , textConfig, passwordConfig, textareaConfig
@@ -14,7 +14,7 @@ module Prima.Pyxis.Form exposing
     , fieldGroupIsValid, fieldGroupHasError, fieldGroupHasWarning
     , render, renderField, renderInputGroupField
     , prependInputGroup, appendInputGroup
-    , FormFieldGroup, fieldGroupConfig, renderFieldGroup
+    , AbstractField, FormFieldGroup, addField, addFieldGroup, field, fieldGroup, fieldGroupConfig, renderFieldGroup
     )
 
 {-| Allows to create a Form and it's fields using predefined Html syntax.
@@ -27,7 +27,7 @@ module Prima.Pyxis.Form exposing
 
 # Form Configuration Helpers
 
-@docs init, state, addFields, setAsPristine, setAsTouched, setAsSubmitted
+@docs init, state, setAsPristine, setAsTouched, setAsSubmitted
 
 
 # Form State Helpers
@@ -122,16 +122,13 @@ type Form model msg
 
 type alias FormConfig model msg =
     { state : FormState
-    , renderer : List (FormRenderer model msg)
+    , fields : List (AbstractField model msg)
     }
 
 
-{-| A list in which each item represents a row of the form.
-Each row has is own list of fields (`FormField model msg`) which
-will be rendered by the mapper function (`FormField model msg -> List (Html msg)`).
--}
-type alias FormRenderer model msg =
-    ( FormField model msg -> List (Html msg), List (FormField model msg) )
+type AbstractField model msg
+    = AbstractField (FormField model msg)
+    | AbstractGroup (FormFieldGroup model msg)
 
 
 type FormState
@@ -313,11 +310,14 @@ type RenderFieldMode
     | Single
 
 
-{-| Utility function to create a FormRenderer instance
--}
-formRenderer : (FormField model msg -> List (Html msg)) -> List (FormField model msg) -> FormRenderer model msg
-formRenderer rendererFunc fields =
-    ( rendererFunc, fields )
+fieldGroup : FormFieldGroup model msg -> AbstractField model msg
+fieldGroup =
+    AbstractGroup
+
+
+field : FormField model msg -> AbstractField model msg
+field =
+    AbstractField
 
 
 {-| Returns the Form state
@@ -384,9 +384,14 @@ init =
             |> Form.render
 
 -}
-addFields : List (FormRenderer model msg) -> Form model msg -> Form model msg
-addFields renderer (Form config) =
-    Form { config | renderer = renderer }
+addField : FormField model msg -> Form model msg -> Form model msg
+addField formField (Form ({ fields } as config)) =
+    Form { config | fields = fields ++ [ AbstractField formField ] }
+
+
+addFieldGroup : FormFieldGroup model msg -> Form model msg -> Form model msg
+addFieldGroup formFieldGroup (Form ({ fields } as config)) =
+    Form { config | fields = fields ++ [ AbstractGroup formFieldGroup ] }
 
 
 {-| Sets the form to Submitted state. When submitted the form will eventually show errors.
@@ -399,14 +404,19 @@ setAsSubmitted (Form config) =
 {-| Renders a form with all it's fields.
 Requires a `Form model msg` created via `Form.init` and `Form.addFields`.
 -}
-render : Form model msg -> Html msg
-render (Form { renderer }) =
+render : model -> Form model msg -> Html msg
+render model ((Form { fields }) as formConfig) =
     let
-        renderWrappedFields : FormRenderer model msg -> Html msg
-        renderWrappedFields ( mapper, fieldConfigs ) =
-            (wrapper << List.concat << List.map mapper) fieldConfigs
+        mapper : AbstractField model msg -> Html msg
+        mapper abstractField =
+            case abstractField of
+                AbstractField formField ->
+                    renderField formConfig model formField
+
+                AbstractGroup formFieldGroup ->
+                    renderFieldGroup formConfig model formFieldGroup
     in
-    div [ class "m-form" ] (List.map renderWrappedFields renderer)
+    div [ class "m-form" ] (List.map mapper fields)
 
 
 fieldGroupConfig : Label -> List (FormField model msg) -> List (FormValidation.Validation model) -> FormFieldGroup model msg
@@ -463,8 +473,11 @@ renderFieldGroupWrapper formConfig model formFieldGroup =
 
 
 renderFieldGroupValidationMessages : model -> FormFieldGroup model msg -> List (FormValidation.Validation model) -> Html msg
-renderFieldGroupValidationMessages model formFieldGroup validations =
+renderFieldGroupValidationMessages model formFieldGroup allValidations =
     let
+        _ =
+            Debug.log "Stocazzo: " ( fieldGroupHasError model formFieldGroup, fieldGroupHasWarning model formFieldGroup )
+
         filterType : FormValidation.ValidationType
         filterType =
             if fieldGroupHasError model formFieldGroup then
@@ -475,7 +488,7 @@ renderFieldGroupValidationMessages model formFieldGroup validations =
     in
     div
         [ class "a-form__field-group__validation-messages-list" ]
-        (validations
+        (allValidations
             |> pickOnly filterType
             |> List.map FormValidation.pickValidationMessage
             |> List.map renderFieldGroupSingleValidationMessage
@@ -951,9 +964,10 @@ pureHtmlConfig content =
             |> Form.render model.form
 
 -}
-renderField : Form model msg -> model -> FormField model msg -> List (Html msg)
-renderField =
-    renderFieldEngine Single
+renderField : Form model msg -> model -> FormField model msg -> Html msg
+renderField formConfig model formField =
+    wrapper
+        (renderFieldEngine Single formConfig model formField)
 
 
 isRenderFieldGroup : RenderFieldMode -> Bool
@@ -1012,14 +1026,14 @@ renderFieldEngine mode (Form formConfig) model ((FormField opaqueConfig) as form
                         |> List.map FormValidation.pickValidationMessage
                         |> List.map renderFieldValidationMessage
 
-                ( Single, False, _ ) ->
+                ( Single, False, True ) ->
                     formField
                         |> pickFieldValidations
                         |> List.filter (FormValidation.isWarning << FormValidation.pickType)
                         |> List.map FormValidation.pickValidationMessage
                         |> List.map renderFieldValidationMessage
 
-                ( Group, _, _ ) ->
+                ( _, _, _ ) ->
                     []
            )
 
@@ -1692,10 +1706,12 @@ fieldGroupHasError model (FormFieldGroup { fields } validations) =
         formGroupOwnErrors =
             validations
                 |> pickOnly FormValidation.Error
-                |> List.any (Helpers.flip FormValidation.pickFunction model)
+                |> List.any (not << Helpers.flip FormValidation.pickFunction model)
+                |> Debug.log "formGroupOwnErrors:"
 
         fieldsOwnErrors =
             List.any (fieldHasError model) fields
+                |> Debug.log "fieldsOwnErrors: "
     in
     formGroupOwnErrors || fieldsOwnErrors
 
@@ -1706,7 +1722,7 @@ fieldGroupHasWarning model (FormFieldGroup { fields } validations) =
         formGroupOwnWarning =
             validations
                 |> pickOnly FormValidation.Warning
-                |> List.any (Helpers.flip FormValidation.pickFunction model)
+                |> List.any (not << Helpers.flip FormValidation.pickFunction model)
 
         fieldsOwnWarning =
             List.any (fieldHasError model) fields
@@ -1757,8 +1773,7 @@ fieldHasError model formField =
     formField
         |> pickFieldValidations
         |> List.filter (FormValidation.isError << FormValidation.pickType)
-        |> List.all (Helpers.flip FormValidation.pickFunction model)
-        |> not
+        |> List.any (not << Helpers.flip FormValidation.pickFunction model)
 
 
 fieldHasWarning : model -> FormField model msg -> Bool
@@ -1766,8 +1781,7 @@ fieldHasWarning model formField =
     formField
         |> pickFieldValidations
         |> List.filter (FormValidation.isWarning << FormValidation.pickType)
-        |> List.all (Helpers.flip FormValidation.pickFunction model)
-        |> not
+        |> List.any (not << Helpers.flip FormValidation.pickFunction model)
 
 
 fieldIsPristine : model -> FormField model msg -> Bool

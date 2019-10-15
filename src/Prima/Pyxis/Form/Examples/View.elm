@@ -4,9 +4,9 @@ import Browser
 import Html exposing (Html, button, div, i, text)
 import Html.Attributes exposing (class)
 import Html.Events exposing (onClick)
-import Prima.Pyxis.Form as Form
+import Prima.Pyxis.Form as Form exposing (AbstractField)
 import Prima.Pyxis.Form.Examples.FormConfig as Config exposing (formFieldGroup)
-import Prima.Pyxis.Form.Examples.Model exposing (Model, Msg(..))
+import Prima.Pyxis.Form.Examples.Model exposing (FormData, Model, Msg(..))
 import Prima.Pyxis.Helpers as Helpers
 
 
@@ -20,26 +20,34 @@ view model =
 appBody : Model -> List (Html Msg)
 appBody ({ data, formConfig } as model) =
     let
+        renderModel : List (AbstractField FormData Msg)
         renderModel =
-            [ ( Form.renderField formConfig data, [ Config.username, Config.password (Form.isFormSubmitted <| Form.state formConfig) ] )
-            , ( Form.renderField formConfig data, [ Config.note ] )
-            , ( Form.renderField formConfig data, [ Config.gender ] )
-            , ( Form.renderField formConfig data, [ Config.visitedCountries data ] )
-            , ( Form.renderField formConfig data, [ Config.city data.isOpenCity ] )
-            , ( Form.renderField formConfig data, [ Config.country data ] )
-            , ( Form.renderInputGroupField formConfig data <| Form.appendInputGroup [ datePickerIcon ], [ Config.dateOfBirth data ] )
+            [ Form.fieldGroup Config.formFieldGroup
+            , Form.field Config.note
+            , Form.field Config.gender
+            , Form.field <| Config.visitedCountries data
+            , Form.field <| Config.city data.isOpenCity
+            , Form.field <| Config.country data
+            , Form.field <| Config.dateOfBirth data
             ]
 
         form =
-            Form.addFields renderModel formConfig
+            formConfig
+                |> Form.addField Config.username
+                |> Form.addField (Config.password True)
+                |> Form.addFieldGroup Config.formFieldGroup
+                |> Form.addField Config.note
+                |> Form.addField Config.gender
+                |> Form.addField (Config.visitedCountries data)
+                |> Form.addField (Config.city data.isOpenCity)
+                |> Form.addField (Config.country data)
+                |> Form.addField (Config.dateOfBirth data)
     in
     [ div
         [ class "a-container directionColumn" ]
         [ Helpers.pyxisStyle
-        , Form.render form
+        , Form.render data form
         , btnSubmit
-        , btnReset
-        , Form.renderFieldGroup formConfig data formFieldGroup
         ]
     ]
 
