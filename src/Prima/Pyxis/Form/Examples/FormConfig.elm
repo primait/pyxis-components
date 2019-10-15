@@ -40,6 +40,9 @@ username =
         [ FormValidation.config FormValidation.Error
             (\formData -> Maybe.withDefault False <| Maybe.map ((<) 3 << String.length) formData.username)
             "Username must be greater than 3 digits"
+        , FormValidation.config FormValidation.Warning
+            (\formData -> not (formData.username == Just "1234"))
+            "Can't you be more creative?"
         ]
 
 

@@ -415,27 +415,55 @@ fieldGroupConfig label fields validations =
 
 
 renderFieldGroup : Form model msg -> model -> FormFieldGroup model msg -> Html msg
-renderFieldGroup formConfig model ((FormFieldGroup { label, fields } validations) as formFieldGroup) =
+renderFieldGroup formConfig model formFieldGroup =
     div
-        [ class "a-form__field-group" ]
-        [ div
-            [ class "a-form__field-group__label" ]
-            [ text label ]
-        , div
-            [ class "a-form__field-group__fields-wrapper" ]
-            [ div
-                [ class "a-form__field-group__fields-list" ]
-                (fields
-                    |> List.map (renderField2 Group formConfig model)
-                    |> List.concat
-                )
-            , renderFieldGroupValidationMessages model validations formFieldGroup
+        [ classList
+            [ ( "a-form__field-group", True )
+            , ( "is-valid", fieldGroupIsValid model formFieldGroup )
+            , ( "has-error", fieldGroupHasError model formFieldGroup )
+            , ( "has-warning", fieldGroupHasWarning model formFieldGroup )
             ]
+        ]
+        [ renderFieldGroupLabel formFieldGroup
+        , renderFieldGroupWrapper formConfig model formFieldGroup
         ]
 
 
-renderFieldGroupValidationMessages : model -> List (FormValidation.Validation model) -> FormFieldGroup model msg -> Html msg
-renderFieldGroupValidationMessages model validations formFieldGroup =
+renderFieldGroupLabel : FormFieldGroup model msg -> Html msg
+renderFieldGroupLabel formFieldGroup =
+    div
+        [ class "a-form__field-group__label" ]
+        [ text <| pickFieldGroupLabel formFieldGroup ]
+
+
+renderFieldGroupFormFields : Form model msg -> model -> FormFieldGroup model msg -> Html msg
+renderFieldGroupFormFields formConfig model formFieldGroup =
+    div
+        [ class "a-form__field-group__fields-list" ]
+        (formFieldGroup
+            |> pickFieldGroupFields
+            |> List.map (renderFieldEngine Group formConfig model)
+            |> List.concat
+        )
+
+
+renderFieldGroupWrapper : Form model msg -> model -> FormFieldGroup model msg -> Html msg
+renderFieldGroupWrapper formConfig model formFieldGroup =
+    div
+        [ class "a-form__field-group__fields-wrapper" ]
+        [ renderFieldGroupFormFields formConfig model formFieldGroup
+        , formFieldGroup
+            |> pickFieldGroupFields
+            |> List.map pickFieldValidations
+            |> List.concat
+            |> List.append (pickFieldGroupValidations formFieldGroup)
+            |> List.filter (not << Helpers.flip FormValidation.pickFunction model)
+            |> renderFieldGroupValidationMessages model formFieldGroup
+        ]
+
+
+renderFieldGroupValidationMessages : model -> FormFieldGroup model msg -> List (FormValidation.Validation model) -> Html msg
+renderFieldGroupValidationMessages model formFieldGroup validations =
     let
         filterType : FormValidation.ValidationType
         filterType =
@@ -925,7 +953,7 @@ pureHtmlConfig content =
 -}
 renderField : Form model msg -> model -> FormField model msg -> List (Html msg)
 renderField =
-    renderField2 Single
+    renderFieldEngine Single
 
 
 isRenderFieldGroup : RenderFieldMode -> Bool
@@ -938,8 +966,8 @@ isRenderFieldSingle =
     (==) Single
 
 
-renderField2 : RenderFieldMode -> Form model msg -> model -> FormField model msg -> List (Html msg)
-renderField2 mode (Form formConfig) model ((FormField opaqueConfig) as formField) =
+renderFieldEngine : RenderFieldMode -> Form model msg -> model -> FormField model msg -> List (Html msg)
+renderFieldEngine mode (Form formConfig) model ((FormField opaqueConfig) as formField) =
     let
         lbl config =
             if isRenderFieldSingle mode then
@@ -982,14 +1010,14 @@ renderField2 mode (Form formConfig) model ((FormField opaqueConfig) as formField
                         |> pickFieldValidations
                         |> List.filter (FormValidation.isError << FormValidation.pickType)
                         |> List.map FormValidation.pickValidationMessage
-                        |> List.map text
+                        |> List.map renderFieldValidationMessage
 
                 ( Single, False, _ ) ->
                     formField
                         |> pickFieldValidations
                         |> List.filter (FormValidation.isWarning << FormValidation.pickType)
                         |> List.map FormValidation.pickValidationMessage
-                        |> List.map text
+                        |> List.map renderFieldValidationMessage
 
                 ( Group, _, _ ) ->
                     []
@@ -1141,19 +1169,11 @@ renderLabel slug theLabel =
                 ]
 
 
-renderValidationMessage : FormValidation.ValidationType -> String -> Html msg
-renderValidationMessage type_ error =
-    if (String.isEmpty << String.trim) error then
-        text ""
-
-    else
-        span
-            [ classList
-                [ ( "a-form__field__error", FormValidation.isError type_ )
-                , ( "a-form__field__warning", FormValidation.isWarning type_ )
-                ]
-            ]
-            [ text error ]
+renderFieldValidationMessage : String -> Html msg
+renderFieldValidationMessage validationMessage =
+    span
+        [ class "a-form-field-validation-message" ]
+        [ text validationMessage ]
 
 
 renderInput : FormState -> model -> TextConfig model msg -> List (FormValidation.Validation model) -> List (Html msg)
@@ -1635,6 +1655,16 @@ shouldShowWarning model ((FormField opaqueConfig) as config) =
 pickFieldGroupValidations : FormFieldGroup model msg -> List (FormValidation.Validation model)
 pickFieldGroupValidations (FormFieldGroup _ validations) =
     validations
+
+
+pickFieldGroupFields : FormFieldGroup model msg -> List (FormField model msg)
+pickFieldGroupFields (FormFieldGroup { fields } _) =
+    fields
+
+
+pickFieldGroupLabel : FormFieldGroup model msg -> String
+pickFieldGroupLabel (FormFieldGroup { label } _) =
+    label
 
 
 pickOnly : FormValidation.ValidationType -> List (FormValidation.Validation model) -> List (FormValidation.Validation model)
