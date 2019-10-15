@@ -58,7 +58,7 @@ password isSubmitted =
             (\formData -> isJust formData.password)
             "Password can't be empty"
         , FormValidation.config FormValidation.Warning
-            (\formData -> not (formData.username == Just "1234"))
+            (\formData -> not (formData.password == Just "1234"))
             "You should be more creative"
         ]
 

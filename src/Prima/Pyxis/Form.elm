@@ -1,6 +1,6 @@
 module Prima.Pyxis.Form exposing
     ( Form, InputGroup, Label, Slug, Value
-    , init, state, setAsSubmitted
+    , init, state, setAsTouched, setAsSubmitted
     , isFormSubmitted
     , FormField(..)
     , textConfig, passwordConfig, textareaConfig
@@ -14,7 +14,7 @@ module Prima.Pyxis.Form exposing
     , fieldGroupIsValid, fieldGroupHasError, fieldGroupHasWarning
     , render, renderField, renderInputGroupField
     , prependInputGroup, appendInputGroup
-    , AbstractField, FormFieldGroup, addField, addFieldGroup, field, fieldGroup, fieldGroupConfig, renderFieldGroup
+    , AbstractField, FormFieldGroup, ValidationVisibilityPolicy(..), addField, addFieldGroup, field, fieldGroup, fieldGroupConfig, isFormPristine, isFormTouched, pickValidationVisibilityPolicy, renderFieldGroup, validateAlways, validateWhenSubmitted
     )
 
 {-| Allows to create a Form and it's fields using predefined Html syntax.
@@ -113,7 +113,7 @@ import Html.Attributes
 import Prima.Pyxis.DatePicker as DatePicker
 import Prima.Pyxis.Form.Event as Events exposing (Event)
 import Prima.Pyxis.Form.Validation as FormValidation
-import Prima.Pyxis.Helpers as Helpers
+import Prima.Pyxis.Helpers as Helpers exposing (renderIf)
 
 
 type Form model msg
@@ -122,6 +122,7 @@ type Form model msg
 
 type alias FormConfig model msg =
     { state : FormState
+    , validationVisibilityPolicy : ValidationVisibilityPolicy
     , fields : List (AbstractField model msg)
     }
 
@@ -132,7 +133,8 @@ type AbstractField model msg
 
 
 type FormState
-    = NotSubmitted
+    = Pristine
+    | Touched
     | Submitted
 
 
@@ -310,6 +312,11 @@ type RenderFieldMode
     | Single
 
 
+type ValidationVisibilityPolicy
+    = Always
+    | WhenSubmitted
+
+
 fieldGroup : FormFieldGroup model msg -> AbstractField model msg
 fieldGroup =
     AbstractGroup
@@ -327,6 +334,11 @@ state (Form formConfig) =
     formConfig.state
 
 
+pickValidationVisibilityPolicy : Form model msg -> ValidationVisibilityPolicy
+pickValidationVisibilityPolicy (Form formConfig) =
+    formConfig.validationVisibilityPolicy
+
+
 {-| Checks if the Form is Submitted.
 -}
 isFormSubmitted : FormState -> Bool
@@ -334,11 +346,21 @@ isFormSubmitted =
     (==) Submitted
 
 
+isFormPristine : FormState -> Bool
+isFormPristine =
+    (==) Pristine
+
+
+isFormTouched : FormState -> Bool
+isFormTouched =
+    (==) Touched
+
+
 {-| Creates an empty, pristine form.
 -}
-init : Form model msg
-init =
-    Form (FormConfig NotSubmitted [])
+init : ValidationVisibilityPolicy -> Form model msg
+init validationVisibilityPolicy =
+    Form (FormConfig Pristine validationVisibilityPolicy [])
 
 
 {-| Add rows of fields to the form.
@@ -394,11 +416,28 @@ addFieldGroup formFieldGroup (Form ({ fields } as config)) =
     Form { config | fields = fields ++ [ AbstractGroup formFieldGroup ] }
 
 
-{-| Sets the form to Submitted state. When submitted the form will eventually show errors.
+{-| Sets the form to Submitted state. When submitted the form will show errors.
 -}
 setAsSubmitted : Form model msg -> Form model msg
 setAsSubmitted (Form config) =
     Form { config | state = Submitted }
+
+
+{-| Sets the form to Touched state. When Touched the form will show errors depending on visibility policy.
+-}
+setAsTouched : Form model msg -> Form model msg
+setAsTouched (Form config) =
+    Form { config | state = Touched }
+
+
+validateAlways : Form model msg -> Form model msg
+validateAlways (Form config) =
+    Form { config | validationVisibilityPolicy = Always }
+
+
+validateWhenSubmitted : Form model msg -> Form model msg
+validateWhenSubmitted (Form config) =
+    Form { config | validationVisibilityPolicy = WhenSubmitted }
 
 
 {-| Renders a form with all it's fields.
@@ -430,8 +469,8 @@ renderFieldGroup formConfig model formFieldGroup =
         [ classList
             [ ( "a-form__field-group", True )
             , ( "is-valid", fieldGroupIsValid model formFieldGroup )
-            , ( "has-error", fieldGroupHasError model formFieldGroup )
-            , ( "has-warning", fieldGroupHasWarning model formFieldGroup )
+            , ( "has-error", shouldValidate formConfig && fieldGroupHasError model formFieldGroup )
+            , ( "has-warning", shouldValidate formConfig && fieldGroupHasWarning model formFieldGroup )
             ]
         ]
         [ renderFieldGroupLabel formFieldGroup
@@ -453,7 +492,6 @@ renderFieldGroupFormFields formConfig model formFieldGroup =
         (formFieldGroup
             |> pickFieldGroupFields
             |> List.map (renderFieldEngine Group formConfig model)
-            |> List.concat
         )
 
 
@@ -469,6 +507,7 @@ renderFieldGroupWrapper formConfig model formFieldGroup =
             |> List.append (pickFieldGroupValidations formFieldGroup)
             |> List.filter (not << Helpers.flip FormValidation.pickFunction model)
             |> renderFieldGroupValidationMessages model formFieldGroup
+            |> renderIf (shouldValidate formConfig)
         ]
 
 
@@ -963,8 +1002,7 @@ pureHtmlConfig content =
 -}
 renderField : Form model msg -> model -> FormField model msg -> Html msg
 renderField formConfig model formField =
-    wrapper
-        (renderFieldEngine Single formConfig model formField)
+    renderFieldEngine Single formConfig model formField
 
 
 isRenderFieldGroup : RenderFieldMode -> Bool
@@ -977,8 +1015,8 @@ isRenderFieldSingle =
     (==) Single
 
 
-renderFieldEngine : RenderFieldMode -> Form model msg -> model -> FormField model msg -> List (Html msg)
-renderFieldEngine mode (Form formConfig) model ((FormField opaqueConfig) as formField) =
+renderFieldEngine : RenderFieldMode -> Form model msg -> model -> FormField model msg -> Html msg
+renderFieldEngine mode ((Form formConfig) as form) model ((FormField opaqueConfig) as formField) =
     let
         lbl config =
             if isRenderFieldSingle mode then
@@ -986,53 +1024,74 @@ renderFieldEngine mode (Form formConfig) model ((FormField opaqueConfig) as form
 
             else
                 text ""
+
+        compute : (model -> FormField model msg -> Bool) -> Bool
+        compute mapper =
+            mapper model formField
+
+        solvedValidationTypePicker : FormValidation.Validation model -> Bool
+        solvedValidationTypePicker =
+            case ( fieldHasError model formField, fieldHasWarning model formField ) of
+                ( True, _ ) ->
+                    FormValidation.isError << FormValidation.pickType
+
+                ( False, True ) ->
+                    FormValidation.isWarning << FormValidation.pickType
+
+                ( False, False ) ->
+                    always False
     in
-    (case opaqueConfig of
-        FormFieldTextConfig config validation ->
-            lbl config :: renderInput formConfig.state model config validation
+    div
+        [ classList
+            [ ( "a-form__field", True )
+            , ( "is-valid", compute fieldIsValid )
+            , ( "is-pristine", compute fieldIsPristine )
+            , ( "is-touched", compute fieldIsTouched )
+            , ( "has-error", shouldValidate form && compute fieldHasError )
+            , ( "has-warning", shouldValidate form && compute fieldHasWarning )
+            ]
+        ]
+        ((case opaqueConfig of
+            FormFieldTextConfig config _ ->
+                lbl config :: renderInput model config
 
-        FormFieldPasswordConfig config validation ->
-            lbl config :: renderPassword formConfig.state model config validation
+            FormFieldPasswordConfig config _ ->
+                lbl config :: renderPassword model config
 
-        FormFieldTextareaConfig config validation ->
-            lbl config :: renderTextarea formConfig.state model config validation
+            FormFieldTextareaConfig config _ ->
+                lbl config :: renderTextarea model config
 
-        FormFieldRadioConfig config validation ->
-            lbl config :: renderRadio model config validation
+            FormFieldRadioConfig config _ ->
+                lbl config :: renderRadio model config
 
-        FormFieldCheckboxConfig config validation ->
-            lbl config :: renderCheckbox model config validation
+            FormFieldCheckboxConfig config _ ->
+                lbl config :: renderCheckbox config
 
-        FormFieldSelectConfig config validation ->
-            lbl config :: renderSelect formConfig.state model config validation
+            FormFieldSelectConfig config validation ->
+                lbl config :: renderSelect formConfig.state model config validation
 
-        FormFieldDatepickerConfig config validation ->
-            lbl config :: renderDatepicker formConfig.state model config validation
+            FormFieldDatepickerConfig config _ ->
+                lbl config :: renderDatepicker model config
 
-        FormFieldAutocompleteConfig config validation ->
-            lbl config :: renderAutocomplete formConfig.state model config validation
+            FormFieldAutocompleteConfig config _ ->
+                lbl config :: renderAutocomplete model config
 
-        FormFieldPureHtmlConfig config ->
-            renderPureHtml config
-    )
-        ++ (case ( mode, fieldHasError model formField, fieldHasWarning model formField ) of
-                ( Single, True, _ ) ->
-                    formField
-                        |> pickFieldValidations
-                        |> List.filter (FormValidation.isError << FormValidation.pickType)
-                        |> List.map FormValidation.pickValidationMessage
-                        |> List.map renderFieldValidationMessage
+            FormFieldPureHtmlConfig config ->
+                renderPureHtml config
+         )
+            ++ (case ( mode, shouldValidate form ) of
+                    --Print validations only if is SingleField mode and Form shouldValidate
+                    ( Single, True ) ->
+                        formField
+                            |> pickFieldValidations
+                            |> List.filter solvedValidationTypePicker
+                            |> List.map FormValidation.pickValidationMessage
+                            |> List.map renderFieldValidationMessage
 
-                ( Single, False, True ) ->
-                    formField
-                        |> pickFieldValidations
-                        |> List.filter (FormValidation.isWarning << FormValidation.pickType)
-                        |> List.map FormValidation.pickValidationMessage
-                        |> List.map renderFieldValidationMessage
-
-                ( _, _, _ ) ->
-                    []
-           )
+                    ( _, _ ) ->
+                        []
+               )
+        )
 
 
 {-| Renders a field by receiving the `Form`, the `InputGroup`, and the `FormField` configuration.
@@ -1087,27 +1146,27 @@ renderInputGroupField (Form formConfig) model group (FormField opaqueConfig) =
     case opaqueConfig of
         FormFieldTextConfig config validation ->
             [ lbl config
-            , inputGroupWrapper group <| (renderInput formConfig.state model config validation ++ errors)
+            , inputGroupWrapper group <| (renderInput model config ++ errors)
             ]
 
         FormFieldPasswordConfig config validation ->
             [ lbl config
-            , inputGroupWrapper group <| (renderPassword formConfig.state model config validation ++ errors)
+            , inputGroupWrapper group <| (renderPassword model config ++ errors)
             ]
 
         FormFieldTextareaConfig config validation ->
             [ lbl config
-            , inputGroupWrapper group <| (renderInput formConfig.state model config validation ++ errors)
+            , inputGroupWrapper group <| (renderInput model config ++ errors)
             ]
 
         FormFieldRadioConfig config validation ->
             [ lbl config
-            , inputGroupWrapper group <| (renderRadio model config validation ++ errors)
+            , inputGroupWrapper group <| (renderRadio model config ++ errors)
             ]
 
         FormFieldCheckboxConfig config validation ->
             [ lbl config
-            , inputGroupWrapper group <| (renderCheckbox model config validation ++ errors)
+            , inputGroupWrapper group <| (renderCheckbox config ++ errors)
             ]
 
         FormFieldSelectConfig config validation ->
@@ -1117,23 +1176,16 @@ renderInputGroupField (Form formConfig) model group (FormField opaqueConfig) =
 
         FormFieldDatepickerConfig config validation ->
             [ lbl config
-            , inputGroupWrapper group <| (renderDatepicker formConfig.state model config validation ++ errors)
+            , inputGroupWrapper group <| (renderDatepicker model config ++ errors)
             ]
 
         FormFieldAutocompleteConfig config validation ->
             [ lbl config
-            , inputGroupWrapper group <| (renderAutocomplete formConfig.state model config validation ++ errors)
+            , inputGroupWrapper group <| (renderAutocomplete model config ++ errors)
             ]
 
         FormFieldPureHtmlConfig config ->
             renderPureHtml config
-
-
-wrapper : List (Html msg) -> Html msg
-wrapper =
-    div
-        [ class "a-form__field"
-        ]
 
 
 inputGroupWrapper : InputGroup msg -> List (Html msg) -> Html msg
@@ -1187,29 +1239,15 @@ renderFieldValidationMessage validationMessage =
         [ text validationMessage ]
 
 
-renderInput : FormState -> model -> TextConfig model msg -> List (FormValidation.Validation model) -> List (Html msg)
-renderInput formState model ({ reader, slug, label, attrs } as config) validations =
-    let
-        formField =
-            FormField (FormFieldTextConfig config validations)
-
-        compute : (model -> FormField model msg -> Bool) -> Bool
-        compute mapper =
-            mapper model formField
-    in
+renderInput : model -> TextConfig model msg -> List (Html msg)
+renderInput model ({ reader, slug, label, attrs } as config) =
     [ Html.input
         ([ type_ "text"
          , (value << Maybe.withDefault "" << reader) model
          , id slug
          , name slug
-         , classList
-            [ ( "a-form__field__input", True )
-            , ( "is-valid", compute fieldIsValid )
-            , ( "is-pristine", compute fieldIsPristine )
-            , ( "is-touched", compute fieldIsTouched )
-            , ( "has-error", compute fieldHasError )
-            , ( "has-warning", compute fieldHasWarning )
-            ]
+         , class
+            "a-form__field__input"
          ]
             ++ attrs
             ++ Events.onInputAttribute config.events
@@ -1220,29 +1258,14 @@ renderInput formState model ({ reader, slug, label, attrs } as config) validatio
     ]
 
 
-renderPassword : FormState -> model -> PasswordConfig model msg -> List (FormValidation.Validation model) -> List (Html msg)
-renderPassword formState model ({ reader, slug, label, attrs } as config) validations =
-    let
-        formField =
-            FormField (FormFieldPasswordConfig config validations)
-
-        compute : (model -> FormField model msg -> Bool) -> Bool
-        compute mapper =
-            mapper model formField
-    in
+renderPassword : model -> PasswordConfig model msg -> List (Html msg)
+renderPassword model ({ reader, slug, label, attrs } as config) =
     [ Html.input
         ([ type_ "password"
          , (value << Maybe.withDefault "" << reader) model
          , id slug
          , name slug
-         , classList
-            [ ( "a-form__field__input", True )
-            , ( "is-valid", compute fieldIsValid )
-            , ( "is-pristine", compute fieldIsPristine )
-            , ( "is-touched", compute fieldIsTouched )
-            , ( "has-error", compute fieldHasError )
-            , ( "has-warning", compute fieldHasWarning )
-            ]
+         , class "a-form__field__input"
          ]
             ++ attrs
             ++ Events.onInputAttribute config.events
@@ -1253,28 +1276,14 @@ renderPassword formState model ({ reader, slug, label, attrs } as config) valida
     ]
 
 
-renderTextarea : FormState -> model -> TextareaConfig model msg -> List (FormValidation.Validation model) -> List (Html msg)
-renderTextarea formState model ({ reader, slug, label, attrs, events } as config) validations =
-    let
-        formField =
-            FormField (FormFieldTextareaConfig config validations)
-
-        compute : (model -> FormField model msg -> Bool) -> Bool
-        compute mapper =
-            mapper model formField
-    in
+renderTextarea : model -> TextareaConfig model msg -> List (Html msg)
+renderTextarea model ({ reader, slug, label, attrs, events } as config) =
     [ Html.textarea
         ([ (value << Maybe.withDefault "" << reader) model
          , id slug
          , name slug
-         , classList
-            [ ( "a-form__field__textarea", True )
-            , ( "is-valid", compute fieldIsValid )
-            , ( "is-pristine", compute fieldIsPristine )
-            , ( "is-touched", compute fieldIsTouched )
-            , ( "has-error", compute fieldHasError )
-            , ( "has-warning", compute fieldHasWarning )
-            ]
+         , class
+            "a-form__field__textarea"
          ]
             ++ attrs
             ++ Events.onInputAttribute config.events
@@ -1285,8 +1294,8 @@ renderTextarea formState model ({ reader, slug, label, attrs, events } as config
     ]
 
 
-renderRadio : model -> RadioConfig model msg -> List (FormValidation.Validation model) -> List (Html msg)
-renderRadio model ({ slug, label, options } as config) validations =
+renderRadio : model -> RadioConfig model msg -> List (Html msg)
+renderRadio model ({ slug, label, options } as config) =
     let
         isVertical =
             List.any (hasReachedCharactersLimit << .label) options
@@ -1333,13 +1342,13 @@ renderRadioOption model ({ reader, slug, label, options, attrs } as config) inde
     ]
 
 
-renderCheckbox : model -> CheckboxConfig model msg -> List (FormValidation.Validation model) -> List (Html msg)
-renderCheckbox model ({ slug, label, options } as config) validations =
-    (List.concat << List.indexedMap (\index option -> renderCheckboxOption model config index option)) options
+renderCheckbox : CheckboxConfig model msg -> List (Html msg)
+renderCheckbox ({ slug, label, options } as config) =
+    (List.concat << List.indexedMap (\index option -> renderCheckboxOption config index option)) options
 
 
-renderCheckboxOption : model -> CheckboxConfig model msg -> Int -> CheckboxOption -> List (Html msg)
-renderCheckboxOption model ({ reader, attrs } as config) index option =
+renderCheckboxOption : CheckboxConfig model msg -> Int -> CheckboxOption -> List (Html msg)
+renderCheckboxOption ({ reader, attrs } as config) index option =
     let
         slug =
             (String.join "_" << List.map (String.trim << String.toLower)) [ config.slug, option.slug ]
@@ -1349,9 +1358,7 @@ renderCheckboxOption model ({ reader, attrs } as config) index option =
          , value option.slug
          , id slug
          , name slug
-         , classList
-            [ ( "a-form__field__checkbox", True )
-            ]
+         , class "a-form__field__checkbox"
          ]
             ++ attrs
             ++ Events.onCheckAttribute option.slug (not option.isChecked) config.events
@@ -1376,26 +1383,12 @@ renderSelect formState model ({ slug, label, reader, attrs, events } as config) 
 
                 ( _, _ ) ->
                     config.options
-
-        formField =
-            FormField (FormFieldSelectConfig config validations)
-
-        compute : (model -> FormField model msg -> Bool) -> Bool
-        compute mapper =
-            mapper model formField
     in
-    [ renderCustomSelect formState model config validations
+    [ renderCustomSelect model config
     , Html.select
         ([ id slug
          , name slug
-         , classList
-            [ ( "a-form__field__select", True )
-            , ( "is-valid", compute fieldIsValid )
-            , ( "is-pristine", compute fieldIsPristine )
-            , ( "is-touched", compute fieldIsTouched )
-            , ( "has-error", compute fieldHasError )
-            , ( "has-warning", compute fieldHasWarning )
-            ]
+         , class "a-form__field__select"
          ]
             ++ attrs
             ++ Events.onInputAttribute config.events
@@ -1416,8 +1409,8 @@ renderSelectOption model { reader, slug, label } option =
         ]
 
 
-renderCustomSelect : FormState -> model -> SelectConfig model msg -> List (FormValidation.Validation model) -> Html msg
-renderCustomSelect formState model ({ slug, label, reader, isDisabled, isOpen, attrs } as config) validations =
+renderCustomSelect : model -> SelectConfig model msg -> Html msg
+renderCustomSelect model ({ slug, label, reader, isDisabled, isOpen, attrs } as config) =
     let
         options =
             case ( config.placeholder, isOpen ) of
@@ -1427,30 +1420,18 @@ renderCustomSelect formState model ({ slug, label, reader, isDisabled, isOpen, a
                 ( _, _ ) ->
                     config.options
 
-        formField =
-            FormField (FormFieldSelectConfig config validations)
-
         currentValue =
             options
                 |> List.filter (\option -> ((==) option.slug << Maybe.withDefault "" << reader) model)
                 |> List.map .label
                 |> List.head
                 |> Maybe.withDefault (Maybe.withDefault "" config.placeholder)
-
-        compute : (model -> FormField model msg -> Bool) -> Bool
-        compute mapper =
-            mapper model formField
     in
     div
         ([ classList
             [ ( "a-form__field__customSelect", True )
             , ( "is-open", isOpen )
             , ( "is-disabled", isDisabled )
-            , ( "is-valid", compute fieldIsValid )
-            , ( "is-pristine", compute fieldIsPristine )
-            , ( "is-touched", compute fieldIsTouched )
-            , ( "has-error", compute fieldHasError )
-            , ( "has-warning", compute fieldHasWarning )
             ]
          ]
             ++ attrs
@@ -1489,12 +1470,9 @@ renderCustomSelectOption model ({ reader, slug, label } as config) option =
         ]
 
 
-renderDatepicker : FormState -> model -> DatepickerConfig model msg -> List (FormValidation.Validation model) -> List (Html msg)
-renderDatepicker formState model ({ attrs, reader, datePickerTagger, slug, label, instance, showDatePicker, events } as config) validations =
+renderDatepicker : model -> DatepickerConfig model msg -> List (Html msg)
+renderDatepicker model ({ attrs, reader, datePickerTagger, slug, label, instance, showDatePicker, events } as config) =
     let
-        formField =
-            FormField (FormFieldDatepickerConfig config validations)
-
         inputTextFormat str =
             (String.join "/"
                 << List.reverse
@@ -1508,24 +1486,13 @@ renderDatepicker formState model ({ attrs, reader, datePickerTagger, slug, label
                 << String.split "/"
             )
                 str
-
-        compute : (model -> FormField model msg -> Bool) -> Bool
-        compute mapper =
-            mapper model formField
     in
     [ Html.input
         ([ type_ "text"
          , (value << Maybe.withDefault "" << Maybe.map inputTextFormat << reader) model
          , id slug
          , name slug
-         , classList
-            [ ( "a-form__field__input a-form__field__datepicker", True )
-            , ( "is-valid", compute fieldIsValid )
-            , ( "is-pristine", compute fieldIsPristine )
-            , ( "is-touched", compute fieldIsTouched )
-            , ( "has-error", compute fieldHasError )
-            , ( "has-warning", compute fieldHasWarning )
-            ]
+         , class "a-form__field__input a-form__field__datepicker"
          ]
             ++ attrs
         )
@@ -1536,14 +1503,7 @@ renderDatepicker formState model ({ attrs, reader, datePickerTagger, slug, label
          , (value << Maybe.withDefault "" << Maybe.map inputDateFormat << reader) model
          , id slug
          , name slug
-         , classList
-            [ ( "a-form__field__date", True )
-            , ( "is-valid", compute fieldIsValid )
-            , ( "is-pristine", compute fieldIsPristine )
-            , ( "is-touched", compute fieldIsTouched )
-            , ( "has-error", compute fieldHasError )
-            , ( "has-warning", compute fieldHasWarning )
-            ]
+         , class "a-form__field__date"
          ]
             ++ attrs
         )
@@ -1551,12 +1511,9 @@ renderDatepicker formState model ({ attrs, reader, datePickerTagger, slug, label
     ]
 
 
-renderAutocomplete : FormState -> model -> AutocompleteConfig model msg -> List (FormValidation.Validation model) -> List (Html msg)
-renderAutocomplete formState model ({ filterReader, choiceReader, slug, label, isOpen, noResults, attrs, options } as config) validations =
+renderAutocomplete : model -> AutocompleteConfig model msg -> List (Html msg)
+renderAutocomplete model ({ filterReader, choiceReader, slug, label, isOpen, noResults, attrs, options } as config) =
     let
-        formField =
-            FormField (FormFieldAutocompleteConfig config validations)
-
         pickLabelByValue opts value =
             (List.head << List.map .label << List.filter ((==) value << .slug)) opts
 
@@ -1572,10 +1529,6 @@ renderAutocomplete formState model ({ filterReader, choiceReader, slug, label, i
 
                 _ ->
                     (value << Maybe.withDefault "" << filterReader) model
-
-        compute : (model -> FormField model msg -> Bool) -> Bool
-        compute mapper =
-            mapper model formField
     in
     [ div
         [ classList
@@ -1590,11 +1543,6 @@ renderAutocomplete formState model ({ filterReader, choiceReader, slug, label, i
              , name slug
              , classList
                 [ ( "a-form__field__input", True )
-                , ( "is-valid", compute fieldIsValid )
-                , ( "is-pristine", compute fieldIsPristine )
-                , ( "is-touched", compute fieldIsTouched )
-                , ( "has-error", compute fieldHasError )
-                , ( "has-warning", compute fieldHasWarning )
                 ]
              ]
                 ++ attrs
@@ -1641,14 +1589,20 @@ renderPureHtml { content } =
     content
 
 
-shouldShowError : model -> FormField model msg -> Bool
-shouldShowError model ((FormField opaqueConfig) as config) =
-    True
+shouldValidate : Form model msg -> Bool
+shouldValidate (Form formConfig) =
+    case ( formConfig.validationVisibilityPolicy, formConfig.state ) of
+        ( Always, _ ) ->
+            True
 
+        ( WhenSubmitted, Submitted ) ->
+            True
 
-shouldShowWarning : model -> FormField model msg -> Bool
-shouldShowWarning model ((FormField opaqueConfig) as config) =
-    True
+        ( WhenSubmitted, Pristine ) ->
+            False
+
+        ( WhenSubmitted, Touched ) ->
+            False
 
 
 

@@ -15,7 +15,7 @@ module Prima.Pyxis.Form.Examples.Model exposing
 
 import Date exposing (Date)
 import Prima.Pyxis.DatePicker as DatePicker
-import Prima.Pyxis.Form as Form
+import Prima.Pyxis.Form as Form exposing (ValidationVisibilityPolicy)
 import Time exposing (Month(..))
 
 
@@ -27,7 +27,7 @@ type alias Model =
 
 initialModel : Model
 initialModel =
-    Model initialFormData Form.init
+    Model initialFormData (Form.init Form.WhenSubmitted)
 
 
 type alias FormData =
@@ -121,3 +121,4 @@ type Msg
     | ToggleDatePicker
     | Submit
     | Reset
+    | ChangeValidationPolicy ValidationVisibilityPolicy
