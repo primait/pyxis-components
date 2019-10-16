@@ -128,7 +128,7 @@ city isOpen =
         False
         isOpen
         (Just "Seleziona")
-        [ class "formSmall" ]
+        [ class "form-small" ]
         .city
         [ Event.onToggle (Toggle City)
         , Event.onInput (UpdateField City)

@@ -464,7 +464,7 @@ render model ((Form { fields }) as formConfig) =
                 AbstractInputGroup formField inputGroup ->
                     renderInputGroupField formConfig model inputGroup formField
     in
-    div [ class "m-form" ] (List.map mapper fields)
+    div [ class "o-form" ] (List.map mapper fields)
 
 
 fieldGroupConfig : Label -> List (FormField model msg) -> List (FormValidation.Validation model) -> FormFieldGroup model msg
@@ -476,12 +476,12 @@ renderFieldGroup : Form model msg -> model -> FormFieldGroup model msg -> Html m
 renderFieldGroup formConfig model formFieldGroup =
     div
         [ classList
-            [ ( "a-form__field-group", True )
+            [ ( "m-form-field-group", True )
             , ( "is-valid", fieldGroupIsValid model formFieldGroup )
-            , ( "has-own-error", shouldValidate formConfig && fieldGroupHasOwnError model formFieldGroup )
-            , ( "has-own-warning", shouldValidate formConfig && fieldGroupHasOwnWarning model formFieldGroup )
-            , ( "has-field-error", shouldValidate formConfig && fieldGroupHasFieldError model formFieldGroup )
-            , ( "has-field-warning", shouldValidate formConfig && fieldGroupHasFieldWarning model formFieldGroup )
+            , ( "has-own-errors", shouldValidate formConfig && fieldGroupHasOwnError model formFieldGroup )
+            , ( "has-own-warnings", shouldValidate formConfig && fieldGroupHasOwnWarning model formFieldGroup )
+            , ( "has-field-errors", shouldValidate formConfig && fieldGroupHasFieldError model formFieldGroup )
+            , ( "has-field-warnings", shouldValidate formConfig && fieldGroupHasFieldWarning model formFieldGroup )
             ]
         ]
         [ renderFieldGroupLabel formFieldGroup
@@ -492,14 +492,14 @@ renderFieldGroup formConfig model formFieldGroup =
 renderFieldGroupLabel : FormFieldGroup model msg -> Html msg
 renderFieldGroupLabel formFieldGroup =
     div
-        [ class "a-form__field-group__label" ]
+        [ class "m-form-field-group__label" ]
         [ text <| pickFieldGroupLabel formFieldGroup ]
 
 
 renderFieldGroupFormFields : Form model msg -> model -> FormFieldGroup model msg -> Html msg
 renderFieldGroupFormFields formConfig model formFieldGroup =
     div
-        [ class "a-form__field-group__fields-list" ]
+        [ class "m-form-field-group__fields-list" ]
         (formFieldGroup
             |> pickFieldGroupFields
             |> List.map (renderFieldEngine Group formConfig model)
@@ -509,7 +509,7 @@ renderFieldGroupFormFields formConfig model formFieldGroup =
 renderFieldGroupWrapper : Form model msg -> model -> FormFieldGroup model msg -> Html msg
 renderFieldGroupWrapper formConfig model formFieldGroup =
     div
-        [ class "a-form__field-group__fields-wrapper" ]
+        [ class "m-form-field-group__fields-wrapper" ]
         [ renderFieldGroupFormFields formConfig model formFieldGroup
         , formFieldGroup
             |> pickFieldGroupFields
@@ -534,7 +534,7 @@ renderFieldGroupValidationMessages model formFieldGroup allValidations =
                 FormValidation.Warning
     in
     div
-        [ class "a-form__field-group__validation-messages-list" ]
+        [ class "m-form-field-group__validation-messages-list" ]
         (allValidations
             |> pickOnly filterType
             |> List.map FormValidation.pickValidationMessage
@@ -544,7 +544,7 @@ renderFieldGroupValidationMessages model formFieldGroup allValidations =
 
 renderFieldGroupSingleValidationMessage : String -> Html msg
 renderFieldGroupSingleValidationMessage message =
-    span [ class "a-form__field-group__validation-message-list__item" ] [ text message ]
+    span [ class "m-form-field-group__validation-message-list__item" ] [ text message ]
 
 
 {-| Represents an html which prepends to the form field.
@@ -1035,7 +1035,7 @@ renderFormField form model formField renderedField renderedValidations =
     in
     div
         [ classList
-            [ ( "a-form__field", True )
+            [ ( "a-form-field", True )
             , ( "is-valid", compute fieldIsValid )
             , ( "is-pristine", compute fieldIsPristine )
             , ( "is-touched", compute fieldIsTouched )
@@ -1224,7 +1224,7 @@ renderInputGroupField ((Form formConfig) as form) model group ((FormField opaque
 inputGroupWrapper : InputGroup msg -> List (Html msg) -> Html msg
 inputGroupWrapper group content =
     div
-        [ class "m-form__field__group" ]
+        [ class "m-form-input-group" ]
         ((case group of
             Prepend groupContent ->
                 inputGroupPrepend groupContent
@@ -1239,14 +1239,14 @@ inputGroupWrapper group content =
 inputGroupPrepend : List (Html msg) -> Html msg
 inputGroupPrepend =
     div
-        [ class "m-form__field__group__prepend"
+        [ class "m-form-input-group__prepend"
         ]
 
 
 inputGroupAppend : List (Html msg) -> Html msg
 inputGroupAppend =
     div
-        [ class "m-form__field__group__append"
+        [ class "m-form-input-group__append"
         ]
 
 
@@ -1259,7 +1259,7 @@ renderLabel slug theLabel =
         Just label ->
             Html.label
                 [ for slug
-                , class "a-form__field__label"
+                , class "a-form-field__label"
                 ]
                 [ text label
                 ]
@@ -1280,7 +1280,7 @@ renderInput model ({ reader, slug, label, attrs } as config) =
          , id slug
          , name slug
          , class
-            "a-form__field__input"
+            "a-form-field__input"
          ]
             ++ attrs
             ++ Events.onInputAttribute config.events
@@ -1298,7 +1298,7 @@ renderPassword model ({ reader, slug, label, attrs } as config) =
          , (value << Maybe.withDefault "" << reader) model
          , id slug
          , name slug
-         , class "a-form__field__input"
+         , class "a-form-field__input"
          ]
             ++ attrs
             ++ Events.onInputAttribute config.events
@@ -1316,7 +1316,7 @@ renderTextarea model ({ reader, slug, label, attrs, events } as config) =
          , id slug
          , name slug
          , class
-            "a-form__field__textarea"
+            "a-form-field__textarea"
          ]
             ++ attrs
             ++ Events.onInputAttribute config.events
@@ -1338,7 +1338,7 @@ renderRadio model ({ slug, label, options } as config) =
     in
     [ div
         [ classList
-            [ ( "a-form__field__radio-options", True )
+            [ ( "a-form-field__radio-options", True )
             , ( "is-vertical", isVertical )
             ]
         ]
@@ -1359,7 +1359,7 @@ renderRadioOption model ({ reader, slug, label, options, attrs } as config) inde
          , name slug
          , (checked << (==) option.slug << Maybe.withDefault "" << reader) model
          , classList
-            [ ( "a-form__field__radio", True )
+            [ ( "a-form-field__radio", True )
             ]
          ]
             ++ attrs
@@ -1368,7 +1368,7 @@ renderRadioOption model ({ reader, slug, label, options, attrs } as config) inde
         []
     , Html.label
         [ for optionSlug
-        , class "a-form__field__radio__label"
+        , class "a-form-field__radio__label"
         ]
         [ text option.label
         ]
@@ -1391,7 +1391,7 @@ renderCheckboxOption ({ reader, attrs } as config) index option =
          , value option.slug
          , id slug
          , name slug
-         , class "a-form__field__checkbox"
+         , class "a-form-field__checkbox"
          ]
             ++ attrs
             ++ Events.onCheckAttribute option.slug (not option.isChecked) config.events
@@ -1399,7 +1399,7 @@ renderCheckboxOption ({ reader, attrs } as config) index option =
         []
     , Html.label
         [ for slug
-        , class "a-form__field__checkbox__label"
+        , class "a-form-field__checkbox__label"
         ]
         [ text option.label
         ]
@@ -1421,7 +1421,7 @@ renderSelect formState model ({ slug, label, reader, attrs, events } as config) 
     , Html.select
         ([ id slug
          , name slug
-         , class "a-form__field__select"
+         , class "a-form-field__select"
          ]
             ++ attrs
             ++ Events.onInputAttribute config.events
@@ -1462,7 +1462,7 @@ renderCustomSelect model ({ slug, label, reader, isDisabled, isOpen, attrs } as 
     in
     div
         ([ classList
-            [ ( "a-form__field__custom-select", True )
+            [ ( "a-form-field__custom-select", True )
             , ( "is-open", isOpen )
             , ( "is-disabled", isDisabled )
             ]
@@ -1472,14 +1472,14 @@ renderCustomSelect model ({ slug, label, reader, isDisabled, isOpen, attrs } as 
             ++ Events.onBlurAttribute config.events
         )
         [ span
-            ([ class "a-form__field__custom-select__status"
+            ([ class "a-form-field__custom-select__status"
              ]
                 ++ Events.onToggleAttribute config.events
             )
             [ text currentValue
             ]
         , ul
-            [ class "a-form__field__custom-select__list" ]
+            [ class "a-form-field__custom-select__list" ]
             (List.indexedMap
                 (\index option ->
                     renderCustomSelectOption model config option
@@ -1493,7 +1493,7 @@ renderCustomSelectOption : model -> SelectConfig model msg -> SelectOption -> Ht
 renderCustomSelectOption model ({ reader, slug, label } as config) option =
     li
         ([ classList
-            [ ( "a-form__field__custom-select__list__item", True )
+            [ ( "a-form-field__custom-select__list__item", True )
             , ( "is-selected", ((==) option.slug << Maybe.withDefault "" << reader) model )
             ]
          ]
@@ -1525,7 +1525,7 @@ renderDatepicker model ({ attrs, reader, datePickerTagger, slug, label, instance
          , (value << Maybe.withDefault "" << Maybe.map inputTextFormat << reader) model
          , id slug
          , name slug
-         , class "a-form__field__input a-form__field__datepicker"
+         , class "a-form-field__input a-form-field__datepicker"
          ]
             ++ attrs
         )
@@ -1536,7 +1536,7 @@ renderDatepicker model ({ attrs, reader, datePickerTagger, slug, label, instance
          , (value << Maybe.withDefault "" << Maybe.map inputDateFormat << reader) model
          , id slug
          , name slug
-         , class "a-form__field__date"
+         , class "a-form-field__date"
          ]
             ++ attrs
         )
@@ -1565,7 +1565,7 @@ renderAutocomplete model ({ filterReader, choiceReader, slug, label, isOpen, noR
     in
     [ div
         [ classList
-            [ ( "a-form__field__autocomplete", True )
+            [ ( "a-form-field__autocomplete", True )
             , ( "is-open", isOpen )
             ]
         ]
@@ -1575,7 +1575,7 @@ renderAutocomplete model ({ filterReader, choiceReader, slug, label, isOpen, noR
              , id slug
              , name slug
              , classList
-                [ ( "a-form__field__input", True )
+                [ ( "a-form-field__input", True )
                 ]
              ]
                 ++ attrs
@@ -1583,7 +1583,7 @@ renderAutocomplete model ({ filterReader, choiceReader, slug, label, isOpen, noR
             )
             []
         , ul
-            [ class "a-form__field__autocomplete__list" ]
+            [ class "a-form-field__autocomplete__list" ]
             (if List.length options > 0 then
                 List.indexedMap (\index option -> renderAutocompleteOption model config option) options
 
@@ -1598,7 +1598,7 @@ renderAutocompleteOption : model -> AutocompleteConfig model msg -> Autocomplete
 renderAutocompleteOption model ({ choiceReader } as config) option =
     li
         ([ classList
-            [ ( "a-form__field__autocomplete__list__item", True )
+            [ ( "a-form-field__autocomplete__list__item", True )
             , ( "is-selected", ((==) option.slug << Maybe.withDefault "" << choiceReader) model )
             ]
          ]
@@ -1611,7 +1611,7 @@ renderAutocompleteOption model ({ choiceReader } as config) option =
 renderAutocompleteNoResults : model -> AutocompleteConfig model msg -> Html msg
 renderAutocompleteNoResults model { noResults } =
     li
-        [ class "a-form__field__autocomplete__list--no-results"
+        [ class "a-form-field__autocomplete__list--no-results"
         ]
         [ (text << Maybe.withDefault "") noResults
         ]
