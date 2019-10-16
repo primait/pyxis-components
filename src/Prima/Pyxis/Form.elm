@@ -1026,8 +1026,8 @@ isRenderFieldSingle =
     (==) Single
 
 
-renderFormField : Form model msg -> model -> FormField model msg -> List (Html msg) -> List (Html msg) -> Html msg
-renderFormField form model formField renderedField renderedValidations =
+renderFormField : Form model msg -> model -> FormField model msg -> Html msg -> List (Html msg) -> List (Html msg) -> Html msg
+renderFormField form model formField renderedLabel renderedField renderedValidations =
     let
         compute : (model -> FormField model msg -> Bool) -> Bool
         compute mapper =
@@ -1043,9 +1043,13 @@ renderFormField form model formField renderedField renderedValidations =
             , ( "has-warning", shouldValidate form && compute fieldHasWarning )
             ]
         ]
-    <|
-        (++) renderedField <|
-            Helpers.renderListIf (shouldValidate form) renderedValidations
+        [ renderedLabel
+        , div
+            [ class "a-form-field__field-wrapper" ]
+            (renderedField
+                ++ Helpers.renderListIf (shouldValidate form) renderedValidations
+            )
+        ]
 
 
 renderFieldValidationList : model -> FormField model msg -> List (Html msg)
@@ -1080,34 +1084,35 @@ renderFieldEngine mode ((Form formConfig) as form) model ((FormField opaqueConfi
             else
                 text ""
 
-        renderedInputField =
+        -- (Label, Field) --
+        ( renderedLabel, renderedField ) =
             case opaqueConfig of
                 FormFieldTextConfig config _ ->
-                    lbl config :: renderInput model config
+                    ( lbl config, renderInput model config )
 
                 FormFieldPasswordConfig config _ ->
-                    lbl config :: renderPassword model config
+                    ( lbl config, renderPassword model config )
 
                 FormFieldTextareaConfig config _ ->
-                    lbl config :: renderTextarea model config
+                    ( lbl config, renderTextarea model config )
 
                 FormFieldRadioConfig config _ ->
-                    lbl config :: renderRadio model config
+                    ( lbl config, renderRadio model config )
 
                 FormFieldCheckboxConfig config _ ->
-                    lbl config :: renderCheckbox config
+                    ( lbl config, renderCheckbox config )
 
                 FormFieldSelectConfig config validation ->
-                    lbl config :: renderSelect formConfig.state model config validation
+                    ( lbl config, renderSelect formConfig.state model config validation )
 
                 FormFieldDatepickerConfig config _ ->
-                    lbl config :: renderDatepicker model config
+                    ( lbl config, renderDatepicker model config )
 
                 FormFieldAutocompleteConfig config _ ->
-                    lbl config :: renderAutocomplete model config
+                    ( lbl config, renderAutocomplete model config )
 
                 FormFieldPureHtmlConfig config ->
-                    renderPureHtml config
+                    ( text "", renderPureHtml config )
 
         renderedValidations =
             case mode of
@@ -1118,7 +1123,7 @@ renderFieldEngine mode ((Form formConfig) as form) model ((FormField opaqueConfi
                 Group ->
                     []
     in
-    renderFormField form model formField renderedInputField renderedValidations
+    renderFormField form model formField renderedLabel renderedField renderedValidations
 
 
 {-| Renders a field by receiving the `Form`, the `InputGroup`, and the `FormField` configuration.
@@ -1170,60 +1175,60 @@ renderInputGroupField ((Form formConfig) as form) model group ((FormField opaque
         errors =
             []
 
-        fieldList =
+        ( renderedLabel, renderedField ) =
             case opaqueConfig of
                 FormFieldTextConfig config validation ->
-                    [ lbl config
+                    ( lbl config
                     , inputGroupWrapper group <| (renderInput model config ++ errors)
-                    ]
+                    )
 
                 FormFieldPasswordConfig config validation ->
-                    [ lbl config
+                    ( lbl config
                     , inputGroupWrapper group <| (renderPassword model config ++ errors)
-                    ]
+                    )
 
                 FormFieldTextareaConfig config validation ->
-                    [ lbl config
+                    ( lbl config
                     , inputGroupWrapper group <| (renderInput model config ++ errors)
-                    ]
+                    )
 
                 FormFieldRadioConfig config validation ->
-                    [ lbl config
+                    ( lbl config
                     , inputGroupWrapper group <| (renderRadio model config ++ errors)
-                    ]
+                    )
 
                 FormFieldCheckboxConfig config validation ->
-                    [ lbl config
+                    ( lbl config
                     , inputGroupWrapper group <| (renderCheckbox config ++ errors)
-                    ]
+                    )
 
                 FormFieldSelectConfig config validation ->
-                    [ lbl config
+                    ( lbl config
                     , inputGroupWrapper group <| (renderSelect formConfig.state model config validation ++ errors)
-                    ]
+                    )
 
                 FormFieldDatepickerConfig config validation ->
-                    [ lbl config
+                    ( lbl config
                     , inputGroupWrapper group <| (renderDatepicker model config ++ errors)
-                    ]
+                    )
 
                 FormFieldAutocompleteConfig config validation ->
-                    [ lbl config
+                    ( lbl config
                     , inputGroupWrapper group <| (renderAutocomplete model config ++ errors)
-                    ]
+                    )
 
                 FormFieldPureHtmlConfig config ->
-                    renderPureHtml config
+                    ( text "", renderPureHtml config )
 
         validationList =
             renderFieldValidationList model formField
     in
-    renderFormField form model formField fieldList validationList
+    renderFormField form model formField renderedLabel renderedField validationList
 
 
-inputGroupWrapper : InputGroup msg -> List (Html msg) -> Html msg
+inputGroupWrapper : InputGroup msg -> List (Html msg) -> List (Html msg)
 inputGroupWrapper group content =
-    div
+    [ div
         [ class "m-form-input-group" ]
         ((case group of
             Prepend groupContent ->
@@ -1234,6 +1239,7 @@ inputGroupWrapper group content =
          )
             :: content
         )
+    ]
 
 
 inputGroupPrepend : List (Html msg) -> Html msg
