@@ -1279,8 +1279,7 @@ renderInput model ({ reader, slug, label, attrs } as config) =
          , (value << Maybe.withDefault "" << reader) model
          , id slug
          , name slug
-         , class
-            "a-form-field__input"
+         , class "a-form-field__input"
          ]
             ++ attrs
             ++ Events.onInputAttribute config.events
