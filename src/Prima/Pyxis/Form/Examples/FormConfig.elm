@@ -68,7 +68,7 @@ formFieldGroup =
     Form.fieldGroupConfig
         "Username & Password"
         [ username, password False ]
-        [ FormValidation.config FormValidation.Error
+        [ FormValidation.config FormValidation.Warning
             (\formData -> not (formData.username == formData.password))
             "Username and password shouldn't be equal"
         ]
@@ -82,7 +82,10 @@ note =
         []
         .note
         [ Event.onInput (UpdateField Note) ]
-        []
+        [ FormValidation.config FormValidation.Error
+            (\formData -> not (formData.note == Nothing))
+            "Note shouldn't be empty"
+        ]
 
 
 gender : FormField FormData Msg
@@ -96,7 +99,10 @@ gender =
         [ Form.radioOption "Male" "male"
         , Form.radioOption "Female" "female"
         ]
-        []
+        [ FormValidation.config FormValidation.Error
+            (\formData -> not (formData.gender == Nothing))
+            "Gender shouldn't be empty"
+        ]
 
 
 visitedCountries : FormData -> FormField FormData Msg
@@ -108,7 +114,10 @@ visitedCountries data =
         (List.map (\( label, slug, checked ) -> ( slug, checked )) << .visitedCountries)
         [ Event.onCheck (UpdateCheckbox VisitedCountries) ]
         (List.map (\( label, slug, checked ) -> Form.checkboxOption label slug checked) data.visitedCountries)
-        []
+        [ FormValidation.config FormValidation.Error
+            (\formData -> List.any (\( _, _, isSelected ) -> isSelected) formData.visitedCountries)
+            "You must select one country"
+        ]
 
 
 city : Bool -> FormField FormData Msg
@@ -134,7 +143,10 @@ city isOpen =
             , Form.selectOption "Genoa" "GE"
             ]
         )
-        []
+        [ FormValidation.config FormValidation.Error
+            (\formData -> not (formData.city == Nothing))
+            "You must select one city"
+        ]
 
 
 dateOfBirth : FormData -> FormField FormData Msg
@@ -148,7 +160,10 @@ dateOfBirth { isVisibleDP, dateOfBirthDP } =
         [ Event.onInput (UpdateField DateOfBirth) ]
         dateOfBirthDP
         isVisibleDP
-        []
+        [ FormValidation.config FormValidation.Error
+            (\formData -> not (formData.dateOfBirth == Nothing))
+            "You must select a date"
+        ]
 
 
 country : FormData -> FormField FormData Msg
@@ -205,7 +220,10 @@ country { countryFilter, isOpenCountry } =
          ]
             |> List.filter (String.contains lowerFilter << String.toLower << .label)
         )
-        []
+        [ FormValidation.config FormValidation.Error
+            (\formData -> not (formData.country == Nothing))
+            "Country must be selected"
+        ]
 
 
 staticHtml : Model -> FormField FormData Msg

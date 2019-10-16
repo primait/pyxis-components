@@ -1,12 +1,12 @@
 module Prima.Pyxis.Form.Examples.View exposing (view)
 
 import Browser
-import Html exposing (Html, button, div, i, text)
+import Html exposing (Html, div, i, p, text)
 import Html.Attributes exposing (class)
 import Html.Events exposing (onClick)
 import Prima.Pyxis.Button as Button
 import Prima.Pyxis.Form as Form exposing (AbstractField)
-import Prima.Pyxis.Form.Examples.FormConfig as Config exposing (formFieldGroup)
+import Prima.Pyxis.Form.Examples.FormConfig as Config
 import Prima.Pyxis.Form.Examples.Model exposing (FormData, Model, Msg(..))
 import Prima.Pyxis.Helpers as Helpers
 
@@ -31,16 +31,17 @@ appBody ({ data, formConfig } as model) =
                 |> Form.addField (Config.visitedCountries data)
                 |> Form.addField (Config.city data.isOpenCity)
                 |> Form.addField (Config.country data)
-                |> Form.addField (Config.dateOfBirth data)
+                |> Form.addInputGroup (Config.dateOfBirth data) (Form.appendInputGroup [ datePickerIcon ])
     in
     [ div
         [ class "a-container directionColumn" ]
         [ Helpers.pyxisStyle
-        , text <| Maybe.withDefault "" <| Maybe.map ((++) "Form current state:") (formStateLabel form)
+        , btnSwitchValidationMode form
+        , p [] [ text <| Maybe.withDefault "" <| Maybe.map ((++) "Form current state:") (formStateLabel form) ]
+        , p [] [ text <| formValidationPolicyLabel form ]
         , Form.render data form
         , btnSubmit
         , btnReset
-        , btnSwitchValidationMode form
         ]
     ]
 
@@ -104,3 +105,13 @@ formStateLabel form =
 
     else
         Nothing
+
+
+formValidationPolicyLabel : Form.Form model msg -> String
+formValidationPolicyLabel form =
+    case Form.pickValidationVisibilityPolicy form of
+        Form.Always ->
+            "Form validates continuosly"
+
+        Form.WhenSubmitted ->
+            "Form validates after submit"

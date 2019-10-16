@@ -5,6 +5,7 @@ module Prima.Pyxis.Helpers exposing
     , loremIpsum
     , pyxisStyle
     , renderIf
+    , renderListIf
     , spacer
     )
 
@@ -49,6 +50,15 @@ renderIf condition html =
 
     else
         text ""
+
+
+renderListIf : Bool -> List (Html msg) -> List (Html msg)
+renderListIf condition html =
+    if condition then
+        html
+
+    else
+        [ text "" ]
 
 
 flip : (a -> b -> c) -> b -> a -> c
