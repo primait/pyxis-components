@@ -1,7 +1,7 @@
 module Prima.Pyxis.Form exposing
     ( Form, Label, Slug, Value
     , init, setAsTouched, setAsSubmitted, addField, addFieldGroup, addInputGroup
-    , InputGroup, prependInputGroup, appendInputGroup
+    , InputGroup, prepend, append
     , isFormSubmitted, isFormPristine, isFormTouched
     , ValidationVisibilityPolicy(..)
     , pickValidationVisibilityPolicy, validateAlways, validateWhenSubmitted
@@ -34,7 +34,7 @@ module Prima.Pyxis.Form exposing
 
 # InputGroup
 
-@docs InputGroup, prependInputGroup, appendInputGroup
+@docs InputGroup, prepend, append
 
 
 # Form State Helpers
@@ -97,12 +97,12 @@ module Prima.Pyxis.Form exposing
 @docs pureHtmlConfig
 
 
-# Fields Helpers
+# FormField Helpers
 
 @docs fieldIsValid, fieldHasError, fieldHasWarning, fieldIsPristine, fieldIsTouched
 
 
-# FieldGroup Helpers
+# FormFieldGroup Helpers
 
 @docs fieldGroupIsValid, fieldGroupHasError, fieldGroupHasOwnError, fieldGroupHasFieldError, fieldGroupHasWarning, fieldGroupHasOwnWarning, fieldGroupHasFieldWarning
 
@@ -149,7 +149,7 @@ type alias FormConfig model msg =
 type AbstractField model msg
     = AbstractField (FormField model msg)
     | AbstractFieldGroup (FormFieldGroup model msg)
-    | AbstractInputGroup (FormField model msg) (InputGroup msg)
+    | AbstractInputGroup (InputGroup model msg)
 
 
 type FormState
@@ -189,11 +189,11 @@ type FormFieldConfig model msg
 
 
 {-| Represents the type of group which can wrap a form field.
-Used to add a boxed icon in a form field (for instance the calendar icon of the datepicker).
+Used to add a boxed icon in a form field (for example the calendar icon of the datepicker).
 -}
-type InputGroup msg
-    = Prepend (List (Html msg))
-    | Append (List (Html msg))
+type InputGroup model msg
+    = Prepend (List (Html msg)) (FormField model msg)
+    | Append (List (Html msg)) (FormField model msg)
 
 
 type alias TextConfig model msg =
@@ -334,9 +334,14 @@ type RenderFieldMode
     | Single
 
 
-{-| Specify when the form will show validations.
-Always: validations display will depend only on validation function result.
-WhenSubmitted: validations will be shown only after setAsSubmitted have been called
+{-|
+
+
+## Specify when the form will show validations.
+
+  - `Always:` validations display will depend only on validation function result.
+  - `WhenSubmitted`: validations will be shown only after setAsSubmitted have been called
+
 -}
 type ValidationVisibilityPolicy
     = Always
@@ -491,9 +496,25 @@ addFieldGroup formFieldGroup (Form ({ fields } as config)) =
     Form { config | fields = fields ++ [ AbstractFieldGroup formFieldGroup ] }
 
 
-{-| Adds a FormField to a form prepending or appending a List(Html msg)
+{-| Adds an Input Group to the form (you can build a Input Group using append and prepend functions)
 
     --
+    dateOfBirth : FormData -> Html Msg -> Form.InputGroup FormData Msg
+    dateOfBirth { isVisibleDP, dateOfBirthDP } appendable =
+        Form.datepickerConfig
+            "date_of_birth"
+            (Just "Date of Birth")
+            []
+            .dateOfBirth
+            (UpdateDatePicker DateOfBirth)
+            [ Event.onInput (UpdateField DateOfBirth) ]
+            dateOfBirthDP
+            isVisibleDP
+            [ FormValidation.config FormValidation.Error
+                (\formData -> not (formData.dateOfBirth == Nothing))
+                "You must select a date"
+            ]
+            |> Form.append [ appendable ]
     ...
     datePickerIcon : Html Msg
         datePickerIcon =
@@ -503,15 +524,15 @@ addFieldGroup formFieldGroup (Form ({ fields } as config)) =
                 ]
     ...
     view : Model -> Html Msg
-    view ({ form } as model) =
+    view ({ form, data } as model) =
         form
-            |> Form.addInputGroup dateOfBirthField (Form.appendInputGroup [ datePickerIcon ])
+            |> Form.addInputGroup (dateOfBirthField data datePickerIcon)
             |> Form.render
 
 -}
-addInputGroup : FormField model msg -> InputGroup msg -> Form model msg -> Form model msg
-addInputGroup formField inputGroup (Form ({ fields } as config)) =
-    Form { config | fields = fields ++ [ AbstractInputGroup formField inputGroup ] }
+addInputGroup : InputGroup model msg -> Form model msg -> Form model msg
+addInputGroup inputGroup (Form ({ fields } as config)) =
+    Form { config | fields = fields ++ [ AbstractInputGroup inputGroup ] }
 
 
 {-| Sets the form to Submitted state.
@@ -557,13 +578,37 @@ render model ((Form { fields }) as formConfig) =
                 AbstractFieldGroup formFieldGroup ->
                     renderFieldGroup formConfig model formFieldGroup
 
-                AbstractInputGroup formField inputGroup ->
-                    renderInputGroup formConfig model formField inputGroup
+                AbstractInputGroup inputGroup ->
+                    renderInputGroup formConfig model inputGroup
     in
     div [ class "o-form" ] (List.map mapper fields)
 
 
-{-| Renders a single FormFieldGroup
+{-| Renders a single `FormFieldGroup`
+
+    --
+    ...
+    formFieldGroup : FormFieldGroup FormData Msg
+    formFieldGroup =
+        Form.fieldGroupConfig
+            -- Field Group label
+            "Username & Alternative Username"
+            -- Field Group FormFields
+            [ username, alternativeUsername ]
+            -- Field Group own validations
+            [ FormValidation.config FormValidation.Warning
+                (\formData -> not (formData.username == formData.alternativeUsername))
+                "Username and password shouldn't be equal"
+            ]
+    ...
+    view : Model -> Html Msg
+    view { data, formConfig } =
+        div
+        [ class "a-container" ]
+        [ Config.formFieldGroup
+            |> Form.renderFieldGroup formConfig data
+        ]
+
 -}
 renderFieldGroup : Form model msg -> model -> FormFieldGroup model msg -> Html msg
 renderFieldGroup formConfig model formFieldGroup =
@@ -640,18 +685,57 @@ renderFieldGroupSingleValidationMessage message =
     span [ class "m-form-field-group__validation-message-list__item" ] [ text message ]
 
 
-{-| Represents an html which prepends to the form field.
+{-| Creates an InputGroup prepending a given List(Html msg) to a given FormField
+
+    --
+    ...
+    dateOfBirth : FormData -> Html Msg -> Form.InputGroup FormData Msg
+    dateOfBirth { isVisibleDP, dateOfBirthDP } prependable =
+        Form.datepickerConfig
+            "date_of_birth"
+            (Just "Date of Birth")
+            []
+            .dateOfBirth
+            (UpdateDatePicker DateOfBirth)
+            [ Event.onInput (UpdateField DateOfBirth) ]
+            dateOfBirthDP
+            isVisibleDP
+            [ FormValidation.config FormValidation.Error
+                (\formData -> not (formData.dateOfBirth == Nothing))
+                "You must select a date"
+            ]|> Form.prepend [ prependable ]
+
 -}
-prependInputGroup : List (Html msg) -> InputGroup msg
-prependInputGroup =
-    Prepend
+prepend : List (Html msg) -> FormField model msg -> InputGroup model msg
+prepend group field =
+    Prepend group field
 
 
-{-| Represents an html which appends to the form field.
+{-| Creates an InputGroup appending a given List(Html msg) to a given FormField
+
+    --
+    ...
+    dateOfBirth : FormData -> Html Msg -> Form.InputGroup FormData Msg
+    dateOfBirth { isVisibleDP, dateOfBirthDP } appendable =
+        Form.datepickerConfig
+            "date\_of\_birth"
+            (Just "Date of Birth")
+            []
+            .dateOfBirth
+            (UpdateDatePicker DateOfBirth)
+            [ Event.onInput (UpdateField DateOfBirth) ]
+            dateOfBirthDP
+            isVisibleDP
+            [ FormValidation.config FormValidation.Error
+            (\formData -> not (formData.dateOfBirth == Nothing))
+            "You must select a date"
+            ]
+            |> Form.append [ appendable ]
+
 -}
-appendInputGroup : List (Html msg) -> InputGroup msg
-appendInputGroup =
-    Append
+append : List (Html msg) -> FormField model msg -> InputGroup model msg
+append group field =
+    Append group field
 
 
 {-| Creates a radio option.
@@ -661,7 +745,7 @@ radioOption =
     RadioOption
 
 
-{-| Creates a radio option.
+{-| Creates a checkbox option.
 -}
 checkboxOption : Label -> Slug -> Bool -> CheckboxOption
 checkboxOption =
@@ -1080,7 +1164,7 @@ pureHtmlConfig content =
             )
 
 
-{-| Renders a field by receiving the `Form` and the `FormField` configuration.
+{-| Renders a single `FormField`
 
     --
     import Html exposing (Html)
@@ -1104,9 +1188,13 @@ pureHtmlConfig content =
     ...
 
     view : Model -> Html Msg
-    view model =
-        ( Form.renderField model.form model.data, [ usernameConfig ] )
-            |> Form.render model.form
+    view { data, formConfig } =
+        div
+        [ class "a-container" ]
+        [
+            usernameConfig
+                |> Form.renderField formConfig data
+        ]
 
 -}
 renderField : Form model msg -> model -> FormField model msg -> Html msg
@@ -1124,8 +1212,10 @@ isRenderFieldSingle =
     (==) Single
 
 
-renderFormField : Form model msg -> model -> FormField model msg -> Html msg -> List (Html msg) -> List (Html msg) -> Html msg
-renderFormField form model formField renderedLabel renderedField renderedValidations =
+{-| Assemble pre-rendered form field elements (input and validations) given by renderEngine
+-}
+assemblyFormField : Form model msg -> model -> FormField model msg -> Html msg -> List (Html msg) -> List (Html msg) -> Html msg
+assemblyFormField form model formField renderedLabel renderedField renderedValidations =
     let
         compute : (model -> FormField model msg -> Bool) -> Bool
         compute mapper =
@@ -1153,8 +1243,8 @@ renderFormField form model formField renderedLabel renderedField renderedValidat
 renderFieldValidationList : model -> FormField model msg -> List (Html msg)
 renderFieldValidationList model formField =
     let
-        solvedValidationTypePicker : FormValidation.Validation model -> Bool
-        solvedValidationTypePicker =
+        byType : FormValidation.Validation model -> Bool
+        byType =
             case ( fieldHasError model formField, fieldHasWarning model formField ) of
                 ( True, _ ) ->
                     FormValidation.isError << FormValidation.pickType
@@ -1164,10 +1254,17 @@ renderFieldValidationList model formField =
 
                 ( False, False ) ->
                     always False
+
+        byValidity : FormValidation.Validation model -> Bool
+        byValidity validation =
+            model
+                |> FormValidation.pickFunction validation
+                |> not
     in
     formField
         |> pickFieldValidations
-        |> List.filter solvedValidationTypePicker
+        |> List.filter byType
+        |> List.filter byValidity
         |> List.map FormValidation.pickValidationMessage
         |> List.map renderFieldValidationMessage
 
@@ -1221,12 +1318,10 @@ renderFieldEngine mode ((Form formConfig) as form) model ((FormField opaqueConfi
                 Group ->
                     []
     in
-    renderFormField form model formField renderedLabel renderedField renderedValidations
+    assemblyFormField form model formField renderedLabel renderedField renderedValidations
 
 
-{-| Renders a field by receiving the `Form`, the `InputGroup`, and the `FormField` configuration.
-Useful to build a field with an icon to the left (prepend), or to the right (append).
-You can pass any html to this function, but be careful, UI can be broken.
+{-| Renders a single \`InputGroup
 
     --
     import Html exposing (Html, i)
@@ -1248,7 +1343,20 @@ You can pass any html to this function, but be careful, UI can be broken.
     type alias FormData =
         { birthDate: Maybe String
         }
-
+    ...
+    dateOfBirth : FormData -> Html Msg -> Form.InputGroup FormData Msg
+    dateOfBirth { isVisibleDP, dateOfBirthDP } appendable =
+        Form.datepickerConfig
+            "date_of_birth"
+            (Just "Date of Birth")
+            []
+            .dateOfBirth
+            (UpdateDatePicker DateOfBirth)
+            [ Event.onInput (UpdateField DateOfBirth) ]
+            dateOfBirthDP
+            isVisibleDP
+            []
+            |> Form.append [ appendable ]
     ...
 
     datePickerIcon : Html Msg
@@ -1259,13 +1367,16 @@ You can pass any html to this function, but be careful, UI can be broken.
             ]
 
     view : Model -> Html Msg
-    view model =
-        ( Form.renderInputGroup model.form model.data <| Form.appendInputGroup [ datePickerIcon ], [ datePickerConfig ] )
-            |> Form.render model.form
+    view { data, formConfig } =
+        div
+        [ class "a-container" ]
+        [ Config.dateOfBirth data datePickerIcon
+            |> Form.renderInputGroup formConfig data
+        ]
 
 -}
-renderInputGroup : Form model msg -> model -> FormField model msg -> InputGroup msg -> Html msg
-renderInputGroup ((Form formConfig) as form) model ((FormField opaqueConfig) as formField) group =
+renderInputGroup : Form model msg -> model -> InputGroup model msg -> Html msg
+renderInputGroup ((Form formConfig) as form) model inputGroup =
     let
         lbl config =
             renderLabel config.slug config.label
@@ -1273,66 +1384,75 @@ renderInputGroup ((Form formConfig) as form) model ((FormField opaqueConfig) as 
         errors =
             []
 
+        formField =
+            inputGroup
+                |> pickInputGroupFormField
+
+        formFieldConfig =
+            formField
+                |> pickFormFieldConfig
+
         ( renderedLabel, renderedField ) =
-            case opaqueConfig of
-                FormFieldTextConfig config validation ->
+            case formFieldConfig of
+                FormFieldTextConfig config _ ->
                     ( lbl config
-                    , inputGroupWrapper group <| (renderInput model config ++ errors)
+                    , inputGroupWrapper inputGroup <| (renderInput model config ++ errors)
                     )
 
-                FormFieldPasswordConfig config validation ->
+                FormFieldPasswordConfig config _ ->
                     ( lbl config
-                    , inputGroupWrapper group <| (renderPassword model config ++ errors)
+                    , inputGroupWrapper inputGroup <| (renderPassword model config ++ errors)
                     )
 
-                FormFieldTextareaConfig config validation ->
+                FormFieldTextareaConfig config _ ->
                     ( lbl config
-                    , inputGroupWrapper group <| (renderInput model config ++ errors)
+                    , inputGroupWrapper inputGroup <| (renderInput model config ++ errors)
                     )
 
-                FormFieldRadioConfig config validation ->
+                FormFieldRadioConfig config _ ->
                     ( lbl config
-                    , inputGroupWrapper group <| (renderRadio model config ++ errors)
+                    , inputGroupWrapper inputGroup <| (renderRadio model config ++ errors)
                     )
 
-                FormFieldCheckboxConfig config validation ->
+                FormFieldCheckboxConfig config _ ->
                     ( lbl config
-                    , inputGroupWrapper group <| (renderCheckbox config ++ errors)
+                    , inputGroupWrapper inputGroup <| (renderCheckbox config ++ errors)
                     )
 
                 FormFieldSelectConfig config validation ->
                     ( lbl config
-                    , inputGroupWrapper group <| (renderSelect formConfig.state model config validation ++ errors)
+                    , inputGroupWrapper inputGroup <| (renderSelect formConfig.state model config validation ++ errors)
                     )
 
-                FormFieldDatepickerConfig config validation ->
+                FormFieldDatepickerConfig config _ ->
                     ( lbl config
-                    , inputGroupWrapper group <| (renderDatepicker model config ++ errors)
+                    , inputGroupWrapper inputGroup <| (renderDatepicker model config ++ errors)
                     )
 
-                FormFieldAutocompleteConfig config validation ->
+                FormFieldAutocompleteConfig config _ ->
                     ( lbl config
-                    , inputGroupWrapper group <| (renderAutocomplete model config ++ errors)
+                    , inputGroupWrapper inputGroup <| (renderAutocomplete model config ++ errors)
                     )
 
                 FormFieldPureHtmlConfig config ->
                     ( text "", renderPureHtml config )
 
         validationList =
-            renderFieldValidationList model formField
+            formField
+                |> renderFieldValidationList model
     in
-    renderFormField form model formField renderedLabel renderedField validationList
+    assemblyFormField form model formField renderedLabel renderedField validationList
 
 
-inputGroupWrapper : InputGroup msg -> List (Html msg) -> List (Html msg)
+inputGroupWrapper : InputGroup model msg -> List (Html msg) -> List (Html msg)
 inputGroupWrapper group content =
     [ div
         [ class "m-form-input-group" ]
         ((case group of
-            Prepend groupContent ->
+            Prepend groupContent _ ->
                 inputGroupPrepend groupContent
 
-            Append groupContent ->
+            Append groupContent _ ->
                 inputGroupAppend groupContent
          )
             :: content
@@ -1935,3 +2055,38 @@ fieldIsPristine model (FormField opaqueConfig) =
 fieldIsTouched : model -> FormField model msg -> Bool
 fieldIsTouched model formField =
     not <| fieldIsPristine model formField
+
+
+pickFormFieldConfig : FormField model msg -> FormFieldConfig model msg
+pickFormFieldConfig (FormField opaqueConfig) =
+    opaqueConfig
+
+
+pickInputGroupFormField : InputGroup model msg -> FormField model msg
+pickInputGroupFormField inputGroup =
+    case inputGroup of
+        Prepend _ formField ->
+            formField
+
+        Append _ formField ->
+            formField
+
+
+isPrependInputGroup : InputGroup model msg -> Bool
+isPrependInputGroup inputGroup =
+    case inputGroup of
+        Prepend list formField ->
+            True
+
+        Append list formField ->
+            False
+
+
+isAppendInputGroup : InputGroup model msg -> Bool
+isAppendInputGroup inputGroup =
+    case inputGroup of
+        Prepend list formField ->
+            False
+
+        Append list formField ->
+            True

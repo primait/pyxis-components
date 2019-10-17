@@ -158,8 +158,8 @@ city isOpen =
         ]
 
 
-dateOfBirth : FormData -> FormField FormData Msg
-dateOfBirth { isVisibleDP, dateOfBirthDP } =
+dateOfBirth : FormData -> Html Msg -> Form.InputGroup FormData Msg
+dateOfBirth { isVisibleDP, dateOfBirthDP } appendable =
     Form.datepickerConfig
         "date_of_birth"
         (Just "Date of Birth")
@@ -173,6 +173,7 @@ dateOfBirth { isVisibleDP, dateOfBirthDP } =
             (\formData -> not (formData.dateOfBirth == Nothing))
             "You must select a date"
         ]
+        |> Form.append [ appendable ]
 
 
 country : FormData -> FormField FormData Msg

@@ -20,7 +20,7 @@ updateFormData mapper model =
 
 setAsTouched : Model -> Model
 setAsTouched model =
-    if Form.isFormSubmitted <| Form.state model.formConfig then
+    if Form.isFormSubmitted model.formConfig then
         model
 
     else

@@ -20,26 +20,22 @@ view model =
 
 appBody : Model -> List (Html Msg)
 appBody { data, formConfig } =
-    let
-        form =
-            formConfig
-                |> Form.addField Config.username
-                |> Form.addField (Config.password True)
-                |> Form.addFieldGroup Config.formFieldGroup
-                |> Form.addField Config.note
-                |> Form.addField Config.gender
-                |> Form.addField (Config.visitedCountries data)
-                |> Form.addField (Config.city data.isOpenCity)
-                |> Form.addField (Config.country data)
-                |> Form.addInputGroup (Config.dateOfBirth data) (Form.appendInputGroup [ datePickerIcon ])
-    in
     [ div
         [ class "a-container directionColumn" ]
         [ Helpers.pyxisStyle
-        , btnSwitchValidationMode form
-        , p [] [ text <| Maybe.withDefault "" <| Maybe.map ((++) "Form current state:") (formStateLabel form) ]
-        , p [] [ text <| formValidationPolicyLabel form ]
-        , form
+        , btnSwitchValidationMode formConfig
+        , p [] [ text <| Maybe.withDefault "" <| Maybe.map ((++) "Form current state:") (formStateLabel formConfig) ]
+        , p [] [ text <| formValidationPolicyLabel formConfig ]
+        , formConfig
+            |> Form.addField Config.username
+            |> Form.addField (Config.password True)
+            |> Form.addFieldGroup Config.formFieldGroup
+            |> Form.addField Config.note
+            |> Form.addField Config.gender
+            |> Form.addField (Config.visitedCountries data)
+            |> Form.addField (Config.city data.isOpenCity)
+            |> Form.addField (Config.country data)
+            |> Form.addInputGroup (Config.dateOfBirth data datePickerIcon)
             |> Form.render data
         , btnSubmit
         , btnReset
