@@ -29,14 +29,20 @@ import Prima.Pyxis.Helpers exposing (isJust)
 username : FormField FormData Msg
 username =
     Form.textConfig
+        --Slug
         "user_name"
+        --Label
         (Just "Username")
+        -- Data attributes
         [ minlength 3, maxlength 12 ]
+        --FormData accessor
         .username
+        --FormEvent mappings
         [ Event.onInput (UpdateField Username)
         , Event.onFocus (OnFocus Username)
         , Event.onBlur (OnBlur Username)
         ]
+        --Form Validations
         [ FormValidation.config FormValidation.Error
             (\formData -> Maybe.withDefault False <| Maybe.map ((<) 3 << String.length) formData.username)
             "Username must be greater than 3 digits"
@@ -66,8 +72,11 @@ password isSubmitted =
 formFieldGroup : FormFieldGroup FormData Msg
 formFieldGroup =
     Form.fieldGroupConfig
+        -- Field Group label
         "Username & Password"
+        -- Field Group FormFields
         [ username, password False ]
+        -- Field Group own validations
         [ FormValidation.config FormValidation.Warning
             (\formData -> not (formData.username == formData.password))
             "Username and password shouldn't be equal"

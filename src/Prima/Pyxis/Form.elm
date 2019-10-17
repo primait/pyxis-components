@@ -1,8 +1,12 @@
 module Prima.Pyxis.Form exposing
-    ( Form, InputGroup, Label, Slug, Value
-    , init, state, setAsTouched, setAsSubmitted
-    , isFormSubmitted
+    ( Form, Label, Slug, Value
+    , init, setAsTouched, setAsSubmitted, addField, addFieldGroup, addInputGroup
+    , InputGroup, prependInputGroup, appendInputGroup
+    , isFormSubmitted, isFormPristine, isFormTouched
+    , ValidationVisibilityPolicy(..)
+    , pickValidationVisibilityPolicy, validateAlways, validateWhenSubmitted
     , FormField
+    , FormFieldGroup, fieldGroupConfig
     , textConfig, passwordConfig, textareaConfig
     , checkboxConfig, checkboxOption
     , radioConfig, radioOption
@@ -11,10 +15,8 @@ module Prima.Pyxis.Form exposing
     , autocompleteConfig, autocompleteOption
     , pureHtmlConfig
     , fieldIsValid, fieldHasError, fieldHasWarning, fieldIsPristine, fieldIsTouched
-    , fieldGroupIsValid, fieldGroupHasError, fieldGroupHasWarning
-    , render, renderField, renderInputGroupField
-    , prependInputGroup, appendInputGroup
-    , AbstractField, FormFieldGroup, ValidationVisibilityPolicy(..), addField, addFieldGroup, addInputGroup, field, fieldGroup, fieldGroupConfig, isFormPristine, isFormTouched, pickValidationVisibilityPolicy, renderFieldGroup, validateAlways, validateWhenSubmitted
+    , fieldGroupIsValid, fieldGroupHasError, fieldGroupHasOwnError, fieldGroupHasFieldError, fieldGroupHasWarning, fieldGroupHasOwnWarning, fieldGroupHasFieldWarning
+    , render, renderField, renderInputGroup, renderFieldGroup
     )
 
 {-| Allows to create a Form and it's fields using predefined Html syntax.
@@ -22,22 +24,42 @@ module Prima.Pyxis.Form exposing
 
 # Form Configuration
 
-@docs Form, InputGroup, FormRenderer, Label, Slug, Value, formRenderer
+@docs Form, Label, Slug, Value
 
 
 # Form Configuration Helpers
 
-@docs init, state, setAsPristine, setAsTouched, setAsSubmitted
+@docs init, setAsTouched, setAsSubmitted, addField, addFieldGroup, addInputGroup
+
+
+# InputGroup
+
+@docs InputGroup, prependInputGroup, appendInputGroup
 
 
 # Form State Helpers
 
-@docs isFormSubmitted
+@docs isFormSubmitted, isFormPristine, isFormTouched
+
+
+# Validation Visibility Policy
+
+@docs ValidationVisibilityPolicy
+
+
+# Form Validation Visibility Policy Helpers
+
+@docs pickValidationVisibilityPolicy, validateAlways, validateWhenSubmitted
 
 
 # Fields Configuration
 
 @docs FormField
+
+
+# FieldGroup Configuration
+
+@docs FormFieldGroup, fieldGroupConfig
 
 
 # Input
@@ -82,17 +104,12 @@ module Prima.Pyxis.Form exposing
 
 # FieldGroup Helpers
 
-@docs fieldGroupIsValid, fieldGroupHasError, fieldGroupHasWarning
+@docs fieldGroupIsValid, fieldGroupHasError, fieldGroupHasOwnError, fieldGroupHasFieldError, fieldGroupHasWarning, fieldGroupHasOwnWarning, fieldGroupHasFieldWarning
 
 
 # Render
 
-@docs render, renderField, renderInputGroupField
-
-
-# Render Helpers
-
-@docs prependInputGroup, appendInputGroup
+@docs render, renderField, renderInputGroup, renderFieldGroup
 
 -}
 
@@ -116,6 +133,8 @@ import Prima.Pyxis.Form.Validation as FormValidation
 import Prima.Pyxis.Helpers as Helpers exposing (renderIf)
 
 
+{-| Public Form data type, it can be created with init function
+-}
 type Form model msg
     = Form (FormConfig model msg)
 
@@ -139,6 +158,8 @@ type FormState
     | Submitted
 
 
+{-| It's a collection of form fields rendered together in a single row
+-}
 type FormFieldGroup model msg
     = FormFieldGroup (FormFieldGroupConfig model msg) (List (FormValidation.Validation model))
 
@@ -313,63 +334,84 @@ type RenderFieldMode
     | Single
 
 
+{-| Specify when the form will show validations.
+Always: validations display will depend only on validation function result.
+WhenSubmitted: validations will be shown only after setAsSubmitted have been called
+-}
 type ValidationVisibilityPolicy
     = Always
     | WhenSubmitted
 
 
-fieldGroup : FormFieldGroup model msg -> AbstractField model msg
-fieldGroup =
-    AbstractFieldGroup
-
-
-field : FormField model msg -> AbstractField model msg
-field =
-    AbstractField
-
-
-{-| Returns the Form state
+{-| Configure a FormFieldGroup
 -}
-state : Form model msg -> FormState
-state (Form formConfig) =
-    formConfig.state
+fieldGroupConfig : Label -> List (FormField model msg) -> List (FormValidation.Validation model) -> FormFieldGroup model msg
+fieldGroupConfig label fields validations =
+    FormFieldGroup (FormFieldGroupConfig label fields) validations
 
 
+{-| Returns form's Validation Visibility Policy
+-}
 pickValidationVisibilityPolicy : Form model msg -> ValidationVisibilityPolicy
-pickValidationVisibilityPolicy (Form formConfig) =
-    formConfig.validationVisibilityPolicy
+pickValidationVisibilityPolicy (Form { validationVisibilityPolicy }) =
+    validationVisibilityPolicy
 
 
-{-| Checks if the Form is Submitted.
+{-| Checks if the Form state is Pristine.
 -}
-isFormSubmitted : FormState -> Bool
-isFormSubmitted =
+isFormPristine : Form model msg -> Bool
+isFormPristine (Form { state }) =
+    state |> isFormStatePristine
+
+
+{-| Checks if the Form state is Touched.
+-}
+isFormTouched : Form model msg -> Bool
+isFormTouched (Form { state }) =
+    state |> isFormStatePristine
+
+
+{-| Checks if the Form state is Submitted.
+-}
+isFormSubmitted : Form model msg -> Bool
+isFormSubmitted (Form { state }) =
+    state |> isFormStateSubmitted
+
+
+{-| Checks if the given form state is Submitted.
+-}
+isFormStateSubmitted : FormState -> Bool
+isFormStateSubmitted =
     (==) Submitted
 
 
-isFormPristine : FormState -> Bool
-isFormPristine =
+{-| Checks if the the given form state is Pristine.
+-}
+isFormStatePristine : FormState -> Bool
+isFormStatePristine =
     (==) Pristine
 
 
-isFormTouched : FormState -> Bool
-isFormTouched =
+{-| Checks if the the given form state is Touched.
+-}
+isFormStateTouched : FormState -> Bool
+isFormStateTouched =
     (==) Touched
 
 
-{-| Creates an empty, pristine form.
+{-| Creates an empty form with given Validation Visibility Policy in Pristine status (untouched).
 -}
 init : ValidationVisibilityPolicy -> Form model msg
 init validationVisibilityPolicy =
     Form (FormConfig Pristine validationVisibilityPolicy [])
 
 
-{-| Add rows of fields to the form.
+{-| Adds a FormField to the form.
 
     --
     import Prima.Pyxis.Form as Form
     import Prima.Pyxis.Form.Event as Event
-    import Prima.Pyxis.Form.Validation as PrimaFormValidation exposing (Validation(..), SeverityLevel(..), ValidationType(..))
+    import Prima.Pyxis.Form.Validation as FormValidation
 
     ...
 
@@ -387,23 +429,31 @@ init validationVisibilityPolicy =
 
     ...
 
-    usernameConfig : FormField FormData Msg
-    usernameConfig =
+    usernameField : FormField FormData Msg
+    usernameField =
         Form.textConfig
+            -- Field Slug
             "username"
+            -- Label
             (Just "Username")
+            -- Data attributes
             [ minlength 3, maxlength 12 ]
+            -- FormData accessor
             .username
+            -- Event -> Msg mappings
             [ Event.onInput UpdateUsername ]
-            [ NotEmpty (SeverityLevel Error) "Username must not be blank."
+            -- Form Validations
+            [ FormValidation.config FormValidation.Error
+              (\formData -> Maybe.withDefault False <| Maybe.map ((<) 3 << String.length) formData.username)
+              "Username must be greater than 3 digits"
             ]
 
     ...
 
     view : Model -> Html Msg
-    view ({ form, data } as model) =
+    view ({ form } as model) =
         form
-            |> Form.addFields [( Form.renderField form data, usernameConfig )]
+            |> Form.addField usernameField
             |> Form.render
 
 -}
@@ -412,35 +462,81 @@ addField formField (Form ({ fields } as config)) =
     Form { config | fields = fields ++ [ AbstractField formField ] }
 
 
+{-| Adds a Field Group to the form
+
+    --
+    ...
+    formFieldGroup : FormFieldGroup FormData Msg
+    formFieldGroup =
+        Form.fieldGroupConfig
+            -- Field Group label
+            "Username & Alternative Username"
+            -- Field Group FormFields
+            [ username, alternativeUsername ]
+            -- Field Group own validations
+            [ FormValidation.config FormValidation.Warning
+                (\formData -> not (formData.username == formData.alternativeUsername))
+                "Username and password shouldn't be equal"
+            ]
+    ...
+    view : Model -> Html Msg
+    view ({ form } as model) =
+        form
+            |> Form.addFieldGroup formFieldGroup
+            |> Form.render
+
+-}
 addFieldGroup : FormFieldGroup model msg -> Form model msg -> Form model msg
 addFieldGroup formFieldGroup (Form ({ fields } as config)) =
     Form { config | fields = fields ++ [ AbstractFieldGroup formFieldGroup ] }
 
 
+{-| Adds a FormField to a form prepending or appending a List(Html msg)
+
+    --
+    ...
+    datePickerIcon : Html Msg
+        datePickerIcon =
+            i
+                [ class "a-icon a-icon-calendar cBrandAltDark"
+                , onClick ToggleDatePicker
+                ]
+    ...
+    view : Model -> Html Msg
+    view ({ form } as model) =
+        form
+            |> Form.addInputGroup dateOfBirthField (Form.appendInputGroup [ datePickerIcon ])
+            |> Form.render
+
+-}
 addInputGroup : FormField model msg -> InputGroup msg -> Form model msg -> Form model msg
 addInputGroup formField inputGroup (Form ({ fields } as config)) =
     Form { config | fields = fields ++ [ AbstractInputGroup formField inputGroup ] }
 
 
-{-| Sets the form to Submitted state. When submitted the form will show errors.
+{-| Sets the form to Submitted state.
 -}
 setAsSubmitted : Form model msg -> Form model msg
 setAsSubmitted (Form config) =
     Form { config | state = Submitted }
 
 
-{-| Sets the form to Touched state. When Touched the form will show errors depending on visibility policy.
+{-| Sets the form to Touched state (Not Pristine but not yet Submitted).
 -}
 setAsTouched : Form model msg -> Form model msg
 setAsTouched (Form config) =
     Form { config | state = Touched }
 
 
+{-| Sets the form validation visibility policy to Always
+-}
 validateAlways : Form model msg -> Form model msg
 validateAlways (Form config) =
     Form { config | validationVisibilityPolicy = Always }
 
 
+{-| Sets the form validation visibility policy to WhenSubmitted
+-}
 validateWhenSubmitted : Form model msg -> Form model msg
 validateWhenSubmitted (Form config) =
     Form { config | validationVisibilityPolicy = WhenSubmitted }
@@ -462,16 +558,13 @@ render model ((Form { fields }) as formConfig) =
                     renderFieldGroup formConfig model formFieldGroup
 
                 AbstractInputGroup formField inputGroup ->
-                    renderInputGroupField formConfig model inputGroup formField
+                    renderInputGroup formConfig model formField inputGroup
     in
     div [ class "o-form" ] (List.map mapper fields)
 
 
-fieldGroupConfig : Label -> List (FormField model msg) -> List (FormValidation.Validation model) -> FormFieldGroup model msg
-fieldGroupConfig label fields validations =
-    FormFieldGroup (FormFieldGroupConfig label fields) validations
-
-
+{-| Renders a single FormFieldGroup
+-}
 renderFieldGroup : Form model msg -> model -> FormFieldGroup model msg -> Html msg
 renderFieldGroup formConfig model formFieldGroup =
     div
@@ -595,7 +688,7 @@ This field can handle only onInput, onFocus, onBlur events. Other events will be
     --
     import Prima.Pyxis.Form as Form exposing (FormField)
     import Prima.Pyxis.Form.Event as Event
-    import Prima.Pyxis.Form.Validation as PrimaFormValidation exposing (Validation(..), SeverityLevel(..), ValidationType(..))
+    import Prima.Pyxis.Form.Validation as FormValidation
 
     ...
 
@@ -620,7 +713,9 @@ This field can handle only onInput, onFocus, onBlur events. Other events will be
             , Event.onFocus OnFocus
             , Event.onBlur OnBlur
             ]
-            [ NotEmpty (SeverityLevel Error) "Empty value is not acceptable."
+            [ FormValidation.config FormValidation.Error
+              (\formData -> not (formData.username == Nothing))
+              "Username shouldn't be empty"
             ]
 
 -}
@@ -725,7 +820,7 @@ This field can handle only onCheck event. Other events will be ignored.
     --
     import Prima.Pyxis.Form as Form exposing (FormField, Label, Slug, CheckboxOption)
     import Prima.Pyxis.Form.Event as Event
-    import Prima.Pyxis.Form.Validation as PrimaFormValidation exposing (Validation(..), SeverityLevel(..), ValidationType(..))
+    import Prima.Pyxis.Form.Validation as FormValidation
 
     ...
 
@@ -819,7 +914,10 @@ This field can handle only onToggle, onInput, onSelect, onFocus and onBlur event
             .city
             [ Event.onToggle OnToggle, Event.onInput OnInput, Event.onSelect OnSelect, Event.onFocus, Event.onBlur ]
             options
-            [ NotEmpty (SeverityLevel Error) "Empty value is not acceptable." ]
+            [ FormValidation.config FormValidation.Error
+              (\formData -> not (formData.city == Nothing))
+              "You must select a city"
+            ]
 
 -}
 selectConfig : Slug -> Maybe Label -> Bool -> Bool -> Maybe String -> List (Attribute msg) -> (model -> Maybe Value) -> List (Event msg) -> List SelectOption -> List (FormValidation.Validation model) -> FormField model msg
@@ -1162,12 +1260,12 @@ You can pass any html to this function, but be careful, UI can be broken.
 
     view : Model -> Html Msg
     view model =
-        ( Form.renderInputGroupField model.form model.data <| Form.appendInputGroup [ datePickerIcon ], [ datePickerConfig ] )
+        ( Form.renderInputGroup model.form model.data <| Form.appendInputGroup [ datePickerIcon ], [ datePickerConfig ] )
             |> Form.render model.form
 
 -}
-renderInputGroupField : Form model msg -> model -> InputGroup msg -> FormField model msg -> Html msg
-renderInputGroupField ((Form formConfig) as form) model group ((FormField opaqueConfig) as formField) =
+renderInputGroup : Form model msg -> model -> FormField model msg -> InputGroup msg -> Html msg
+renderInputGroup ((Form formConfig) as form) model ((FormField opaqueConfig) as formField) group =
     let
         lbl config =
             renderLabel config.slug config.label
@@ -1684,11 +1782,15 @@ pickOnly type_ validations =
     List.filter (mapper << FormValidation.pickType) validations
 
 
+{-| Checks if a given field group is in valid state
+-}
 fieldGroupIsValid : model -> FormFieldGroup model msg -> Bool
 fieldGroupIsValid model formFieldGroup =
     not (fieldGroupHasError model formFieldGroup) && not (fieldGroupHasWarning model formFieldGroup)
 
 
+{-| Checks if a given field group triggers own errors only (not form field ones)
+-}
 fieldGroupHasOwnError : model -> FormFieldGroup model msg -> Bool
 fieldGroupHasOwnError model (FormFieldGroup { fields } validations) =
     validations
@@ -1696,16 +1798,22 @@ fieldGroupHasOwnError model (FormFieldGroup { fields } validations) =
         |> List.any (not << Helpers.flip FormValidation.pickFunction model)
 
 
+{-| Checks if a given field group triggers form field errors (not field group ones)
+-}
 fieldGroupHasFieldError : model -> FormFieldGroup model msg -> Bool
 fieldGroupHasFieldError model (FormFieldGroup { fields } _) =
     List.any (fieldHasError model) fields
 
 
+{-| Checks if a given field group triggers errors (both own and field only ones)
+-}
 fieldGroupHasError : model -> FormFieldGroup model msg -> Bool
 fieldGroupHasError model formFieldGroup =
     fieldGroupHasFieldError model formFieldGroup || fieldGroupHasOwnError model formFieldGroup
 
 
+{-| Checks if a given field group triggers own warnings only (not form field ones)
+-}
 fieldGroupHasOwnWarning : model -> FormFieldGroup model msg -> Bool
 fieldGroupHasOwnWarning model (FormFieldGroup { fields } validations) =
     validations
@@ -1713,11 +1821,15 @@ fieldGroupHasOwnWarning model (FormFieldGroup { fields } validations) =
         |> List.any (not << Helpers.flip FormValidation.pickFunction model)
 
 
+{-| Checks if a given field group triggers form field warnings (not field group ones)
+-}
 fieldGroupHasFieldWarning : model -> FormFieldGroup model msg -> Bool
 fieldGroupHasFieldWarning model (FormFieldGroup { fields } _) =
     List.any (fieldHasWarning model) fields
 
 
+{-| Checks if a given field group triggers warnings (both own and field only ones)
+-}
 fieldGroupHasWarning : model -> FormFieldGroup model msg -> Bool
 fieldGroupHasWarning model formFieldGroup =
     fieldGroupHasOwnWarning model formFieldGroup || fieldGroupHasFieldWarning model formFieldGroup
@@ -1754,6 +1866,8 @@ pickFieldValidations (FormField opaqueConfig) =
             []
 
 
+{-| Checks if a given field is valid. All validations are returning True
+-}
 fieldIsValid : model -> FormField model msg -> Bool
 fieldIsValid model formField =
     formField
@@ -1761,6 +1875,8 @@ fieldIsValid model formField =
         |> List.all (Helpers.flip FormValidation.pickFunction model)
 
 
+{-| Checks if a given field has errors
+-}
 fieldHasError : model -> FormField model msg -> Bool
 fieldHasError model formField =
     formField
@@ -1769,6 +1885,8 @@ fieldHasError model formField =
         |> List.any (not << Helpers.flip FormValidation.pickFunction model)
 
 
+{-| Checks if a given field has warnings
+-}
 fieldHasWarning : model -> FormField model msg -> Bool
 fieldHasWarning model formField =
     formField
@@ -1777,6 +1895,8 @@ fieldHasWarning model formField =
         |> List.any (not << Helpers.flip FormValidation.pickFunction model)
 
 
+{-| Checks if a given field is in Pristine state (the value in the model is Nothing or empty)
+-}
 fieldIsPristine : model -> FormField model msg -> Bool
 fieldIsPristine model (FormField opaqueConfig) =
     let
@@ -1810,6 +1930,8 @@ fieldIsPristine model (FormField opaqueConfig) =
             True
 
 
+{-| Checks if a given field have been provided with some input
+-}
 fieldIsTouched : model -> FormField model msg -> Bool
 fieldIsTouched model formField =
     not <| fieldIsPristine model formField

@@ -1,8 +1,7 @@
 module Prima.Pyxis.Form.Validation exposing
-    ( Validation
+    ( Validation, config
     , ValidationType(..)
     , pickFunction, pickValidationMessage, pickType, isError, isWarning
-    , config
     )
 
 {-| Allows to create Validation model for the form.
@@ -10,7 +9,7 @@ module Prima.Pyxis.Form.Validation exposing
 
 # Configuration
 
-@docs Validation
+@docs Validation, config
 
     import Prima.Pyxis.Form.Validation as PrimaFormValidation exposing (SeverityLevel(..), Validation(..), ValidationType(..))
     import Regex
@@ -60,6 +59,8 @@ type alias ValidationConfig model =
     }
 
 
+{-| Configure a Validation
+-}
 config : ValidationType -> (model -> Bool) -> String -> Validation model
 config type_ function message =
     Validation
@@ -77,14 +78,14 @@ type ValidationType
     | Warning
 
 
-{-| Check if given type\_ is warning
+{-| Check if given type is warning
 -}
 isWarning : ValidationType -> Bool
 isWarning =
     (==) Warning
 
 
-{-| Check if given type\_ is error
+{-| Check if given type is error
 -}
 isError : ValidationType -> Bool
 isError =

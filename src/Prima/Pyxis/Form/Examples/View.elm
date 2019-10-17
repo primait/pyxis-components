@@ -5,7 +5,7 @@ import Html exposing (Html, div, i, p, text)
 import Html.Attributes exposing (class)
 import Html.Events exposing (onClick)
 import Prima.Pyxis.Button as Button
-import Prima.Pyxis.Form as Form exposing (AbstractField)
+import Prima.Pyxis.Form as Form
 import Prima.Pyxis.Form.Examples.FormConfig as Config
 import Prima.Pyxis.Form.Examples.Model exposing (FormData, Model, Msg(..))
 import Prima.Pyxis.Helpers as Helpers
@@ -19,7 +19,7 @@ view model =
 
 
 appBody : Model -> List (Html Msg)
-appBody ({ data, formConfig } as model) =
+appBody { data, formConfig } =
     let
         form =
             formConfig
@@ -39,7 +39,8 @@ appBody ({ data, formConfig } as model) =
         , btnSwitchValidationMode form
         , p [] [ text <| Maybe.withDefault "" <| Maybe.map ((++) "Form current state:") (formStateLabel form) ]
         , p [] [ text <| formValidationPolicyLabel form ]
-        , Form.render data form
+        , form
+            |> Form.render data
         , btnSubmit
         , btnReset
         ]
@@ -90,17 +91,13 @@ datePickerIcon =
 
 formStateLabel : Form.Form model msg -> Maybe String
 formStateLabel form =
-    let
-        formState =
-            Form.state form
-    in
-    if Form.isFormPristine formState then
+    if Form.isFormPristine form then
         Just "Pristine"
 
-    else if Form.isFormTouched formState then
+    else if Form.isFormTouched form then
         Just "Touched"
 
-    else if Form.isFormSubmitted formState then
+    else if Form.isFormSubmitted form then
         Just "Submitted"
 
     else
@@ -111,7 +108,7 @@ formValidationPolicyLabel : Form.Form model msg -> String
 formValidationPolicyLabel form =
     case Form.pickValidationVisibilityPolicy form of
         Form.Always ->
-            "Form validates continuosly"
+            "Form always prints validations"
 
         Form.WhenSubmitted ->
             "Form validates after submit"
