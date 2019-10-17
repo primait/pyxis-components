@@ -2,7 +2,7 @@ module Prima.Pyxis.Form exposing
     ( Form, InputGroup, Label, Slug, Value
     , init, state, setAsTouched, setAsSubmitted
     , isFormSubmitted
-    , FormField(..)
+    , FormField
     , textConfig, passwordConfig, textareaConfig
     , checkboxConfig, checkboxOption
     , radioConfig, radioOption
@@ -1274,7 +1274,7 @@ renderLabel slug theLabel =
 renderFieldValidationMessage : String -> Html msg
 renderFieldValidationMessage validationMessage =
     span
-        [ class "a-form-field-validation-message" ]
+        [ class "a-form-field__validation-message" ]
         [ text validationMessage ]
 
 
