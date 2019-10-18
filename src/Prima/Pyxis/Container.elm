@@ -57,34 +57,34 @@ modifierToString modifier =
             "directionColumn"
 
         OnBPXsmall ->
-            "a-containerOnBPXsmall"
+            "a-containerOnBpXsmall"
 
         OnBPSmall ->
-            "a-containerOnBPSmall"
+            "a-containerOnBpSmall"
 
         OnBPMedium ->
-            "a-containerOnBPMedium"
+            "a-containerOnBpMedium"
 
         OnBPLarge ->
-            "a-containerOnBPLarge"
+            "a-containerOnBpLarge"
 
         OnBPXlarge ->
-            "a-containerOnBPXlarge"
+            "a-containerOnBpXlarge"
 
         FluidOnBPXsmall ->
-            "a-containerFluidOnBPXsmall"
+            "a-containerFluidOnBpXsmall"
 
         FluidOnBPSmall ->
-            "a-containerFluidOnBPSmall"
+            "a-containerFluidOnBpSmall"
 
         FluidOnBPMedium ->
-            "a-containerFluidOnBPMedium"
+            "a-containerFluidOnBpMedium"
 
         FluidOnBPLarge ->
-            "a-containerFluidOnBPLarge"
+            "a-containerFluidOnBpLarge"
 
         FluidOnBPXlarge ->
-            "a-containerFluidOnBPXlarge"
+            "a-containerFluidOnBpXlarge"
 
 
 {-| Renders a `default` Container
