@@ -4,7 +4,7 @@ module Prima.Pyxis.Form exposing
     , isFormSubmitted, isFormPristine, isFormTouched
     , InputGroup, prepend, append
     , ValidationVisibilityPolicy(..)
-    , validateAlways, validateWhenSubmitted
+    , pickValidationVisibilityPolicy, validateAlways, validateWhenSubmitted
     , FormField
     , FormFieldGroup, fieldGroupConfig
     , textConfig, passwordConfig, textareaConfig
@@ -49,7 +49,7 @@ module Prima.Pyxis.Form exposing
 
 # Form Validation Visibility Policy Helpers
 
-@docs validateAlways, validateWhenSubmitted
+@docs pickValidationVisibilityPolicy, validateAlways, validateWhenSubmitted
 
 
 # Fields Configuration
