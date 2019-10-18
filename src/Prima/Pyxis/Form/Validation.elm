@@ -11,8 +11,16 @@ module Prima.Pyxis.Form.Validation exposing
 
 @docs Validation, config
 
-    import Prima.Pyxis.Form.Validation as PrimaFormValidation exposing (SeverityLevel(..), Validation(..), ValidationType(..))
+    import Prima.Pyxis.Form as PrimaForm
+    import Prima.Pyxis.Form.Validation as FormValidation
     import Regex
+
+    ...
+
+    type alias LoginData =
+        { username : Maybe String }
+
+    ...
 
     usernameConfig : Bool -> PrimaForm.FormField LoginData Msg
     usernameConfig enabled =
@@ -22,14 +30,11 @@ module Prima.Pyxis.Form.Validation exposing
             [ minlength 3, placeholder "username", disabled (not enabled) ]
             .email
             [ PrimaFormEvent.onInput (OnInput UsernameField) ]
-            [ PrimaFormValidation.NotEmpty (SeverityLevel Error) "insert username"
-            , PrimaFormValidation.Expression (SeverityLevel Warning) lowerCase "Should contain lowercase"
+            [ FormValidation.config
+                FormValidation.Warning
+                (\formData -> not (formData.username == Just "notsecureusername"))
+                "Username is not secure."
             ]
-
-    lowerCase : Regex.Regex
-    lowerCase =
-        Maybe.withDefault Regex.never <|
-            Regex.fromString "[a-z]+"
 
 
 # ValidationType
@@ -63,12 +68,7 @@ type alias ValidationConfig model =
 -}
 config : ValidationType -> (model -> Bool) -> String -> Validation model
 config type_ function message =
-    Validation
-        (ValidationConfig
-            type_
-            function
-            message
-        )
+    Validation (ValidationConfig type_ function message)
 
 
 {-| Represents a validation type.

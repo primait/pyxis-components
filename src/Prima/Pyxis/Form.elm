@@ -1,10 +1,10 @@
 module Prima.Pyxis.Form exposing
     ( Form, Label, Slug, Value
     , init, setAsTouched, setAsSubmitted, addField, addFieldGroup, addInputGroup
-    , InputGroup, prepend, append
     , isFormSubmitted, isFormPristine, isFormTouched
+    , InputGroup, prepend, append
     , ValidationVisibilityPolicy(..)
-    , pickValidationVisibilityPolicy, validateAlways, validateWhenSubmitted
+    , validateAlways, validateWhenSubmitted
     , FormField
     , FormFieldGroup, fieldGroupConfig
     , textConfig, passwordConfig, textareaConfig
@@ -32,14 +32,14 @@ module Prima.Pyxis.Form exposing
 @docs init, setAsTouched, setAsSubmitted, addField, addFieldGroup, addInputGroup
 
 
-# InputGroup
-
-@docs InputGroup, prepend, append
-
-
 # Form State Helpers
 
 @docs isFormSubmitted, isFormPristine, isFormTouched
+
+
+# InputGroup
+
+@docs InputGroup, prepend, append
 
 
 # Validation Visibility Policy
@@ -49,7 +49,7 @@ module Prima.Pyxis.Form exposing
 
 # Form Validation Visibility Policy Helpers
 
-@docs pickValidationVisibilityPolicy, validateAlways, validateWhenSubmitted
+@docs validateAlways, validateWhenSubmitted
 
 
 # Fields Configuration
@@ -366,21 +366,21 @@ pickValidationVisibilityPolicy (Form { validationVisibilityPolicy }) =
 -}
 isFormPristine : Form model msg -> Bool
 isFormPristine (Form { state }) =
-    state |> isFormStatePristine
+    isFormStatePristine state
 
 
 {-| Checks if the Form state is Touched.
 -}
 isFormTouched : Form model msg -> Bool
 isFormTouched (Form { state }) =
-    state |> isFormStatePristine
+    isFormStatePristine state
 
 
 {-| Checks if the Form state is Submitted.
 -}
 isFormSubmitted : Form model msg -> Bool
 isFormSubmitted (Form { state }) =
-    state |> isFormStateSubmitted
+    isFormStateSubmitted state
 
 
 {-| Checks if the given form state is Submitted.
@@ -517,11 +517,11 @@ addFieldGroup formFieldGroup (Form ({ fields } as config)) =
             |> Form.append [ appendable ]
     ...
     datePickerIcon : Html Msg
-        datePickerIcon =
-            i
-                [ class "a-icon a-icon-calendar cBrandAltDark"
-                , onClick ToggleDatePicker
-                ]
+    datePickerIcon =
+        i
+            [ class "a-icon a-icon-calendar cBrandAltDark"
+            , onClick ToggleDatePicker
+            ]
     ...
     view : Model -> Html Msg
     view ({ form, data } as model) =
@@ -1214,7 +1214,19 @@ isRenderFieldSingle =
 
 {-| Assemble pre-rendered form field elements (input and validations) given by renderEngine
 -}
-assemblyFormField : Form model msg -> model -> FormField model msg -> Html msg -> List (Html msg) -> List (Html msg) -> Html msg
+type alias RenderedLabel msg =
+    Html msg
+
+
+type alias RenderedField msg =
+    List (Html msg)
+
+
+type alias RenderedValidations msg =
+    List (Html msg)
+
+
+assemblyFormField : Form model msg -> model -> FormField model msg -> RenderedLabel msg -> RenderedField msg -> RenderedValidations msg -> Html msg
 assemblyFormField form model formField renderedLabel renderedField renderedValidations =
     let
         compute : (model -> FormField model msg -> Bool) -> Bool
@@ -1257,9 +1269,7 @@ renderFieldValidationList model formField =
 
         byValidity : FormValidation.Validation model -> Bool
         byValidity validation =
-            model
-                |> FormValidation.pickFunction validation
-                |> not
+            (not << FormValidation.pickFunction validation) model
     in
     formField
         |> pickFieldValidations
@@ -1538,8 +1548,7 @@ renderTextarea model ({ reader, slug, label, attrs, events } as config) =
         ([ (value << Maybe.withDefault "" << reader) model
          , id slug
          , name slug
-         , class
-            "a-form-field__textarea"
+         , class "a-form-field__textarea"
          ]
             ++ attrs
             ++ Events.onInputAttribute config.events
@@ -1581,9 +1590,7 @@ renderRadioOption model ({ reader, slug, label, options, attrs } as config) inde
          , id optionSlug
          , name slug
          , (checked << (==) option.slug << Maybe.withDefault "" << reader) model
-         , classList
-            [ ( "a-form-field__radio", True )
-            ]
+         , class "a-form-field__radio"
          ]
             ++ attrs
             ++ Events.onSelectAttribute option.slug config.events
@@ -1845,6 +1852,8 @@ renderPureHtml { content } =
     content
 
 
+{-| shouldValidate is based on ValidationVisibilityPolicy and Form.State
+-}
 shouldValidate : Form model msg -> Bool
 shouldValidate (Form formConfig) =
     case ( formConfig.validationVisibilityPolicy, formConfig.state ) of
