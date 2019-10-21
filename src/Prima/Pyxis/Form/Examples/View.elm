@@ -36,6 +36,7 @@ appBody { data, formConfig } =
             |> Form.addField (Config.city data.isOpenCity)
             |> Form.addField (Config.country data)
             |> Form.addInputGroup (Config.dateOfBirth data datePickerIcon)
+            |> Form.addField Config.staticHtml
             |> Form.render data
         , btnSubmit
         , btnReset

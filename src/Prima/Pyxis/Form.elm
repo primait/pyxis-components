@@ -308,6 +308,7 @@ type alias AutocompleteOption =
 
 type alias PureHtmlConfig msg =
     { content : List (Html msg)
+    , slug : Slug
     }
 
 
@@ -1155,12 +1156,13 @@ autocompleteConfig slug label isOpen noResults attrs filterReader choiceReader e
         Form.pureHtmlConfig [ text "Lorem ipsum dolor sit amet" ]
 
 -}
-pureHtmlConfig : List (Html msg) -> FormField model msg
-pureHtmlConfig content =
+pureHtmlConfig : String -> List (Html msg) -> FormField model msg
+pureHtmlConfig slug content =
     FormField <|
         FormFieldPureHtmlConfig
             (PureHtmlConfig
                 content
+                slug
             )
 
 
@@ -1242,6 +1244,7 @@ assemblyFormField form model formField renderedLabel renderedField renderedValid
             , ( "has-error", shouldValidate form && compute fieldHasError )
             , ( "has-warning", shouldValidate form && compute fieldHasWarning )
             ]
+        , attribute "data-slug" (pickFormFieldSlug formField)
         ]
         [ renderedLabel
         , div
@@ -2099,3 +2102,34 @@ isAppendInputGroup inputGroup =
 
         Append list formField ->
             True
+
+
+pickFormFieldSlug : FormField model msg -> String
+pickFormFieldSlug formField =
+    case pickFormFieldConfig formField of
+        FormFieldAutocompleteConfig { slug } _ ->
+            slug
+
+        FormFieldCheckboxConfig { slug } _ ->
+            slug
+
+        FormFieldDatepickerConfig { slug } _ ->
+            slug
+
+        FormFieldPasswordConfig { slug } _ ->
+            slug
+
+        FormFieldRadioConfig { slug } _ ->
+            slug
+
+        FormFieldSelectConfig { slug } _ ->
+            slug
+
+        FormFieldTextareaConfig { slug } _ ->
+            slug
+
+        FormFieldTextConfig { slug } _ ->
+            slug
+
+        FormFieldPureHtmlConfig { slug } ->
+            slug

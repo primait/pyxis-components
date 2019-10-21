@@ -15,7 +15,9 @@ import Prima.Pyxis.Form.Examples.Model as Model
 
 updateFormData : (FormData -> FormData) -> Model -> Model
 updateFormData mapper model =
-    { model | data = mapper model.data }
+    { model
+        | data = mapper model.data
+    }
 
 
 setAsTouched : Model -> Model
@@ -24,7 +26,9 @@ setAsTouched model =
         model
 
     else
-        { model | formConfig = Form.setAsTouched model.formConfig }
+        { model
+            | formConfig = Form.setAsTouched model.formConfig
+        }
 
 
 withoutCmds : Model -> ( Model, Cmd Msg )

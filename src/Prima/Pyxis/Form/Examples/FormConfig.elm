@@ -236,8 +236,9 @@ country { countryFilter, isOpenCountry } =
         ]
 
 
-staticHtml : Model -> FormField FormData Msg
-staticHtml model =
+staticHtml : FormField FormData Msg
+staticHtml =
     Form.pureHtmlConfig
+        "static-html"
         [ p [] [ text "Lorem ipsum dolor sit amet." ]
         ]
