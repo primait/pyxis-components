@@ -30,6 +30,7 @@ createTableConfiguration model =
         (createRows model.rows)
         True
         createFooters
+        [ ( "my-custom-class", True ) ]
 
 
 createHeaders : List String -> List (Table.Header Msg)

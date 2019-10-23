@@ -61,6 +61,7 @@ type alias Configuration msg =
     , rows : List (Row msg)
     , alternateRows : Bool
     , footerColumns : List (FooterRow msg)
+    , tableClassList : List ( String, Bool )
     }
 
 
@@ -95,14 +96,14 @@ type alias Configuration msg =
                 [ Table.footerRow (createFooterColumns [ "Country", "Capital city" ]) ]
 
         in
-        Table.config Table.defaultType sorting headers rows alternateRows footerColumns
+        Table.config Table.defaultType sorting headers rows alternateRows footerColumns [("my-custom-class", True)]
 
     ...
 
 -}
-config : TableType -> Bool -> List (Header msg) -> List (Row msg) -> Bool -> List (FooterRow msg) -> Config msg
-config tableType sorting headers rows alternateRows footerColumns =
-    Config (Configuration tableType sorting headers rows alternateRows footerColumns)
+config : TableType -> Bool -> List (Header msg) -> List (Row msg) -> Bool -> List (FooterRow msg) -> List ( String, Bool ) -> Config msg
+config tableType sorting headers rows alternateRows footerColumns tableClassList =
+    Config (Configuration tableType sorting headers rows alternateRows footerColumns tableClassList)
 
 
 {-| Represents the table skin.
@@ -413,10 +414,12 @@ render (State ({ sortBy, sortedColumn } as internalState)) (Config conf) =
     in
     table
         [ classList
-            [ ( "m-table", True )
-            , ( "m-table--alt", isAlternativeTableType conf.tableType )
-            , ( "m-table--alternateRows", conf.alternateRows )
-            ]
+            ([ ( "m-table", True )
+             , ( "m-table--alt", isAlternativeTableType conf.tableType )
+             , ( "m-table--alternateRows", conf.alternateRows )
+             ]
+                ++ conf.tableClassList
+            )
         ]
         [ renderTHead internalState conf
         , renderTBody headerSlugs sortedRows
@@ -457,7 +460,7 @@ renderTH { sortBy, sortedColumn } (Header ({ slug, name } as conf)) =
                ]
         )
         [ text name
-        , if Maybe.withDefault "" sortedColumn == slug then
+        , if sortedColumn == Just slug then
             renderSortIcon sortBy slug
 
           else
