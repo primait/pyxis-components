@@ -48,15 +48,16 @@ type alias Configuration =
     { atrDetails : List AtrDetail
     , alternateRows : Bool
     , isEditable : Bool
+    , tableClassList : List ( String, Bool )
     }
 
 
 {-| Returns a Tuple containing the Config and a possible batch of side effects to
 be managed by parent application. Requires a list of AtrDetail.
 -}
-init : Bool -> List AtrDetail -> ( Config, Cmd Msg )
-init isEditable atrDetails =
-    ( Config (Configuration atrDetails True isEditable), Cmd.none )
+init : Bool -> List ( String, Bool ) -> List AtrDetail -> ( Config, Cmd Msg )
+init isEditable tableClassList atrDetails =
+    ( Config (Configuration atrDetails True isEditable tableClassList), Cmd.none )
 
 
 {-| Represents a changing AtrDetail action
@@ -294,7 +295,7 @@ type alias Year =
 {-| Renders the table by receiving a Configuration. The columns of this table are expressed by the length of the AtrDetail list.
 -}
 render : Config -> Html Msg
-render (Config ({ atrDetails, alternateRows, isEditable } as config)) =
+render (Config ({ atrDetails, alternateRows, isEditable, tableClassList } as config)) =
     let
         destructureAtrDetail (AtrDetail atrConfiguration) =
             atrConfiguration
@@ -305,7 +306,7 @@ render (Config ({ atrDetails, alternateRows, isEditable } as config)) =
         rows =
             buildRows isEditable atrDetails
     in
-    Table.render (Table.initialState Nothing Nothing) <| Table.config Table.defaultType True headers rows alternateRows [] []
+    Table.render (Table.initialState Nothing Nothing) <| Table.config Table.defaultType True headers rows alternateRows [] tableClassList
 
 
 buildHeaders : List String -> List (Table.Header Msg)
