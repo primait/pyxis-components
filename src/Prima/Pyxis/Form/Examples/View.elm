@@ -29,14 +29,15 @@ appBody { data, formConfig } =
         , formConfig
             |> Form.addField Config.username
             |> Form.addField (Config.password True)
-            |> Form.addFieldGroup Config.formFieldGroup
+            |> Form.addFieldList Config.formFieldList
             |> Form.addField Config.note
             |> Form.addField Config.gender
             |> Form.addField (Config.visitedCountries data)
             |> Form.addField (Config.city data.isOpenCity)
             |> Form.addField (Config.country data)
-            |> Form.addInputGroup (Config.dateOfBirth data datePickerIcon)
+            |> Form.addField (Config.dateOfBirth data datePickerIcon)
             |> Form.addField Config.staticHtml
+            |> Form.addFieldList (Config.formFieldListWithGroup data datePickerIcon)
             |> Form.render data
         , btnSubmit
         , btnReset

@@ -2,7 +2,8 @@ module Prima.Pyxis.Form.Examples.FormConfig exposing
     ( city
     , country
     , dateOfBirth
-    , formFieldGroup
+    , formFieldList
+    , formFieldListWithGroup
     , gender
     , note
     , password
@@ -13,7 +14,7 @@ module Prima.Pyxis.Form.Examples.FormConfig exposing
 
 import Html exposing (Html, p, text)
 import Html.Attributes exposing (class, maxlength, minlength)
-import Prima.Pyxis.Form as Form exposing (FormField, FormFieldGroup)
+import Prima.Pyxis.Form as Form exposing (FormField, FormFieldList)
 import Prima.Pyxis.Form.Event as Event
 import Prima.Pyxis.Form.Examples.Model
     exposing
@@ -34,7 +35,7 @@ username =
         --Label
         (Just "Username")
         -- Data attributes
-        [ minlength 3, maxlength 12 ]
+        [ minlength 3, maxlength 12, class "is-small" ]
         --FormData accessor
         .username
         --FormEvent mappings
@@ -57,7 +58,7 @@ password isSubmitted =
     Form.passwordConfig
         "password"
         (Just "Password")
-        []
+        [ class "is-small" ]
         .password
         [ Event.onInput (UpdateField Password) ]
         [ FormValidation.config FormValidation.Error
@@ -69,9 +70,9 @@ password isSubmitted =
         ]
 
 
-formFieldGroup : FormFieldGroup FormData Msg
-formFieldGroup =
-    Form.fieldGroupConfig
+formFieldList : FormFieldList FormData Msg
+formFieldList =
+    Form.fieldListConfig
         -- Field Group label
         "Username & Password"
         -- Field Group FormFields
@@ -79,6 +80,20 @@ formFieldGroup =
         -- Field Group own validations
         [ FormValidation.config FormValidation.Warning
             (\formData -> not (formData.username == formData.password))
+            "Username and password shouldn't be equal"
+        ]
+
+
+formFieldListWithGroup : FormData -> Html Msg -> FormFieldList FormData Msg
+formFieldListWithGroup formData appendable =
+    Form.fieldListConfig
+        -- Field List label
+        "Username & Password & date"
+        -- Field List FormFields
+        [ username, password False, dateOfBirth formData appendable ]
+        -- Field Group own validations
+        [ FormValidation.config FormValidation.Warning
+            (\formData_ -> not (formData_.username == formData_.password))
             "Username and password shouldn't be equal"
         ]
 
@@ -158,12 +173,12 @@ city isOpen =
         ]
 
 
-dateOfBirth : FormData -> Html Msg -> Form.InputGroup FormData Msg
+dateOfBirth : FormData -> Html Msg -> FormField FormData Msg
 dateOfBirth { isVisibleDP, dateOfBirthDP } appendable =
     Form.datepickerConfig
         "date_of_birth"
         (Just "Date of Birth")
-        []
+        [ class "is-medium" ]
         .dateOfBirth
         (UpdateDatePicker DateOfBirth)
         [ Event.onInput (UpdateField DateOfBirth) ]
