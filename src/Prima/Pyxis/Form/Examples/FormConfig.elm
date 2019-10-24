@@ -14,7 +14,13 @@ module Prima.Pyxis.Form.Examples.FormConfig exposing
 
 import Html exposing (Html, p, text)
 import Html.Attributes exposing (class, maxlength, minlength)
-import Prima.Pyxis.Form as Form exposing (FormField, FormFieldList, addTooltipToField, addTooltipToFieldList)
+import Prima.Pyxis.Form as Form
+    exposing
+        ( FormField
+        , FormFieldList
+        , addTooltipToField
+        , addTooltipToFieldList
+        )
 import Prima.Pyxis.Form.Event as Event
 import Prima.Pyxis.Form.Examples.Model
     exposing
