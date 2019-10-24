@@ -14,7 +14,7 @@ module Prima.Pyxis.Form.Examples.FormConfig exposing
 
 import Html exposing (Html, p, text)
 import Html.Attributes exposing (class, maxlength, minlength)
-import Prima.Pyxis.Form as Form exposing (FormField, FormFieldList)
+import Prima.Pyxis.Form as Form exposing (FormField, FormFieldList, addTooltipToField, addTooltipToFieldList)
 import Prima.Pyxis.Form.Event as Event
 import Prima.Pyxis.Form.Examples.Model
     exposing
@@ -25,6 +25,7 @@ import Prima.Pyxis.Form.Examples.Model
         )
 import Prima.Pyxis.Form.Validation as FormValidation
 import Prima.Pyxis.Helpers exposing (isJust)
+import Prima.Pyxis.Tooltip as Tooltip
 
 
 username : FormField FormData Msg
@@ -96,6 +97,7 @@ formFieldListWithGroup formData appendable =
             (\formData_ -> not (formData_.username == formData_.password))
             "Username and password shouldn't be equal"
         ]
+        |> addTooltipToFieldList (Tooltip.downConfig [ text "Tooltip sul gruppo" ])
 
 
 note : FormField FormData Msg
@@ -110,6 +112,7 @@ note =
             (\formData -> not (formData.note == Nothing))
             "Note shouldn't be empty"
         ]
+        |> addTooltipToField (Tooltip.rightConfig [ text "You should write some interesting notes here!" ])
 
 
 gender : FormField FormData Msg

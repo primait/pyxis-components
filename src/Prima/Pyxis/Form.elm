@@ -17,7 +17,7 @@ module Prima.Pyxis.Form exposing
     , fieldIsValid, fieldHasError, fieldHasWarning, fieldIsPristine, fieldIsTouched
     , fieldListIsValid, fieldListHasError, fieldListHasOwnError, fieldListHasFieldError, fieldListHasWarning, fieldListHasOwnWarning, fieldListHasFieldWarning
     , render, renderField, renderFieldList
-    , fieldListConfigWithToolTip
+    , addTooltipToField, addTooltipToFieldList, fieldListConfigWithToolTip
     )
 
 {-| Allows to create a Form and it's fields using predefined Html syntax.
@@ -320,6 +320,7 @@ type alias AutocompleteOption =
 type alias PureHtmlConfig msg =
     { content : List (Html msg)
     , slug : Slug
+    , tooltip : Maybe (Tooltip.Config msg)
     }
 
 
@@ -717,6 +718,64 @@ prepend group field =
 append : List (Html msg) -> FormField model msg -> FormField model msg
 append group field =
     InputGroupField (Append group field)
+
+
+{-| Adds a Pyxis tooltip to a given FormField
+-}
+addTooltipToField : Tooltip.Config msg -> FormField model msg -> FormField model msg
+addTooltipToField tooltip formField =
+    case formField of
+        SingleField formFieldConfig ->
+            SingleField (addTooltipToOpaqueFormFieldConfig tooltip formFieldConfig)
+
+        InputGroupField (Prepend prependable prependedField) ->
+            InputGroupField (Prepend prependable (addTooltipToField tooltip prependedField))
+
+        InputGroupField (Append appendable appendedField) ->
+            InputGroupField (Prepend appendable (addTooltipToField tooltip appendedField))
+
+
+{-| Adds a Pyxis tooltip to a given Field List
+-}
+addTooltipToFieldList : Tooltip.Config msg -> FormFieldList model msg -> FormFieldList model msg
+addTooltipToFieldList tooltip (FormFieldList formFieldListConfig validations) =
+    FormFieldList (tooltipOpaqueSetter tooltip formFieldListConfig) validations
+
+
+addTooltipToOpaqueFormFieldConfig : Tooltip.Config msg -> FormFieldConfig model msg -> FormFieldConfig model msg
+addTooltipToOpaqueFormFieldConfig tooltip opaqueConfig =
+    case opaqueConfig of
+        FormFieldAutocompleteConfig config list ->
+            FormFieldAutocompleteConfig (tooltipOpaqueSetter tooltip config) list
+
+        FormFieldCheckboxConfig config list ->
+            FormFieldCheckboxConfig (tooltipOpaqueSetter tooltip config) list
+
+        FormFieldDatepickerConfig config list ->
+            FormFieldDatepickerConfig (tooltipOpaqueSetter tooltip config) list
+
+        FormFieldPasswordConfig config list ->
+            FormFieldPasswordConfig (tooltipOpaqueSetter tooltip config) list
+
+        FormFieldRadioConfig config list ->
+            FormFieldRadioConfig (tooltipOpaqueSetter tooltip config) list
+
+        FormFieldSelectConfig config list ->
+            FormFieldSelectConfig (tooltipOpaqueSetter tooltip config) list
+
+        FormFieldTextareaConfig config list ->
+            FormFieldTextareaConfig (tooltipOpaqueSetter tooltip config) list
+
+        FormFieldTextConfig config list ->
+            FormFieldTextConfig (tooltipOpaqueSetter tooltip config) list
+
+        FormFieldPureHtmlConfig config ->
+            FormFieldPureHtmlConfig (tooltipOpaqueSetter tooltip config)
+
+
+tooltipOpaqueSetter : Tooltip.Config msg -> { a | tooltip : Maybe (Tooltip.Config msg) } -> { a | tooltip : Maybe (Tooltip.Config msg) }
+tooltipOpaqueSetter tooltip opaqueConfig =
+    { opaqueConfig | tooltip = Just tooltip }
 
 
 {-| Creates a radio option.
@@ -1151,6 +1210,7 @@ pureHtmlConfig slug content =
             (PureHtmlConfig
                 content
                 slug
+                Nothing
             )
 
 
@@ -1227,9 +1287,21 @@ assemblyFormField form model formField renderedLabel renderedField renderedValid
         [ renderedLabel
         , div
             [ class "a-form-field__field-wrapper" ]
-            (renderedField
-                ++ Helpers.renderListIf (shouldValidate form) renderedValidations
+            ([ renderedField
+             , formField
+                |> pickFormFieldTooltip
+                |> Maybe.map Tooltip.render
+                |> Maybe.withDefault (text "")
+                |> List.singleton
+             , renderedValidations
+                |> Helpers.renderListIf (shouldValidate form)
+             ]
+                |> List.concat
             )
+
+        --((++)
+        --   Helpers.renderListIf (shouldValidate form) renderedValidations renderedField
+        -- )
         ]
 
 
@@ -1767,6 +1839,48 @@ pickFieldListLabel (FormFieldList { label } _) =
 pickFieldListToolTip : FormFieldList model msg -> Maybe (Tooltip.Config msg)
 pickFieldListToolTip (FormFieldList { tooltip } _) =
     tooltip
+
+
+pickFormFieldTooltip : FormField model msg -> Maybe (Tooltip.Config msg)
+pickFormFieldTooltip formField =
+    case formField of
+        SingleField (FormFieldAutocompleteConfig formFieldConfig _) ->
+            pickTooltipFromOpaqueConfig formFieldConfig
+
+        SingleField (FormFieldCheckboxConfig formFieldConfig _) ->
+            pickTooltipFromOpaqueConfig formFieldConfig
+
+        SingleField (FormFieldDatepickerConfig formFieldConfig _) ->
+            pickTooltipFromOpaqueConfig formFieldConfig
+
+        SingleField (FormFieldPasswordConfig formFieldConfig _) ->
+            pickTooltipFromOpaqueConfig formFieldConfig
+
+        SingleField (FormFieldRadioConfig formFieldConfig _) ->
+            pickTooltipFromOpaqueConfig formFieldConfig
+
+        SingleField (FormFieldSelectConfig formFieldConfig _) ->
+            pickTooltipFromOpaqueConfig formFieldConfig
+
+        SingleField (FormFieldTextareaConfig formFieldConfig _) ->
+            pickTooltipFromOpaqueConfig formFieldConfig
+
+        SingleField (FormFieldTextConfig formFieldConfig _) ->
+            pickTooltipFromOpaqueConfig formFieldConfig
+
+        SingleField (FormFieldPureHtmlConfig formFieldConfig) ->
+            pickTooltipFromOpaqueConfig formFieldConfig
+
+        InputGroupField (Append _ formField_) ->
+            pickFormFieldTooltip formField_
+
+        InputGroupField (Prepend _ formField_) ->
+            pickFormFieldTooltip formField_
+
+
+pickTooltipFromOpaqueConfig : { a | tooltip : Maybe (Tooltip.Config msg) } -> Maybe (Tooltip.Config msg)
+pickTooltipFromOpaqueConfig =
+    .tooltip
 
 
 pickOnly : FormValidation.ValidationType -> List (FormValidation.Validation model) -> List (FormValidation.Validation model)
