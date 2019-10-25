@@ -17,7 +17,7 @@ module Prima.Pyxis.Form exposing
     , fieldIsValid, fieldHasError, fieldHasWarning, fieldIsPristine, fieldIsTouched
     , fieldListIsValid, fieldListHasError, fieldListHasOwnError, fieldListHasFieldError, fieldListHasWarning, fieldListHasOwnWarning, fieldListHasFieldWarning
     , render, renderField, renderFieldList
-    , addTooltipToField, addTooltipToFieldList, fieldListConfigWithToolTip
+    , addTooltipToFieldListWhen, addTooltipToFieldWhen, fieldListConfigWithToolTip
     )
 
 {-| Allows to create a Form and it's fields using predefined Html syntax.
@@ -722,27 +722,43 @@ append group field =
 
 {-| Adds a Pyxis tooltip to a given FormField
 -}
-addTooltipToField : Tooltip.Config msg -> FormField model msg -> FormField model msg
-addTooltipToField tooltip formField =
+addTooltipToFieldWhen : Bool -> Tooltip.Config msg -> FormField model msg -> FormField model msg
+addTooltipToFieldWhen show tooltip formField =
+    let
+        maybeTooltip =
+            if show then
+                Just tooltip
+
+            else
+                Nothing
+    in
     case formField of
         SingleField formFieldConfig ->
-            SingleField (addTooltipToOpaqueFormFieldConfig tooltip formFieldConfig)
+            SingleField (addTooltipToOpaqueFormFieldConfig maybeTooltip formFieldConfig)
 
         InputGroupField (Prepend prependable prependedField) ->
-            InputGroupField (Prepend prependable (addTooltipToField tooltip prependedField))
+            InputGroupField (Prepend prependable (addTooltipToFieldWhen show tooltip prependedField))
 
         InputGroupField (Append appendable appendedField) ->
-            InputGroupField (Prepend appendable (addTooltipToField tooltip appendedField))
+            InputGroupField (Prepend appendable (addTooltipToFieldWhen show tooltip appendedField))
 
 
 {-| Adds a Pyxis tooltip to a given Field List
 -}
-addTooltipToFieldList : Tooltip.Config msg -> FormFieldList model msg -> FormFieldList model msg
-addTooltipToFieldList tooltip (FormFieldList formFieldListConfig validations) =
-    FormFieldList (tooltipOpaqueSetter tooltip formFieldListConfig) validations
+addTooltipToFieldListWhen : Bool -> Tooltip.Config msg -> FormFieldList model msg -> FormFieldList model msg
+addTooltipToFieldListWhen show tooltip (FormFieldList formFieldListConfig validations) =
+    let
+        maybeTooltip =
+            if show then
+                Just tooltip
+
+            else
+                Nothing
+    in
+    FormFieldList (tooltipOpaqueSetter maybeTooltip formFieldListConfig) validations
 
 
-addTooltipToOpaqueFormFieldConfig : Tooltip.Config msg -> FormFieldConfig model msg -> FormFieldConfig model msg
+addTooltipToOpaqueFormFieldConfig : Maybe (Tooltip.Config msg) -> FormFieldConfig model msg -> FormFieldConfig model msg
 addTooltipToOpaqueFormFieldConfig tooltip opaqueConfig =
     case opaqueConfig of
         FormFieldAutocompleteConfig config list ->
@@ -773,9 +789,9 @@ addTooltipToOpaqueFormFieldConfig tooltip opaqueConfig =
             FormFieldPureHtmlConfig (tooltipOpaqueSetter tooltip config)
 
 
-tooltipOpaqueSetter : Tooltip.Config msg -> { a | tooltip : Maybe (Tooltip.Config msg) } -> { a | tooltip : Maybe (Tooltip.Config msg) }
+tooltipOpaqueSetter : Maybe (Tooltip.Config msg) -> { a | tooltip : Maybe (Tooltip.Config msg) } -> { a | tooltip : Maybe (Tooltip.Config msg) }
 tooltipOpaqueSetter tooltip opaqueConfig =
-    { opaqueConfig | tooltip = Just tooltip }
+    { opaqueConfig | tooltip = tooltip }
 
 
 {-| Creates a radio option.

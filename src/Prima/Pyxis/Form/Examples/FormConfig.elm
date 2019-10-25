@@ -18,8 +18,8 @@ import Prima.Pyxis.Form as Form
     exposing
         ( FormField
         , FormFieldList
-        , addTooltipToField
-        , addTooltipToFieldList
+        , addTooltipToFieldListWhen
+        , addTooltipToFieldWhen
         )
 import Prima.Pyxis.Form.Event as Event
 import Prima.Pyxis.Form.Examples.Model
@@ -103,7 +103,7 @@ formFieldListWithGroup formData appendable =
             (\formData_ -> not (formData_.username == formData_.password))
             "Username and password shouldn't be equal"
         ]
-        |> addTooltipToFieldList (Tooltip.downConfig [ text "Tooltip sul gruppo" ])
+        |> addTooltipToFieldListWhen True (Tooltip.downConfig [ text "Tooltip sul gruppo" ])
 
 
 note : FormField FormData Msg
@@ -118,7 +118,7 @@ note =
             (\formData -> not (formData.note == Nothing))
             "Note shouldn't be empty"
         ]
-        |> addTooltipToField (Tooltip.rightConfig [ text "You should write some interesting notes here!" ])
+        |> addTooltipToFieldWhen True (Tooltip.rightConfig [ text "You should write some interesting notes here!" ])
 
 
 gender : FormField FormData Msg
