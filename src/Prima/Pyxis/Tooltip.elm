@@ -103,11 +103,11 @@ render : Config msg -> Html msg
 render (Config config) =
     div
         ([ HtmlAttributes.classList
-            [ ( "tooltip", True )
-            , ( "tooltip--up", isTooltipUp config.type_ )
-            , ( "tooltip--down", isTooltipDown config.type_ )
-            , ( "tooltip--left", isTooltipLeft config.type_ )
-            , ( "tooltip--right", isTooltipRight config.type_ )
+            [ ( "a-tooltip", True )
+            , ( "a-tooltip--up", isTooltipUp config.type_ )
+            , ( "a-tooltip--down", isTooltipDown config.type_ )
+            , ( "a-tooltip--left", isTooltipLeft config.type_ )
+            , ( "a-tooltip--right", isTooltipRight config.type_ )
             ]
          ]
             ++ config.attributes
@@ -198,7 +198,7 @@ pTooltip params content =
     renderIf (haveToRender params)
         (div
             [ HtmlAttributes.classList
-                [ ( "tooltip", True )
+                [ ( "a-tooltip", True )
                 , ( solveTooltipClass params, True )
                 ]
             ]
@@ -218,22 +218,22 @@ solveTooltipClass params =
             (\tp ->
                 case tp of
                     Side Up ->
-                        Just "tooltip--up"
+                        Just "a-tooltip--up"
 
                     Side Down ->
-                        Just "tooltip--down"
+                        Just "a-tooltip--down"
 
                     Side Left ->
-                        Just "tooltip--left"
+                        Just "a-tooltip--left"
 
                     Side Right ->
-                        Just "tooltip--right"
+                        Just "a-tooltip--right"
 
                     _ ->
                         Nothing
             )
         |> List.head
-        |> Maybe.withDefault "tooltip--up"
+        |> Maybe.withDefault "a-tooltip--up"
 
 
 haveToRender : List (TooltipAttribute msg) -> Bool
