@@ -1482,6 +1482,9 @@ renderDatepicker formState model ({ attrs, reader, datePickerTagger, slug, label
             , ( "has-warn", warning )
             ]
          ]
+            ++ Events.onInputAttribute config.events
+            ++ Events.onFocusAttribute config.events
+            ++ Events.onBlurAttribute config.events
             ++ attrs
         )
         []
