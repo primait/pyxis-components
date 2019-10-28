@@ -103,7 +103,7 @@ formFieldListWithGroup formData appendable =
             (\formData_ -> not (formData_.username == formData_.password))
             "Username and password shouldn't be equal"
         ]
-        |> addTooltipToFieldListWhen True (Tooltip.downConfig [ text "Tooltip sul gruppo" ])
+        |> addTooltipToFieldListWhen True (Tooltip.downConfig [] [ text "Tooltip sul gruppo" ])
 
 
 note : FormField FormData Msg
@@ -118,7 +118,7 @@ note =
             (\formData -> not (formData.note == Nothing))
             "Note shouldn't be empty"
         ]
-        |> addTooltipToFieldWhen True (Tooltip.rightConfig [ text "You should write some interesting notes here!" ])
+        |> addTooltipToFieldWhen True (Tooltip.rightConfig [] [ text "You should write some interesting notes here!" ])
 
 
 gender : FormField FormData Msg
@@ -198,7 +198,7 @@ dateOfBirth { isVisibleDP, dateOfBirthDP } appendable =
             "You must select a date"
         ]
         |> Form.append [ appendable ]
-        |> addTooltipToFieldWhen True (Tooltip.upConfig [ text "Tooltip sul campo" ])
+        |> addTooltipToFieldWhen True (Tooltip.upConfig [] [ text "Tooltip sul campo" ])
 
 
 country : FormData -> FormField FormData Msg
