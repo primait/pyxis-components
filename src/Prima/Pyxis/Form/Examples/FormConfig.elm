@@ -198,6 +198,7 @@ dateOfBirth { isVisibleDP, dateOfBirthDP } appendable =
             "You must select a date"
         ]
         |> Form.append [ appendable ]
+        |> addTooltipToFieldWhen True (Tooltip.upConfig [ text "Tooltip sul campo" ])
 
 
 country : FormData -> FormField FormData Msg

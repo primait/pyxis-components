@@ -592,7 +592,7 @@ renderFieldList : Form model msg -> model -> FormFieldList model msg -> Html msg
 renderFieldList formConfig model formFieldList =
     div
         [ classList
-            [ ( "m-form-field-group", True )
+            [ ( "m-form-field-list", True )
             , ( "is-valid", fieldListIsValid model formFieldList )
             , ( "has-own-errors", shouldValidate formConfig && fieldListHasOwnError model formFieldList )
             , ( "has-own-warnings", shouldValidate formConfig && fieldListHasOwnWarning model formFieldList )
@@ -608,14 +608,14 @@ renderFieldList formConfig model formFieldList =
 renderFieldListLabel : FormFieldList model msg -> Html msg
 renderFieldListLabel formFieldList =
     div
-        [ class "m-form-field-group__label" ]
+        [ class "m-form-field-list__label" ]
         [ text <| pickFieldListLabel formFieldList ]
 
 
 renderFieldListFormFields : Form model msg -> model -> FormFieldList model msg -> Html msg
 renderFieldListFormFields formConfig model formFieldList =
     div
-        [ class "m-form-field-group__fields-list" ]
+        [ class "m-form-field-list__fields-row" ]
         (formFieldList
             |> pickFieldListFields
             |> List.map (renderFieldEngine List formConfig model)
@@ -625,7 +625,7 @@ renderFieldListFormFields formConfig model formFieldList =
 renderFieldListWrapper : Form model msg -> model -> FormFieldList model msg -> Html msg
 renderFieldListWrapper formConfig model formFieldList =
     div
-        [ class "m-form-field-group__fields-wrapper" ]
+        [ class "m-form-field-list__fields-wrapper" ]
         [ renderFieldListFormFields formConfig model formFieldList
         , formFieldList
             |> pickFieldListToolTip
@@ -654,7 +654,7 @@ renderFieldListValidationMessages model formFieldList allValidations =
                 FormValidation.Warning
     in
     div
-        [ class "m-form-field-group__validation-messages-list" ]
+        [ class "m-form-field-list__validation-messages-list" ]
         (allValidations
             |> pickOnly filterType
             |> List.map FormValidation.pickValidationMessage
@@ -664,7 +664,7 @@ renderFieldListValidationMessages model formFieldList allValidations =
 
 renderFieldListSingleValidationMessage : String -> Html msg
 renderFieldListSingleValidationMessage message =
-    span [ class "m-form-field-group__validation-message-list__item" ] [ text message ]
+    span [ class "m-form-field-list__validation-message-list__item" ] [ text message ]
 
 
 {-| Creates an InputGroup prepending a given List(Html msg) to a given FormField
@@ -740,7 +740,7 @@ addTooltipToFieldWhen show tooltip formField =
             InputGroupField (Prepend prependable (addTooltipToFieldWhen show tooltip prependedField))
 
         InputGroupField (Append appendable appendedField) ->
-            InputGroupField (Prepend appendable (addTooltipToFieldWhen show tooltip appendedField))
+            InputGroupField (Append appendable (addTooltipToFieldWhen show tooltip appendedField))
 
 
 {-| Adds a Pyxis tooltip to a given Field List
@@ -1562,7 +1562,10 @@ renderRadioOption model ({ reader, slug, label, options, attrs } as config) inde
 
 renderCheckbox : CheckboxConfig model msg -> List (Html msg)
 renderCheckbox ({ slug, label, options } as config) =
-    (List.concat << List.indexedMap (\index option -> renderCheckboxOption config index option)) options
+    [ div
+        [ class "a-form-field__checkbox-options" ]
+        ((List.concat << List.indexedMap (\index option -> renderCheckboxOption config index option)) options)
+    ]
 
 
 renderCheckboxOption : CheckboxConfig model msg -> Int -> CheckboxOption -> List (Html msg)
