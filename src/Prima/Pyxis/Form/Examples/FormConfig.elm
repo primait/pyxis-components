@@ -267,3 +267,4 @@ staticHtml =
         "static-html"
         [ p [] [ text "Lorem ipsum dolor sit amet." ]
         ]
+        []

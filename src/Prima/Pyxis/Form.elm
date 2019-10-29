@@ -17,7 +17,7 @@ module Prima.Pyxis.Form exposing
     , fieldIsValid, fieldHasError, fieldHasWarning, fieldIsPristine, fieldIsTouched
     , fieldListIsValid, fieldListHasError, fieldListHasOwnError, fieldListHasFieldError, fieldListHasWarning, fieldListHasOwnWarning, fieldListHasFieldWarning
     , render, renderField, renderFieldList
-    , addTooltipToFieldListWhen, addTooltipToFieldWhen, fieldListConfigWithToolTip
+    , addCustomRow, addTooltipToFieldListWhen, addTooltipToFieldWhen, fieldListConfigWithToolTip
     )
 
 {-| Allows to create a Form and it's fields using predefined Html syntax.
@@ -151,6 +151,7 @@ type alias FormConfig model msg =
 type FormRow model msg
     = SingleFieldRow (FormField model msg)
     | FieldListRow (FormFieldList model msg)
+    | CustomRow (Html msg)
 
 
 type FormState
@@ -516,6 +517,13 @@ addFieldList formFieldList (Form ({ fields } as config)) =
     Form { config | fields = fields ++ [ FieldListRow formFieldList ] }
 
 
+{-| Adds a custom Html msg in a form. It's not wrapped in a-form-field and doesn't provide validations
+-}
+addCustomRow : Html msg -> Form model msg -> Form model msg
+addCustomRow row (Form ({ fields } as config)) =
+    Form { config | fields = fields ++ [ CustomRow row ] }
+
+
 {-| Sets the form to Submitted state.
 -}
 setAsSubmitted : Form model msg -> Form model msg
@@ -558,6 +566,9 @@ render model ((Form { fields }) as formConfig) =
 
                 FieldListRow formFieldList ->
                     renderFieldList formConfig model formFieldList
+
+                CustomRow html ->
+                    html
     in
     div [ class "o-form" ] (List.map mapper fields)
 
