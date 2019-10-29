@@ -188,7 +188,7 @@ type FormFieldConfig model msg
     | FormFieldSelectConfig (SelectConfig model msg) (List (FormValidation.Validation model))
     | FormFieldTextareaConfig (TextareaConfig model msg) (List (FormValidation.Validation model))
     | FormFieldTextConfig (TextConfig model msg) (List (FormValidation.Validation model))
-    | FormFieldPureHtmlConfig (PureHtmlConfig msg)
+    | FormFieldPureHtmlConfig (PureHtmlConfig msg) (List (FormValidation.Validation model))
 
 
 {-| Represents the type of group which can wrap a form field.
@@ -785,8 +785,8 @@ addTooltipToOpaqueFormFieldConfig tooltip opaqueConfig =
         FormFieldTextConfig config list ->
             FormFieldTextConfig (tooltipOpaqueSetter tooltip config) list
 
-        FormFieldPureHtmlConfig config ->
-            FormFieldPureHtmlConfig (tooltipOpaqueSetter tooltip config)
+        FormFieldPureHtmlConfig config list ->
+            FormFieldPureHtmlConfig (tooltipOpaqueSetter tooltip config) list
 
 
 tooltipOpaqueSetter : Maybe (Tooltip.Config msg) -> { a | tooltip : Maybe (Tooltip.Config msg) } -> { a | tooltip : Maybe (Tooltip.Config msg) }
@@ -1219,8 +1219,8 @@ autocompleteConfig slug label isOpen noResults attrs filterReader choiceReader e
         Form.pureHtmlConfig [ text "Lorem ipsum dolor sit amet" ]
 
 -}
-pureHtmlConfig : String -> List (Html msg) -> FormField model msg
-pureHtmlConfig slug content =
+pureHtmlConfig : String -> List (Html msg) -> List (FormValidation.Validation model) -> FormField model msg
+pureHtmlConfig slug content validations =
     SingleField <|
         FormFieldPureHtmlConfig
             (PureHtmlConfig
@@ -1228,6 +1228,7 @@ pureHtmlConfig slug content =
                 slug
                 Nothing
             )
+            validations
 
 
 {-| Renders a single `FormField`
@@ -1394,7 +1395,7 @@ renderFieldEngine mode ((Form formConfig) as form) model formField =
                 FormFieldAutocompleteConfig config _ ->
                     ( lbl config, wrapWhenGroup <| renderAutocomplete model config )
 
-                FormFieldPureHtmlConfig config ->
+                FormFieldPureHtmlConfig config _ ->
                     ( text "", renderPureHtml config )
 
         renderedValidations =
@@ -1887,7 +1888,7 @@ pickFormFieldTooltip formField =
         SingleField (FormFieldTextConfig formFieldConfig _) ->
             pickTooltipFromOpaqueConfig formFieldConfig
 
-        SingleField (FormFieldPureHtmlConfig formFieldConfig) ->
+        SingleField (FormFieldPureHtmlConfig formFieldConfig _) ->
             pickTooltipFromOpaqueConfig formFieldConfig
 
         InputGroupField (Append _ formField_) ->
@@ -1996,8 +1997,8 @@ pickFieldValidations formField =
         FormFieldAutocompleteConfig _ validations ->
             validations
 
-        FormFieldPureHtmlConfig _ ->
-            []
+        FormFieldPureHtmlConfig _ validations ->
+            validations
 
 
 {-| Checks if a given field is valid. All validations are returning True
@@ -2128,7 +2129,7 @@ pickFormFieldSlug formField =
         FormFieldTextConfig { slug } _ ->
             slug
 
-        FormFieldPureHtmlConfig { slug } ->
+        FormFieldPureHtmlConfig { slug } _ ->
             slug
 
 
