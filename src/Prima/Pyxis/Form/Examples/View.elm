@@ -36,8 +36,9 @@ appBody { data, formConfig } =
             |> Form.addField (Config.city data.isOpenCity)
             |> Form.addField (Config.country data)
             |> Form.addField (Config.dateOfBirth data datePickerIcon)
-            |> Form.addField Config.staticHtml
+            |> Form.addField Config.staticHtmlField
             |> Form.addFieldList (Config.formFieldListWithGroup data datePickerIcon)
+            |> Form.addCustomRow (div [] [ text "Some fancy text in the middle of your form" ])
             |> Form.render data
         , btnSubmit
         , btnReset

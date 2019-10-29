@@ -7,7 +7,7 @@ module Prima.Pyxis.Form.Examples.FormConfig exposing
     , gender
     , note
     , password
-    , staticHtml
+    , staticHtmlField
     , username
     , visitedCountries
     )
@@ -261,10 +261,14 @@ country { countryFilter, isOpenCountry } =
         ]
 
 
-staticHtml : FormField FormData Msg
-staticHtml =
+staticHtmlField : FormField FormData Msg
+staticHtmlField =
     Form.pureHtmlConfig
-        "static-html"
-        [ p [] [ text "Lorem ipsum dolor sit amet." ]
+        --slug
+        "always-error-field"
+        [ p [] [ text "You shall not pass" ]
         ]
-        []
+        [ FormValidation.config FormValidation.Error
+            (\formData -> False)
+            "This form field will always prints error"
+        ]

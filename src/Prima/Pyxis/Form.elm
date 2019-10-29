@@ -1,12 +1,12 @@
 module Prima.Pyxis.Form exposing
     ( Form, Label, Slug, Value
-    , init, setAsTouched, setAsSubmitted, addField, addFieldList
+    , init, setAsTouched, setAsSubmitted, addField, addFieldList, addCustomRow
     , isFormSubmitted, isFormPristine, isFormTouched
     , InputGroup, prepend, append
     , ValidationVisibilityPolicy(..)
     , pickValidationVisibilityPolicy, validateAlways, validateWhenSubmitted
-    , FormField
-    , FormFieldList, fieldListConfig
+    , FormField, addTooltipToFieldWhen
+    , FormFieldList, fieldListConfig, addTooltipToFieldListWhen
     , textConfig, passwordConfig, textareaConfig
     , checkboxConfig, checkboxOption
     , radioConfig, radioOption
@@ -17,7 +17,6 @@ module Prima.Pyxis.Form exposing
     , fieldIsValid, fieldHasError, fieldHasWarning, fieldIsPristine, fieldIsTouched
     , fieldListIsValid, fieldListHasError, fieldListHasOwnError, fieldListHasFieldError, fieldListHasWarning, fieldListHasOwnWarning, fieldListHasFieldWarning
     , render, renderField, renderFieldList
-    , addCustomRow, addTooltipToFieldListWhen, addTooltipToFieldWhen, fieldListConfigWithToolTip
     )
 
 {-| Allows to create a Form and it's fields using predefined Html syntax.
@@ -30,7 +29,7 @@ module Prima.Pyxis.Form exposing
 
 # Form Configuration Helpers
 
-@docs init, setAsTouched, setAsSubmitted, addField, addFieldList, addInputGroup
+@docs init, setAsTouched, setAsSubmitted, addField, addFieldList, addCustomRow
 
 
 # Form State Helpers
@@ -55,12 +54,12 @@ module Prima.Pyxis.Form exposing
 
 # Fields Configuration
 
-@docs FormField
+@docs FormField, addTooltipToFieldWhen
 
 
 # FieldList Configuration
 
-@docs FormFieldList, fieldListConfig
+@docs FormFieldList, fieldListConfig, addTooltipToFieldListWhen
 
 
 # Input
@@ -367,13 +366,6 @@ type ValidationVisibilityPolicy
 fieldListConfig : Label -> List (FormField model msg) -> List (FormValidation.Validation model) -> FormFieldList model msg
 fieldListConfig label fields validations =
     FormFieldList (FormFieldListConfig label fields Nothing) validations
-
-
-{-| Configure a FormFieldList with a tooltip
--}
-fieldListConfigWithToolTip : Label -> List (FormField model msg) -> List (FormValidation.Validation model) -> Tooltip.Config msg -> FormFieldList model msg
-fieldListConfigWithToolTip label fields validations tooltipConfig =
-    FormFieldList (FormFieldListConfig label fields (Just tooltipConfig)) validations
 
 
 {-| Returns form's Validation Visibility Policy
@@ -1218,7 +1210,7 @@ autocompleteConfig slug label isOpen noResults attrs filterReader choiceReader e
             validations
 
 
-{-| Creates a pure html field. No events accepeted.
+{-| Creates a custom rendered FormField.
 
     --
     import Prima.Pyxis.Form as Form exposing (FormField)
@@ -1227,7 +1219,10 @@ autocompleteConfig slug label isOpen noResults attrs filterReader choiceReader e
 
     loremIpsum : FormField Model Msg
     loremIpsum =
-        Form.pureHtmlConfig [ text "Lorem ipsum dolor sit amet" ]
+        Form.pureHtmlConfig
+            "custom-form-field"
+            [ text "Lorem ipsum dolor sit amet" ]
+            []
 
 -}
 pureHtmlConfig : String -> List (Html msg) -> List (FormValidation.Validation model) -> FormField model msg
@@ -1326,10 +1321,6 @@ assemblyFormField form model formField renderedLabel renderedField renderedValid
              ]
                 |> List.concat
             )
-
-        --((++)
-        --   Helpers.renderListIf (shouldValidate form) renderedValidations renderedField
-        -- )
         ]
 
 
