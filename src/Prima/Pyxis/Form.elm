@@ -1583,6 +1583,7 @@ renderCheckboxOption ({ reader, attrs } as config) index option =
          , id slug
          , name slug
          , class "a-form-field__checkbox"
+         , checked option.isChecked
          ]
             ++ attrs
             ++ Events.onCheckAttribute option.slug (not option.isChecked) config.events
