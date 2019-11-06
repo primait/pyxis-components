@@ -112,7 +112,7 @@ isSmall =
 
     myBtn : Button.Config Msg
     myBtn =
-        Button.callOut Button.brand "Click me!" Clicked isDisabled
+        Button.callOut Button.Brand "Click me!" Clicked
 
 -}
 callOut : Scheme -> String -> msg -> Config msg

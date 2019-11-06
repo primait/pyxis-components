@@ -17,6 +17,7 @@
         "Prima.Pyxis.ListChooser",
         "Prima.Pyxis.Loader",
         "Prima.Pyxis.Message",
+        "Prima.Pyxis.Modal",
         "Prima.Pyxis.Table",
         "Prima.Pyxis.Tooltip"
     ],
