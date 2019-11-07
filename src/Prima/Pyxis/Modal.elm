@@ -164,7 +164,7 @@ customHeader =
 -}
 type ModalFooter msg
     = ModalFooterEmpty
-    | ModalFooterButtons (List (Button.Config msg))
+    | ModalFooterButtons (List (Html msg))
     | ModalFooterCustom (List (Html msg))
 
 
@@ -178,7 +178,7 @@ emptyFooter =
 {-| Represents a Footer with a list of Prima.Pyxis.Button instances.
 All the buttons will be wrapper in a btnGroup, so no more than 4 buttons are allowed.
 -}
-withButtonsFooter : List (Button.Config msg) -> ModalFooter msg
+withButtonsFooter : List (Html msg) -> ModalFooter msg
 withButtonsFooter =
     ModalFooterButtons
 
@@ -333,7 +333,7 @@ modalFooter footer =
                 []
 
             ModalFooterButtons buttons ->
-                [ div [ class "m-btnGroup" ] (List.map (Button.render True) buttons) ]
+                [ div [ class "m-btnGroup" ] buttons ]
 
             ModalFooterCustom content ->
                 content
