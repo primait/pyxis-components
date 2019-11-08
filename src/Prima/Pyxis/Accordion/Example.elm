@@ -1,12 +1,12 @@
 module Prima.Pyxis.Accordion.Example exposing (main)
 
 import Browser
-import Prima.Pyxis.Accordion.Examples.Model exposing (Model, Msg, initialModel)
+import Prima.Pyxis.Accordion.Examples.Model exposing (Accordion, Msg, initialModel)
 import Prima.Pyxis.Accordion.Examples.Update exposing (update)
 import Prima.Pyxis.Accordion.Examples.View exposing (view)
 
 
-main : Program () Model Msg
+main : Program () (List Accordion) Msg
 main =
     Browser.document
         { init = init
@@ -16,6 +16,6 @@ main =
         }
 
 
-init : () -> ( Model, Cmd Msg )
+init : () -> ( List Accordion, Cmd Msg )
 init _ =
     ( initialModel, Cmd.none )

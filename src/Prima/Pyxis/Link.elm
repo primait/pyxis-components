@@ -1,51 +1,127 @@
 module Prima.Pyxis.Link exposing
-    ( Config, Icon
-    , simple, standalone, withIcon
-    , iconChevronDown, iconDownload, iconEdit, iconEmail, iconPhone
+    ( Config, simple, standalone
+    , withId, withClass, withTargetBlank, withTargetParent, withTargetSelf, withTargetTop, withAttribute, withClassList, withIcon, withHref
+    , withOnClick, withOnMouseDown, withOnMouseUp, withOnMouseEnter, withOnMouseLeave, withOnMouseOver, withOnMouseOut
     , render
     )
 
-{-| Allows to create a `Link` using predefined Html syntax.
+{-|
 
 
-# Configuration
+## Types and Configuration
 
-@docs Config, Icon
-
-
-# Configuration Helpers
-
-@docs simple, standalone, withIcon
+@docs Config, simple, standalone
 
 
-# Icons Configuratiion Helpers
+## Options
 
-@docs iconChevronDown, iconDownload, iconEdit, iconEmail, iconPhone
+@docs withId, withClass, withTargetBlank, withTargetParent, withTargetSelf, withTargetTop, withAttribute, withClassList, withIcon, withHref
 
 
-# Rendering
+## Events
+
+@docs withOnClick, withOnMouseDown, withOnMouseUp, withOnMouseEnter, withOnMouseLeave, withOnMouseOver, withOnMouseOut
+
+
+## Render
 
 @docs render
 
 -}
 
 import Html exposing (Html, a, i, text)
-import Html.Attributes exposing (class, classList, href)
-import Prima.Pyxis.Helpers as Helpers
+import Html.Attributes as Attrs
+import Html.Events as Events
+import Prima.Pyxis.Helpers as H
 
 
-{-| Represents the configuration of a `Link`.
+{-| Represent the configuration of a `Link`.
 -}
-type Config
-    = Config Configuration
+type Config msg
+    = Config (LinkConfig msg)
 
 
-type alias Configuration =
+type alias LinkConfig msg =
     { type_ : LinkType
     , label : String
-    , path : String
-    , icon : Maybe Icon
+    , href : Maybe String
+    , icon : Maybe String
+    , options : List (LinkOption msg)
     }
+
+
+{-| Internal. Represents the list of customizations for the `Link` component.
+-}
+type alias Options msg =
+    { id : Maybe String
+    , classes : List String
+    , classList : List ( String, Bool )
+    , events : List (Html.Attribute msg)
+    , attributes : List (Html.Attribute msg)
+    , target : Maybe String
+    }
+
+
+{-| Internal. Represents the possible modifiers for an `Link`.
+-}
+type LinkOption msg
+    = Id String
+    | Class String
+    | ClassList (List ( String, Bool ))
+    | Event (Html.Attribute msg)
+    | Attribute (Html.Attribute msg)
+    | Target String
+
+
+{-| Internal. Represents the initial state of the list of customizations for the `Link` component.
+-}
+defaultOptions : Options msg
+defaultOptions =
+    { id = Nothing
+    , classes = []
+    , classList = []
+    , events = []
+    , attributes = []
+    , target = Nothing
+    }
+
+
+{-| Internal. Applies the customizations made by end user to the `Link` component.
+-}
+applyOption : LinkOption msg -> Options msg -> Options msg
+applyOption modifier options =
+    case modifier of
+        Id id ->
+            { options | id = Just id }
+
+        Class class ->
+            { options | classes = class :: options.classes }
+
+        ClassList list ->
+            { options | classList = List.append list options.classList }
+
+        Event action ->
+            { options | events = action :: options.events }
+
+        Attribute attr ->
+            { options | attributes = attr :: options.attributes }
+
+        Target target ->
+            { options | target = Just target }
+
+
+{-| Internal. Applies all the customizations and returns the internal `Options` type.
+-}
+computeOptions : Config msg -> Options msg
+computeOptions (Config config) =
+    List.foldl applyOption defaultOptions config.options
+
+
+{-| Internal. Adds a generic option to the `Link`.
+-}
+addOption : LinkOption msg -> Config msg -> Config msg
+addOption option (Config linkConfig) =
+    Config { linkConfig | options = linkConfig.options ++ [ option ] }
 
 
 type LinkType
@@ -58,7 +134,7 @@ isStandalone =
     (==) Standalone
 
 
-{-| Creates a simple link. Used when the link itself is in a paragraph.
+{-| Create a simple link. Used when the link itself is in a paragraph.
 
     --
 
@@ -71,12 +147,12 @@ isStandalone =
         Link.simple "Visit site" "https://www.prima.it"
 
 -}
-simple : String -> String -> Config
-simple label path =
-    Config (Configuration Simple label path Nothing)
+simple : String -> Config msg
+simple label =
+    Config (LinkConfig Simple label Nothing Nothing [])
 
 
-{-| Creates a standalone link. Used when the link itself stands alone.
+{-| Create a standalone link. Used when the link itself stands alone.
 
     --
 
@@ -89,12 +165,12 @@ simple label path =
         Link.standalone "Visit site" "https://www.prima.it"
 
 -}
-standalone : String -> String -> Config
-standalone label path =
-    Config (Configuration Standalone label path Nothing)
+standalone : String -> Config msg
+standalone label =
+    Config (LinkConfig Standalone label Nothing Nothing [])
 
 
-{-| Creates a simple link which holds an icon. Used when the link itself stands alone.
+{-| Add `a[target="_top"]` attr to the `Config`.
 
     --
 
@@ -104,88 +180,232 @@ standalone label path =
 
     myLink : Link.Config
     myLink =
-        Link.withIcon "Visit site" "https://www.prima.it" Link.iconEdit
+      "https://www.prima.it"
+        |> Link.simple "Visit site"
+        |> Link.withTargetTop
 
 -}
-withIcon : String -> String -> Icon -> Config
-withIcon label path icon =
-    Config (Configuration Simple label path (Just icon))
+withTargetTop : Config msg -> Config msg
+withTargetTop =
+    addOption (Target "_top")
 
 
-{-| Represents an icon from Pyxis Iconset.
+{-| Add `a[target="_self"]` attr to the `Config`.
+
+    --
+
+    import Prima.Pyxis.Link as Link
+
+    ...
+
+    myLink : Link.Config
+    myLink =
+      "https://www.prima.it"
+        |> Link.simple "Visit site"
+        |> Link.withTargetSelf
+
 -}
-type Icon
-    = ArrowRight
-    | ChevronDown
-    | Download
-    | Edit
-    | Email
-    | Phone
+withTargetSelf : Config msg -> Config msg
+withTargetSelf =
+    addOption (Target "_self")
 
 
-{-| Creates a chevron-down icon.
+{-| Add `a[target="_parent"]` attr to the `Config`.
+
+    --
+
+    import Prima.Pyxis.Link as Link
+
+    ...
+
+    myLink : Link.Config
+    myLink =
+      "https://www.prima.it"
+        |> Link.simple "Visit site"
+        |> Link.withTargetParent
+
 -}
-iconChevronDown : Icon
-iconChevronDown =
-    ChevronDown
+withTargetParent : Config msg -> Config msg
+withTargetParent =
+    addOption (Target "_parent")
 
 
-{-| Creates a download icon.
+{-| Add `a[target="_blank"]` attr to the `Config`.
+
+    --
+
+    import Prima.Pyxis.Link as Link
+
+    ...
+
+    myLink : Link.Config
+    myLink =
+      "https://www.prima.it"
+        |> Link.simple "Visit site"
+        |> Link.withTargetBlank
+
 -}
-iconDownload : Icon
-iconDownload =
-    Download
+withTargetBlank : Config msg -> Config msg
+withTargetBlank =
+    addOption (Target "_blank")
 
 
-{-| Creates an edit icon.
+{-| Adds an `id` Html.Attribute to the `Link`.
 -}
-iconEdit : Icon
-iconEdit =
-    Edit
+withId : String -> Config msg -> Config msg
+withId id =
+    addOption (Id id)
 
 
-{-| Creates an email icon.
+{-| Adds a `class` to the `Link`.
 -}
-iconEmail : Icon
-iconEmail =
-    Email
+withClass : String -> Config msg -> Config msg
+withClass class_ =
+    addOption (Class class_)
 
 
-{-| Creates a phone icon.
+{-| Adds classes to the `classList` of the `Link`.
 -}
-iconPhone : Icon
-iconPhone =
-    Phone
+withClassList : List ( String, Bool ) -> Config msg -> Config msg
+withClassList classList =
+    addOption (ClassList classList)
+
+
+{-| Adds a generic attribute to the Link.
+-}
+withAttribute : Html.Attribute msg -> Config msg -> Config msg
+withAttribute attr =
+    addOption (Attribute attr)
+
+
+{-| Adds an `onClick` Html.Event to the `Link`.
+-}
+withOnClick : msg -> Config msg -> Config msg
+withOnClick tagger =
+    addOption (Event (H.stopEvt "click" tagger))
+
+
+{-| Adds an `onMouseDown` Html.Event to the `Link`.
+-}
+withOnMouseDown : msg -> Config msg -> Config msg
+withOnMouseDown tagger =
+    addOption (Event (Events.onMouseDown tagger))
+
+
+{-| Adds an `onMouseUp` Html.Event to the `Link`.
+-}
+withOnMouseUp : msg -> Config msg -> Config msg
+withOnMouseUp tagger =
+    addOption (Event (Events.onMouseUp tagger))
+
+
+{-| Adds an `onMouseEnter` Html.Event to the `Link`.
+-}
+withOnMouseEnter : msg -> Config msg -> Config msg
+withOnMouseEnter tagger =
+    addOption (Event (Events.onMouseEnter tagger))
+
+
+{-| Adds an `onMouseLeave` Html.Event to the `Link`.
+-}
+withOnMouseLeave : msg -> Config msg -> Config msg
+withOnMouseLeave tagger =
+    addOption (Event (Events.onMouseLeave tagger))
+
+
+{-| Adds an `onMouseOver` Html.Event to the `Link`.
+-}
+withOnMouseOver : msg -> Config msg -> Config msg
+withOnMouseOver tagger =
+    addOption (Event (Events.onMouseOver tagger))
+
+
+{-| Adds an `onMouseOut` Html.Event to the `Link`.
+-}
+withOnMouseOut : msg -> Config msg -> Config msg
+withOnMouseOut tagger =
+    addOption (Event (Events.onMouseOut tagger))
+
+
+{-| Creates a arrow-right icon.
+-}
+withIcon : String -> Config msg -> Config msg
+withIcon icon (Config linkConfig) =
+    Config { linkConfig | icon = Just icon }
+
+
+{-| Adds href attribute to the `Link` component
+-}
+withHref : String -> Config msg -> Config msg
+withHref href (Config linkConfig) =
+    Config { linkConfig | href = Just href }
 
 
 {-| Renders a link by receiving it's configuration.
 -}
-render : Config -> Html msg
-render (Config config) =
+render : Config msg -> Html msg
+render ((Config { label, icon, href }) as config) =
+    let
+        maybeHref : List (Html.Attribute msg)
+        maybeHref =
+            href
+                |> Maybe.map Attrs.href
+                |> List.singleton
+                |> List.filterMap identity
+    in
     a
-        [ classList
-            [ ( "a-link", True )
-            , ( "a-link--standalone", isStandalone config.type_ )
-            , ( "a-link--with-icon", Helpers.isJust config.icon )
-            ]
-        , href config.path
-        ]
-        [ Maybe.withDefault (text "") <| Maybe.map renderIcon <| config.icon
-        , text config.label
+        (maybeHref
+            |> List.append (buildAttributes config)
+        )
+        [ icon
+            |> Maybe.map renderIcon
+            |> Maybe.withDefault (text "")
+        , text label
         ]
 
 
-renderIcon : Icon -> Html msg
+{-| Internal. Renders the icon
+-}
+renderIcon : String -> Html msg
 renderIcon icon =
-    i
-        [ classList
+    Html.i
+        [ Attrs.classList
             [ ( "a-icon", True )
             , ( "a-link__icon", True )
-            , ( "a-icon-chevron-down", icon == ChevronDown )
-            , ( "a-icon-download", icon == Download )
-            , ( "a-icon-edit", icon == Edit )
-            , ( "a-icon-email", icon == Email )
-            , ( "a-icon-phone", icon == Phone )
+            , ( "a-icon-" ++ icon, True )
             ]
         ]
         []
+
+
+{-| Internal. Transforms all the customizations into a list of valid Html.Attribute(s).
+-}
+buildAttributes : Config msg -> List (Html.Attribute msg)
+buildAttributes linkModel =
+    let
+        options =
+            computeOptions linkModel
+    in
+    [ options.id
+        |> Maybe.map Attrs.id
+    , options.target
+        |> Maybe.map Attrs.target
+    ]
+        |> List.filterMap identity
+        |> List.append options.events
+        |> List.append options.attributes
+        |> (::) (H.classesAttribute options.classes)
+        |> (::) (buildClassList linkModel options)
+
+
+{-| Internal. Merges the component configuration and options to a classList attribute.
+-}
+buildClassList : Config msg -> Options msg -> Html.Attribute msg
+buildClassList (Config { type_, icon }) options =
+    [ ( "a-link", True )
+    , ( "a-link--standalone", isStandalone type_ )
+    , ( "a-link--with-icon", H.isJust icon )
+    ]
+        |> List.append options.classList
+        |> List.append (List.map (H.flip Tuple.pair True) options.classes)
+        |> Attrs.classList

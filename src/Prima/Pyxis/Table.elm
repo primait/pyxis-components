@@ -1,5 +1,5 @@
 module Prima.Pyxis.Table exposing
-    ( Config, TableType, State, Header, Row, Column, ColSpan, Sort, Footer, FooterColumn, FooterRow
+    ( Config, TableType, State, Header, Row, Column, ColSpan, Sort, FooterColumn, FooterRow
     , config, initialState, defaultType, alternativeType
     , header, row, footerRow
     , columnFloat, columnHtml, columnInteger, columnString, footerColumnFloat, footerColumnHtml, footerColumnInteger, footerColumnString
@@ -7,7 +7,7 @@ module Prima.Pyxis.Table exposing
     , render
     )
 
-{-| Creates a customizable Table component by using predefined Html syntax.
+{-| Create a customizable `Table` by using predefined Html syntax.
 
 
 # Configuration
@@ -15,7 +15,7 @@ module Prima.Pyxis.Table exposing
 @docs Config, TableType, State, Header, Row, Column, ColSpan, Sort, Footer, FooterColumn, FooterRow
 
 
-# Configuration Helpers
+## Options
 
 @docs config, initialState, defaultType, alternativeType
 
@@ -41,14 +41,15 @@ module Prima.Pyxis.Table exposing
 
 -}
 
-import Array exposing (Array)
-import Html exposing (Html, i, table, tbody, td, text, tfoot, th, thead, tr)
+import Array
+import Html exposing (Html, i, table, tbody, td, text, th, thead, tr)
 import Html.Attributes exposing (attribute, class, classList, colspan)
 import Html.Events exposing (onClick)
-import List.Extra
+import List.Extra as LE
+import Prima.Pyxis.Helpers as H
 
 
-{-| Represents the static configuration of the component.
+{-| Represent the static configuration of the component.
 -}
 type Config msg
     = Config (Configuration msg)
@@ -106,21 +107,21 @@ config tableType sorting headers rows alternateRows footerColumns tableClassList
     Config (Configuration tableType sorting headers rows alternateRows footerColumns tableClassList)
 
 
-{-| Represents the table skin.
+{-| Represent the table skin.
 -}
 type TableType
     = Default
     | Alternative
 
 
-{-| Represents the Default table skin.
+{-| Represent the Default table skin.
 -}
 defaultType : TableType
 defaultType =
     Default
 
 
-{-| Represents the Alternative table skin.
+{-| Represent the Alternative table skin.
 -}
 alternativeType : TableType
 alternativeType =
@@ -132,13 +133,13 @@ isAlternativeTableType =
     (==) Alternative
 
 
-{-| Represents the basic state of the component.
+{-| Represent the basic state of the component.
 -}
 type State
     = State InternalState
 
 
-{-| Creates an initial State defined by Sort and Column.
+{-| Create an initial State defined by Sort and Column.
 -}
 initialState : Maybe Sort -> Maybe String -> State
 initialState sortBy sortedColumn =
@@ -151,7 +152,7 @@ type alias InternalState =
     }
 
 
-{-| Represents the sort algorithm
+{-| Represent the sort algorithm
 -}
 type Sort
     = Asc
@@ -179,16 +180,10 @@ sort sortedColumnSlug sortAlgorithm (State internalState) =
     State { internalState | sortBy = sortAlgorithm, sortedColumn = sortedColumnSlug }
 
 
-{-| Represents an Header of the table. It's gonna be rendered as a <th/> tag.
+{-| Represent an Header of the table. It's gonna be rendered as a <th/> tag.
 -}
 type Header msg
     = Header (HeaderConfiguration msg)
-
-
-{-| Represents a Footer of the table. It's gonna be rendered as a <tr/> tag inside a tfoot.
--}
-type Footer msg
-    = Footer (FooterColumnConfiguration msg)
 
 
 type alias HeaderConfiguration msg =
@@ -198,7 +193,7 @@ type alias HeaderConfiguration msg =
     }
 
 
-{-| Creates and Header.
+{-| Create and Header.
 
     myHeader : String -> String -> (String -> Msg) -> Table.Header Msg
     myHeader slug content sortByTagger =
@@ -210,13 +205,13 @@ header slug name maybeTagger =
     Header <| HeaderConfiguration slug name maybeTagger
 
 
-{-| Represents a Row which contains a list of Columns.
+{-| Represent a Row which contains a list of Columns.
 -}
 type Row msg
     = Row (List (Column msg))
 
 
-{-| Creates a Row
+{-| Create a Row
 
     myRow : List (Column Msg) -> Table.Row Msg
     myRow columns =
@@ -228,13 +223,13 @@ row columns =
     Row columns
 
 
-{-| Represents a Footer Row which contains a list of Columns.
+{-| Represent a Footer Row which contains a list of Columns.
 -}
 type FooterRow msg
     = FooterRow (List (FooterColumn msg))
 
 
-{-| Creates a FooterRow
+{-| Create a FooterRow
 
     myRow : List (FooterColumn Msg) -> Table.footerRow Msg
     myRow columns =
@@ -246,7 +241,7 @@ footerRow columns =
     FooterRow columns
 
 
-{-| Represents a Column which can manage a specific kind of data.
+{-| Represent a Column which can manage a specific kind of data.
 -}
 type Column msg
     = Column (ColumnConfiguration msg)
@@ -259,7 +254,7 @@ type ColumnConfiguration msg
     | HtmlColumn ColSpan (List (Html msg))
 
 
-{-| Represents a Footer Column which can manage a specific kind of data.
+{-| Represent a Footer Column which can manage a specific kind of data.
 -}
 type FooterColumn msg
     = FooterColumn (FooterColumnConfiguration msg)
@@ -272,56 +267,56 @@ type FooterColumnConfiguration msg
     | FloatFooterColumn ColSpan Float
 
 
-{-| Creates a Column which content is String primitive.
+{-| Create a Column which content is String primitive.
 -}
 columnString : ColSpan -> String -> Column msg
 columnString colSpan content =
     Column (StringColumn colSpan content)
 
 
-{-| Creates a Column which content is Integer primitive.
+{-| Create a Column which content is Integer primitive.
 -}
 columnInteger : ColSpan -> Int -> Column msg
 columnInteger colSpan content =
     Column (IntegerColumn colSpan content)
 
 
-{-| Creates a Column which content is Float primitive.
+{-| Create a Column which content is Float primitive.
 -}
 columnFloat : ColSpan -> Float -> Column msg
 columnFloat colSpan content =
     Column (FloatColumn colSpan content)
 
 
-{-| Creates a Column which content is Html.
+{-| Create a Column which content is Html.
 -}
 columnHtml : ColSpan -> List (Html msg) -> Column msg
 columnHtml colSpan content =
     Column (HtmlColumn colSpan content)
 
 
-{-| Creates a FooterColumn which content is Html.
+{-| Create a FooterColumn which content is Html.
 -}
 footerColumnHtml : ColSpan -> List (Html msg) -> FooterColumn msg
 footerColumnHtml colSpan content =
     FooterColumn (HtmlFooterColumn colSpan content)
 
 
-{-| Creates a FooterColumn which content is String primitive.
+{-| Create a FooterColumn which content is String primitive.
 -}
 footerColumnString : ColSpan -> String -> FooterColumn msg
 footerColumnString colSpan content =
     FooterColumn (StringFooterColumn colSpan content)
 
 
-{-| Creates a FooterColumn which content is Integer primitive.
+{-| Create a FooterColumn which content is Integer primitive.
 -}
 footerColumnInteger : ColSpan -> Int -> FooterColumn msg
 footerColumnInteger colSpan content =
     FooterColumn (IntegerFooterColumn colSpan content)
 
 
-{-| Creates a FooterColumn which content is Float primitive.
+{-| Create a FooterColumn which content is Float primitive.
 -}
 footerColumnFloat : ColSpan -> Float -> FooterColumn msg
 footerColumnFloat colSpan content =
@@ -336,11 +331,7 @@ type alias Name =
     String
 
 
-type alias Value =
-    String
-
-
-{-| Represents the colSpan of a column. Alias for Integer.
+{-| Represent the colSpan of a column. Alias for Integer.
 -}
 type alias ColSpan =
     Int
@@ -383,7 +374,7 @@ retrieveHeaderIndexBySlug : Maybe Slug -> List (Header msg) -> Maybe Int
 retrieveHeaderIndexBySlug slug headers =
     headers
         |> List.map (\(Header h) -> h.slug)
-        |> List.Extra.findIndex ((==) slug << Just)
+        |> LE.findIndex ((==) slug << Just)
 
 
 {-| Renders a Table by receiving a State and a Config
@@ -428,7 +419,7 @@ render (State ({ sortBy, sortedColumn } as internalState)) (Config conf) =
 
 
 renderTHead : InternalState -> Configuration msg -> Html msg
-renderTHead internalState ({ headers } as conf) =
+renderTHead internalState { headers } =
     thead
         [ class "m-table__header" ]
         (List.map (renderTH internalState) headers)
@@ -454,22 +445,21 @@ renderTH { sortBy, sortedColumn } (Header ({ slug, name } as conf)) =
                     attribute "data-unsortable" ""
     in
     th
-        (sortAttr
-            :: [ class "m-table__header__item fsSmall"
-               , attribute "data-column" slug
-               ]
-        )
+        [ sortAttr
+        , class "m-table__header__item fsSmall"
+        , attribute "data-column" slug
+        ]
         [ text name
-        , if sortedColumn == Just slug then
-            renderSortIcon sortBy slug
+        , if H.isJust sortedColumn then
+            renderSortIcon sortBy
 
           else
             text ""
         ]
 
 
-renderSortIcon : Maybe Sort -> Slug -> Html msg
-renderSortIcon sortAlgorithm slug =
+renderSortIcon : Maybe Sort -> Html msg
+renderSortIcon sortAlgorithm =
     i
         [ classList
             [ ( "m-table__header__item__icon", True )
@@ -522,10 +512,10 @@ renderTD ( slug, Column conf ) =
                 (List.singleton << text) content
 
             IntegerColumn _ content ->
-                (List.singleton << text << String.fromInt) content
+                renderIntColumnTD content
 
             FloatColumn _ content ->
-                (List.singleton << text << String.fromFloat) content
+                renderFloatColumnTD content
 
             HtmlColumn _ content ->
                 content
@@ -547,10 +537,10 @@ renderFooterTD ( slug, FooterColumn conf ) =
                 (List.singleton << text) content
 
             IntegerFooterColumn _ content ->
-                (List.singleton << text << String.fromInt) content
+                renderIntColumnTD content
 
             FloatFooterColumn _ content ->
-                (List.singleton << text << String.fromFloat) content
+                renderFloatColumnTD content
         )
 
 
@@ -576,11 +566,21 @@ pickFooterColSpan conf =
         HtmlFooterColumn colSpan _ ->
             colSpan
 
-        StringFooterColumn colSpan string ->
+        StringFooterColumn colSpan _ ->
             colSpan
 
-        IntegerFooterColumn colSpan int ->
+        IntegerFooterColumn colSpan _ ->
             colSpan
 
-        FloatFooterColumn colSpan float ->
+        FloatFooterColumn colSpan _ ->
             colSpan
+
+
+renderIntColumnTD : Int -> List (Html msg)
+renderIntColumnTD =
+    List.singleton << text << String.fromInt
+
+
+renderFloatColumnTD : Float -> List (Html msg)
+renderFloatColumnTD =
+    List.singleton << text << String.fromFloat
