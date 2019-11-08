@@ -1561,6 +1561,8 @@ renderAutocomplete formState model ({ filterReader, choiceReader, slug, label, i
                 ]
              ]
                 ++ attrs
+                ++ Events.onFocusAttribute config.events
+                ++ Events.onBlurAttribute config.events
                 ++ Events.onAutocompleteFilterAttribute config.events
             )
             []
