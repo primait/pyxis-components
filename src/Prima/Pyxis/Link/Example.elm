@@ -10,8 +10,8 @@ module Prima.Pyxis.Link.Example exposing
     )
 
 import Browser
-import Html exposing (Html, div, text)
-import Html.Attributes exposing (class, classList, style)
+import Html exposing (Html, div)
+import Html.Attributes exposing (class)
 import Prima.Pyxis.Helpers as Helpers
 import Prima.Pyxis.Link as Link
 
@@ -41,25 +41,28 @@ initialModel =
 
 
 type Msg
-    = NoOp
+    = LinkClicked
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-    ( model, Cmd.none )
+    case msg of
+        LinkClicked ->
+            ( model, Cmd.none )
 
 
 view : Model -> Browser.Document Msg
-view model =
-    Browser.Document "Link component" (appBody model)
+view _ =
+    Browser.Document "Link component" appBody
 
 
-appBody : Model -> List (Html Msg)
-appBody model =
+appBody : List (Html Msg)
+appBody =
     [ Helpers.pyxisStyle
-    , [ Link.simple "Visit Google" "https://www.google.it"
-      , Link.withIcon "Call us" "https://www.google.it" Link.iconPhone
+    , [ Link.simple "Visit Google" "https://www.google.it" |> Link.withId "my-link"
+      , Link.simple "Visit Google" "https://www.google.it" |> Link.withIconPhone
       , Link.standalone "Visit Google" "https://www.google.it"
+      , Link.simpleWithOnClick "Visit Google with self target (handle click)" LinkClicked |> Link.withTargetSelf
       ]
         |> List.map Link.render
         |> List.intersperse Helpers.spacer

@@ -1,7 +1,7 @@
 module Prima.Pyxis.Table.Examples.Update exposing (update)
 
 import Prima.Pyxis.Table as Table
-import Prima.Pyxis.Table.Examples.Model exposing (..)
+import Prima.Pyxis.Table.Examples.Model exposing (Model, Msg(..))
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )

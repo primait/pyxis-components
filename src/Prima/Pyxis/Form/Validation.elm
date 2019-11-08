@@ -1,91 +1,68 @@
 module Prima.Pyxis.Form.Validation exposing
-    ( Validation(..)
-    , ValidationType(..), SeverityLevel(..)
-    , pickError
+    ( Type(..)
+    , isError, isWarning, render
     )
 
-{-| Allows to create Validation model for the form.
+{-| Create `Validation` model for the form.
 
 
 # Configuration
 
-@docs Validation
-
-    import Prima.Pyxis.Form.Validation as PrimaFormValidation exposing (SeverityLevel(..), Validation(..), ValidationType(..))
-    import Regex
-
-    usernameConfig : Bool -> PrimaForm.FormField LoginData Msg
-    usernameConfig enabled =
-        PrimaForm.textConfig
-            "username"
-            (Just "username")
-            [ minlength 3, placeholder "username", disabled (not enabled) ]
-            .email
-            [ PrimaFormEvent.onInput (OnInput UsernameField) ]
-            [ PrimaFormValidation.NotEmpty (SeverityLevel Error) "insert username"
-            , PrimaFormValidation.Expression (SeverityLevel Warning) lowerCase "Should contain lowercase"
-            ]
-
-    lowerCase : Regex.Regex
-    lowerCase =
-        Maybe.withDefault Regex.never <|
-            Regex.fromString "[a-z]+"
-
-
-# ValidationType
-
-@docs ValidationType, SeverityLevel
-
-
-# Helpers
-
-@docs pickError
+@docs Type, error, warning
 
 -}
 
-import Regex
+import Html exposing (Html)
+import Html.Attributes as Attrs
 
 
-{-| Represents a validation entry.
+{-| Represent a validation type.
 -}
-type Validation model
-    = NotEmpty SeverityLevel String
-    | Expression SeverityLevel Regex.Regex String
-    | Custom SeverityLevel (model -> Bool) String
-
-
-{-| Represents a validation type.
--}
-type ValidationType
+type Type
     = Error
+    | ErrorWithMessage String
     | Warning
+    | WarningWithMessage String
 
 
-{-| Represents the severity level.
--}
-type SeverityLevel
-    = SeverityLevel ValidationType
+isError : Type -> Bool
+isError type_ =
+    case type_ of
+        Error ->
+            True
+
+        ErrorWithMessage _ ->
+            True
+
+        _ ->
+            False
 
 
-{-| Pick the error string from a Validation model.
--}
-pickError : Validation model -> String
-pickError rule =
-    case rule of
-        NotEmpty (SeverityLevel Error) error ->
-            error
+isWarning : Type -> Bool
+isWarning type_ =
+    case type_ of
+        Warning ->
+            True
 
-        Expression (SeverityLevel Error) exp error ->
-            error
+        WarningWithMessage _ ->
+            True
 
-        Custom (SeverityLevel Error) customRule error ->
-            error
+        _ ->
+            False
 
-        NotEmpty (SeverityLevel Warning) warning ->
-            warning
 
-        Expression (SeverityLevel Warning) exp warning ->
-            warning
+render : Type -> Html msg
+render type_ =
+    case type_ of
+        WarningWithMessage message ->
+            Html.div
+                [ Attrs.class "a-form-field__warning" ]
+                [ Html.text message ]
 
-        Custom (SeverityLevel Warning) customRule warning ->
-            warning
+        ErrorWithMessage message ->
+            Html.div
+                [ Attrs.class "a-form-field__error" ]
+                [ Html.text message ]
+
+        _ ->
+            Html.text ""

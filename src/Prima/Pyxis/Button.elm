@@ -4,7 +4,7 @@ module Prima.Pyxis.Button exposing
     , render, group, groupFluid
     )
 
-{-| Allows to create a `Button` using predefined Html syntax.
+{-| Create a `Button` using predefined Html syntax.
 
 
 # Configuration
@@ -12,12 +12,12 @@ module Prima.Pyxis.Button exposing
 @docs Config, Emphasis, Scheme
 
 
-# Configuration Helpers
+## Options
 
 @docs callOut, callOutSmall, primary, primarySmall, secondary, secondarySmall, tertiary, tertiarySmall
 
 
-# Rendering
+# Render
 
 @docs render, group, groupFluid
 
@@ -26,9 +26,10 @@ module Prima.Pyxis.Button exposing
 import Html exposing (Html, button, div, span, text)
 import Html.Attributes exposing (class, classList, disabled)
 import Html.Events exposing (onClick)
+import Prima.Pyxis.Helpers as H
 
 
-{-| Represents the configuration of the button.
+{-| Represent the configuration of the button.
 -}
 type Config msg
     = Config (Configuration msg)
@@ -43,7 +44,7 @@ type alias Configuration msg =
     }
 
 
-{-| Represents the visual weight of the button.
+{-| Represent the visual weight of the button.
 -}
 type Emphasis
     = CallOut
@@ -72,7 +73,7 @@ isTertiary =
     (==) Tertiary
 
 
-{-| Represents the color scheme used to render the button.
+{-| Represent the color scheme used to render the button.
 -}
 type Scheme
     = Brand
@@ -99,7 +100,7 @@ isSmall =
     (==) Small
 
 
-{-| Creates a button with a `Primary` visual weight and a `default size`.
+{-| Create a button with a `Primary` visual weight and a `default size`.
 
     --
 
@@ -112,7 +113,7 @@ isSmall =
 
     myBtn : Button.Config Msg
     myBtn =
-        Button.callOut Button.brand "Click me!" Clicked isDisabled
+        Button.callOut Button.Brand "Click me!" Clicked
 
 -}
 callOut : Scheme -> String -> msg -> Config msg
@@ -120,49 +121,49 @@ callOut scheme label action =
     Config (Configuration CallOut Normal scheme label action)
 
 
-{-| Creates a button with a `CallOut` visual weight and a `small size`.
+{-| Create a button with a `CallOut` visual weight and a `small size`.
 -}
 callOutSmall : Scheme -> String -> msg -> Config msg
 callOutSmall scheme label action =
     Config (Configuration CallOut Small scheme label action)
 
 
-{-| Creates a button with a `Primary` visual weight and a `default size`.
+{-| Create a button with a `Primary` visual weight and a `default size`.
 -}
 primary : Scheme -> String -> msg -> Config msg
 primary scheme label action =
     Config (Configuration Primary Normal scheme label action)
 
 
-{-| Creates a button with a `Primary` visual weight and a `small size`.
+{-| Create a button with a `Primary` visual weight and a `small size`.
 -}
 primarySmall : Scheme -> String -> msg -> Config msg
 primarySmall scheme label action =
     Config (Configuration Primary Small scheme label action)
 
 
-{-| Creates a button with a `Secondary` visual weight and a `default size`.
+{-| Create a button with a `Secondary` visual weight and a `default size`.
 -}
 secondary : Scheme -> String -> msg -> Config msg
 secondary scheme label action =
     Config (Configuration Secondary Normal scheme label action)
 
 
-{-| Creates a button with a `Secondary` visual weight and a `small size`.
+{-| Create a button with a `Secondary` visual weight and a `small size`.
 -}
 secondarySmall : Scheme -> String -> msg -> Config msg
 secondarySmall scheme label action =
     Config (Configuration Secondary Small scheme label action)
 
 
-{-| Creates a button with a `Tertiary` visual weight and a `default size`.
+{-| Create a button with a `Tertiary` visual weight and a `default size`.
 -}
 tertiary : Scheme -> String -> msg -> Config msg
 tertiary scheme label action =
     Config (Configuration Tertiary Normal scheme label action)
 
 
-{-| Creates a button with a `Tertiary` visual weight and a `small size`.
+{-| Create a button with a `Tertiary` visual weight and a `small size`.
 -}
 tertiarySmall : Scheme -> String -> msg -> Config msg
 tertiarySmall scheme label action =
@@ -182,7 +183,7 @@ tertiarySmall scheme label action =
 
     myBtn : Button.Config Msg
     myBtn =
-        Button.callOut Button.Brand "Click me!" Clicked isDisabled
+        Button.callOut Button.Brand "Click me!" Clicked
 
     ...
 
@@ -196,27 +197,28 @@ tertiarySmall scheme label action =
 
 -}
 render : Bool -> Config msg -> Html msg
-render isEnabled (Config config) =
+render isEnabled (Config { emphasis, action, label, scheme, size }) =
     button
         [ classList
             [ ( "a-btn", True )
-            , ( "a-btn--callout", isCallOut config.emphasis )
-            , ( "a-btn--primary", isPrimary config.emphasis )
-            , ( "a-btn--secondary", isSecondary config.emphasis )
-            , ( "a-btn--tertiary", isTertiary config.emphasis )
-            , ( "a-btn--small", isSmall config.size )
-            , ( "a-btn--dark", isDark config.scheme )
+            , ( "a-btn--callout", isCallOut emphasis )
+            , ( "a-btn--primary", isPrimary emphasis )
+            , ( "a-btn--secondary", isSecondary emphasis )
+            , ( "a-btn--tertiary", isTertiary emphasis )
+            , ( "a-btn--small", isSmall size )
+            , ( "a-btn--normal", isNormal size )
+            , ( "a-btn--dark", isDark scheme )
             ]
         , disabled (not isEnabled)
-        , onClick config.action
+        , onClick action
         ]
         [ span
             []
-            [ text config.label ]
+            [ text label ]
         ]
 
 
-{-| Creates a button wrapper which can hold a set of `Button`s.
+{-| Create a button wrapper which can hold a set of `Button`s.
 
     --
 
@@ -229,12 +231,12 @@ render isEnabled (Config config) =
 
     ctaBtn : Button.Config Msg
     ctaBtn =
-        Button.callOut Button.brand "Click me!" Clicked isDisabled
+        Button.callOut Button.brand "Click me!" Clicked
 
 
     primaryBtn : Button.Config Msg
     primaryBtn =
-        Button.primary Button.brand "Click me!" Clicked isDisabled
+        Button.primary Button.brand "Click me!" Clicked
 
     ...
 
@@ -252,12 +254,10 @@ render isEnabled (Config config) =
 -}
 group : List ( Bool, Config msg ) -> Html msg
 group buttonsConfig =
-    div
-        [ class "m-btnGroup" ]
-        (List.map (\( isEnabled, button ) -> render isEnabled button) buttonsConfig)
+    H.btnGroup (List.map (\( isEnabled, button ) -> render isEnabled button) buttonsConfig)
 
 
-{-| Creates a button wrapper which can hold a set of fluid `Button`s.
+{-| Create a button wrapper which can hold a set of fluid `Button`s.
 -}
 groupFluid : List ( Bool, Config msg ) -> Html msg
 groupFluid buttonsConfig =

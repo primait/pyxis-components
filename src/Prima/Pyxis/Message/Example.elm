@@ -8,10 +8,9 @@ module Prima.Pyxis.Message.Example exposing
     )
 
 import Browser
-import Html exposing (Html, div, text)
-import Html.Attributes exposing (class)
-import Prima.Pyxis.Helpers as Helpers
+import Html exposing (Html, text)
 import Prima.Pyxis.Container as Container
+import Prima.Pyxis.Helpers as Helpers
 import Prima.Pyxis.Message as Message
 
 
@@ -44,7 +43,7 @@ type Msg
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
-update msg model =
+update _ model =
     ( model, Cmd.none )
 
 
@@ -56,14 +55,16 @@ view model =
 appBody : Model -> List (Html Msg)
 appBody _ =
     [ Helpers.pyxisStyle
-    , Container.default
-        ([ Message.messageInfoConfig
-         , Message.messageSuccessConfig
-         , Message.messageErrorConfig
-         ]
-            |> List.map messageBuilder
-            |> List.intersperse Helpers.spacer
-        )
+    , Container.column
+        |> Container.withContent
+            ([ Message.messageInfoConfig
+             , Message.messageSuccessConfig
+             , Message.messageErrorConfig
+             ]
+                |> List.map messageBuilder
+                |> List.intersperse Helpers.spacer
+            )
+        |> Container.render
     ]
 
 
