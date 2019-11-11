@@ -1,11 +1,11 @@
-module Prima.Pyxis.Loader.Examples.View exposing (view)
+module Prima.Pyxis.Loader.Example.View exposing (view)
 
 import Browser
 import Html exposing (Html)
 import Prima.Pyxis.Container as Container
 import Prima.Pyxis.Helpers as Helpers
 import Prima.Pyxis.Loader as Loader
-import Prima.Pyxis.Loader.Examples.Model exposing (Model, Msg)
+import Prima.Pyxis.Loader.Example.Model exposing (Model, Msg)
 
 
 view : Model -> Browser.Document Msg
@@ -24,14 +24,18 @@ appBody _ =
 
 loaderVehicle : Loader.Config
 loaderVehicle =
-    Loader.vehicle (Just "Attendi. Stiamo caricando i tuoi dati...")
+    Loader.vehicle
+        |> Loader.withText "Attendi. Stiamo caricando i tuoi dati..."
 
 
 loaderSpinnerSmall : Loader.Config
 loaderSpinnerSmall =
-    Loader.spinner Loader.small (Just "Attendi. Stiamo caricando i tuoi dati...")
+    Loader.spinner
+        |> Loader.withSmallSize
 
 
 loaderSpinnerMedium : Loader.Config
 loaderSpinnerMedium =
-    Loader.spinner Loader.medium (Just "Attendi. Stiamo caricando i tuoi dati...")
+    Loader.spinner
+        |> Loader.withText "Attendi. Stiamo caricando i tuoi dati..."
+        |> Loader.withMediumSize

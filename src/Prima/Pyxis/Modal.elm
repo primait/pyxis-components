@@ -1,66 +1,69 @@
 module Prima.Pyxis.Modal exposing
-    ( Config, render
+    ( Config
     , small, medium, large
-    , withCloseOnOverlayClick, withOverlayStyle, withOverlayAttribute, withOverlayClass, withOverlayClassList
+    , render
+    , hide, show, toggle
     , withAttribute, withClass, withClassList, withId, withStyle, withTitleAttribute
+    , withCloseOnOverlayClick, withOverlayStyle, withOverlayAttribute, withOverlayClass, withOverlayClassList
     , withHeaderAttribute, withHeaderClass, withHeaderClassList, withHeaderContent, withHeaderContentOnly, withHeaderStyle, withHeaderTitle, withHeaderTitleOnly
     , withBodyAttribute, withBodyClass, withBodyClassList, withBodyContent, withBodyStyle
     , withFooterAttribute, withFooterClass, withFooterClassList, withFooterContent, withFooterStyle
-    , hide, show, toggle
     )
 
-{-| Create a `Modal` by using predefined Html syntax.
+{-|
 
 
-## Ready to use
+## Configuration
 
-@docs Config, render
+@docs Config
 
 
-## Constructors
+## Configuration Methods
 
 @docs small, medium, large
 
 
-## Modifiers
+## Rendering
+
+@docs render
 
 
-### Overlay modifier
+## Methods
+
+@docs hide, show, toggle
+
+
+## Options
+
+@docs withAttribute, withClass, withClassList, withId, withStyle, withTitleAttribute
+
+
+## Overlay Options
 
 @docs withCloseOnOverlayClick, withOverlayStyle, withOverlayAttribute, withOverlayClass, withOverlayClassList
 
 
-### Modal modifiers
-
-@docs withAttribute, withClass, withClassList, withId, withContent, withStyle, withTitleAttribute
-
-
-### Header modifiers
+## Header Options
 
 @docs withHeaderAttribute, withHeaderClass, withHeaderClassList, withHeaderContent, withHeaderContentOnly, withHeaderStyle, withHeaderTitle, withHeaderTitleOnly
 
 
-### Body modifiers
+## Body Options
 
 @docs withBodyAttribute, withBodyClass, withBodyClassList, withBodyContent, withBodyStyle
 
 
-### Footer modifiers
+## Footer Options
 
 @docs withFooterAttribute, withFooterClass, withFooterClassList, withFooterContent, withFooterStyle
-
-
-### Helpers
-
-@docs hide, show, toggle
 
 -}
 
 import Html exposing (Html)
 import Html.Attributes as HtmlAttributes
+import Prima.Pyxis.Commons.InterceptedEvents as InterceptedEvents
+import Prima.Pyxis.Commons.Interceptor as Interceptor
 import Prima.Pyxis.Helpers as H
-import Prima.Pyxis.Shared.InterceptedEvents as InterceptedEvents
-import Prima.Pyxis.Shared.Interceptor as Interceptor
 
 
 {-| Represent the configuration of a `Modal`.
@@ -767,10 +770,10 @@ modalAttributes modalOptions modalConfig =
         |> H.maybeCons modalOptions.class
         |> (::)
             (HtmlAttributes.classList
-                [ ( "o-modal", True )
-                , ( "o-modal--small", isSmallSize modalConfig.size )
-                , ( "o-modal--medium", isMediumSize modalConfig.size )
-                , ( "o-modal--large", isLargeSize modalConfig.size )
+                [ ( "modal", True )
+                , ( "modal--small", isSmallSize modalConfig.size )
+                , ( "modal--medium", isMediumSize modalConfig.size )
+                , ( "modal--large", isLargeSize modalConfig.size )
                 ]
             )
         |> List.append modalOptions.events
@@ -890,7 +893,7 @@ headerAttributes headerOptions =
         |> List.append headerOptions.attributes
         |> H.maybeCons headerOptions.classList
         |> H.maybeCons headerOptions.class
-        |> (::) (HtmlAttributes.class "o-modal__header")
+        |> (::) (HtmlAttributes.class "modal__header")
         |> List.append headerOptions.styles
 
 
@@ -1043,7 +1046,7 @@ Prints predefined modal title in its own markup
 -}
 headerTitle : String -> Html msg
 headerTitle title =
-    Html.h3 [ HtmlAttributes.class "o-modal__title" ]
+    Html.h3 [ HtmlAttributes.class "modal__title" ]
         [ Html.text title ]
 
 
@@ -1065,7 +1068,7 @@ bodyAttributes bodyOptions =
         |> List.append bodyOptions.attributes
         |> H.maybeCons bodyOptions.classList
         |> H.maybeCons bodyOptions.class
-        |> (::) (HtmlAttributes.class "o-modal__content")
+        |> (::) (HtmlAttributes.class "modal__content")
         |> List.append bodyOptions.styles
 
 
@@ -1176,7 +1179,7 @@ footerAttributes footerOptions =
         |> List.append footerOptions.attributes
         |> H.maybeCons footerOptions.classList
         |> H.maybeCons footerOptions.class
-        |> (::) (HtmlAttributes.class "o-modal__footer")
+        |> (::) (HtmlAttributes.class "modal__footer")
         |> List.append footerOptions.styles
 
 
@@ -1273,7 +1276,7 @@ Icon for closing modal
 headerCloseButton : msg -> Html msg
 headerCloseButton closeEvent =
     Html.i
-        [ HtmlAttributes.class "a-icon a-icon-close o-modal__close"
+        [ HtmlAttributes.class "icon icon-close modal__close"
         , HtmlAttributes.id headerCloseButtonId
         , onCloseButtonClick closeEvent
         ]

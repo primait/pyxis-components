@@ -28,4 +28,4 @@ initialModel =
 
 initialState : Table.State
 initialState =
-    Table.state Nothing Nothing
+    Table.init Nothing Nothing

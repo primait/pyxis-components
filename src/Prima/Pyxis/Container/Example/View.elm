@@ -25,7 +25,7 @@ block string =
         [ div
             [ style "border" "1px solid purple"
             , style "border-radius" "5px"
-            , class "bgBrandLight cTextLight"
+            , class "bg-brand-light c-text-light"
             , style "text-align" "center"
             , style "height" "100%"
             , style "width" "100%"
@@ -61,46 +61,46 @@ appBody model =
     [ Helpers.pyxisStyle
     , sectionTitle "Row Container"
     , Container.row
-        |> Container.withClass "bgAlertBase"
+        |> Container.withClass "bg-alert-base"
         |> Container.withContent dummyBlocks
         |> Container.render
     , hr [] []
     , sectionTitle "Column Container"
     , Container.column
-        |> Container.withClass "bgAlertBase"
+        |> Container.withClass "bg-alert-base"
         |> Container.withContent dummyBlocks
         |> Container.render
     , hr [] []
     , sectionTitle "Row Container Fluid"
     , Container.rowFluid
-        |> Container.withClass "bgAlertBase"
+        |> Container.withClass "bg-alert-base"
         |> Container.withContent dummyBlocks
         |> Container.render
     , hr [] []
     , hr [] []
     , sectionTitle "Column Container Fluid"
     , Container.columnFluid
-        |> Container.withClass "bgAlertBase"
+        |> Container.withClass "bg-alert-base"
         |> Container.withContent dummyBlocks
         |> Container.render
     , hr [] []
     , sectionTitle "Row Container Fluid, regular on Medium"
     , Container.rowFluid
         |> Container.withChangeSizeOnMedium
-        |> Container.withClass "bgAlertBase"
+        |> Container.withClass "bg-alert-base"
         |> Container.withContent dummyBlocks
         |> Container.render
     , hr [] []
     , sectionTitle "Row Container, fluid on Medium"
     , Container.row
         |> Container.withChangeSizeOnMedium
-        |> Container.withClass "bgAlertBase"
+        |> Container.withClass "bg-alert-base"
         |> Container.withContent dummyBlocks
         |> Container.render
     , hr [] []
     , sectionTitle "Row Container, with content editable"
     , Container.row
-        |> Container.withClass "bgAlertBase"
+        |> Container.withClass "bg-alert-base"
         |> Container.withContentEditable True
         |> Container.withContent
             [ block "You can edit this text writing something"
@@ -119,7 +119,7 @@ appBody model =
 
 veryLongComposedAttributes : Container.Config Msg -> Container.Config Msg
 veryLongComposedAttributes =
-    Container.withClass "bgAlertBase"
+    Container.withClass "bg-alert-base"
         << Container.withId "container-with-id"
         << Container.withTitle "container with title"
         << Container.withAccessKey 'c'

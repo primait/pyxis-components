@@ -58,14 +58,13 @@ appBody : Model -> List (Html Msg)
 appBody _ =
     [ Helpers.pyxisStyle
     , div
-        [ class "a-container a-container--small directionColumn"
-        , style "position" "relative"
+        [ class "container container--small direction-column position-relative"
         , style "top" "100px"
         ]
-        ([ Tooltip.upConfig
-         , Tooltip.downConfig
-         , Tooltip.leftConfig
-         , Tooltip.rightConfig
+        ([ Tooltip.top
+         , Tooltip.bottom
+         , Tooltip.left
+         , Tooltip.right
          ]
             |> List.map tooltipBuilder
             |> List.intersperse Helpers.spacer
@@ -73,9 +72,9 @@ appBody _ =
     ]
 
 
-tooltipBuilder : (List (Html Msg) -> Tooltip.Tooltip Msg) -> Html Msg
+tooltipBuilder : (List (Html Msg) -> Tooltip.Config Msg) -> Html Msg
 tooltipBuilder mapper =
-    (Tooltip.render << Tooltip.withClass "a-tooltip-my-class" << mapper) contentTooltip
+    (Tooltip.render << Tooltip.withClass "tooltip-my-class" << mapper) contentTooltip
 
 
 contentTooltip : List (Html Msg)

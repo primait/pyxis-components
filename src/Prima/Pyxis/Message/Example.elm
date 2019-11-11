@@ -55,15 +55,27 @@ view model =
 appBody : Model -> List (Html Msg)
 appBody _ =
     [ Helpers.pyxisStyle
+    , Helpers.pyxisIconSetStyle
     , Container.column
         |> Container.withContent
             ([ [ text "Info: Lorem ipsum dolor sit amet." ]
                 |> Message.info
-                |> Message.withClass "fs-small"
+                |> Message.withClass "custom-class"
              , [ text "Success: Lorem ipsum dolor sit amet." ]
                 |> Message.success
+             , [ text "Warning: Lorem ipsum dolor sit amet." ]
+                |> Message.alert
              , [ text "Error: Lorem ipsum dolor sit amet." ]
                 |> Message.error
+             , [ text "Info: Lorem ipsum dolor sit amet." ]
+                |> Message.infoAlt
+                |> Message.withClass "custom-class"
+             , [ text "Success: Lorem ipsum dolor sit amet." ]
+                |> Message.successAlt
+             , [ text "Warning: Lorem ipsum dolor sit amet." ]
+                |> Message.alertAlt
+             , [ text "Error: Lorem ipsum dolor sit amet." ]
+                |> Message.errorAlt
              ]
                 |> List.map Message.render
                 |> List.intersperse Helpers.spacer

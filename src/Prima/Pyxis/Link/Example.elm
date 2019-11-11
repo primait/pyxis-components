@@ -59,6 +59,7 @@ view _ =
 appBody : List (Html Msg)
 appBody =
     [ Helpers.pyxisStyle
+    , Helpers.pyxisIconSetStyle
     , [ Link.simple "Visit Google"
             |> Link.withHref "https://www.google.it"
             |> Link.withId "my-link"
@@ -81,6 +82,6 @@ appBody =
 wrapper : List (Html Msg) -> Html Msg
 wrapper content =
     div
-        [ class "a-container directionColumn"
+        [ class "container direction-column"
         ]
         content

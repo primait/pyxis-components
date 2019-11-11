@@ -47,24 +47,20 @@ initialModel =
         , Button.secondary "Secondary"
         , Button.tertiary "Tertiary"
         ]
-        [ Button.callOut "CallOut dark"
-            |> Button.withColorScheme Button.BrandDark
+        [ Button.callOut "CallOut"
             |> Button.withOnClick (HandleEvent "Click 1")
-            |> Button.withClassList [ ( "test", True ), ( "never-applied", False ) ]
+            |> Button.withClass "test"
             |> Button.withTabIndex 1
-        , Button.primary "Primary dark"
+        , Button.primaryAlt "Primary alt"
             |> Button.withIcon "editing"
-            |> Button.withColorScheme Button.BrandDark
             |> Button.withOnClick (HandleEvent "Click 2")
             |> Button.withTabIndex 0
-        , Button.secondary "Secondary dark"
-            |> Button.withColorScheme Button.BrandDark
+        , Button.secondaryAlt "Secondary alt"
             |> Button.withOnMouseEnter (HandleEvent "Hover 3")
             |> Button.withOnClick (HandleEvent "Click 3")
             |> Button.withTabIndex 2
-        , Button.tertiary "Tertiary dark"
-            |> Button.withType Button.Submit
-            |> Button.withColorScheme Button.BrandDark
+        , Button.tertiaryAlt "Tertiary alt"
+            |> Button.withTypeSubmit
             |> Button.withTabIndex 3
         ]
         Nothing
@@ -72,7 +68,6 @@ initialModel =
 
 type Msg
     = HandleEvent String
-    | NoOp
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -80,9 +75,6 @@ update msg model =
     case msg of
         HandleEvent label ->
             ( { model | clicked = Just label }, Cmd.none )
-
-        _ ->
-            ( model, Cmd.none )
 
 
 view : Model -> Browser.Document Msg
@@ -93,6 +85,7 @@ view model =
 appBody : Model -> List (Html Msg)
 appBody model =
     [ Helpers.pyxisStyle
+    , Helpers.pyxisIconSetStyle
     , model.buttons
         |> ButtonGroup.create
         |> ButtonGroup.render
@@ -100,7 +93,7 @@ appBody model =
         |> wrapper False
     , model.darkButtons
         |> ButtonGroup.create
-        |> ButtonGroup.withAlignment ButtonGroup.CoverFluid
+        |> ButtonGroup.withAlignmentCoverFluid
         |> ButtonGroup.render
         |> List.singleton
         |> wrapper True
@@ -114,9 +107,9 @@ wrapper : Bool -> List (Html Msg) -> Html Msg
 wrapper isDark content =
     div
         [ classList
-            [ ( "a-container", True )
-            , ( "directionColumn", True )
-            , ( "bgBackgroundAltLight", isDark )
+            [ ( "container", True )
+            , ( "direction-column", True )
+            , ( "bg-background-alt-light", isDark )
             ]
         ]
         content

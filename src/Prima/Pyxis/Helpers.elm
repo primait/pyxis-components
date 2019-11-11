@@ -8,6 +8,7 @@ module Prima.Pyxis.Helpers exposing
     , maybeCons
     , maybeSingleton
     , pyxisStyle
+    , pyxisIconSetStyle
     , renderIf
     , renderListIf
     , renderMaybe
@@ -27,10 +28,13 @@ pyxisStyle : Html msg
 pyxisStyle =
     Html.node "link" [ href "http://localhost:8080/pyxis.css", rel "stylesheet" ] []
 
+pyxisIconSetStyle : Html msg
+pyxisIconSetStyle =
+    Html.node "link" [ href "https://s3.amazonaws.com/icomoon.io/98538/PyxisIconset30/style.css?226kae", rel "stylesheet" ] []
 
 loremIpsum : String
 loremIpsum =
-    "Lorem Ipsum"
+    "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat."
 
 
 spacer : Html msg
@@ -65,7 +69,7 @@ renderIf condition html =
 btnGroup : List (Html msg) -> Html msg
 btnGroup =
     div
-        [ class "m-btnGroup" ]
+        [ class "btnGroup" ]
 
 
 renderMaybe : Maybe (Html msg) -> Html msg

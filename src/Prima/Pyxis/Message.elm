@@ -1,16 +1,27 @@
 module Prima.Pyxis.Message exposing
-    ( Config, error, info, success
+    ( Config
+    , error, info, success, alert, errorAlt, infoAlt, successAlt, alertAlt
+    , render
     , withClass, withClassList, withAttribute
     , withOnClick, withOnMouseDown, withOnMouseUp, withOnMouseEnter, withOnMouseLeave, withOnMouseOver, withOnMouseOut
-    , render
     )
 
-{-| Create a `Message` feedback by using predefined Html syntax.
+{-|
 
 
-# Configuration
+## Configuration
 
-@docs Config, error, info, success
+@docs Config
+
+
+## Configuration Methods
+
+@docs error, info, success, alert, errorAlt, infoAlt, successAlt, alertAlt
+
+
+## Rendering
+
+@docs render
 
 
 ## Options
@@ -18,14 +29,9 @@ module Prima.Pyxis.Message exposing
 @docs withClass, withClassList, withAttribute
 
 
-## Events
+## Event Options
 
 @docs withOnClick, withOnMouseDown, withOnMouseUp, withOnMouseEnter, withOnMouseLeave, withOnMouseOver, withOnMouseOut
-
-
-# Render
-
-@docs render
 
 -}
 
@@ -43,6 +49,7 @@ type Config msg
 
 type alias Configuration msg =
     { type_ : MessageType
+    , kind : MessageKind
     , content : List (Html msg)
     , options : List (MessageOption msg)
     }
@@ -184,26 +191,62 @@ withOnMouseOut tagger =
 -}
 info : List (Html msg) -> Config msg
 info content =
-    Config (Configuration Info content [])
+    Config (Configuration Info Base content [])
 
 
 {-| Defines the configuration of a Success message.
 -}
 success : List (Html msg) -> Config msg
 success content =
-    Config (Configuration Success content [])
+    Config (Configuration Success Base content [])
 
 
 {-| Defines the configuration of an Error message.
 -}
 error : List (Html msg) -> Config msg
 error content =
-    Config (Configuration Error content [])
+    Config (Configuration Error Base content [])
+
+
+{-| Defines the configuration of an Alert message.
+-}
+alert : List (Html msg) -> Config msg
+alert content =
+    Config (Configuration Alert Base content [])
+
+
+{-| Defines the configuration of an Info message with kind Alt.
+-}
+infoAlt : List (Html msg) -> Config msg
+infoAlt content =
+    Config (Configuration Info Alt content [])
+
+
+{-| Defines the configuration of a Success message with kind Alt.
+-}
+successAlt : List (Html msg) -> Config msg
+successAlt content =
+    Config (Configuration Success Alt content [])
+
+
+{-| Defines the configuration of an Error message with kind Alt.
+-}
+errorAlt : List (Html msg) -> Config msg
+errorAlt content =
+    Config (Configuration Error Alt content [])
+
+
+{-| Defines the configuration of an Alert message with kind Alt.
+-}
+alertAlt : List (Html msg) -> Config msg
+alertAlt content =
+    Config (Configuration Alert Alt content [])
 
 
 type MessageType
     = Info
     | Success
+    | Alert
     | Error
 
 
@@ -211,16 +254,30 @@ isMessageInfo : MessageType -> Bool
 isMessageInfo =
     (==) Info
 
-
 isMessageSuccess : MessageType -> Bool
 isMessageSuccess =
     (==) Success
 
+isMessageAlert : MessageType -> Bool
+isMessageAlert =
+    (==) Alert
 
 isMessageError : MessageType -> Bool
 isMessageError =
     (==) Error
 
+
+type MessageKind
+    = Base
+    | Alt
+
+isMessageKindBase : MessageKind -> Bool
+isMessageKindBase =
+    (==) Base
+
+isMessageKindAlt : MessageKind -> Bool
+isMessageKindAlt =
+    (==) Alt
 
 {-| Renders the Message by receiving it's configuration.
 -}
@@ -229,18 +286,19 @@ render ((Config { type_, content }) as config) =
     div
         (buildAttributes config)
         [ div
-            [ Attrs.class "m-message__icon" ]
+            [ Attrs.class "message__icon" ]
             [ i
                 [ Attrs.classList
-                    [ ( "a-icon a-icon-ok", isMessageSuccess type_ )
-                    , ( "a-icon a-icon-attention", isMessageError type_ )
-                    , ( "a-icon a-icon-info", isMessageInfo type_ )
+                    [ ( "icon icon-ok", isMessageSuccess type_ )
+                    , ( "icon icon-info", isMessageInfo type_ )
+                    , ( "icon icon-attention", isMessageAlert type_ )
+                    , ( "icon icon-danger", isMessageError type_ )
                     ]
                 ]
                 []
             ]
         , span
-            [ Attrs.class "m-message__text" ]
+            [ Attrs.class "message__content" ]
             content
         ]
 
@@ -261,11 +319,14 @@ buildAttributes messageConfig =
 {-| Internal. Merges the component configuration and options to a classList attribute.
 -}
 buildClassList : Config msg -> Options msg -> Html.Attribute msg
-buildClassList (Config { type_ }) options =
-    [ ( "m-message", True )
-    , ( "m-message--success", isMessageSuccess type_ )
-    , ( "m-message--error", isMessageError type_ )
-    , ( "m-message--info", isMessageInfo type_ )
+buildClassList (Config { type_, kind }) options =
+    [ ( "message", True )
+    , ( "message--primary", isMessageSuccess type_ )
+    , ( "message--info", isMessageInfo type_ )
+    , ( "message--alert", isMessageAlert type_ )
+    , ( "message--error", isMessageError type_ )
+    , ( "message--base", isMessageKindBase kind )
+    , ( "message--alt", isMessageKindAlt kind )
     ]
         |> List.append options.classList
         |> List.append (List.map (H.flip Tuple.pair True) options.classes)

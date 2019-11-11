@@ -1,81 +1,79 @@
 module Prima.Pyxis.AtrTable exposing
-    ( Config, AtrDetail, Msg
-    , config, atr, update, withClassList
-    , paritaria, paritariaMista, paritariaCose, paritariaPersone, principale, principaleMista, principaleCose, principalePersone
+    ( State, AtrDetail, Msg
+    , state, update, atr, paritaria, paritariaMista, paritariaCose, paritariaPersone, principale, principaleMista, principaleCose, principalePersone
     , render
+    , withClass
     )
 
-{-| Create a specific kind of table, the ATR table component.
-Uses Prima.Pyxis.Table.Table under the hood.
-
-Warning. This documentation requires knownledge of Insurance domain.
+{-|
 
 
-# Configuration
+## Configuration
 
-@docs Config, AtrDetail, Msg
+@docs State, AtrDetail, Msg
+
+
+## Configuration Methods
+
+@docs state, update, atr, paritaria, paritariaMista, paritariaCose, paritariaPersone, principale, principaleMista, principaleCose, principalePersone
+
+
+## Rendering
+
+@docs render
 
 
 ## Options
 
-@docs config, atr, update, withClassList
-
-
-# Helpers
-
-@docs paritaria, paritariaMista, paritariaCose, paritariaPersone, principale, principaleMista, principaleCose, principalePersone
-
-
-# Render
-
-@docs render
+@docs withClass
 
 -}
 
 import Html exposing (Html, option, select, text)
 import Html.Attributes exposing (selected, value)
 import Html.Events exposing (onInput)
+import Prima.Pyxis.Helpers as H
 import Prima.Pyxis.Table as Table
 
 
 {-| Defines the configuration of an Atr table
 -}
-type Config
-    = Config Configuration
+type State
+    = State StateConfig
 
 
-type alias Configuration =
+type alias StateConfig =
     { atrDetails : List AtrDetail
     , alternateRows : Bool
     , isEditable : Bool
     , tableState : Table.State
-    , classList : List ( String, Bool )
+    , classes : List String
     }
 
 
 {-| Returns a Tuple containing the Config and a possible batch of side effects to
-be managed by parent application. Requires a list of AtrDetail.
+be managed by parent application. Requires a list of `AtrDetail`.
 -}
-config : Bool -> List AtrDetail -> ( Config, Cmd Msg )
-config isEditable atrDetails =
-    ( Config (Configuration atrDetails True isEditable createTableState []), Cmd.none )
+state : Bool -> List AtrDetail -> ( State, Cmd Msg )
+state isEditable atrDetails =
+    ( State (StateConfig atrDetails True isEditable createTableState []), Cmd.none )
 
 
 {-| Internal. Creates an initial Table.State to be saved in the configuration.
 -}
 createTableState : Table.State
 createTableState =
-    Table.state Nothing Nothing
+    Table.init Nothing Nothing
 
 
-{-| Add a custom ClassList to the AtrTable.
+{-| Adds a class to the `AtrTable`.
 -}
-withClassList : List ( String, Bool ) -> Config -> Config
-withClassList classList (Config conf) =
-    Config { conf | classList = classList }
+withClass : String -> State -> State
+withClass klass (State conf) =
+    State { conf | classes = klass :: conf.classes }
 
 
-{-| Represent a changing AtrDetail action
+{-| Represents the `AtrTable`'s `Msg`.
 -}
 type Msg
     = AtrDetailChanged AtrDetailType Year String
@@ -85,15 +83,15 @@ type Msg
 {-| Updates the configuration of the Atr table.
 Returns a tuple containing the new Config.
 -}
-update : Msg -> Config -> ( Config, Cmd Msg, List AtrDetail )
-update msg (Config configuration) =
+update : Msg -> State -> ( State, Cmd Msg, List AtrDetail )
+update msg (State stateConfig) =
     case msg of
         AtrDetailChanged atrType year value ->
             let
                 updatedConf =
-                    updateConfiguration atrType year value configuration
+                    updateConfiguration atrType year value stateConfig
             in
-            ( Config updatedConf
+            ( State updatedConf
             , Cmd.none
             , updatedConf.atrDetails
             )
@@ -101,15 +99,15 @@ update msg (Config configuration) =
         SortBy tableState ->
             let
                 updatedConf =
-                    updateTableState tableState configuration
+                    updateTableState tableState stateConfig
             in
-            ( Config updatedConf
+            ( State updatedConf
             , Cmd.none
             , updatedConf.atrDetails
             )
 
 
-updateConfiguration : AtrDetailType -> Year -> String -> Configuration -> Configuration
+updateConfiguration : AtrDetailType -> Year -> String -> StateConfig -> StateConfig
 updateConfiguration atrType year value configuration =
     { configuration
         | atrDetails =
@@ -125,7 +123,7 @@ updateConfiguration atrType year value configuration =
     }
 
 
-updateTableState : Table.State -> Configuration -> Configuration
+updateTableState : Table.State -> StateConfig -> StateConfig
 updateTableState tableState configuration =
     { configuration | tableState = tableState }
 
@@ -158,14 +156,16 @@ updateAtrDetail atrType _ value theAtrDetail =
             paritariaMista (Just value) theAtrDetail
 
 
-{-| Represent a detail for an ATR which contains information about
+{-| Represents a detail for an `ATR` which contains information about
 the number of accidents in a specific year.
 -}
 type AtrDetail
-    = AtrDetail AtrDetailConfiguration
+    = AtrDetail AtrDetailConfig
 
 
-type alias AtrDetailConfiguration =
+{-| Internal.
+-}
+type alias AtrDetailConfig =
     { year : Year
     , principale : Maybe String
     , principalePersone : Maybe String
@@ -178,64 +178,65 @@ type alias AtrDetailConfiguration =
     }
 
 
-{-| Create an empty AtrDetail. Each detail is identified by an year and representation of accidents occurred
+{-| Creates an empty `AtrDetail`.
+Each detail is identified by an year and representation of accidents occurred
 during it. All setters methods are pipeable.
 -}
 atr : Int -> AtrDetail
 atr year =
-    AtrDetail (AtrDetailConfiguration year Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing)
+    AtrDetail (AtrDetailConfig year Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing)
 
 
-{-| Sets the Responsabilità Principale value for a specific AtrDetail.
+{-| Sets the `Responsabilità Principale` value for a specific `AtrDetail`.
 -}
 principale : Maybe String -> AtrDetail -> AtrDetail
 principale maybeValue (AtrDetail atrConfig) =
     AtrDetail { atrConfig | principale = maybeValue }
 
 
-{-| Sets the Responsabilità Principale Persone value for a specific AtrDetail.
+{-| Sets the Responsabilità Principale Persone value for a specific `AtrDetail`.
 -}
 principalePersone : Maybe String -> AtrDetail -> AtrDetail
 principalePersone maybeValue (AtrDetail atrConfig) =
     AtrDetail { atrConfig | principalePersone = maybeValue }
 
 
-{-| Sets the Responsabilità Principale Cose value for a specific AtrDetail.
+{-| Sets the Responsabilità Principale Cose value for a specific `AtrDetail`.
 -}
 principaleCose : Maybe String -> AtrDetail -> AtrDetail
 principaleCose maybeValue (AtrDetail atrConfig) =
     AtrDetail { atrConfig | principaleCose = maybeValue }
 
 
-{-| Sets the Responsabilità Principale Mista value for a specific AtrDetail.
+{-| Sets the Responsabilità Principale Mista value for a specific `AtrDetail`.
 -}
 principaleMista : Maybe String -> AtrDetail -> AtrDetail
 principaleMista maybeValue (AtrDetail atrConfig) =
     AtrDetail { atrConfig | principaleMista = maybeValue }
 
 
-{-| Sets the Responsabilità Paritaria value for a specific AtrDetail.
+{-| Sets the Responsabilità Paritaria value for a specific `AtrDetail`.
 -}
 paritaria : Maybe String -> AtrDetail -> AtrDetail
 paritaria maybeValue (AtrDetail atrConfig) =
     AtrDetail { atrConfig | paritaria = maybeValue }
 
 
-{-| Sets the Responsabilità Paritaria Persone value for a specific AtrDetail.
+{-| Sets the Responsabilità Paritaria Persone value for a specific `AtrDetail`.
 -}
 paritariaPersone : Maybe String -> AtrDetail -> AtrDetail
 paritariaPersone maybeValue (AtrDetail atrConfig) =
     AtrDetail { atrConfig | paritariaPersone = maybeValue }
 
 
-{-| Sets the Responsabilità Paritaria Cose value for a specific AtrDetail.
+{-| Sets the Responsabilità Paritaria Cose value for a specific `AtrDetail`.
 -}
 paritariaCose : Maybe String -> AtrDetail -> AtrDetail
 paritariaCose maybeValue (AtrDetail atrConfig) =
     AtrDetail { atrConfig | paritariaCose = maybeValue }
 
 
-{-| Sets the Responsabilità Paritaria Mista value for a specific AtrDetail.
+{-| Sets the Responsabilità Paritaria Mista value for a specific `AtrDetail`.
 -}
 paritariaMista : Maybe String -> AtrDetail -> AtrDetail
 paritariaMista maybeValue (AtrDetail atrConfig) =
@@ -286,7 +287,7 @@ atrTypeToString type_ =
             "Mista"
 
 
-atrTypeExtractor : AtrDetailType -> (AtrDetailConfiguration -> Maybe String)
+atrTypeExtractor : AtrDetailType -> (AtrDetailConfig -> Maybe String)
 atrTypeExtractor type_ =
     case type_ of
         Principale ->
@@ -325,8 +326,8 @@ type alias Year =
 
 {-| Renders the table by receiving a Configuration. The columns of this table are expressed by the length of the AtrDetail list.
 -}
-render : Config -> Html Msg
-render (Config { atrDetails, alternateRows, isEditable, tableState, classList }) =
+render : State -> Html Msg
+render (State { atrDetails, alternateRows, isEditable, tableState, classes }) =
     let
         destructureAtrDetail (AtrDetail atrConfiguration) =
             atrConfiguration
@@ -335,11 +336,11 @@ render (Config { atrDetails, alternateRows, isEditable, tableState, classList })
             (buildHeaders << List.map (String.fromInt << .year << destructureAtrDetail)) atrDetails
 
         tableConfig =
-            Table.config False SortBy
+            Table.base False SortBy
                 |> Table.withAlternateRows alternateRows
-                |> Table.withClassList classList
-                |> Table.withHeaders headers
-                |> Table.withRows (buildRows isEditable atrDetails)
+                |> H.flip (List.foldr Table.withClass) classes
+                |> Table.addHeaders headers
+                |> Table.addRows (buildRows isEditable atrDetails)
     in
     Table.render tableState tableConfig
 
@@ -404,14 +405,14 @@ buildColumnContent isEditable atrType (AtrDetail atrConfig) =
             [ text atrDetailsAccidents ]
 
 
-buildSelect : AtrDetailType -> AtrDetailConfiguration -> Html Msg
+buildSelect : AtrDetailType -> AtrDetailConfig -> Html Msg
 buildSelect atrType ({ year } as atrConfig) =
     select
         [ (onInput << AtrDetailChanged atrType) year ]
         (List.map (buildSelectOption atrType atrConfig) atrSelectableOptions)
 
 
-buildSelectOption : AtrDetailType -> AtrDetailConfiguration -> String -> Html Msg
+buildSelectOption : AtrDetailType -> AtrDetailConfig -> String -> Html Msg
 buildSelectOption atrType atrConfig optionValue =
     let
         atrDetailsAccidents =
@@ -425,7 +426,7 @@ buildSelectOption atrType atrConfig optionValue =
         ]
 
 
-calculateTotalAccidents : AtrDetailConfiguration -> List AtrDetailType -> Int
+calculateTotalAccidents : AtrDetailConfig -> List AtrDetailType -> Int
 calculateTotalAccidents atrConfig atrTypes =
     atrTypes
         |> List.filterMap

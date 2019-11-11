@@ -2,6 +2,7 @@ module Prima.Pyxis.Form.Example.View exposing (view)
 
 import Browser
 import Html exposing (Html)
+import Html.Attributes as Attrs
 import Prima.Pyxis.Container as Container
 import Prima.Pyxis.Form as Form
 import Prima.Pyxis.Form.Example.FieldConfig as Config
@@ -17,9 +18,12 @@ view model =
 appBody : Model -> List (Html Msg)
 appBody model =
     [ Helpers.pyxisStyle
+    , Helpers.pyxisIconSetStyle
     , Container.row
         |> Container.withContent
-            [ Form.render model.formData <| formConfig model
+            [ model
+                |> formConfig
+                |> Form.render model.formData
             ]
         |> Container.render
     ]
@@ -27,28 +31,56 @@ appBody model =
 
 formConfig : Model -> Form.Form FormData Msg
 formConfig model =
+    let
+        userIcon =
+            Html.i [ Attrs.class "icon-plus" ] []
+    in
     model.form
-        |> Form.withFields
-            [ Config.usernameGroupConfig
-            , Config.passwordGroupConfig
+        |> Form.withFieldsAndLegend
+            (Form.legendWithPrependableHtml
+                "Login"
+                [ userIcon ]
+            )
+            [ [ Config.usernameGroupConfig
+              , Config.passwordGroupConfig
+              ]
+            , [ Config.usernameWithTooltipConfig model.formData.uiState.usernameTooltipVisible
+              ]
             ]
-        |> Form.withFields
-            [ Config.birthDateConfig
+        |> Form.withFieldsAndLegend
+            (Form.legendWithAppendableHtml
+                "User profile"
+                [ userIcon ]
+            )
+            [ [ Config.birthDateCompoundConfig
+              ]
+            , [ Config.birthDateConfig
+              ]
             ]
         |> Form.withFields
             [ Config.fiscalCodeGroupConfig
             ]
+        |> Form.withFieldsAndLegend
+            (Form.legendWithAppendableHtml
+                "Privacy"
+                [ userIcon ]
+            )
+            [ [ Config.privacyConfig
+              ]
+            , [ Config.userPrivacyMarketingConfig
+              ]
+            ]
         |> Form.withFields
-            [ Config.privacyConfig
+            [ Config.userPrivacyThirdPartConfig
             ]
         |> Form.withFields
             [ Config.guideTypeConfig
             ]
         |> Form.withFields
-            [ Config.powerSourceConfig
+            [ Config.powerSourceConfig model.formData.powerSourceSelect
             ]
         |> Form.withFields
-            [ Config.countryConfig
+            [ Config.countryConfig model.formData.countryAutocomplete
             ]
         |> Form.withFields
             [ Config.checkboxConfig

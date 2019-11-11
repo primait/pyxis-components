@@ -1,31 +1,37 @@
 module Prima.Pyxis.Link exposing
-    ( Config, simple, standalone
-    , withId, withClass, withTargetBlank, withTargetParent, withTargetSelf, withTargetTop, withAttribute, withClassList, withIcon, withHref
-    , withOnClick, withOnMouseDown, withOnMouseUp, withOnMouseEnter, withOnMouseLeave, withOnMouseOver, withOnMouseOut
+    ( Config
+    , simple, standalone
     , render
+    , withAttribute, withId, withClass, withClassList, withIcon, withHref, withTargetBlank, withTargetParent, withTargetSelf, withTargetTop
+    , withOnClick, withOnMouseDown, withOnMouseUp, withOnMouseEnter, withOnMouseLeave, withOnMouseOver, withOnMouseOut
     )
 
 {-|
 
 
-## Types and Configuration
+## Configuration
 
-@docs Config, simple, standalone
+@docs Config
+
+
+## Configuration Methods
+
+@docs simple, standalone
+
+
+## Rendering
+
+@docs render
 
 
 ## Options
 
-@docs withId, withClass, withTargetBlank, withTargetParent, withTargetSelf, withTargetTop, withAttribute, withClassList, withIcon, withHref
+@docs withAttribute, withId, withClass, withClassList, withIcon, withHref, withTargetBlank, withTargetParent, withTargetSelf, withTargetTop
 
 
-## Events
+## Event Options
 
 @docs withOnClick, withOnMouseDown, withOnMouseUp, withOnMouseEnter, withOnMouseLeave, withOnMouseOver, withOnMouseOut
-
-
-## Render
-
-@docs render
 
 -}
 
@@ -370,9 +376,9 @@ renderIcon : String -> Html msg
 renderIcon icon =
     Html.i
         [ Attrs.classList
-            [ ( "a-icon", True )
-            , ( "a-link__icon", True )
-            , ( "a-icon-" ++ icon, True )
+            [ ( "icon", True )
+            , ( "link__icon", True )
+            , ( "icon-" ++ icon, True )
             ]
         ]
         []
@@ -402,9 +408,9 @@ buildAttributes linkModel =
 -}
 buildClassList : Config msg -> Options msg -> Html.Attribute msg
 buildClassList (Config { type_, icon }) options =
-    [ ( "a-link", True )
-    , ( "a-link--standalone", isStandalone type_ )
-    , ( "a-link--with-icon", H.isJust icon )
+    [ ( "link", True )
+    , ( "link--standalone", isStandalone type_ )
+    , ( "link--icon", H.isJust icon )
     ]
         |> List.append options.classList
         |> List.append (List.map (H.flip Tuple.pair True) options.classes)

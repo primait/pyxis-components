@@ -1,31 +1,31 @@
 module Prima.Pyxis.Form.DatePicker exposing
     ( Model, Msg(..), Date(..)
     , init, update
-    , selectedDate
     , render
+    , selectedDate, setDate
     )
 
 {-|
 
 
-## Types and Configuration
+## Configuration
 
 @docs Model, Msg, Date
 
 
-## Configuration
+## Configuration Methods
 
 @docs init, update
-
-
-## Helpers
-
-@docs selectedDate
 
 
 ## Rendering
 
 @docs render
+
+
+## Methods
+
+@docs selectedDate, setDate
 
 -}
 
@@ -33,10 +33,11 @@ import Date
 import Html exposing (Html)
 import Html.Attributes as Attrs
 import Html.Events as Events
+import Prima.Pyxis.Helpers as H
 import Time exposing (Month(..), Weekday(..))
 
 
-{-| Model
+{-| Represents the `DatePicker`'s `Model`.
 -}
 type alias Model =
     { date : Date.Date
@@ -45,6 +46,8 @@ type alias Model =
     }
 
 
+{-| Represents a Date. It can be a valid one (ParsedDate Date.Date) or a partial
+-}
 type Date
     = ParsedDate Date.Date
     | PartialDate (Maybe String)
@@ -67,6 +70,15 @@ selectedDate model =
     ParsedDate model.date
 
 
+{-| Selects a valid Date into the DatePicker
+-}
+setDate : Date.Date -> Model -> Model
+setDate date model =
+    model
+        |> updateModelIfValid ValidDay date
+        |> updateModelIfValid ValidMonth date
+
+
 adjustInitialDate : Date.Date -> ( Date.Date, Date.Date ) -> Date.Date
 adjustInitialDate day ( low, high ) =
     if Date.isBetween low high day then
@@ -86,7 +98,8 @@ formattedMonth =
     Date.formatWithLanguage italianLanguage "MMMM y" << .date
 
 
-{-| -}
+{-| The DatePicker message
+-}
 type Msg
     = Noop
     | YearSelection
@@ -95,6 +108,7 @@ type Msg
     | NextMonth
     | SelectYear Int
     | SelectDay Int
+    | SelectDate Date.Date
 
 
 {-| -}
@@ -121,6 +135,9 @@ update msg model =
 
         SelectDay day ->
             updateSelectedDay day model
+
+        SelectDate date ->
+            setDate date model
 
 
 fromDateRangeToList : List Date.Date -> ( Date.Date, Date.Date ) -> List Date.Date
@@ -210,7 +227,7 @@ updateModelIfValid validityCheck newDate model =
 render : Model -> Html Msg
 render ({ selectingYear } as model) =
     Html.div
-        [ Attrs.class "a-datepicker" ]
+        [ Attrs.class "datepicker" ]
         [ header model
         , if selectingYear then
             yearPicker model
@@ -223,11 +240,11 @@ render ({ selectingYear } as model) =
 header : Model -> Html Msg
 header ({ date, selectingYear } as model) =
     Html.div
-        [ Attrs.class "a-datepicker__header"
+        [ Attrs.class "datepicker__header"
         ]
         [ Html.div
             [ Attrs.classList
-                [ ( "a-datepicker__header__year", True )
+                [ ( "datepicker__header__year", True )
                 , ( "is-selected", selectingYear )
                 ]
             , Events.onClick
@@ -242,7 +259,7 @@ header ({ date, selectingYear } as model) =
             ]
         , Html.div
             [ Attrs.classList
-                [ ( "a-datepicker__header__day", True )
+                [ ( "datepicker__header__day", True )
                 , ( "is-selected", not selectingYear )
                 ]
             , Events.onClick DaySelection
@@ -255,10 +272,12 @@ header ({ date, selectingYear } as model) =
 weekDays : Html Msg
 weekDays =
     Html.div
-        [ Attrs.class "a-datepicker__picker__weekDays" ]
+        [ Attrs.class "datepicker__picker__days-name" ]
         (List.map
             (\day ->
-                Html.span [] [ Html.text day ]
+                Html.span
+                    [ Attrs.class "datepicker__picker__days-name__item" ]
+                    [ Html.text day ]
             )
             [ "Lun", "Mar", "Mer", "Gio", "Ven", "Sab", "Dom" ]
         )
@@ -330,7 +349,7 @@ monthDays ({ date, daysPickerRange } as model) =
             (List.filter (not << (\a -> List.member a availableDays)) << List.range 1) daysCount
     in
     Html.div
-        [ Attrs.class "a-datepicker__picker__monthDays"
+        [ Attrs.class "datepicker__picker__month"
         ]
         (List.map (\week -> weekRow week (Date.day date) disabledDaysInMonth) weeks)
 
@@ -338,7 +357,7 @@ monthDays ({ date, daysPickerRange } as model) =
 weekRow : List Int -> Int -> List Int -> Html Msg
 weekRow days currentDay disabledDays =
     Html.div
-        [ Attrs.class "a-datepicker__picker__days" ]
+        [ Attrs.class "datepicker__picker__week" ]
         (List.map (\day -> dayCell day currentDay (List.member day disabledDays)) days)
 
 
@@ -347,7 +366,7 @@ dayCell dayNumber currentDay disabled =
     if dayNumber > 0 then
         Html.div
             [ Attrs.classList
-                [ ( "a-datepicker__picker__days__item", True )
+                [ ( "datepicker__picker__day", True )
                 , ( "is-selected", dayNumber == currentDay )
                 , ( "is-disabled", disabled )
                 ]
@@ -358,27 +377,27 @@ dayCell dayNumber currentDay disabled =
 
     else
         Html.div
-            [ Attrs.class "a-datepicker__picker__days__item is-empty" ]
+            [ Attrs.class "datepicker__picker__day is-empty" ]
             []
 
 
 picker : Model -> Html Msg
 picker model =
     Html.div
-        [ Attrs.class "a-datepicker__picker" ]
+        [ Attrs.class "datepicker__picker" ]
         [ Html.div
-            [ Attrs.class "a-datepicker__picker__header" ]
+            [ Attrs.class "datepicker__picker__header" ]
             [ Html.span
-                [ Attrs.class "a-datepicker__picker__header__prevMonth"
+                [ Attrs.class "datepicker__picker__header__arrow datepicker__picker__header__arrow--prev"
                 , Events.onClick PrevMonth
                 ]
                 []
             , Html.div
-                [ Attrs.class "a-datepicker__picker__header__currentMonth" ]
+                [ Attrs.class "datepicker__picker__header__current-month" ]
                 [ (Html.text << formattedMonth) model
                 ]
             , Html.span
-                [ Attrs.class "a-datepicker__picker__header__nextMonth"
+                [ Attrs.class "datepicker__picker__header__arrow datepicker__picker__header__arrow--next"
                 , Events.onClick NextMonth
                 ]
                 []
@@ -395,12 +414,12 @@ yearPicker ({ daysPickerRange } as model) =
             daysPickerRange
     in
     Html.div
-        [ Attrs.class "a-datepicker__yearPicker" ]
+        [ Attrs.class "datepicker__year-picker" ]
         [ Html.div
-            [ Attrs.class "a-datepicker__yearPicker__scroller" ]
+            [ Attrs.class "datepicker__year-picker__scroller" ]
             [ Html.div
-                [ Attrs.class "a-datepicker__yearPicker__scroller__list" ]
-                (List.map (\y -> yearButton y (Date.year model.date)) <| List.range (Date.year lowerBound) (Date.year upperBound))
+                [ Attrs.class "datepicker__year-picker__scroller__list" ]
+                (List.map (H.flip yearButton (Date.year model.date)) <| List.range (Date.year lowerBound) (Date.year upperBound))
             ]
         ]
 
@@ -409,7 +428,7 @@ yearButton : Int -> Int -> Html Msg
 yearButton year currentYear =
     Html.span
         [ Attrs.classList
-            [ ( "a-datepicker__yearPicker__scroller__list__item", True )
+            [ ( "datepicker__year-picker__scroller__item", True )
             , ( "is-selected", year == currentYear )
             ]
         , (Events.onClick << SelectYear) year

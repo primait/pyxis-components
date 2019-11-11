@@ -1,25 +1,31 @@
 module Prima.Pyxis.Tooltip exposing
-    ( Tooltip, upConfig, downConfig, leftConfig, rightConfig
-    , withClass, withId
+    ( Config
+    , top, bottom, left, right
     , render
+    , withClass, withId
     )
 
-{-| Create a `Tooltip` using predefined Html syntax.
+{-|
 
 
-## Types and Configuration
+## Configuration
 
-@docs Tooltip, upConfig, downConfig, leftConfig, rightConfig
-
-
-## TooltipOptions
-
-@docs withClass, withId
+@docs Config
 
 
-# Render
+## Configuration Methods
+
+@docs top, bottom, left, right
+
+
+## Rendering
 
 @docs render
+
+
+## Options
+
+@docs withClass, withId
 
 -}
 
@@ -30,8 +36,8 @@ import Prima.Pyxis.Helpers as H
 
 {-| Represent the opaque `Tooltip` configuration.
 -}
-type Tooltip msg
-    = Tooltip (TooltipConfig msg)
+type Config msg
+    = Config (TooltipConfig msg)
 
 
 {-| Internal. Represent the `Tooltip` configuration.
@@ -46,38 +52,38 @@ type alias TooltipConfig msg =
 {-| Internal. Represent the `Tooltip` type.
 -}
 type TooltipType
-    = Up
-    | Down
+    = Top
+    | Bottom
     | Left
     | Right
 
 
-{-| Create a tooltip up.
+{-| Create a tooltip top.
 -}
-upConfig : List (Html msg) -> Tooltip msg
-upConfig children =
-    Tooltip (TooltipConfig Up [] children)
+top : List (Html msg) -> Config msg
+top children =
+    Config (TooltipConfig Top [] children)
 
 
-{-| Create a tooltip down.
+{-| Create a tooltip bottom.
 -}
-downConfig : List (Html msg) -> Tooltip msg
-downConfig children =
-    Tooltip (TooltipConfig Down [] children)
+bottom : List (Html msg) -> Config msg
+bottom children =
+    Config (TooltipConfig Bottom [] children)
 
 
 {-| Create a tooltip left.
 -}
-leftConfig : List (Html msg) -> Tooltip msg
-leftConfig children =
-    Tooltip (TooltipConfig Left [] children)
+left : List (Html msg) -> Config msg
+left children =
+    Config (TooltipConfig Left [] children)
 
 
 {-| Create a tooltip right.
 -}
-rightConfig : List (Html msg) -> Tooltip msg
-rightConfig children =
-    Tooltip (TooltipConfig Right [] children)
+right : List (Html msg) -> Config msg
+right children =
+    Config (TooltipConfig Right [] children)
 
 
 {-| Internal. Represent the possible modifiers for an `Tooltip`.
@@ -97,30 +103,30 @@ type TooltipOption msg
 
 {-| Adds a `class` to the `Tooltip`.
 -}
-withClass : String -> Tooltip msg -> Tooltip msg
+withClass : String -> Config msg -> Config msg
 withClass class_ =
     addOption (Class class_)
 
 
 {-| Adds an `id` Html.Attribute to the `Tooltip`.
 -}
-withId : String -> Tooltip msg -> Tooltip msg
+withId : String -> Config msg -> Config msg
 withId id =
     addOption (Id id)
 
 
-{-| Internal. Check is tooltip type up.
+{-| Internal. Check is tooltip type top.
 -}
-isTooltipUp : TooltipType -> Bool
-isTooltipUp =
-    (==) Up
+isTooltipTop : TooltipType -> Bool
+isTooltipTop =
+    (==) Top
 
 
-{-| Internal. Check is tooltip type down.
+{-| Internal. Check is tooltip type bottom.
 -}
-isTooltipDown : TooltipType -> Bool
-isTooltipDown =
-    (==) Down
+isTooltipBottom : TooltipType -> Bool
+isTooltipBottom =
+    (==) Bottom
 
 
 {-| Internal. Check is tooltip type left.
@@ -151,14 +157,14 @@ applyOption modifier options =
 
 {-| Internal. Applies all the customizations and returns the internal `TooltipOptions` type.
 -}
-computeOptions : Tooltip msg -> TooltipOptions
-computeOptions (Tooltip { options }) =
+computeOptions : Config msg -> TooltipOptions
+computeOptions (Config { options }) =
     List.foldl applyOption defaultOptions options
 
 
 {-| Internal. Transforms all the customizations into a list of valid Html.Attribute(s).
 -}
-buildAttributes : Tooltip msg -> List (Html.Attribute msg)
+buildAttributes : Config msg -> List (Html.Attribute msg)
 buildAttributes tooltip =
     let
         { id, classes } =
@@ -173,16 +179,16 @@ buildAttributes tooltip =
 -}
 defaultOptions : TooltipOptions
 defaultOptions =
-    { classes = [ "a-tooltip" ]
+    { classes = [ "tooltip" ]
     , id = Nothing
     }
 
 
 {-| Internal. Adds a generic option to the `Tooltip`.
 -}
-addOption : TooltipOption msg -> Tooltip msg -> Tooltip msg
-addOption option (Tooltip inputConfig) =
-    Tooltip { inputConfig | options = inputConfig.options ++ [ option ] }
+addOption : TooltipOption msg -> Config msg -> Config msg
+addOption option (Config inputConfig) =
+    Config { inputConfig | options = inputConfig.options ++ [ option ] }
 
 
 {-|
@@ -207,7 +213,7 @@ addOption option (Tooltip inputConfig) =
     view =
         Html.div
             []
-            (Tooltip.upConfig []
+            (Tooltip.topConfig []
             |> Tooltip.withClass ""
             )
 
@@ -219,17 +225,17 @@ addOption option (Tooltip inputConfig) =
             Nothing
 
 -}
-render : Tooltip msg -> Html msg
-render ((Tooltip { children, type_ }) as tooltipModel) =
+render : Config msg -> Html msg
+render ((Config { children, type_ }) as tooltipModel) =
     Html.div
         (List.append
             (buildAttributes tooltipModel)
             [ Attrs.classList
-                [ ( "a-tooltip", True )
-                , ( "a-tooltip--up", isTooltipUp type_ )
-                , ( "a-tooltip--down", isTooltipDown type_ )
-                , ( "a-tooltip--left", isTooltipLeft type_ )
-                , ( "a-tooltip--right", isTooltipRight type_ )
+                [ ( "tooltip", True )
+                , ( "tooltip--top", isTooltipTop type_ )
+                , ( "tooltip--bottom", isTooltipBottom type_ )
+                , ( "tooltip--left", isTooltipLeft type_ )
+                , ( "tooltip--right", isTooltipRight type_ )
                 ]
             ]
         )
