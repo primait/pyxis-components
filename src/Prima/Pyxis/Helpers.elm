@@ -1,9 +1,11 @@
 module Prima.Pyxis.Helpers exposing
-    ( isJust
+    ( flip
+    , isJust
     , isNothing
     , loremIpsum
     , pyxisStyle
     , renderIf
+    , renderListIf
     , spacer
     )
 
@@ -13,7 +15,7 @@ import Html.Attributes exposing (href, rel)
 
 pyxisStyle : Html msg
 pyxisStyle =
-    Html.node "link" [ href "https://d3be8952cnveif.cloudfront.net/pyxis/1.9.1/prima.css", rel "stylesheet" ] []
+    Html.node "link" [ href "http://localhost:8080/pyxis.css", rel "stylesheet" ] []
 
 
 loremIpsum : String
@@ -48,3 +50,17 @@ renderIf condition html =
 
     else
         text ""
+
+
+renderListIf : Bool -> List (Html msg) -> List (Html msg)
+renderListIf condition html =
+    if condition then
+        html
+
+    else
+        [ text "" ]
+
+
+flip : (a -> b -> c) -> b -> a -> c
+flip mapper b a =
+    mapper a b

@@ -2,17 +2,25 @@ module Prima.Pyxis.Form.Examples.FormConfig exposing
     ( city
     , country
     , dateOfBirth
+    , formFieldList
+    , formFieldListWithGroup
     , gender
     , note
     , password
-    , staticHtml
+    , staticHtmlField
     , username
     , visitedCountries
     )
 
 import Html exposing (Html, p, text)
 import Html.Attributes exposing (class, maxlength, minlength)
-import Prima.Pyxis.Form as Form exposing (FormField)
+import Prima.Pyxis.Form as Form
+    exposing
+        ( FormField
+        , FormFieldList
+        , addTooltipToFieldListWhen
+        , addTooltipToFieldWhen
+        )
 import Prima.Pyxis.Form.Event as Event
 import Prima.Pyxis.Form.Examples.Model
     exposing
@@ -21,21 +29,34 @@ import Prima.Pyxis.Form.Examples.Model
         , Model
         , Msg(..)
         )
-import Prima.Pyxis.Form.Validation exposing (SeverityLevel(..), Validation(..), ValidationType(..))
+import Prima.Pyxis.Form.Validation as FormValidation
+import Prima.Pyxis.Helpers exposing (isJust)
+import Prima.Pyxis.Tooltip as Tooltip
 
 
 username : FormField FormData Msg
 username =
     Form.textConfig
+        --Slug
         "user_name"
-        (Just "Username & Password")
-        [ minlength 3, maxlength 12 ]
+        --Label
+        (Just "Username")
+        -- Data attributes
+        [ minlength 3, maxlength 12, class "is-small" ]
+        --FormData accessor
         .username
+        --FormEvent mappings
         [ Event.onInput (UpdateField Username)
         , Event.onFocus (OnFocus Username)
         , Event.onBlur (OnBlur Username)
         ]
-        [ NotEmpty (SeverityLevel Error) "Empty value is not acceptable."
+        --Form Validations
+        [ FormValidation.config FormValidation.Error
+            (\formData -> Maybe.withDefault False <| Maybe.map ((<) 3 << String.length) formData.username)
+            "Username must be greater than 3 digits"
+        , FormValidation.config FormValidation.Warning
+            (\formData -> not (formData.username == Just "Prisco"))
+            "Dovresti lavorare più su te stesso Prisco!"
         ]
 
 
@@ -43,17 +64,46 @@ password : Bool -> FormField FormData Msg
 password isSubmitted =
     Form.passwordConfig
         "password"
-        Nothing
-        []
+        (Just "Password")
+        [ class "is-small" ]
         .password
         [ Event.onInput (UpdateField Password) ]
-        [ NotEmpty (SeverityLevel Error) "Empty value is not acceptable."
-        , Custom (SeverityLevel Warning)
-            (\m ->
-                not isSubmitted && String.length (Maybe.withDefault "" m.username) <= 6
-            )
-            "Value must be between 3 and 12 characters length."
+        [ FormValidation.config FormValidation.Error
+            (\formData -> isJust formData.password)
+            "Password can't be empty"
+        , FormValidation.config FormValidation.Warning
+            (\formData -> not (formData.password == Just "1234"))
+            "You should be more creative"
         ]
+
+
+formFieldList : FormFieldList FormData Msg
+formFieldList =
+    Form.fieldListConfig
+        -- Field Group label
+        "Username & Password"
+        -- Field Group FormFields
+        [ username, password False ]
+        -- Field Group own validations
+        [ FormValidation.config FormValidation.Warning
+            (\formData -> not (formData.username == formData.password))
+            "Username and password shouldn't be equal"
+        ]
+
+
+formFieldListWithGroup : FormData -> Html Msg -> FormFieldList FormData Msg
+formFieldListWithGroup formData appendable =
+    Form.fieldListConfig
+        -- Field List label
+        "Username & Password & date"
+        -- Field List FormFields
+        [ username, password False, dateOfBirth formData appendable ]
+        -- Field Group own validations
+        [ FormValidation.config FormValidation.Warning
+            (\formData_ -> not (formData_.username == formData_.password))
+            "Username and password shouldn't be equal"
+        ]
+        |> addTooltipToFieldListWhen True (Tooltip.downConfig [] [ text "Tooltip sul gruppo" ])
 
 
 note : FormField FormData Msg
@@ -64,15 +114,15 @@ note =
         []
         .note
         [ Event.onInput (UpdateField Note) ]
-        [ Custom (SeverityLevel Warning) ((<=) 3 << String.length << Maybe.withDefault "" << .note) "Value should be between 3 and 12 characters length." ]
+        [ FormValidation.config FormValidation.Error
+            (\formData -> not (formData.note == Nothing))
+            "Note shouldn't be empty"
+        ]
+        |> addTooltipToFieldWhen True (Tooltip.rightConfig [] [ text "You should write some interesting notes here!" ])
 
 
 gender : FormField FormData Msg
 gender =
-    let
-        something =
-            SeverityLevel Error
-    in
     Form.radioConfig
         "gender"
         (Just "Gender")
@@ -82,7 +132,10 @@ gender =
         [ Form.radioOption "Male" "male"
         , Form.radioOption "Female" "female"
         ]
-        [ Custom (SeverityLevel Error) ((==) "female" << Maybe.withDefault "female" << .gender) "You must select `Female` to proceed." ]
+        [ FormValidation.config FormValidation.Error
+            (\formData -> not (formData.gender == Nothing))
+            "Gender shouldn't be empty"
+        ]
 
 
 visitedCountries : FormData -> FormField FormData Msg
@@ -94,7 +147,10 @@ visitedCountries data =
         (List.map (\( label, slug, checked ) -> ( slug, checked )) << .visitedCountries)
         [ Event.onCheck (UpdateCheckbox VisitedCountries) ]
         (List.map (\( label, slug, checked ) -> Form.checkboxOption label slug checked) data.visitedCountries)
-        []
+        [ FormValidation.config FormValidation.Error
+            (\formData -> List.any (\( _, _, isSelected ) -> isSelected) formData.visitedCountries)
+            "You must select one country"
+        ]
 
 
 city : Bool -> FormField FormData Msg
@@ -105,7 +161,7 @@ city isOpen =
         False
         isOpen
         (Just "Seleziona")
-        [ class "formSmall" ]
+        [ class "form-small" ]
         .city
         [ Event.onToggle (Toggle City)
         , Event.onInput (UpdateField City)
@@ -120,21 +176,29 @@ city isOpen =
             , Form.selectOption "Genoa" "GE"
             ]
         )
-        [ NotEmpty (SeverityLevel Error) "Empty value is not acceptable." ]
+        [ FormValidation.config FormValidation.Error
+            (\formData -> not (formData.city == Nothing))
+            "You must select one city"
+        ]
 
 
-dateOfBirth : FormData -> FormField FormData Msg
-dateOfBirth { isVisibleDP, dateOfBirthDP } =
+dateOfBirth : FormData -> Html Msg -> FormField FormData Msg
+dateOfBirth { isVisibleDP, dateOfBirthDP } appendable =
     Form.datepickerConfig
         "date_of_birth"
         (Just "Date of Birth")
-        []
+        [ class "is-medium" ]
         .dateOfBirth
         (UpdateDatePicker DateOfBirth)
         [ Event.onInput (UpdateField DateOfBirth) ]
         dateOfBirthDP
         isVisibleDP
-        [ Custom (SeverityLevel Error) (Maybe.withDefault False << Maybe.map (always True) << .dateOfBirth) "This is not a valid date." ]
+        [ FormValidation.config FormValidation.Error
+            (\formData -> not (formData.dateOfBirth == Nothing))
+            "You must select a date"
+        ]
+        |> Form.append [ appendable ]
+        |> addTooltipToFieldWhen True (Tooltip.upConfig [] [ text "Tooltip sul campo" ])
 
 
 country : FormData -> FormField FormData Msg
@@ -191,11 +255,20 @@ country { countryFilter, isOpenCountry } =
          ]
             |> List.filter (String.contains lowerFilter << String.toLower << .label)
         )
-        [ NotEmpty (SeverityLevel Error) "Empty value is not acceptable." ]
+        [ FormValidation.config FormValidation.Error
+            (\formData -> not (formData.country == Nothing))
+            "Country must be selected"
+        ]
 
 
-staticHtml : Model -> FormField FormData Msg
-staticHtml model =
+staticHtmlField : FormField FormData Msg
+staticHtmlField =
     Form.pureHtmlConfig
-        [ p [] [ text "Lorem ipsum dolor sit amet." ]
+        --slug
+        "always-error-field"
+        [ p [] [ text "You shall not pass" ]
+        ]
+        [ FormValidation.config FormValidation.Error
+            (\formData -> False)
+            "This form field will always prints error"
         ]

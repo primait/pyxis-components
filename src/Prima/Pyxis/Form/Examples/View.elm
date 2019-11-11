@@ -1,12 +1,13 @@
 module Prima.Pyxis.Form.Examples.View exposing (view)
 
 import Browser
-import Html exposing (Html, button, i, text)
+import Html exposing (Html, div, i, p, text)
 import Html.Attributes exposing (class)
 import Html.Events exposing (onClick)
+import Prima.Pyxis.Button as Button
 import Prima.Pyxis.Form as Form
 import Prima.Pyxis.Form.Examples.FormConfig as Config
-import Prima.Pyxis.Form.Examples.Model exposing (Model, Msg(..))
+import Prima.Pyxis.Form.Examples.Model exposing (FormData, Model, Msg(..))
 import Prima.Pyxis.Helpers as Helpers
 
 
@@ -18,36 +19,64 @@ view model =
 
 
 appBody : Model -> List (Html Msg)
-appBody ({ data, formConfig } as model) =
-    let
-        renderModel =
-            [ ( Form.renderField formConfig data, [ Config.username, Config.password (Form.isFormSubmitted <| Form.state formConfig) ] )
-            , ( Form.renderField formConfig data, [ Config.note ] )
-            , ( Form.renderField formConfig data, [ Config.gender ] )
-            , ( Form.renderField formConfig data, [ Config.visitedCountries data ] )
-            , ( Form.renderField formConfig data, [ Config.city data.isOpenCity ] )
-            , ( Form.renderField formConfig data, [ Config.country data ] )
-            , ( Form.renderFieldWithGroup formConfig data <| Form.appendGroup [ datePickerIcon ], [ Config.dateOfBirth data ] )
-            ]
-
-        form =
-            Form.addFields renderModel formConfig
-    in
-    [ Helpers.pyxisStyle, Form.render form, btnSubmit, btnReset ]
+appBody { data, formConfig } =
+    [ div
+        [ class "a-container directionColumn" ]
+        [ Helpers.pyxisStyle
+        , btnSwitchValidationMode formConfig
+        , p [] [ text <| Maybe.withDefault "" <| Maybe.map ((++) "Form current state:") (formStateLabel formConfig) ]
+        , p [] [ text <| formValidationPolicyLabel formConfig ]
+        , formConfig
+            |> Form.addField Config.username
+            |> Form.addField (Config.password True)
+            |> Form.addFieldList Config.formFieldList
+            |> Form.addField Config.note
+            |> Form.addField Config.gender
+            |> Form.addField (Config.visitedCountries data)
+            |> Form.addField (Config.city data.isOpenCity)
+            |> Form.addField (Config.country data)
+            |> Form.addField (Config.dateOfBirth data datePickerIcon)
+            |> Form.addField Config.staticHtmlField
+            |> Form.addFieldList (Config.formFieldListWithGroup data datePickerIcon)
+            |> Form.addCustomRow (div [] [ text "Some fancy text in the middle of your form" ])
+            |> Form.render data
+        , btnSubmit
+        , btnReset
+        ]
+    ]
 
 
 btnSubmit : Html Msg
 btnSubmit =
-    button
-        [ onClick Submit ]
-        [ text "Submit" ]
+    Button.callOut Button.Brand "Submit" Submit
+        |> Button.render True
 
 
 btnReset : Html Msg
 btnReset =
-    button
-        [ onClick Reset ]
-        [ text "Reset" ]
+    Button.secondary Button.Brand "Reset" Reset
+        |> Button.render True
+
+
+btnSwitchValidationMode : Form.Form model msg -> Html Msg
+btnSwitchValidationMode form =
+    let
+        tuple =
+            case Form.pickValidationVisibilityPolicy form of
+                Form.Always ->
+                    ( "Validate when submitted", ChangeValidationPolicy Form.WhenSubmitted )
+
+                Form.WhenSubmitted ->
+                    ( "Validate always", ChangeValidationPolicy Form.Always )
+
+        label =
+            Tuple.first tuple
+
+        event =
+            Tuple.second tuple
+    in
+    Button.secondary Button.Brand label event
+        |> Button.render True
 
 
 datePickerIcon : Html Msg
@@ -57,3 +86,28 @@ datePickerIcon =
         , onClick ToggleDatePicker
         ]
         []
+
+
+formStateLabel : Form.Form model msg -> Maybe String
+formStateLabel form =
+    if Form.isFormPristine form then
+        Just "Pristine"
+
+    else if Form.isFormTouched form then
+        Just "Touched"
+
+    else if Form.isFormSubmitted form then
+        Just "Submitted"
+
+    else
+        Nothing
+
+
+formValidationPolicyLabel : Form.Form model msg -> String
+formValidationPolicyLabel form =
+    case Form.pickValidationVisibilityPolicy form of
+        Form.Always ->
+            "Form always prints validations"
+
+        Form.WhenSubmitted ->
+            "Form validates after submit"

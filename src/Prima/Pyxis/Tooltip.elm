@@ -23,8 +23,9 @@ module Prima.Pyxis.Tooltip exposing
 
 -}
 
-import Html exposing (Html, div, text)
-import Html.Attributes exposing (classList)
+import Html exposing (Attribute, Html, div, text)
+import Html.Attributes as HtmlAttributes
+import Prima.Pyxis.Helpers exposing (renderIf)
 
 
 {-| Represents the config of a Tooltip
@@ -35,6 +36,7 @@ type Config msg
 
 type alias Configuration msg =
     { type_ : TooltipType
+    , attributes : List (Attribute msg)
     , content : List (Html msg)
     }
 
@@ -48,30 +50,30 @@ type TooltipType
 
 {-| Defines the configuration of an Up tooltip.
 -}
-upConfig : List (Html msg) -> Config msg
-upConfig content =
-    Config (Configuration Up content)
+upConfig : List (Attribute msg) -> List (Html msg) -> Config msg
+upConfig attributes content =
+    Config (Configuration Up attributes content)
 
 
 {-| Defines the configuration of a Down tooltip.
 -}
-downConfig : List (Html msg) -> Config msg
-downConfig content =
-    Config (Configuration Down content)
+downConfig : List (Attribute msg) -> List (Html msg) -> Config msg
+downConfig attributes content =
+    Config (Configuration Down attributes content)
 
 
 {-| Defines the configuration of an Left tooltip.
 -}
-leftConfig : List (Html msg) -> Config msg
-leftConfig content =
-    Config (Configuration Left content)
+leftConfig : List (Attribute msg) -> List (Html msg) -> Config msg
+leftConfig attributes content =
+    Config (Configuration Left attributes content)
 
 
 {-| Defines the configuration of an Right tooltip.
 -}
-rightConfig : List (Html msg) -> Config msg
-rightConfig content =
-    Config (Configuration Right content)
+rightConfig : List (Attribute msg) -> List (Html msg) -> Config msg
+rightConfig attributes content =
+    Config (Configuration Right attributes content)
 
 
 isTooltipUp : TooltipType -> Bool
@@ -99,12 +101,14 @@ isTooltipRight =
 render : Config msg -> Html msg
 render (Config config) =
     div
-        [ classList
-            [ ( "tooltip", True )
-            , ( "tooltip--up", isTooltipUp config.type_ )
-            , ( "tooltip--down", isTooltipDown config.type_ )
-            , ( "tooltip--left", isTooltipLeft config.type_ )
-            , ( "tooltip--right", isTooltipRight config.type_ )
+        ([ HtmlAttributes.classList
+            [ ( "a-tooltip", True )
+            , ( "a-tooltip--up", isTooltipUp config.type_ )
+            , ( "a-tooltip--down", isTooltipDown config.type_ )
+            , ( "a-tooltip--left", isTooltipLeft config.type_ )
+            , ( "a-tooltip--right", isTooltipRight config.type_ )
             ]
-        ]
+         ]
+            ++ config.attributes
+        )
         config.content

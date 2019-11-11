@@ -42,4 +42,5 @@ Run the following commands after you had committed your work:
 ## Testing package
 Run the `./node_modules/.bin/elm reactor` command. 
 It will start a local server which points to  `http://localhost:8000` .
+*Remember to run Pyxis on local webserver in order to see styled form fields.* 
 You can now navigate through the examples and test your work before publishing it.
