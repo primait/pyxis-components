@@ -34,7 +34,7 @@ renderModal isModalVisible =
         Modal.medium
         (Modal.defaultHeader "Hello! I'm a modal")
         modalContent
-        (Modal.withButtonsFooter [ showModalBtn, hideModalBtn ])
+        (Modal.withButtonsFooter [ Button.render True showModalBtn, Button.render True hideModalBtn ])
         Hide
         |> Modal.view isModalVisible
 
