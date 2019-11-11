@@ -17,7 +17,6 @@ module Prima.Pyxis.Form exposing
     , fieldIsValid, fieldHasError, fieldHasWarning, fieldIsPristine, fieldIsTouched
     , fieldListIsValid, fieldListHasError, fieldListHasOwnError, fieldListHasFieldError, fieldListHasWarning, fieldListHasOwnWarning, fieldListHasFieldWarning
     , render, renderField, renderFieldList
-    , InputGroupFieldConfig
     )
 
 {-| Allows to create a Form and it's fields using predefined Html syntax.
@@ -40,7 +39,7 @@ module Prima.Pyxis.Form exposing
 
 # InputGroup
 
-@docs InputGroupField, prepend, append
+@docs prepend, append
 
 
 # Validation Visibility Policy
@@ -110,7 +109,7 @@ module Prima.Pyxis.Form exposing
 
 # Render
 
-@docs render, renderField, renderInputGroup, renderFieldList
+@docs render, renderField, renderFieldList
 
 -}
 
