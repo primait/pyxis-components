@@ -1,7 +1,7 @@
 module Prima.Pyxis.Form.Examples.View exposing (view)
 
 import Browser
-import Html exposing (Html, div, i, p, text)
+import Html exposing (Html, div, hr, i, p, text)
 import Html.Attributes exposing (class)
 import Html.Events exposing (onClick)
 import Prima.Pyxis.Button as Button
@@ -28,17 +28,16 @@ appBody { data, formConfig } =
         , p [] [ text <| formValidationPolicyLabel formConfig ]
         , formConfig
             |> Form.addField Config.username
-            |> Form.addField (Config.password True)
-            |> Form.addFieldList Config.formFieldList
+            |> Form.addFieldList Config.passwordList
             |> Form.addField Config.note
             |> Form.addField Config.gender
             |> Form.addField (Config.visitedCountries data)
-            |> Form.addField (Config.city data.isOpenCity)
             |> Form.addField (Config.country data)
             |> Form.addField (Config.dateOfBirth data datePickerIcon)
             |> Form.addField Config.staticHtmlField
-            |> Form.addFieldList (Config.formFieldListWithGroup data datePickerIcon)
-            |> Form.addCustomRow (div [] [ text "Some fancy text in the middle of your form" ])
+            |> Form.addCustomRow (div [] [ text "Some fancy text in the middle of your form", hr [] [] ])
+            |> Form.addFieldList (Config.address data)
+            |> Form.addField (Config.city data.isOpenCity)
             |> Form.render data
         , btnSubmit
         , btnReset

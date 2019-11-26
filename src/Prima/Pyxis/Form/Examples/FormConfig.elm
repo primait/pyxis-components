@@ -1,12 +1,12 @@
 module Prima.Pyxis.Form.Examples.FormConfig exposing
-    ( city
+    ( address
+    , city
     , country
     , dateOfBirth
-    , formFieldList
-    , formFieldListWithGroup
     , gender
     , note
     , password
+    , passwordList
     , staticHtmlField
     , username
     , visitedCountries
@@ -42,7 +42,7 @@ username =
         --Label
         (Just "Username")
         -- Data attributes
-        [ minlength 3, maxlength 12, class "is-small" ]
+        [ minlength 3, maxlength 12, class "is-large" ]
         --FormData accessor
         .username
         --FormEvent mappings
@@ -60,12 +60,12 @@ username =
         ]
 
 
-password : Bool -> FormField FormData Msg
-password isSubmitted =
+password : FormField FormData Msg
+password =
     Form.passwordConfig
         "password"
-        (Just "Password")
-        [ class "is-small" ]
+        Nothing
+        [ class "is-medium" ]
         .password
         [ Event.onInput (UpdateField Password) ]
         [ FormValidation.config FormValidation.Error
@@ -77,33 +77,37 @@ password isSubmitted =
         ]
 
 
-formFieldList : FormFieldList FormData Msg
-formFieldList =
+confirmPassword : FormField FormData Msg
+confirmPassword =
+    Form.passwordConfig
+        "password_confirm"
+        (Just "Conferma Password")
+        [ class "is-medium" ]
+        .confirmPassword
+        [ Event.onInput (UpdateField Password) ]
+        [ FormValidation.config FormValidation.Error
+            (\formData -> isJust formData.password)
+            "Password can't be empty"
+        , FormValidation.config FormValidation.Warning
+            (\formData -> not (formData.password == formData.confirmPassword))
+            "Repeated password is not the same"
+        ]
+        |> addTooltipToFieldWhen True (Tooltip.upConfig [] [ text "Confirm your password please" ])
+
+
+passwordList : FormFieldList FormData Msg
+passwordList =
     Form.fieldListConfig
         -- Field Group label
-        "Username & Password"
+        (Just "Password")
         -- Field Group FormFields
-        [ username, password False ]
+        [ password, confirmPassword ]
         -- Field Group own validations
         [ FormValidation.config FormValidation.Warning
             (\formData -> not (formData.username == formData.password))
             "Username and password shouldn't be equal"
         ]
-
-
-formFieldListWithGroup : FormData -> Html Msg -> FormFieldList FormData Msg
-formFieldListWithGroup formData appendable =
-    Form.fieldListConfig
-        -- Field List label
-        "Username & Password & date"
-        -- Field List FormFields
-        [ username, password False, dateOfBirth formData appendable ]
-        -- Field Group own validations
-        [ FormValidation.config FormValidation.Warning
-            (\formData_ -> not (formData_.username == formData_.password))
-            "Username and password shouldn't be equal"
-        ]
-        |> addTooltipToFieldListWhen True (Tooltip.downConfig [] [ text "Tooltip sul gruppo" ])
+        |> addTooltipToFieldListWhen True (Tooltip.downConfig [] [ text "Tooltip sulla lista" ])
 
 
 note : FormField FormData Msg
@@ -118,7 +122,10 @@ note =
             (\formData -> not (formData.note == Nothing))
             "Note shouldn't be empty"
         ]
-        |> addTooltipToFieldWhen True (Tooltip.rightConfig [] [ text "You should write some interesting notes here!" ])
+
+
+
+--|> addTooltipToFieldWhen True (Tooltip.rightConfig [] [ text "You should write some interesting notes here!" ])
 
 
 gender : FormField FormData Msg
@@ -157,7 +164,7 @@ city : Bool -> FormField FormData Msg
 city isOpen =
     Form.selectConfig
         "city"
-        (Just "City")
+        (Just "Città")
         False
         isOpen
         (Just "Seleziona")
@@ -198,7 +205,52 @@ dateOfBirth { isVisibleDP, dateOfBirthDP } appendable =
             "You must select a date"
         ]
         |> Form.append [ appendable ]
-        |> addTooltipToFieldWhen True (Tooltip.upConfig [] [ text "Tooltip sul campo" ])
+
+
+
+--|> addTooltipToFieldWhen True (Tooltip.upConfig [] [ text "Tooltip sul campo" ])
+
+
+street : FormField FormData Msg
+street =
+    Form.textConfig
+        "street"
+        Nothing
+        [ minlength 3, maxlength 12, class "is-large" ]
+        .street
+        [ Event.onInput (UpdateField Street)
+        , Event.onFocus (OnFocus Street)
+        , Event.onBlur (OnBlur Street)
+        ]
+        [ FormValidation.config FormValidation.Error
+            (\formData -> formData.street /= Nothing)
+            "Street can't be null"
+        ]
+
+
+houseNumber : FormField FormData Msg
+houseNumber =
+    Form.textConfig
+        "houseNumber"
+        (Just "n.° civico")
+        [ minlength 3, maxlength 12, class "is-small" ]
+        .houseNumber
+        [ Event.onInput (UpdateField HouseNumber)
+        , Event.onFocus (OnFocus HouseNumber)
+        , Event.onBlur (OnBlur HouseNumber)
+        ]
+        [ FormValidation.config FormValidation.Error
+            (\formData -> formData.street /= Nothing)
+            "House number can't be null"
+        ]
+
+
+address : FormData -> FormFieldList FormData Msg
+address formData =
+    Form.fieldListConfig
+        (Just "Via")
+        [ street, houseNumber ]
+        []
 
 
 country : FormData -> FormField FormData Msg

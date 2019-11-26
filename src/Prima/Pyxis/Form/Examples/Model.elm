@@ -33,6 +33,7 @@ initialModel =
 type alias FormData =
     { username : Maybe String
     , password : Maybe String
+    , confirmPassword : Maybe String
     , note : Maybe String
     , gender : Maybe String
     , city : Maybe String
@@ -44,12 +45,15 @@ type alias FormData =
     , countryFilter : Maybe String
     , isOpenCountry : Bool
     , visitedCountries : List ( Label, Slug, Bool )
+    , street : Maybe String
+    , houseNumber : Maybe String
     }
 
 
 initialFormData : FormData
 initialFormData =
     FormData
+        Nothing
         Nothing
         Nothing
         Nothing
@@ -67,6 +71,8 @@ initialFormData =
         , ( "U.S.A", "USA", False )
         , ( "Great Britain", "GB", False )
         ]
+        Nothing
+        Nothing
 
 
 type alias Flags =
@@ -100,11 +106,14 @@ type FieldName
     = Gender
     | Username
     | Password
+    | ConfirmPassword
     | City
     | DateOfBirth
     | Country
     | VisitedCountries
     | Note
+    | Street
+    | HouseNumber
 
 
 type Msg
