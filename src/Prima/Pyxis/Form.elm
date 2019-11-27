@@ -166,7 +166,7 @@ type FormFieldList model msg
 
 
 type alias FormFieldListConfig model msg =
-    { label : Label
+    { label : Maybe Label
     , fields : List (FormField model msg)
     , tooltip : Maybe (Tooltip.Config msg)
     }
@@ -363,7 +363,7 @@ type ValidationVisibilityPolicy
 
 {-| Configure a FormFieldList
 -}
-fieldListConfig : Label -> List (FormField model msg) -> List (FormValidation.Validation model) -> FormFieldList model msg
+fieldListConfig : Maybe Label -> List (FormField model msg) -> List (FormValidation.Validation model) -> FormFieldList model msg
 fieldListConfig label fields validations =
     FormFieldList (FormFieldListConfig label fields Nothing) validations
 
@@ -610,9 +610,14 @@ renderFieldList formConfig model formFieldList =
 
 renderFieldListLabel : FormFieldList model msg -> Html msg
 renderFieldListLabel formFieldList =
-    div
-        [ class "m-form-field-list__label" ]
-        [ text <| pickFieldListLabel formFieldList ]
+    case pickFieldListLabel formFieldList of
+        Just label ->
+            div
+                [ class "m-form-field-list__label" ]
+                [ text label ]
+
+        Nothing ->
+            text ""
 
 
 renderFieldListFormFields : Form model msg -> model -> FormFieldList model msg -> Html msg
@@ -1355,11 +1360,7 @@ renderFieldEngine : RenderFieldMode -> Form model msg -> model -> FormField mode
 renderFieldEngine mode ((Form formConfig) as form) model formField =
     let
         lbl config =
-            if isRenderFieldSingle mode then
-                renderLabel config.slug config.label
-
-            else
-                text ""
+            renderLabel mode config.slug config.label
 
         wrapWhenGroup : List (Html msg) -> List (Html msg)
         wrapWhenGroup =
@@ -1442,19 +1443,29 @@ inputGroupAppend =
         ]
 
 
-renderLabel : String -> Maybe String -> Html msg
-renderLabel slug theLabel =
-    case theLabel of
-        Nothing ->
-            text ""
-
-        Just label ->
+renderLabel : RenderFieldMode -> String -> Maybe String -> Html msg
+renderLabel mode slug mLabel =
+    let
+        labelBlock l =
             Html.label
                 [ for slug
                 , class "a-form-field__label"
                 ]
-                [ text label
+                [ text l
                 ]
+    in
+    case ( mode, mLabel ) of
+        ( List, Nothing ) ->
+            text ""
+
+        ( List, Just label ) ->
+            labelBlock label
+
+        ( Single, Nothing ) ->
+            labelBlock ""
+
+        ( Single, Just label ) ->
+            labelBlock label
 
 
 renderFieldValidationMessage : String -> Html msg
@@ -1859,7 +1870,7 @@ pickFieldListFields (FormFieldList { fields } _) =
     fields
 
 
-pickFieldListLabel : FormFieldList model msg -> String
+pickFieldListLabel : FormFieldList model msg -> Maybe String
 pickFieldListLabel (FormFieldList { label } _) =
     label
 

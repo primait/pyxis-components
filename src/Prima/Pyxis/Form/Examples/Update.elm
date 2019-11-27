@@ -39,6 +39,16 @@ withoutCmds model =
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
+        UpdateField Street value ->
+            model
+                |> updateFormData (\f -> { f | street = value })
+                |> withoutCmds
+
+        UpdateField HouseNumber value ->
+            model
+                |> updateFormData (\f -> { f | houseNumber = value })
+                |> withoutCmds
+
         UpdateField Username value ->
             model
                 |> updateFormData (\f -> { f | username = value })
