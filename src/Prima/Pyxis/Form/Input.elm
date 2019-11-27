@@ -1,7 +1,8 @@
 module Prima.Pyxis.Form.Input exposing
     ( Input, text, password, date, number, email
-    , id, slug, placeholder, disabled, smallSize, regularSize, largeSize, value
+    , id, slug, attributes, placeholder, disabled, smallSize, regularSize, largeSize, value
     , onInput, onBlur, onFocus
+    , render
     )
 
 {-|
@@ -14,12 +15,17 @@ module Prima.Pyxis.Form.Input exposing
 
 ## Modifiers
 
-@docs id, slug, placeholder, disabled, smallSize, regularSize, largeSize, value
+@docs id, slug, attributes, placeholder, disabled, smallSize, regularSize, largeSize, value
 
 
 ## Events
 
 @docs onInput, onBlur, onFocus
+
+
+## Render
+
+@docs render
 
 -}
 
