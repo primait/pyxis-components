@@ -39,10 +39,17 @@ appBody { data, formConfig } =
             |> Form.addFieldList (Config.address data)
             |> Form.addField (Config.city data.isOpenCity)
             |> Form.render data
-        , btnSubmit
-        , btnReset
+        , btnWrapper
+            [ btnSubmit
+            , btnReset
+            ]
         ]
     ]
+
+
+btnWrapper : List (Html Msg) -> Html Msg
+btnWrapper =
+    div [ class "m-btnGroup alignCenter justifyContentCenter" ]
 
 
 btnSubmit : Html Msg

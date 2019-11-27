@@ -240,7 +240,7 @@ houseNumber =
         , Event.onBlur (OnBlur HouseNumber)
         ]
         [ FormValidation.config FormValidation.Error
-            (\formData -> formData.street /= Nothing)
+            (Maybe.withDefault False << Maybe.map (not << String.isEmpty) << .houseNumber)
             "House number can't be null"
         ]
 
