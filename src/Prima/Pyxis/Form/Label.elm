@@ -1,5 +1,6 @@
 module Prima.Pyxis.Form.Label exposing
     ( Label
+    , addOption
     , attributes
     , for
     , label
@@ -16,19 +17,19 @@ type Label msg
 
 
 type alias LabelConfig msg =
-    { children : List (Html msg)
-    , options : List (LabelOption msg)
+    { options : List (LabelOption msg)
+    , children : List (Html msg)
     }
 
 
-label : String -> List (LabelOption msg) -> Label msg
-label str =
-    Label << LabelConfig [ text str ]
+label : List (LabelOption msg) -> String -> Label msg
+label options str =
+    Label <| LabelConfig options [ text str ]
 
 
-labelWithHtml : List (Html msg) -> List (LabelOption msg) -> Label msg
-labelWithHtml children options =
-    Label <| LabelConfig children options
+labelWithHtml : List (LabelOption msg) -> List (Html msg) -> Label msg
+labelWithHtml options children =
+    Label <| LabelConfig options children
 
 
 type LabelOption msg
@@ -54,9 +55,14 @@ type alias Options msg =
 
 defaultOptions : Options msg
 defaultOptions =
-    { attributes = []
+    { attributes = [ Attrs.class "a-form-field__label" ]
     , for = Nothing
     }
+
+
+addOption : LabelOption msg -> Label msg -> Label msg
+addOption option (Label labelConfig) =
+    Label { labelConfig | options = option :: labelConfig.options }
 
 
 applyOption : LabelOption msg -> Options msg -> Options msg

@@ -30,5 +30,8 @@ formConfig model =
             [ Config.usernameConfig model
             , Config.passwordConfig model
             ]
+        |> Form.addFieldsInRow
+            [ Config.addressConfig model
+            , Config.addressNumberConfig model
+            ]
         |> Form.addFieldsInRow [ Config.privacyConfig model ]
-        |> Debug.log "form"

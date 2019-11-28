@@ -111,7 +111,7 @@ render (Form formConfig) =
                 (\fields ->
                     let
                         row =
-                            Grid.createRow
+                            Grid.row
                     in
                     fields
                         |> addGridRow
@@ -131,50 +131,50 @@ addGridRow fields =
                         |> pickLabel
                         |> Maybe.map (List.singleton << Label.render)
                         |> Maybe.withDefault []
-                        |> Grid.createCol
+                        |> Grid.col
                     , first
                         |> renderField
-                        |> Grid.createCol
+                        |> Grid.col
                     , second
                         |> pickLabel
                         |> Maybe.map (List.singleton << Label.render)
                         |> Maybe.withDefault []
-                        |> Grid.createCol
+                        |> Grid.col
                     , second
                         |> renderField
-                        |> Grid.createCol
+                        |> Grid.col
                     ]
-                        |> H.flip Grid.addCols Grid.createRow
+                        |> H.flip Grid.addCols Grid.row
 
                 ( _, False ) ->
                     [ first
                         |> pickLabel
                         |> Maybe.map (List.singleton << Label.render)
                         |> Maybe.withDefault []
-                        |> Grid.createCol
+                        |> Grid.col
                     , first
                         |> renderField
-                        |> Grid.createCol
+                        |> Grid.col
                     , second
                         |> renderField
-                        |> Grid.createCol
+                        |> Grid.col
                     ]
-                        |> H.flip Grid.addCols Grid.createRow
+                        |> H.flip Grid.addCols Grid.row
 
         first :: [] ->
             [ first
                 |> pickLabel
                 |> Maybe.map (List.singleton << Label.render)
                 |> Maybe.withDefault []
-                |> Grid.createCol
+                |> Grid.col
             , first
                 |> renderField
-                |> Grid.createCol
+                |> Grid.col
             ]
-                |> H.flip Grid.addCols Grid.createRow
+                |> H.flip Grid.addCols Grid.row
 
         _ ->
-            Grid.createRow
+            Grid.row
 
 
 renderLabel : FormField msg -> Html msg

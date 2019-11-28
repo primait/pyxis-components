@@ -3,6 +3,7 @@ module Prima.Pyxis.Form.Checkbox exposing (..)
 import Html exposing (Html)
 import Html.Attributes as Attrs
 import Html.Events as Events
+import Prima.Pyxis.Form.Label as Label exposing (Label)
 
 
 type Checkbox msg
@@ -10,36 +11,21 @@ type Checkbox msg
 
 
 type alias CheckboxConfig msg =
-    { label : Maybe (Label msg)
+    { optionLabel : Maybe (Label msg)
     , options : List (CheckboxOption msg)
-    }
-
-
-type Label msg
-    = Label (LabelConfig msg)
-
-
-type alias LabelConfig msg =
-    { attributes : List (Html.Attribute msg)
-    , children : List (Html msg)
     }
 
 
 type CheckboxOption msg
     = Type
+    | Id String
+    | Name String
     | State CheckboxState
-    | Slug String
     | Disabled Bool
-    | LabelPosition CheckboxLabelPosition
     | Attributes (List (Html.Attribute msg))
     | OnCheck (Bool -> msg)
     | OnFocus msg
     | OnBlur msg
-
-
-type CheckboxLabelPosition
-    = Left
-    | Right
 
 
 type CheckboxState
@@ -53,14 +39,15 @@ checkbox =
     Checkbox << CheckboxConfig Nothing
 
 
-label : List (Html.Attribute msg) -> List (Html msg) -> Label msg
-label attrs children =
-    Label <| LabelConfig attrs children
-
-
 addLabel : Label msg -> Checkbox msg -> Checkbox msg
 addLabel lbl (Checkbox config) =
-    Checkbox { config | label = Just lbl }
+    let
+        addPyxisClass =
+            [ Attrs.class "a-form-field__checkbox__label" ]
+                |> Label.attributes
+                |> Label.addOption
+    in
+    Checkbox { config | optionLabel = (Just << addPyxisClass) lbl }
 
 
 checked : CheckboxOption msg
@@ -71,6 +58,11 @@ checked =
 notChecked : CheckboxOption msg
 notChecked =
     State NotChecked
+
+
+id : String -> CheckboxOption msg
+id =
+    Id
 
 
 onCheck : (Bool -> msg) -> CheckboxOption msg
@@ -98,26 +90,16 @@ attributes =
     Attributes
 
 
-slug : String -> CheckboxOption msg
-slug =
-    Slug
-
-
-leftLabel : CheckboxOption msg
-leftLabel =
-    LabelPosition Left
-
-
-rightLabel : CheckboxOption msg
-rightLabel =
-    LabelPosition Right
+name : String -> CheckboxOption msg
+name =
+    Name
 
 
 type alias Options msg =
     { type_ : String
-    , slug : Maybe String
+    , id : Maybe String
+    , name : Maybe String
     , label : Maybe (Label msg)
-    , labelPosition : CheckboxLabelPosition
     , disabled : Maybe Bool
     , state : Maybe CheckboxState
     , attributes : List (Html.Attribute msg)
@@ -130,12 +112,12 @@ type alias Options msg =
 defaultOptions : Options msg
 defaultOptions =
     { type_ = "checkbox"
-    , slug = Nothing
+    , id = Nothing
+    , name = Nothing
     , label = Nothing
-    , labelPosition = Left
     , disabled = Nothing
     , state = Nothing
-    , attributes = []
+    , attributes = [ Attrs.class "a-form-field__checkbox" ]
     , onCheck = Nothing
     , onFocus = Nothing
     , onBlur = Nothing
@@ -148,8 +130,11 @@ applyOption modifier options =
         Type ->
             options
 
-        Slug slug_ ->
-            { options | slug = Just slug_ }
+        Id id_ ->
+            { options | id = Just id_ }
+
+        Name name_ ->
+            { options | name = Just name_ }
 
         Disabled disabled_ ->
             { options | disabled = Just disabled_ }
@@ -169,9 +154,6 @@ applyOption modifier options =
         OnFocus onFocus_ ->
             { options | onFocus = Just onFocus_ }
 
-        LabelPosition labelPosition_ ->
-            { options | labelPosition = labelPosition_ }
-
 
 buildAttributes : List (CheckboxOption msg) -> List (Html.Attribute msg)
 buildAttributes modifiers =
@@ -180,7 +162,8 @@ buildAttributes modifiers =
             List.foldl applyOption defaultOptions modifiers
     in
     [ Just <| Attrs.type_ options.type_
-    , Maybe.map Attrs.name options.slug
+    , Maybe.map Attrs.id options.id
+    , Maybe.map Attrs.name options.name
     , Maybe.map Attrs.disabled options.disabled
     , Maybe.map stateAttribute options.state
     , Maybe.map Events.onCheck options.onCheck
@@ -215,23 +198,11 @@ render (Checkbox config) =
                 (buildAttributes config.options)
                 []
     in
-    case ( config.label, options.labelPosition ) of
-        ( Nothing, _ ) ->
+    case config.optionLabel of
+        Nothing ->
             [ renderedCheckbox ]
 
-        ( Just labelConfig, Left ) ->
-            [ renderLabel labelConfig
-            , renderedCheckbox
-            ]
-
-        ( Just labelConfig, Right ) ->
+        Just labelConfig ->
             [ renderedCheckbox
-            , renderLabel labelConfig
+            , Label.render labelConfig
             ]
-
-
-renderLabel : Label msg -> Html msg
-renderLabel (Label config) =
-    Html.label
-        config.attributes
-        config.children

@@ -1,6 +1,6 @@
 module Prima.Pyxis.Form.Input exposing
     ( Input, text, password, date, number, email
-    , id, slug, attributes, placeholder, disabled, smallSize, regularSize, largeSize, value
+    , id, name, attributes, placeholder, disabled, smallSize, regularSize, largeSize, value
     , onInput, onBlur, onFocus
     , render
     )
@@ -15,7 +15,7 @@ module Prima.Pyxis.Form.Input exposing
 
 ## Modifiers
 
-@docs id, slug, attributes, placeholder, disabled, smallSize, regularSize, largeSize, value
+@docs id, name, attributes, placeholder, disabled, smallSize, regularSize, largeSize, value
 
 
 ## Events
@@ -84,7 +84,7 @@ email =
 
 type InputOption msg
     = Id String
-    | Slug String
+    | Name String
     | Size InputSize
     | Placeholder String
     | Disabled Bool
@@ -106,9 +106,9 @@ id =
     Id
 
 
-slug : String -> InputOption msg
-slug =
-    Slug
+name : String -> InputOption msg
+name =
+    Name
 
 
 placeholder : String -> InputOption msg
@@ -164,7 +164,7 @@ onFocus =
 type alias Options msg =
     { type_ : InputType
     , id : Maybe String
-    , slug : Maybe String
+    , name : Maybe String
     , size : InputSize
     , disabled : Maybe Bool
     , value : Maybe String
@@ -180,8 +180,8 @@ defaultOptions : Options msg
 defaultOptions =
     { type_ = Text
     , id = Nothing
-    , slug = Nothing
-    , size = Regular
+    , name = Nothing
+    , size = Large
     , disabled = Nothing
     , value = Nothing
     , placeholder = Nothing
@@ -198,8 +198,8 @@ applyOption modifier options =
         Id id_ ->
             { options | id = Just id_ }
 
-        Slug slug_ ->
-            { options | slug = Just slug_ }
+        Name name_ ->
+            { options | name = Just name_ }
 
         Size size_ ->
             { options | size = size_ }
@@ -255,7 +255,7 @@ sizeAttribute size =
                 "is-small"
 
             Regular ->
-                ""
+                "is-medium"
 
             Large ->
                 "is-large"
@@ -269,7 +269,7 @@ buildAttributes modifiers =
             List.foldl applyOption defaultOptions modifiers
     in
     [ Maybe.map Attrs.id options.id
-    , Maybe.map Attrs.name options.slug
+    , Maybe.map Attrs.name options.name
     , Maybe.map Attrs.disabled options.disabled
     , Maybe.map Attrs.value options.value
     , Maybe.map Attrs.placeholder options.placeholder

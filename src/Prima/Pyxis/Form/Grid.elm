@@ -1,7 +1,7 @@
 module Prima.Pyxis.Form.Grid exposing (..)
 
 import Html exposing (Html, div, text)
-import Html.Attributes exposing (class)
+import Html.Attributes as Attrs
 
 
 type Grid msg
@@ -9,14 +9,13 @@ type Grid msg
 
 
 type alias GridConfig msg =
-    { columnCount : Int
-    , children : List (Row msg)
+    { children : List (Row msg)
     }
 
 
 create : Grid msg
 create =
-    Grid <| GridConfig 12 []
+    Grid <| GridConfig []
 
 
 type Row msg
@@ -28,14 +27,14 @@ type alias RowConfig msg =
     }
 
 
-addRow : Row msg -> Grid msg -> Grid msg
-addRow row (Grid gridConfig) =
-    Grid { gridConfig | children = gridConfig.children ++ [ row ] }
-
-
-createRow : Row msg
-createRow =
+row : Row msg
+row =
     Row <| RowConfig []
+
+
+addRow : Row msg -> Grid msg -> Grid msg
+addRow row_ (Grid gridConfig) =
+    Grid { gridConfig | children = gridConfig.children ++ [ row_ ] }
 
 
 type Column msg
@@ -47,8 +46,8 @@ type alias ColumnConfig msg =
     }
 
 
-createCol : List (Html msg) -> Column msg
-createCol children =
+col : List (Html msg) -> Column msg
+col children =
     Column <| ColumnConfig children
 
 
@@ -65,19 +64,24 @@ addCols cols (Row rowConfig) =
 render : Grid msg -> Html msg
 render (Grid gridConfig) =
     div
-        [ class "grid" ]
-        (List.map (renderRow gridConfig.columnCount) gridConfig.children)
+        [ Attrs.class "a-fieldset grid" ]
+        (List.map renderRow gridConfig.children)
 
 
-renderRow : Int -> Row msg -> Html msg
-renderRow columnCount (Row rowConfig) =
+renderRow : Row msg -> Html msg
+renderRow (Row rowConfig) =
     div
-        [ class "grid__row" ]
+        [ Attrs.class "grid__row"
+        , rowConfig.children
+            |> List.length
+            |> String.fromInt
+            |> Attrs.attribute "data-children-count"
+        ]
         (List.map renderCol rowConfig.children)
 
 
 renderCol : Column msg -> Html msg
 renderCol (Column colConfig) =
     div
-        [ class "grid__row__col" ]
+        [ Attrs.class "grid__row__col" ]
         colConfig.children
