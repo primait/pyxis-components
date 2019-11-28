@@ -16,20 +16,28 @@ update msg model =
         OnInput Username value ->
             model
                 |> updateUsername value
+                |> printModel
                 |> H.withoutCmds
 
         OnInput Password value ->
             model
                 |> updatePassword value
+                |> printModel
                 |> H.withoutCmds
 
         OnCheck Privacy value ->
             model
                 |> updatePrivacy value
+                |> printModel
                 |> H.withoutCmds
 
         _ ->
             H.withoutCmds model
+
+
+printModel : Model -> Model
+printModel =
+    Debug.log "updatedModel is"
 
 
 updateUsername : String -> Model -> Model
