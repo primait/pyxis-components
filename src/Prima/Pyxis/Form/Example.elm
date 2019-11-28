@@ -1,6 +1,7 @@
 module Prima.Pyxis.Form.Example exposing (init)
 
-import Prima.Pyxis.Form.Example.Model exposing (Model, initialModel)
+import Browser
+import Prima.Pyxis.Form.Example.Model exposing (Model, Msg(..), initialModel)
 import Prima.Pyxis.Form.Example.Update exposing (update)
 import Prima.Pyxis.Form.Example.View exposing (view)
 

@@ -93,31 +93,88 @@ addLabel lbl formField =
             CheckboxField { fieldConfig | label = Just lbl }
 
 
-addFields : List (FormField msg) -> Form msg -> Form msg
-addFields fields (Form formConfig) =
+addFieldsInRow : List (FormField msg) -> Form msg -> Form msg
+addFieldsInRow fields (Form formConfig) =
     Form { formConfig | fields = formConfig.fields ++ [ fields ] }
 
 
 render : Form msg -> Html msg
 render (Form formConfig) =
     let
-        grid =
-            Grid.grid
+        formGrid =
+            Grid.create
     in
     div
         [ class "m-form" ]
         (formConfig.fields
-            |> List.foldl
-                (\g fields ->
+            |> List.map
+                (\fields ->
+                    let
+                        row =
+                            Grid.createRow
+                    in
                     fields
-                        |> List.map (Grid.gridCol << renderField)
-                        |> Grid.gridRow
-                        |> H.flip Grid.addRow g
+                        |> addGridRow
+                        |> H.flip Grid.addRow formGrid
                 )
-                grid
-            |> Grid.render
-            |> List.singleton
+            |> List.map Grid.render
         )
+
+
+addGridRow : List (FormField msg) -> Grid.Row msg
+addGridRow fields =
+    case fields of
+        first :: second :: [] ->
+            case ( hasLabel first, hasLabel second ) of
+                ( _, True ) ->
+                    [ first
+                        |> pickLabel
+                        |> Maybe.map (List.singleton << Label.render)
+                        |> Maybe.withDefault []
+                        |> Grid.createCol
+                    , first
+                        |> renderField
+                        |> Grid.createCol
+                    , second
+                        |> pickLabel
+                        |> Maybe.map (List.singleton << Label.render)
+                        |> Maybe.withDefault []
+                        |> Grid.createCol
+                    , second
+                        |> renderField
+                        |> Grid.createCol
+                    ]
+                        |> H.flip Grid.addCols Grid.createRow
+
+                ( _, False ) ->
+                    [ first
+                        |> pickLabel
+                        |> Maybe.map (List.singleton << Label.render)
+                        |> Maybe.withDefault []
+                        |> Grid.createCol
+                    , first
+                        |> renderField
+                        |> Grid.createCol
+                    , second
+                        |> renderField
+                        |> Grid.createCol
+                    ]
+                        |> H.flip Grid.addCols Grid.createRow
+
+        first :: [] ->
+            [ first
+                |> pickLabel
+                |> Maybe.map (List.singleton << Label.render)
+                |> Maybe.withDefault []
+                |> Grid.createCol
+            , first
+                |> renderField
+                |> Grid.createCol
+            ]
+                |> H.flip Grid.addCols Grid.createRow
+
+        _ ->
+            Grid.createRow
 
 
 renderLabel : FormField msg -> Html msg

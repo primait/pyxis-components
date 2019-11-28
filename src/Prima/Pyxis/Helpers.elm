@@ -7,6 +7,8 @@ module Prima.Pyxis.Helpers exposing
     , renderIf
     , renderListIf
     , spacer
+    , withCmds
+    , withoutCmds
     )
 
 import Html exposing (Html, br, text)

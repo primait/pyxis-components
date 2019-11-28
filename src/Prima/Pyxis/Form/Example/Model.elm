@@ -1,4 +1,10 @@
-module Prima.Pyxis.Form.Example.Model exposing (Model, initialModel)
+module Prima.Pyxis.Form.Example.Model exposing
+    ( Field(..)
+    , FormData
+    , Model
+    , Msg(..)
+    , initialModel
+    )
 
 import Prima.Pyxis.Form as Form
 
@@ -16,7 +22,7 @@ type alias Model =
 
 initialModel : Model
 initialModel =
-    Model Form.init initialFormData
+    Model (Form.init Form.Always) initialFormData
 
 
 type Field

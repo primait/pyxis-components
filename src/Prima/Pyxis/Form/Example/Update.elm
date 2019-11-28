@@ -1,6 +1,12 @@
 module Prima.Pyxis.Form.Example.Update exposing (update)
 
-import Prima.Pyxis.Form.Example.Model exposing (Model, Msg)
+import Prima.Pyxis.Form.Example.Model
+    exposing
+        ( Field(..)
+        , FormData
+        , Model
+        , Msg(..)
+        )
 import Prima.Pyxis.Helpers as H
 
 
@@ -10,20 +16,20 @@ update msg model =
         OnInput Username value ->
             model
                 |> updateUsername value
-                |> H.withoutCmd
+                |> H.withoutCmds
 
         OnInput Password value ->
             model
                 |> updatePassword value
-                |> H.withoutCmd
+                |> H.withoutCmds
 
         OnCheck Privacy value ->
             model
                 |> updatePrivacy value
-                |> H.withoutCmd
+                |> H.withoutCmds
 
         _ ->
-            H.withoutCmd model
+            H.withoutCmds model
 
 
 updateUsername : String -> Model -> Model
