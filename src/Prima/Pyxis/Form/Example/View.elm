@@ -5,7 +5,7 @@ import Html exposing (Html)
 import Prima.Pyxis.Container as Container
 import Prima.Pyxis.Form as Form
 import Prima.Pyxis.Form.Example.FieldConfig as Config
-import Prima.Pyxis.Form.Example.Model exposing (Model, Msg(..))
+import Prima.Pyxis.Form.Example.Model exposing (FormData, Model, Msg(..))
 import Prima.Pyxis.Helpers as Helpers
 
 
@@ -18,16 +18,16 @@ appBody : Model -> List (Html Msg)
 appBody model =
     [ Helpers.pyxisStyle
     , Container.default
-        [ Form.render <| formConfig model
+        [ Form.render model.formData <| formConfig model
         ]
     ]
 
 
-formConfig : Model -> Form.Form Msg
+formConfig : Model -> Form.Form FormData Msg
 formConfig model =
     model.form
         |> Form.addFieldsInRow
-            [ Config.usernameConfig model
-            , Config.passwordConfig model
+            [ Config.usernameConfig
+            , Config.passwordConfig
             ]
-        |> Form.addFieldsInRow [ Config.privacyConfig model ]
+        |> Form.addFieldsInRow [ Config.privacyConfig ]

@@ -3,48 +3,48 @@ module Prima.Pyxis.Form.Example.FieldConfig exposing (..)
 import Html exposing (Html, text)
 import Prima.Pyxis.Form as Form
 import Prima.Pyxis.Form.Checkbox as Checkbox
-import Prima.Pyxis.Form.Example.Model exposing (Field(..), Model, Msg(..))
+import Prima.Pyxis.Form.Example.Model exposing (Field(..), FormData, Model, Msg(..))
 import Prima.Pyxis.Form.Input as Input
 import Prima.Pyxis.Form.Label as Label
 import Prima.Pyxis.Link as Link
 
 
-usernameConfig : Model -> Form.FormField Msg
-usernameConfig { formData } =
+usernameConfig : Form.FormField FormData Msg
+usernameConfig =
     let
         slug =
             "username"
     in
     Input.text
         |> Input.withId slug
-        |> Input.withValue formData.username
+        |> Input.withValue .username
         |> Input.withOnInput (OnInput Username)
         |> Form.input
         |> Form.addLabel (Label.label [ Label.for slug ] "Username")
 
 
-passwordConfig : Model -> Form.FormField Msg
-passwordConfig { formData } =
+passwordConfig : Form.FormField FormData Msg
+passwordConfig =
     let
         slug =
             "password"
     in
     Input.password
         |> Input.withId slug
-        |> Input.withValue formData.password
+        |> Input.withValue .password
         |> Input.withOnInput (OnInput Password)
         |> Form.input
         |> Form.addLabel (Label.label [ Label.for slug ] "Password")
 
 
-privacyConfig : Model -> Form.FormField Msg
-privacyConfig { formData } =
+privacyConfig : Form.FormField FormData Msg
+privacyConfig =
     let
         slug =
             "privacy"
     in
     Checkbox.checkbox
-        [ checkboxStatus formData.privacy
+        [ checkboxStatus (Just True)
         , Checkbox.id slug
         , Checkbox.onCheck (OnCheck Privacy)
         ]
@@ -53,7 +53,7 @@ privacyConfig { formData } =
         |> Form.addLabel (Label.label [ Label.for slug ] "Privacy")
 
 
-checkboxStatus : Maybe Bool -> Checkbox.CheckboxOption Msg
+checkboxStatus : Maybe Bool -> Checkbox.CheckboxOption FormData Msg
 checkboxStatus flag =
     if Just True == flag then
         Checkbox.checked

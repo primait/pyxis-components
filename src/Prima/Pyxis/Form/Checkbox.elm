@@ -6,17 +6,17 @@ import Html.Events as Events
 import Prima.Pyxis.Form.Label as Label exposing (Label)
 
 
-type Checkbox msg
-    = Checkbox (CheckboxConfig msg)
+type Checkbox model msg
+    = Checkbox (CheckboxConfig model msg)
 
 
-type alias CheckboxConfig msg =
+type alias CheckboxConfig model msg =
     { optionLabel : Maybe (Label msg)
-    , options : List (CheckboxOption msg)
+    , options : List (CheckboxOption model msg)
     }
 
 
-type CheckboxOption msg
+type CheckboxOption model msg
     = Type
     | Id String
     | Name String
@@ -34,12 +34,12 @@ type CheckboxState
     | Indeterminate
 
 
-checkbox : List (CheckboxOption msg) -> Checkbox msg
+checkbox : List (CheckboxOption model msg) -> Checkbox model msg
 checkbox =
     Checkbox << CheckboxConfig Nothing
 
 
-addLabel : Label msg -> Checkbox msg -> Checkbox msg
+addLabel : Label msg -> Checkbox model msg -> Checkbox model msg
 addLabel lbl (Checkbox config) =
     let
         addPyxisClass =
@@ -50,47 +50,47 @@ addLabel lbl (Checkbox config) =
     Checkbox { config | optionLabel = (Just << addPyxisClass) lbl }
 
 
-checked : CheckboxOption msg
+checked : CheckboxOption model msg
 checked =
     State Checked
 
 
-notChecked : CheckboxOption msg
+notChecked : CheckboxOption model msg
 notChecked =
     State NotChecked
 
 
-id : String -> CheckboxOption msg
+id : String -> CheckboxOption model msg
 id =
     Id
 
 
-onCheck : (Bool -> msg) -> CheckboxOption msg
+onCheck : (Bool -> msg) -> CheckboxOption model msg
 onCheck =
     OnCheck
 
 
-onBlur : msg -> CheckboxOption msg
+onBlur : msg -> CheckboxOption model msg
 onBlur =
     OnBlur
 
 
-onFocus : msg -> CheckboxOption msg
+onFocus : msg -> CheckboxOption model msg
 onFocus =
     OnFocus
 
 
-disabled : Bool -> CheckboxOption msg
+disabled : Bool -> CheckboxOption model msg
 disabled =
     Disabled
 
 
-attributes : List (Html.Attribute msg) -> CheckboxOption msg
+attributes : List (Html.Attribute msg) -> CheckboxOption model msg
 attributes =
     Attributes
 
 
-name : String -> CheckboxOption msg
+name : String -> CheckboxOption model msg
 name =
     Name
 
@@ -124,7 +124,7 @@ defaultOptions =
     }
 
 
-applyOption : CheckboxOption msg -> Options msg -> Options msg
+applyOption : CheckboxOption model msg -> Options msg -> Options msg
 applyOption modifier options =
     case modifier of
         Type ->
@@ -155,7 +155,7 @@ applyOption modifier options =
             { options | onFocus = Just onFocus_ }
 
 
-buildAttributes : List (CheckboxOption msg) -> List (Html.Attribute msg)
+buildAttributes : List (CheckboxOption model msg) -> List (Html.Attribute msg)
 buildAttributes modifiers =
     let
         options =
@@ -187,8 +187,8 @@ stateAttribute state =
             Attrs.attribute "indeterminate-state" ""
 
 
-render : Checkbox msg -> List (Html msg)
-render (Checkbox config) =
+render : model -> Checkbox model msg -> List (Html msg)
+render model (Checkbox config) =
     let
         options =
             List.foldl applyOption defaultOptions config.options

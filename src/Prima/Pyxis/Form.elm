@@ -9,18 +9,18 @@ import Prima.Pyxis.Form.Label as Label
 import Prima.Pyxis.Helpers as H
 
 
-type Form msg
-    = Form (FormConfig msg)
+type Form model msg
+    = Form (FormConfig model msg)
 
 
-type alias FormConfig msg =
+type alias FormConfig model msg =
     { state : FormState
     , validationVisibilityPolicy : ValidationVisibilityPolicy
-    , fields : List (List (FormField msg))
+    , fields : List (List (FormField model msg))
     }
 
 
-init : ValidationVisibilityPolicy -> Form msg
+init : ValidationVisibilityPolicy -> Form model msg
 init validationVisibilityPolicy =
     Form (FormConfig Pristine validationVisibilityPolicy [])
 
@@ -36,12 +36,12 @@ type ValidationVisibilityPolicy
     | WhenSubmitted
 
 
-type FormField msg
-    = InputField (InputFieldConfig msg)
-    | CheckboxField (CheckboxFieldConfig msg)
+type FormField model msg
+    = InputField (InputFieldConfig model msg)
+    | CheckboxField (CheckboxFieldConfig model msg)
 
 
-hasLabel : FormField msg -> Bool
+hasLabel : FormField model msg -> Bool
 hasLabel formField =
     case formField of
         InputField { label } ->
@@ -51,7 +51,7 @@ hasLabel formField =
             H.isJust label
 
 
-pickLabel : FormField msg -> Maybe (Label.Label msg)
+pickLabel : FormField model msg -> Maybe (Label.Label msg)
 pickLabel formField =
     case formField of
         InputField { label } ->
@@ -61,29 +61,29 @@ pickLabel formField =
             label
 
 
-type alias InputFieldConfig msg =
-    { config : Input.Input msg
+type alias InputFieldConfig model msg =
+    { config : Input.Input model msg
     , label : Maybe (Label.Label msg)
     }
 
 
-input : Input.Input msg -> FormField msg
+input : Input.Input model msg -> FormField model msg
 input config =
     InputField <| InputFieldConfig config Nothing
 
 
-type alias CheckboxFieldConfig msg =
-    { config : Checkbox.Checkbox msg
+type alias CheckboxFieldConfig model msg =
+    { config : Checkbox.Checkbox model msg
     , label : Maybe (Label.Label msg)
     }
 
 
-checkbox : Checkbox.Checkbox msg -> FormField msg
+checkbox : Checkbox.Checkbox model msg -> FormField model msg
 checkbox config =
     CheckboxField <| CheckboxFieldConfig config Nothing
 
 
-addLabel : Label.Label msg -> FormField msg -> FormField msg
+addLabel : Label.Label msg -> FormField model msg -> FormField model msg
 addLabel lbl formField =
     case formField of
         InputField fieldConfig ->
@@ -93,13 +93,13 @@ addLabel lbl formField =
             CheckboxField { fieldConfig | label = Just lbl }
 
 
-addFieldsInRow : List (FormField msg) -> Form msg -> Form msg
+addFieldsInRow : List (FormField model msg) -> Form model msg -> Form model msg
 addFieldsInRow fields (Form formConfig) =
     Form { formConfig | fields = formConfig.fields ++ [ fields ] }
 
 
-render : Form msg -> Html msg
-render (Form formConfig) =
+render : model -> Form model msg -> Html msg
+render model (Form formConfig) =
     let
         formGrid =
             Grid.create
@@ -109,20 +109,16 @@ render (Form formConfig) =
         (formConfig.fields
             |> List.map
                 (\fields ->
-                    let
-                        row =
-                            Grid.row
-                    in
                     fields
-                        |> addGridRow
+                        |> addGridRow model
                         |> H.flip Grid.addRow formGrid
                 )
             |> List.map Grid.render
         )
 
 
-addGridRow : List (FormField msg) -> Grid.Row msg
-addGridRow fields =
+addGridRow : model -> List (FormField model msg) -> Grid.Row msg
+addGridRow model fields =
     case fields of
         first :: second :: [] ->
             case ( hasLabel first, hasLabel second ) of
@@ -133,7 +129,7 @@ addGridRow fields =
                         |> Maybe.withDefault []
                         |> Grid.col
                     , first
-                        |> renderField
+                        |> renderField model
                         |> Grid.col
                     , second
                         |> pickLabel
@@ -141,7 +137,7 @@ addGridRow fields =
                         |> Maybe.withDefault []
                         |> Grid.col
                     , second
-                        |> renderField
+                        |> renderField model
                         |> Grid.col
                     ]
                         |> H.flip Grid.addCols Grid.row
@@ -153,10 +149,10 @@ addGridRow fields =
                         |> Maybe.withDefault []
                         |> Grid.col
                     , first
-                        |> renderField
+                        |> renderField model
                         |> Grid.col
                     , second
-                        |> renderField
+                        |> renderField model
                         |> Grid.col
                     ]
                         |> H.flip Grid.addCols Grid.row
@@ -168,7 +164,7 @@ addGridRow fields =
                 |> Maybe.withDefault []
                 |> Grid.col
             , first
-                |> renderField
+                |> renderField model
                 |> Grid.col
             ]
                 |> H.flip Grid.addCols Grid.row
@@ -177,7 +173,7 @@ addGridRow fields =
             Grid.row
 
 
-renderLabel : FormField msg -> Html msg
+renderLabel : FormField model msg -> Html msg
 renderLabel formField =
     formField
         |> pickLabel
@@ -185,14 +181,14 @@ renderLabel formField =
         |> Maybe.withDefault (text "")
 
 
-renderField : FormField msg -> List (Html msg)
-renderField formField =
+renderField : model -> FormField model msg -> List (Html msg)
+renderField model formField =
     case formField of
         InputField { config } ->
-            [ Input.render config ]
+            [ Input.render model config ]
 
         CheckboxField { config } ->
-            Checkbox.render config
+            Checkbox.render model config
 
 
 validateColsOfRowConfiguration : Grid.Row msg -> Bool

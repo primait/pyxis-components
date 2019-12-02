@@ -42,14 +42,14 @@ import Html.Events as Events
 
 {-| Represents the opaque `Input` configuration.
 -}
-type Input msg
-    = Input (InputConfig msg)
+type Input model msg
+    = Input (InputConfig model msg)
 
 
 {-| Represents the `Input` configuration.
 -}
-type alias InputConfig msg =
-    { options : List (InputOption msg)
+type alias InputConfig model msg =
+    { options : List (InputOption model msg)
     , type_ : InputType
     }
 
@@ -66,49 +66,49 @@ type InputType
 
 {-| Internal.
 -}
-input : InputType -> Input msg
+input : InputType -> Input model msg
 input =
     Input << InputConfig []
 
 
 {-| Creates an `input[type="text"]` with the default options.
 -}
-text : Input msg
+text : Input model msg
 text =
     input Text
 
 
 {-| Creates an `input[type="password"]` with the default options.
 -}
-password : Input msg
+password : Input model msg
 password =
     input Password
 
 
 {-| Creates an `input[type="date"]` with the default options.
 -}
-date : Input msg
+date : Input model msg
 date =
     input Date
 
 
 {-| Creates an `input[type="number"]` with the default options.
 -}
-number : Input msg
+number : Input model msg
 number =
     input Number
 
 
 {-| Creates an `input[type="email"]` with the default options.
 -}
-email : Input msg
+email : Input model msg
 email =
     input Email
 
 
 {-| Represents the possibile modifiers of an `Input`.
 -}
-type InputOption msg
+type InputOption model msg
     = Attributes (List (Html.Attribute msg))
     | Class String
     | Disabled Bool
@@ -119,7 +119,7 @@ type InputOption msg
     | OnInput (String -> msg)
     | Placeholder String
     | Size InputSize
-    | Value String
+    | Value (model -> Maybe String)
 
 
 {-| Represents the `Input` size.
@@ -132,91 +132,91 @@ type InputSize
 
 {-| Sets a list of `attributes` to the `Input config`.
 -}
-withAttributes : List (Html.Attribute msg) -> Input msg -> Input msg
+withAttributes : List (Html.Attribute msg) -> Input model msg -> Input model msg
 withAttributes attributes =
     addOption (Attributes attributes)
 
 
 {-| Sets a `class` to the `Input config`.
 -}
-withClass : String -> Input msg -> Input msg
+withClass : String -> Input model msg -> Input model msg
 withClass class_ =
     addOption (Class class_)
 
 
 {-| Sets a `disabled` to the `Input config`.
 -}
-withDisabled : Bool -> Input msg -> Input msg
+withDisabled : Bool -> Input model msg -> Input model msg
 withDisabled disabled =
     addOption (Disabled disabled)
 
 
 {-| Sets an `id` to the `Input config`.
 -}
-withId : String -> Input msg -> Input msg
+withId : String -> Input model msg -> Input model msg
 withId id =
     addOption (Id id)
 
 
 {-| Sets a `size` to the `Input config`.
 -}
-withLargeSize : Input msg -> Input msg
+withLargeSize : Input model msg -> Input model msg
 withLargeSize =
     addOption (Size Large)
 
 
 {-| Sets a `name` to the `Input config`.
 -}
-withName : String -> Input msg -> Input msg
+withName : String -> Input model msg -> Input model msg
 withName name =
     addOption (Name name)
 
 
 {-| Sets an `onBlur event` to the `Input config`.
 -}
-withOnBlur : msg -> Input msg -> Input msg
+withOnBlur : msg -> Input model msg -> Input model msg
 withOnBlur tagger =
     addOption (OnBlur tagger)
 
 
 {-| Sets an `onFocus event` to the `Input config`.
 -}
-withOnFocus : msg -> Input msg -> Input msg
+withOnFocus : msg -> Input model msg -> Input model msg
 withOnFocus tagger =
     addOption (OnFocus tagger)
 
 
 {-| Sets an `onInput event` to the `Input config`.
 -}
-withOnInput : (String -> msg) -> Input msg -> Input msg
+withOnInput : (String -> msg) -> Input model msg -> Input model msg
 withOnInput tagger =
     addOption (OnInput tagger)
 
 
 {-| Sets a `placeholder` to the `Input config`.
 -}
-withPlaceholder : String -> Input msg -> Input msg
+withPlaceholder : String -> Input model msg -> Input model msg
 withPlaceholder placeholder =
     addOption (Placeholder placeholder)
 
 
 {-| Sets a `size` to the `Input config`.
 -}
-withRegularSize : Input msg -> Input msg
+withRegularSize : Input model msg -> Input model msg
 withRegularSize =
     addOption (Size Regular)
 
 
 {-| Sets a `size` to the `Input config`.
 -}
-withSmallSize : Input msg -> Input msg
+withSmallSize : Input model msg -> Input model msg
 withSmallSize =
     addOption (Size Small)
 
 
 {-| Sets a `value` to the `Input config`.
 -}
-withValue : String -> Input msg -> Input msg
+withValue : (model -> Maybe String) -> Input model msg -> Input model msg
 withValue value =
     addOption (Value value)
 
@@ -240,23 +240,23 @@ withValue value =
             |> FormInput.render
 
 -}
-render : Input msg -> Html msg
-render (Input config) =
+render : model -> Input model msg -> Html msg
+render model (Input config) =
     Html.input
-        (buildAttributes config.options)
+        (buildAttributes model config.options)
         []
 
 
 {-| Internal.
 -}
-addOption : InputOption msg -> Input msg -> Input msg
+addOption : InputOption model msg -> Input model msg -> Input model msg
 addOption option (Input inputConfig) =
     Input { inputConfig | options = inputConfig.options ++ [ option ] }
 
 
 {-| Internal.
 -}
-type alias Options msg =
+type alias Options model msg =
     { attributes : List (Html.Attribute msg)
     , disabled : Maybe Bool
     , classes : List String
@@ -268,13 +268,13 @@ type alias Options msg =
     , placeholder : Maybe String
     , size : InputSize
     , type_ : InputType
-    , value : Maybe String
+    , value : model -> Maybe String
     }
 
 
 {-| Internal.
 -}
-defaultOptions : Options msg
+defaultOptions : Options model msg
 defaultOptions =
     { attributes = []
     , disabled = Nothing
@@ -287,13 +287,13 @@ defaultOptions =
     , placeholder = Nothing
     , size = Regular
     , type_ = Text
-    , value = Nothing
+    , value = always Nothing
     }
 
 
 {-| Internal.
 -}
-applyOption : InputOption msg -> Options msg -> Options msg
+applyOption : InputOption model msg -> Options model msg -> Options model msg
 applyOption modifier options =
     case modifier of
         Attributes attributes_ ->
@@ -326,8 +326,8 @@ applyOption modifier options =
         Size size_ ->
             { options | size = size_ }
 
-        Value value_ ->
-            { options | value = Just value_ }
+        Value valueReader_ ->
+            { options | value = valueReader_ }
 
 
 {-| Transforms an `InputType` into a valid `Html.Attribute`.
@@ -379,8 +379,8 @@ sizeAttribute size =
 
 {-| Composes all the modifiers into a set of `Html.Attribute`(s).
 -}
-buildAttributes : List (InputOption msg) -> List (Html.Attribute msg)
-buildAttributes modifiers =
+buildAttributes : model -> List (InputOption model msg) -> List (Html.Attribute msg)
+buildAttributes model modifiers =
     let
         options =
             List.foldl applyOption defaultOptions modifiers
@@ -388,8 +388,8 @@ buildAttributes modifiers =
     [ Maybe.map Attrs.id options.id
     , Maybe.map Attrs.name options.name
     , Maybe.map Attrs.disabled options.disabled
-    , Maybe.map Attrs.value options.value
     , Maybe.map Attrs.placeholder options.placeholder
+    , Maybe.map Attrs.value (options.value model)
     , Maybe.map Events.onInput options.onInput
     , Maybe.map Events.onBlur options.onBlur
     , Maybe.map Events.onFocus options.onFocus

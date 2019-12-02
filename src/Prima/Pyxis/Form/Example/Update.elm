@@ -40,12 +40,12 @@ printModel =
     Debug.log "updatedModel is"
 
 
-updateUsername : String -> Model -> Model
+updateUsername : Maybe String -> Model -> Model
 updateUsername value =
     updateFormData (\f -> { f | username = value })
 
 
-updatePassword : String -> Model -> Model
+updatePassword : Maybe String -> Model -> Model
 updatePassword value =
     updateFormData (\f -> { f | password = value })
 

@@ -15,7 +15,7 @@ type Msg
 
 
 type alias Model =
-    { form : Form.Form Msg
+    { form : Form.Form FormData Msg
     , formData : FormData
     }
 
@@ -32,15 +32,15 @@ type Field
 
 
 type alias FormData =
-    { username : String
-    , password : String
+    { username : Maybe String
+    , password : Maybe String
     , privacy : Maybe Bool
     }
 
 
 initialFormData : FormData
 initialFormData =
-    { username = ""
-    , password = ""
+    { username = Nothing
+    , password = Nothing
     , privacy = Nothing
     }
