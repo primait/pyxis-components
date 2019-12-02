@@ -16,10 +16,9 @@ usernameConfig { formData } =
             "username"
     in
     Input.text
-        [ Input.id slug
-        , Input.value formData.username
-        , Input.onInput (OnInput Username)
-        ]
+        |> Input.withId slug
+        |> Input.withValue formData.username
+        |> Input.withOnInput (OnInput Username)
         |> Form.input
         |> Form.addLabel (Label.label [ Label.for slug ] "Username")
 
@@ -31,44 +30,11 @@ passwordConfig { formData } =
             "password"
     in
     Input.password
-        [ Input.id slug
-        , Input.value formData.password
-        , Input.onInput (OnInput Password)
-        ]
+        |> Input.withId slug
+        |> Input.withValue formData.password
+        |> Input.withOnInput (OnInput Password)
         |> Form.input
         |> Form.addLabel (Label.label [ Label.for slug ] "Password")
-
-
-addressConfig : Model -> Form.FormField Msg
-addressConfig { formData } =
-    let
-        slug =
-            "address"
-    in
-    Input.text
-        [ Input.id slug
-        , Input.value formData.password
-        , Input.onInput (OnInput Password)
-        , Input.largeSize
-        ]
-        |> Form.input
-        |> Form.addLabel (Label.label [ Label.for slug ] "Address")
-
-
-addressNumberConfig : Model -> Form.FormField Msg
-addressNumberConfig { formData } =
-    let
-        slug =
-            "address_number"
-    in
-    Input.text
-        [ Input.id slug
-        , Input.value formData.password
-        , Input.onInput (OnInput Password)
-        , Input.smallSize
-        ]
-        |> Form.input
-        |> Form.addLabel (Label.label [ Label.for slug ] "Address number")
 
 
 privacyConfig : Model -> Form.FormField Msg

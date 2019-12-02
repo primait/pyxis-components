@@ -1,7 +1,7 @@
 module Prima.Pyxis.Form.Input exposing
     ( Input, text, password, date, number, email
-    , id, name, attributes, placeholder, disabled, smallSize, regularSize, largeSize, value
-    , onInput, onBlur, onFocus
+    , withId, withName, withAttributes, withPlaceholder, withDisabled, withSmallSize, withRegularSize, withLargeSize, withValue
+    , withOnInput, withOnBlur, withOnFocus
     , render
     )
 
@@ -15,12 +15,12 @@ module Prima.Pyxis.Form.Input exposing
 
 ## Modifiers
 
-@docs id, name, attributes, placeholder, disabled, smallSize, regularSize, largeSize, value
+@docs withId, withName, withAttributes, withPlaceholder, withDisabled, withSmallSize, withRegularSize, withLargeSize, withValue
 
 
 ## Events
 
-@docs onInput, onBlur, onFocus
+@docs withOnInput, withOnBlur, withOnFocus
 
 
 ## Render
@@ -29,21 +29,27 @@ module Prima.Pyxis.Form.Input exposing
 
 -}
 
-import Html exposing (Attribute, Html)
+import Html exposing (Html)
 import Html.Attributes as Attrs
 import Html.Events as Events
 
 
+{-| Represents the configuration of an Input type.
+-}
 type Input msg
     = Input (InputConfig msg)
 
 
+{-| Internal.
+-}
 type alias InputConfig msg =
     { type_ : InputType
     , options : List (InputOption msg)
     }
 
 
+{-| Internal.
+-}
 type InputType
     = Text
     | Password
@@ -52,36 +58,50 @@ type InputType
     | Email
 
 
-input : InputType -> List (InputOption msg) -> Input msg
-input type_ options =
-    Input <| InputConfig type_ options
+{-| Internal.
+-}
+input : InputType -> Input msg
+input type_ =
+    Input <| InputConfig type_ []
 
 
-text : List (InputOption msg) -> Input msg
+{-| Creates an `input[type="text"]` with the default options.
+-}
+text : Input msg
 text =
     input Text
 
 
-password : List (InputOption msg) -> Input msg
+{-| Creates an `input[type="password"]` with the default options.
+-}
+password : Input msg
 password =
     input Password
 
 
-date : List (InputOption msg) -> Input msg
+{-| Creates an `input[type="date"]` with the default options.
+-}
+date : Input msg
 date =
     input Date
 
 
-number : List (InputOption msg) -> Input msg
+{-| Creates an `input[type="number"]` with the default options.
+-}
+number : Input msg
 number =
     input Number
 
 
-email : List (InputOption msg) -> Input msg
+{-| Creates an `input[type="email"]` with the default options.
+-}
+email : Input msg
 email =
     input Email
 
 
+{-| Internal.
+-}
 type InputOption msg
     = Id String
     | Name String
@@ -95,72 +115,107 @@ type InputOption msg
     | OnFocus msg
 
 
+{-| Internal.
+-}
 type InputSize
     = Small
     | Regular
     | Large
 
 
-id : String -> InputOption msg
-id =
-    Id
+{-| Internal.
+-}
+addOption : InputOption msg -> Input msg -> Input msg
+addOption option (Input inputConfig) =
+    Input { inputConfig | options = inputConfig.options ++ [ option ] }
 
 
-name : String -> InputOption msg
-name =
-    Name
+{-| Sets an `id` to the `Input config`.
+-}
+withId : String -> Input msg -> Input msg
+withId id =
+    addOption (Id id)
 
 
-placeholder : String -> InputOption msg
-placeholder =
-    Placeholder
+{-| Sets a `name` to the `Input config`.
+-}
+withName : String -> Input msg -> Input msg
+withName name =
+    addOption (Name name)
 
 
-disabled : Bool -> InputOption msg
-disabled =
-    Disabled
+{-| Sets a `placeholder` to the `Input config`.
+-}
+withPlaceholder : String -> Input msg -> Input msg
+withPlaceholder placeholder =
+    addOption (Placeholder placeholder)
 
 
-attributes : List (Html.Attribute msg) -> InputOption msg
-attributes =
-    Attributes
+{-| Sets a `disabled` to the `Input config`.
+-}
+withDisabled : Bool -> Input msg -> Input msg
+withDisabled disabled =
+    addOption (Disabled disabled)
 
 
-smallSize : InputOption msg
-smallSize =
-    Size Small
+{-| Sets a list of `attributes` to the `Input config`.
+-}
+withAttributes : List (Html.Attribute msg) -> Input msg -> Input msg
+withAttributes attributes =
+    addOption (Attributes attributes)
 
 
-regularSize : InputOption msg
-regularSize =
-    Size Regular
+{-| Sets a `size` to the `Input config`.
+-}
+withSmallSize : Input msg -> Input msg
+withSmallSize =
+    addOption (Size Small)
 
 
-largeSize : InputOption msg
-largeSize =
-    Size Large
+{-| Sets a `size` to the `Input config`.
+-}
+withRegularSize : Input msg -> Input msg
+withRegularSize =
+    addOption (Size Regular)
 
 
-value : String -> InputOption msg
-value =
-    Value
+{-| Sets a `size` to the `Input config`.
+-}
+withLargeSize : Input msg -> Input msg
+withLargeSize =
+    addOption (Size Large)
 
 
-onInput : (String -> msg) -> InputOption msg
-onInput =
-    OnInput
+{-| Sets a `value` to the `Input config`.
+-}
+withValue : String -> Input msg -> Input msg
+withValue value =
+    addOption (Value value)
 
 
-onBlur : msg -> InputOption msg
-onBlur =
-    OnBlur
+{-| Sets an `onInput event` to the `Input config`.
+-}
+withOnInput : (String -> msg) -> Input msg -> Input msg
+withOnInput tagger =
+    addOption (OnInput tagger)
 
 
-onFocus : msg -> InputOption msg
-onFocus =
-    OnFocus
+{-| Sets an `onBlur event` to the `Input config`.
+-}
+withOnBlur : msg -> Input msg -> Input msg
+withOnBlur tagger =
+    addOption (OnBlur tagger)
 
 
+{-| Sets an `onFocus event` to the `Input config`.
+-}
+withOnFocus : msg -> Input msg -> Input msg
+withOnFocus tagger =
+    addOption (OnFocus tagger)
+
+
+{-| Internal.
+-}
 type alias Options msg =
     { type_ : InputType
     , id : Maybe String
@@ -176,6 +231,8 @@ type alias Options msg =
     }
 
 
+{-| Internal.
+-}
 defaultOptions : Options msg
 defaultOptions =
     { type_ = Text
@@ -192,6 +249,8 @@ defaultOptions =
     }
 
 
+{-| Internal.
+-}
 applyOption : InputOption msg -> Options msg -> Options msg
 applyOption modifier options =
     case modifier of
@@ -226,6 +285,8 @@ applyOption modifier options =
             { options | onFocus = Just onFocus_ }
 
 
+{-| Internal.
+-}
 typeAttribute : InputType -> Html.Attribute msg
 typeAttribute type_ =
     Attrs.type_
@@ -247,6 +308,8 @@ typeAttribute type_ =
         )
 
 
+{-| Internal.
+-}
 sizeAttribute : InputSize -> Html.Attribute msg
 sizeAttribute size =
     Attrs.class
@@ -262,6 +325,8 @@ sizeAttribute size =
         )
 
 
+{-| Internal.
+-}
 buildAttributes : List (InputOption msg) -> List (Html.Attribute msg)
 buildAttributes modifiers =
     let
@@ -283,7 +348,7 @@ buildAttributes modifiers =
         |> (::) (sizeAttribute options.size)
 
 
-{-|
+{-| Renders the `Input config`.
 
     import Prima.Pyxis.Form.Input as FormInput
 
