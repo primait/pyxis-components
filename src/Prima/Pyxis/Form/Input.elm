@@ -1,6 +1,7 @@
 module Prima.Pyxis.Form.Input exposing
     ( Input, text, password, date, number, email
-    , withId, withName, withAttributes, withPlaceholder, withDisabled, withSmallSize, withRegularSize, withLargeSize, withValue
+    , withAttributes, withClass, withDisabled, withId, withName, withPlaceholder, withValue
+    , withRegularSize, withSmallSize, withLargeSize
     , withOnInput, withOnBlur, withOnFocus
     , render
     )
@@ -8,14 +9,19 @@ module Prima.Pyxis.Form.Input exposing
 {-|
 
 
-## Types
+## Types and Configuration
 
 @docs Input, text, password, date, number, email
 
 
-## Modifiers
+## Generic modifiers
 
-@docs withId, withName, withAttributes, withPlaceholder, withDisabled, withSmallSize, withRegularSize, withLargeSize, withValue
+@docs withAttributes, withClass, withDisabled, withId, withName, withPlaceholder, withValue
+
+
+## Size modifiers
+
+@docs withRegularSize, withSmallSize, withLargeSize
 
 
 ## Events
@@ -23,7 +29,7 @@ module Prima.Pyxis.Form.Input exposing
 @docs withOnInput, withOnBlur, withOnFocus
 
 
-## Render
+## Rendering
 
 @docs render
 
@@ -34,21 +40,21 @@ import Html.Attributes as Attrs
 import Html.Events as Events
 
 
-{-| Represents the configuration of an Input type.
+{-| Represents the opaque `Input` configuration.
 -}
 type Input msg
     = Input (InputConfig msg)
 
 
-{-| Internal.
+{-| Represents the `Input` configuration.
 -}
 type alias InputConfig msg =
-    { type_ : InputType
-    , options : List (InputOption msg)
+    { options : List (InputOption msg)
+    , type_ : InputType
     }
 
 
-{-| Internal.
+{-| Represents the `Input` type.
 -}
 type InputType
     = Text
@@ -61,8 +67,8 @@ type InputType
 {-| Internal.
 -}
 input : InputType -> Input msg
-input type_ =
-    Input <| InputConfig type_ []
+input =
+    Input << InputConfig []
 
 
 {-| Creates an `input[type="text"]` with the default options.
@@ -100,62 +106,28 @@ email =
     input Email
 
 
-{-| Internal.
+{-| Represents the possibile modifiers of an `Input`.
 -}
 type InputOption msg
-    = Id String
-    | Name String
-    | Size InputSize
-    | Placeholder String
+    = Attributes (List (Html.Attribute msg))
+    | Class String
     | Disabled Bool
-    | Value String
-    | Attributes (List (Html.Attribute msg))
-    | OnInput (String -> msg)
+    | Id String
+    | Name String
     | OnBlur msg
     | OnFocus msg
+    | OnInput (String -> msg)
+    | Placeholder String
+    | Size InputSize
+    | Value String
 
 
-{-| Internal.
+{-| Represents the `Input` size.
 -}
 type InputSize
     = Small
     | Regular
     | Large
-
-
-{-| Internal.
--}
-addOption : InputOption msg -> Input msg -> Input msg
-addOption option (Input inputConfig) =
-    Input { inputConfig | options = inputConfig.options ++ [ option ] }
-
-
-{-| Sets an `id` to the `Input config`.
--}
-withId : String -> Input msg -> Input msg
-withId id =
-    addOption (Id id)
-
-
-{-| Sets a `name` to the `Input config`.
--}
-withName : String -> Input msg -> Input msg
-withName name =
-    addOption (Name name)
-
-
-{-| Sets a `placeholder` to the `Input config`.
--}
-withPlaceholder : String -> Input msg -> Input msg
-withPlaceholder placeholder =
-    addOption (Placeholder placeholder)
-
-
-{-| Sets a `disabled` to the `Input config`.
--}
-withDisabled : Bool -> Input msg -> Input msg
-withDisabled disabled =
-    addOption (Disabled disabled)
 
 
 {-| Sets a list of `attributes` to the `Input config`.
@@ -165,18 +137,25 @@ withAttributes attributes =
     addOption (Attributes attributes)
 
 
-{-| Sets a `size` to the `Input config`.
+{-| Sets a `class` to the `Input config`.
 -}
-withSmallSize : Input msg -> Input msg
-withSmallSize =
-    addOption (Size Small)
+withClass : String -> Input msg -> Input msg
+withClass class_ =
+    addOption (Class class_)
 
 
-{-| Sets a `size` to the `Input config`.
+{-| Sets a `disabled` to the `Input config`.
 -}
-withRegularSize : Input msg -> Input msg
-withRegularSize =
-    addOption (Size Regular)
+withDisabled : Bool -> Input msg -> Input msg
+withDisabled disabled =
+    addOption (Disabled disabled)
+
+
+{-| Sets an `id` to the `Input config`.
+-}
+withId : String -> Input msg -> Input msg
+withId id =
+    addOption (Id id)
 
 
 {-| Sets a `size` to the `Input config`.
@@ -186,18 +165,11 @@ withLargeSize =
     addOption (Size Large)
 
 
-{-| Sets a `value` to the `Input config`.
+{-| Sets a `name` to the `Input config`.
 -}
-withValue : String -> Input msg -> Input msg
-withValue value =
-    addOption (Value value)
-
-
-{-| Sets an `onInput event` to the `Input config`.
--}
-withOnInput : (String -> msg) -> Input msg -> Input msg
-withOnInput tagger =
-    addOption (OnInput tagger)
+withName : String -> Input msg -> Input msg
+withName name =
+    addOption (Name name)
 
 
 {-| Sets an `onBlur event` to the `Input config`.
@@ -214,138 +186,39 @@ withOnFocus tagger =
     addOption (OnFocus tagger)
 
 
-{-| Internal.
+{-| Sets an `onInput event` to the `Input config`.
 -}
-type alias Options msg =
-    { type_ : InputType
-    , id : Maybe String
-    , name : Maybe String
-    , size : InputSize
-    , disabled : Maybe Bool
-    , value : Maybe String
-    , placeholder : Maybe String
-    , attributes : List (Html.Attribute msg)
-    , onInput : Maybe (String -> msg)
-    , onFocus : Maybe msg
-    , onBlur : Maybe msg
-    }
+withOnInput : (String -> msg) -> Input msg -> Input msg
+withOnInput tagger =
+    addOption (OnInput tagger)
 
 
-{-| Internal.
+{-| Sets a `placeholder` to the `Input config`.
 -}
-defaultOptions : Options msg
-defaultOptions =
-    { type_ = Text
-    , id = Nothing
-    , name = Nothing
-    , size = Large
-    , disabled = Nothing
-    , value = Nothing
-    , placeholder = Nothing
-    , attributes = [ Attrs.class "a-form-field__input" ]
-    , onInput = Nothing
-    , onFocus = Nothing
-    , onBlur = Nothing
-    }
+withPlaceholder : String -> Input msg -> Input msg
+withPlaceholder placeholder =
+    addOption (Placeholder placeholder)
 
 
-{-| Internal.
+{-| Sets a `size` to the `Input config`.
 -}
-applyOption : InputOption msg -> Options msg -> Options msg
-applyOption modifier options =
-    case modifier of
-        Id id_ ->
-            { options | id = Just id_ }
-
-        Name name_ ->
-            { options | name = Just name_ }
-
-        Size size_ ->
-            { options | size = size_ }
-
-        Placeholder placeholder_ ->
-            { options | placeholder = Just placeholder_ }
-
-        Disabled disabled_ ->
-            { options | disabled = Just disabled_ }
-
-        Value value_ ->
-            { options | value = Just value_ }
-
-        Attributes attributes_ ->
-            { options | attributes = options.attributes ++ attributes_ }
-
-        OnInput onInput_ ->
-            { options | onInput = Just onInput_ }
-
-        OnBlur onBlur_ ->
-            { options | onBlur = Just onBlur_ }
-
-        OnFocus onFocus_ ->
-            { options | onFocus = Just onFocus_ }
+withRegularSize : Input msg -> Input msg
+withRegularSize =
+    addOption (Size Regular)
 
 
-{-| Internal.
+{-| Sets a `size` to the `Input config`.
 -}
-typeAttribute : InputType -> Html.Attribute msg
-typeAttribute type_ =
-    Attrs.type_
-        (case type_ of
-            Text ->
-                "text"
-
-            Password ->
-                "password"
-
-            Email ->
-                "email"
-
-            Date ->
-                "date"
-
-            Number ->
-                "number"
-        )
+withSmallSize : Input msg -> Input msg
+withSmallSize =
+    addOption (Size Small)
 
 
-{-| Internal.
+{-| Sets a `value` to the `Input config`.
 -}
-sizeAttribute : InputSize -> Html.Attribute msg
-sizeAttribute size =
-    Attrs.class
-        (case size of
-            Small ->
-                "is-small"
-
-            Regular ->
-                "is-medium"
-
-            Large ->
-                "is-large"
-        )
-
-
-{-| Internal.
--}
-buildAttributes : List (InputOption msg) -> List (Html.Attribute msg)
-buildAttributes modifiers =
-    let
-        options =
-            List.foldl applyOption defaultOptions modifiers
-    in
-    [ Maybe.map Attrs.id options.id
-    , Maybe.map Attrs.name options.name
-    , Maybe.map Attrs.disabled options.disabled
-    , Maybe.map Attrs.value options.value
-    , Maybe.map Attrs.placeholder options.placeholder
-    , Maybe.map Events.onInput options.onInput
-    , Maybe.map Events.onBlur options.onBlur
-    , Maybe.map Events.onFocus options.onFocus
-    ]
-        |> List.filterMap identity
-        |> (++) options.attributes
-        |> (::) (typeAttribute options.type_)
-        |> (::) (sizeAttribute options.size)
+withValue : String -> Input msg -> Input msg
+withValue value =
+    addOption (Value value)
 
 
 {-| Renders the `Input config`.
@@ -372,3 +245,157 @@ render (Input config) =
     Html.input
         (buildAttributes config.options)
         []
+
+
+{-| Internal.
+-}
+addOption : InputOption msg -> Input msg -> Input msg
+addOption option (Input inputConfig) =
+    Input { inputConfig | options = inputConfig.options ++ [ option ] }
+
+
+{-| Internal.
+-}
+type alias Options msg =
+    { attributes : List (Html.Attribute msg)
+    , disabled : Maybe Bool
+    , classes : List String
+    , id : Maybe String
+    , name : Maybe String
+    , onInput : Maybe (String -> msg)
+    , onFocus : Maybe msg
+    , onBlur : Maybe msg
+    , placeholder : Maybe String
+    , size : InputSize
+    , type_ : InputType
+    , value : Maybe String
+    }
+
+
+{-| Internal.
+-}
+defaultOptions : Options msg
+defaultOptions =
+    { attributes = []
+    , disabled = Nothing
+    , classes = [ "a-form-field__input" ]
+    , id = Nothing
+    , name = Nothing
+    , onInput = Nothing
+    , onFocus = Nothing
+    , onBlur = Nothing
+    , placeholder = Nothing
+    , size = Regular
+    , type_ = Text
+    , value = Nothing
+    }
+
+
+{-| Internal.
+-}
+applyOption : InputOption msg -> Options msg -> Options msg
+applyOption modifier options =
+    case modifier of
+        Attributes attributes_ ->
+            { options | attributes = options.attributes ++ attributes_ }
+
+        Class class_ ->
+            { options | classes = class_ :: options.classes }
+
+        Disabled disabled_ ->
+            { options | disabled = Just disabled_ }
+
+        Id id_ ->
+            { options | id = Just id_ }
+
+        Name name_ ->
+            { options | name = Just name_ }
+
+        OnInput onInput_ ->
+            { options | onInput = Just onInput_ }
+
+        OnBlur onBlur_ ->
+            { options | onBlur = Just onBlur_ }
+
+        OnFocus onFocus_ ->
+            { options | onFocus = Just onFocus_ }
+
+        Placeholder placeholder_ ->
+            { options | placeholder = Just placeholder_ }
+
+        Size size_ ->
+            { options | size = size_ }
+
+        Value value_ ->
+            { options | value = Just value_ }
+
+
+{-| Transforms an `InputType` into a valid `Html.Attribute`.
+-}
+typeAttribute : InputType -> Html.Attribute msg
+typeAttribute type_ =
+    Attrs.type_
+        (case type_ of
+            Text ->
+                "text"
+
+            Password ->
+                "password"
+
+            Email ->
+                "email"
+
+            Date ->
+                "date"
+
+            Number ->
+                "number"
+        )
+
+
+{-| Transforms a `List` of `Class`(es) into a valid `Html.Attribute`.
+-}
+classesAttribute : List String -> Html.Attribute msg
+classesAttribute =
+    Attrs.class << String.join " "
+
+
+{-| Transforms an `InputSize` into a valid `Html.Attribute`.
+-}
+sizeAttribute : InputSize -> Html.Attribute msg
+sizeAttribute size =
+    Attrs.class
+        (case size of
+            Small ->
+                "is-small"
+
+            Regular ->
+                "is-medium"
+
+            Large ->
+                "is-large"
+        )
+
+
+{-| Composes all the modifiers into a set of `Html.Attribute`(s).
+-}
+buildAttributes : List (InputOption msg) -> List (Html.Attribute msg)
+buildAttributes modifiers =
+    let
+        options =
+            List.foldl applyOption defaultOptions modifiers
+    in
+    [ Maybe.map Attrs.id options.id
+    , Maybe.map Attrs.name options.name
+    , Maybe.map Attrs.disabled options.disabled
+    , Maybe.map Attrs.value options.value
+    , Maybe.map Attrs.placeholder options.placeholder
+    , Maybe.map Events.onInput options.onInput
+    , Maybe.map Events.onBlur options.onBlur
+    , Maybe.map Events.onFocus options.onFocus
+    ]
+        |> List.filterMap identity
+        |> (++) options.attributes
+        |> (::) (classesAttribute options.classes)
+        |> (::) (typeAttribute options.type_)
+        |> (::) (sizeAttribute options.size)
