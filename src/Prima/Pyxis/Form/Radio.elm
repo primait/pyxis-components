@@ -78,7 +78,7 @@ type RadioOption model msg
     | Disabled Bool
     | Id String
     | Value (model -> Maybe String)
-    | OnChange (String -> msg)
+    | OnInput (String -> msg)
     | OnFocus msg
     | OnBlur msg
 
@@ -91,7 +91,7 @@ type alias Options model msg =
     , disabled : Maybe Bool
     , id : Maybe String
     , value : model -> Maybe String
-    , onChange : Maybe (String -> msg)
+    , onInput : Maybe (String -> msg)
     , onFocus : Maybe msg
     , onBlur : Maybe msg
     }
@@ -104,7 +104,7 @@ defaultOptions =
     , disabled = Nothing
     , id = Nothing
     , value = always Nothing
-    , onChange = Nothing
+    , onInput = Nothing
     , onFocus = Nothing
     , onBlur = Nothing
     }
@@ -161,9 +161,9 @@ withOnFocus tagger =
 
 {-| Sets an `onInput event` to the `Input config`.
 -}
-withOnChange : (String -> msg) -> Radio model msg -> Radio model msg
-withOnChange tagger =
-    addOption (OnChange tagger)
+withOnInput : (String -> msg) -> Radio model msg -> Radio model msg
+withOnInput tagger =
+    addOption (OnInput tagger)
 
 
 {-| Internal.
@@ -192,8 +192,8 @@ applyOption modifier options =
         OnBlur onBlur_ ->
             { options | onBlur = Just onBlur_ }
 
-        OnChange onChange_ ->
-            { options | onChange = Just onChange_ }
+        OnInput onInput_ ->
+            { options | onInput = Just onInput_ }
 
 
 {-| Transforms a `List` of `Class`(es) into a valid `Html.Attribute`.
@@ -214,7 +214,7 @@ buildAttributes model modifiers =
     [ Maybe.map Attrs.id options.id
     , Maybe.map Attrs.disabled options.disabled
     , Maybe.map Attrs.value (options.value model)
-    , Maybe.map onChange options.onChange
+    , Maybe.map Events.onInput options.onInput
     , Maybe.map Events.onFocus options.onFocus
     , Maybe.map Events.onBlur options.onBlur
     ]
@@ -266,8 +266,3 @@ renderRadioOption model (Radio config) slug label =
         |> Label.withAttributes [ class "a-form-field__radio__label" ]
         |> Label.render
     ]
-
-
-onChange : (String -> msg) -> Attribute msg
-onChange handler =
-    on "change" <| Json.map handler <| Json.at [ "target", "value" ] Json.string

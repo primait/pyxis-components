@@ -14,7 +14,6 @@ import Prima.Pyxis.Form as Form
 type Msg
     = OnInput Field String
     | OnCheck Field Bool
-    | OnChange Field String
 
 
 type alias Model =

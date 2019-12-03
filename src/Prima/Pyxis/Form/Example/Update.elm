@@ -31,7 +31,7 @@ update msg model =
                 |> printModel
                 |> H.withoutCmds
 
-        OnChange GuideTypeField value ->
+        OnInput GuideTypeField value ->
             model
                 |> updateGuideType value
                 |> printModel
