@@ -15,19 +15,25 @@ update msg model =
     case msg of
         OnInput Username value ->
             model
-                |> updateUsername value
+                |> updateUsername (Just value)
                 |> printModel
                 |> H.withoutCmds
 
         OnInput Password value ->
             model
-                |> updatePassword value
+                |> updatePassword (Just value)
                 |> printModel
                 |> H.withoutCmds
 
         OnCheck Privacy value ->
             model
                 |> updatePrivacy value
+                |> printModel
+                |> H.withoutCmds
+
+        OnChange GuideTypeField value ->
+            model
+                |> updateGuideType value
                 |> printModel
                 |> H.withoutCmds
 
@@ -53,6 +59,12 @@ updatePassword value =
 updatePrivacy : Bool -> Model -> Model
 updatePrivacy value =
     updateFormData (\f -> { f | privacy = Just value })
+
+
+updateGuideType : String -> Model -> Model
+updateGuideType value =
+    updateFormData (\f -> { f | guideType = Just value })
+        |> Debug.log "guideType"
 
 
 updateFormData : (FormData -> FormData) -> Model -> Model

@@ -6,6 +6,7 @@ module Prima.Pyxis.Form.Label exposing
     , label
     , labelWithHtml
     , render
+    , withAttributes
     )
 
 import Html exposing (Html, label, text)
@@ -85,6 +86,11 @@ buildAttributes modifiers =
     ]
         |> List.filterMap identity
         |> (++) options.attributes
+
+
+withAttributes : List (Html.Attribute msg) -> Label msg -> Label msg
+withAttributes attributes_ =
+    addOption (Attributes attributes_)
 
 
 render : Label msg -> Html msg

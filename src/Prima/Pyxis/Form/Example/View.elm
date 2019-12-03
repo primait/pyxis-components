@@ -5,7 +5,7 @@ import Html exposing (Html)
 import Prima.Pyxis.Container as Container
 import Prima.Pyxis.Form as Form
 import Prima.Pyxis.Form.Example.FieldConfig as Config
-import Prima.Pyxis.Form.Example.Model exposing (FormData, Model, Msg(..))
+import Prima.Pyxis.Form.Example.Model exposing (FormData, GuideType, Model, Msg(..))
 import Prima.Pyxis.Helpers as Helpers
 
 
@@ -31,3 +31,4 @@ formConfig model =
             , Config.passwordConfig
             ]
         |> Form.addFieldsInRow [ Config.privacyConfig ]
+        |> Form.addFieldsInRow [ Config.guideType ]

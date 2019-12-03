@@ -3,13 +3,15 @@ module Prima.Pyxis.Form.Example.FieldConfig exposing (..)
 import Html exposing (Html, text)
 import Prima.Pyxis.Form as Form
 import Prima.Pyxis.Form.Checkbox as Checkbox
-import Prima.Pyxis.Form.Example.Model exposing (Field(..), FormData, Model, Msg(..))
+import Prima.Pyxis.Form.Example.Model exposing (Field(..), FormData, GuideType(..), Model, Msg(..), guideTypeToSlug)
+import Prima.Pyxis.Form.Field as Field
 import Prima.Pyxis.Form.Input as Input
 import Prima.Pyxis.Form.Label as Label
+import Prima.Pyxis.Form.Radio as Radio
 import Prima.Pyxis.Link as Link
 
 
-usernameConfig : Form.FormField FormData Msg
+usernameConfig : Field.FormField FormData Msg
 usernameConfig =
     let
         slug =
@@ -19,11 +21,11 @@ usernameConfig =
         |> Input.withId slug
         |> Input.withValue .username
         |> Input.withOnInput (OnInput Username)
-        |> Form.input
-        |> Form.addLabel (Label.label [ Label.for slug ] "Username")
+        |> Field.input
+        |> Field.addLabel (Label.label [ Label.for slug ] "Username")
 
 
-passwordConfig : Form.FormField FormData Msg
+passwordConfig : Field.FormField FormData Msg
 passwordConfig =
     let
         slug =
@@ -33,11 +35,11 @@ passwordConfig =
         |> Input.withId slug
         |> Input.withValue .password
         |> Input.withOnInput (OnInput Password)
-        |> Form.input
-        |> Form.addLabel (Label.label [ Label.for slug ] "Password")
+        |> Field.input
+        |> Field.addLabel (Label.label [ Label.for slug ] "Password")
 
 
-privacyConfig : Form.FormField FormData Msg
+privacyConfig : Field.FormField FormData Msg
 privacyConfig =
     let
         slug =
@@ -49,8 +51,8 @@ privacyConfig =
         , Checkbox.onCheck (OnCheck Privacy)
         ]
         |> Checkbox.addLabel (Label.labelWithHtml [ Label.for slug ] privacyLabel)
-        |> Form.checkbox
-        |> Form.addLabel (Label.label [ Label.for slug ] "Privacy")
+        |> Field.checkbox
+        |> Field.addLabel (Label.label [ Label.for slug ] "Privacy")
 
 
 checkboxStatus : Maybe Bool -> Checkbox.CheckboxOption FormData Msg
@@ -68,3 +70,13 @@ privacyLabel =
     , Link.render <| Link.simple "http://prima.it" "Prima.it"
     , text " privacy."
     ]
+
+
+guideType : Field.FormField FormData Msg
+guideType =
+    Radio.radio
+        "guideType"
+        [ ( "expert", "Esperta" ), ( "free", "Libera" ) ]
+        |> Radio.withOnChange (OnChange GuideTypeField)
+        |> Field.radio
+        |> Field.addLabel (Label.label [] "Tipo di guida")
