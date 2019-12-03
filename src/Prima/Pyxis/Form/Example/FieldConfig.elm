@@ -77,6 +77,7 @@ guideType =
     Radio.radio
         "guideType"
         [ ( "expert", "Esperta" ), ( "free", "Libera" ) ]
+        |> Radio.withValue .guideType
         |> Radio.withOnInput (OnInput GuideTypeField)
         |> Field.radio
         |> Field.addLabel (Label.label [] "Tipo di guida")

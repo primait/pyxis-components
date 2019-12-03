@@ -52,19 +52,6 @@ type alias Value =
     String
 
 
-{-| Represents the position where to apply options
--}
-type Position
-    = Parent
-    | Children
-
-
-type Event
-    = OnChangeEvent
-    | OnFocusEvent
-    | OnBlurEvent
-
-
 radio : String -> List ( String, String ) -> Radio model msg
 radio name radioOptions =
     Radio (RadioConfig [] name radioOptions)
@@ -263,6 +250,6 @@ renderRadioOption model (Radio config) slug label =
         )
         []
     , Label.label [ Label.for slug ] label
-        |> Label.withAttributes [ class "a-form-field__radio__label" ]
+        |> Label.withExclusiveClass "a-form-field__radio__label"
         |> Label.render
     ]

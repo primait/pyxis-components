@@ -7,6 +7,7 @@ module Prima.Pyxis.Form.Label exposing
     , labelWithHtml
     , render
     , withAttributes
+    , withExclusiveClass
     )
 
 import Html exposing (Html, label, text)
@@ -35,7 +36,9 @@ labelWithHtml options children =
 
 type LabelOption msg
     = Attributes (List (Html.Attribute msg))
+    | Class String
     | For String
+    | ExclusiveClass String
 
 
 attributes : List (Html.Attribute msg) -> LabelOption msg
@@ -50,13 +53,15 @@ for =
 
 type alias Options msg =
     { attributes : List (Html.Attribute msg)
+    , classes : List String
     , for : Maybe String
     }
 
 
 defaultOptions : Options msg
 defaultOptions =
-    { attributes = [ Attrs.class "a-form-field__label" ]
+    { attributes = []
+    , classes = [ "a-form-field__label" ]
     , for = Nothing
     }
 
@@ -75,6 +80,12 @@ applyOption modifier options =
         For for_ ->
             { options | for = Just for_ }
 
+        Class class_ ->
+            { options | classes = class_ :: options.classes }
+
+        ExclusiveClass class_ ->
+            { options | classes = [ class_ ] }
+
 
 buildAttributes : List (LabelOption msg) -> List (Html.Attribute msg)
 buildAttributes modifiers =
@@ -86,11 +97,24 @@ buildAttributes modifiers =
     ]
         |> List.filterMap identity
         |> (++) options.attributes
+        |> (::) (classesAttribute options.classes)
+
+
+{-| Transforms a `List` of `Class`(es) into a valid `Html.Attribute`.
+-}
+classesAttribute : List String -> Html.Attribute msg
+classesAttribute =
+    Attrs.class << String.join " "
 
 
 withAttributes : List (Html.Attribute msg) -> Label msg -> Label msg
 withAttributes attributes_ =
     addOption (Attributes attributes_)
+
+
+withExclusiveClass : String -> Label msg -> Label msg
+withExclusiveClass class_ =
+    addOption (ExclusiveClass class_)
 
 
 render : Label msg -> Html msg
