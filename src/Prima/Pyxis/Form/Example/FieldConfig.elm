@@ -1,7 +1,7 @@
 module Prima.Pyxis.Form.Example.FieldConfig exposing (..)
 
 import Html exposing (Html, text)
-import Prima.Pyxis.Form as Form
+import Html.Attributes exposing (id)
 import Prima.Pyxis.Form.Checkbox as Checkbox
 import Prima.Pyxis.Form.Example.Model exposing (Field(..), FormData, GuideType(..), Model, Msg(..), guideTypeToSlug)
 import Prima.Pyxis.Form.Field as Field
@@ -76,6 +76,7 @@ guideType : Field.FormField FormData Msg
 guideType =
     Radio.radio
         "guideType"
+        [ id "guide-type" ]
         [ ( "expert", "Esperta" ), ( "free", "Libera" ) ]
         |> Radio.withValue .guideType
         |> Radio.withOnInput (OnInput GuideTypeField)

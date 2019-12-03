@@ -27,7 +27,6 @@ module Prima.Pyxis.Form.Radio exposing (..)
 import Html exposing (Attribute, Html, div)
 import Html.Attributes as Attrs exposing (checked, class, classList, id, name, type_, value)
 import Html.Events as Events exposing (on)
-import Json.Decode as Json
 import Prima.Pyxis.Form.Label as Label
 
 
@@ -42,6 +41,7 @@ type Radio model msg
 type alias RadioConfig model msg =
     { options : List (RadioOption model msg)
     , name : String
+    , parentAttributes : List (Html.Attribute msg)
     , radioValues : List ( String, String )
     }
 
@@ -52,9 +52,9 @@ type alias Value =
     String
 
 
-radio : String -> List ( String, String ) -> Radio model msg
-radio name radioOptions =
-    Radio (RadioConfig [] name radioOptions)
+radio : String -> List (Html.Attribute msg) -> List ( String, String ) -> Radio model msg
+radio name parentAttributes radioOptions =
+    Radio (RadioConfig [] name parentAttributes radioOptions)
 
 
 {-| Internal.
@@ -68,6 +68,7 @@ type RadioOption model msg
     | OnInput (String -> msg)
     | OnFocus msg
     | OnBlur msg
+    | ParentAttributes (List (Html.Attribute msg))
 
 
 {-| Internal.
@@ -81,6 +82,7 @@ type alias Options model msg =
     , onInput : Maybe (String -> msg)
     , onFocus : Maybe msg
     , onBlur : Maybe msg
+    , parentAttributes : List (Html.Attribute msg)
     }
 
 
@@ -94,6 +96,7 @@ defaultOptions =
     , onInput = Nothing
     , onFocus = Nothing
     , onBlur = Nothing
+    , parentAttributes = []
     }
 
 
@@ -153,6 +156,13 @@ withOnInput tagger =
     addOption (OnInput tagger)
 
 
+{-| Sets a list of `attributes` to the `Input config` parent.
+-}
+withParentAttributes : List (Html.Attribute msg) -> Radio model msg -> Radio model msg
+withParentAttributes attributes =
+    addOption (ParentAttributes attributes)
+
+
 {-| Internal.
 -}
 applyOption : RadioOption model msg -> Options model msg -> Options model msg
@@ -181,6 +191,9 @@ applyOption modifier options =
 
         OnInput onInput_ ->
             { options | onInput = Just onInput_ }
+
+        ParentAttributes attributes_ ->
+            { options | parentAttributes = options.parentAttributes ++ attributes_ }
 
 
 {-| Transforms a `List` of `Class`(es) into a valid `Html.Attribute`.
@@ -227,8 +240,10 @@ buildAttributes model modifiers =
 render : model -> Radio model msg -> List (Html msg)
 render model (Radio config) =
     [ div
-        [ class "a-form-field__radioOptions"
-        ]
+        ([ class "a-form-field__radioOptions"
+         ]
+            ++ config.parentAttributes
+        )
         (List.concat
             (List.map
                 (\( slug, label ) -> renderRadioOption model (Radio config) slug label)
