@@ -39,29 +39,28 @@ passwordConfig =
         |> Field.addLabel (Label.label [ Label.for slug ] "Password")
 
 
-privacyConfig : Field.FormField FormData Msg
-privacyConfig =
+privacyConfig : Model -> Field.FormField FormData Msg
+privacyConfig { formData } =
     let
         slug =
             "privacy"
     in
     Checkbox.checkbox
-        [ checkboxStatus (Just True)
-        , Checkbox.id slug
-        , Checkbox.onCheck (OnCheck Privacy)
-        ]
+        |> Checkbox.withValue (checkboxStatus formData.privacy)
+        |> Checkbox.withId slug
+        |> Checkbox.withOnCheck (OnCheck Privacy)
         |> Checkbox.addLabel (Label.labelWithHtml [ Label.for slug ] privacyLabel)
         |> Field.checkbox
         |> Field.addLabel (Label.label [ Label.for slug ] "Privacy")
 
 
-checkboxStatus : Maybe Bool -> Checkbox.CheckboxOption FormData Msg
+checkboxStatus : Maybe Bool -> Checkbox.CheckboxValue
 checkboxStatus flag =
     if Just True == flag then
-        Checkbox.checked
+        Checkbox.Checked
 
     else
-        Checkbox.notChecked
+        Checkbox.NotChecked
 
 
 privacyLabel : List (Html Msg)

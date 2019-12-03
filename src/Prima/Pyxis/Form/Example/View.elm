@@ -30,5 +30,5 @@ formConfig model =
             [ Config.usernameConfig
             , Config.passwordConfig
             ]
-        |> Form.addFieldsInRow [ Config.privacyConfig ]
+        |> Form.addFieldsInRow [ Config.privacyConfig model ]
         |> Form.addFieldsInRow [ Config.guideType ]

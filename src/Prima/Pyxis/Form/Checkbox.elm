@@ -1,7 +1,7 @@
 module Prima.Pyxis.Form.Checkbox exposing (..)
 
 import Html exposing (Html)
-import Html.Attributes as Attrs
+import Html.Attributes as Attrs exposing (type_)
 import Html.Events as Events
 import Prima.Pyxis.Form.Label as Label exposing (Label)
 
@@ -17,10 +17,9 @@ type alias CheckboxConfig model msg =
 
 
 type CheckboxOption model msg
-    = Type
-    | Id String
+    = Id String
     | Name String
-    | State CheckboxState
+    | Value CheckboxValue
     | Disabled Bool
     | Attributes (List (Html.Attribute msg))
     | OnCheck (Bool -> msg)
@@ -28,15 +27,25 @@ type CheckboxOption model msg
     | OnBlur msg
 
 
-type CheckboxState
+type CheckboxValue
     = Checked
     | NotChecked
     | Indeterminate
 
 
-checkbox : List (CheckboxOption model msg) -> Checkbox model msg
+checked : CheckboxOption model msg
+checked =
+    Value Checked
+
+
+notChecked : CheckboxOption model msg
+notChecked =
+    Value NotChecked
+
+
+checkbox : Checkbox model msg
 checkbox =
-    Checkbox << CheckboxConfig Nothing
+    Checkbox <| CheckboxConfig Nothing []
 
 
 addLabel : Label msg -> Checkbox model msg -> Checkbox model msg
@@ -50,58 +59,68 @@ addLabel lbl (Checkbox config) =
     Checkbox { config | optionLabel = (Just << addPyxisClass) lbl }
 
 
-checked : CheckboxOption model msg
-checked =
-    State Checked
+{-| Internal.
+-}
+addOption : CheckboxOption model msg -> Checkbox model msg -> Checkbox model msg
+addOption option (Checkbox checkboxConfig) =
+    Checkbox { checkboxConfig | options = checkboxConfig.options ++ [ option ] }
 
 
-notChecked : CheckboxOption model msg
-notChecked =
-    State NotChecked
+{-| Sets an `id` to the `Input config`.
+-}
+withId : String -> Checkbox model msg -> Checkbox model msg
+withId id_ =
+    addOption (Id id_)
 
 
-id : String -> CheckboxOption model msg
-id =
-    Id
+{-| Sets a `disabled` to the `Input config`.
+-}
+withValue : CheckboxValue -> Checkbox model msg -> Checkbox model msg
+withValue state =
+    addOption (Value state)
 
 
-onCheck : (Bool -> msg) -> CheckboxOption model msg
-onCheck =
-    OnCheck
+{-| Sets a `disabled` to the `Input config`.
+-}
+withDisabled : Bool -> Checkbox model msg -> Checkbox model msg
+withDisabled disabled =
+    addOption (Disabled disabled)
 
 
-onBlur : msg -> CheckboxOption model msg
-onBlur =
-    OnBlur
+{-| Sets a list of `attributes` to the `Input config`.
+-}
+withAttributes : List (Html.Attribute msg) -> Checkbox model msg -> Checkbox model msg
+withAttributes attributes =
+    addOption (Attributes attributes)
 
 
-onFocus : msg -> CheckboxOption model msg
-onFocus =
-    OnFocus
+{-| Sets an `onBlur event` to the `Input config`.
+-}
+withOnBlur : msg -> Checkbox model msg -> Checkbox model msg
+withOnBlur tagger =
+    addOption (OnBlur tagger)
 
 
-disabled : Bool -> CheckboxOption model msg
-disabled =
-    Disabled
+{-| Sets an `onFocus event` to the `Input config`.
+-}
+withOnFocus : msg -> Checkbox model msg -> Checkbox model msg
+withOnFocus tagger =
+    addOption (OnFocus tagger)
 
 
-attributes : List (Html.Attribute msg) -> CheckboxOption model msg
-attributes =
-    Attributes
-
-
-name : String -> CheckboxOption model msg
-name =
-    Name
+{-| Sets an `onCheck event` to the `Input config`.
+-}
+withOnCheck : (Bool -> msg) -> Checkbox model msg -> Checkbox model msg
+withOnCheck tagger =
+    addOption (OnCheck tagger)
 
 
 type alias Options msg =
-    { type_ : String
-    , id : Maybe String
+    { id : Maybe String
     , name : Maybe String
     , label : Maybe (Label msg)
     , disabled : Maybe Bool
-    , state : Maybe CheckboxState
+    , state : Maybe CheckboxValue
     , attributes : List (Html.Attribute msg)
     , onCheck : Maybe (Bool -> msg)
     , onFocus : Maybe msg
@@ -111,8 +130,7 @@ type alias Options msg =
 
 defaultOptions : Options msg
 defaultOptions =
-    { type_ = "checkbox"
-    , id = Nothing
+    { id = Nothing
     , name = Nothing
     , label = Nothing
     , disabled = Nothing
@@ -127,9 +145,6 @@ defaultOptions =
 applyOption : CheckboxOption model msg -> Options msg -> Options msg
 applyOption modifier options =
     case modifier of
-        Type ->
-            options
-
         Id id_ ->
             { options | id = Just id_ }
 
@@ -139,7 +154,7 @@ applyOption modifier options =
         Disabled disabled_ ->
             { options | disabled = Just disabled_ }
 
-        State state_ ->
+        Value state_ ->
             { options | state = Just state_ }
 
         Attributes attributes_ ->
@@ -161,7 +176,7 @@ buildAttributes modifiers =
         options =
             List.foldl applyOption defaultOptions modifiers
     in
-    [ Just <| Attrs.type_ options.type_
+    [ Just <| Attrs.type_ "checkbox"
     , Maybe.map Attrs.id options.id
     , Maybe.map Attrs.name options.name
     , Maybe.map Attrs.disabled options.disabled
@@ -174,7 +189,7 @@ buildAttributes modifiers =
         |> (++) options.attributes
 
 
-stateAttribute : CheckboxState -> Html.Attribute msg
+stateAttribute : CheckboxValue -> Html.Attribute msg
 stateAttribute state =
     case state of
         Checked ->
