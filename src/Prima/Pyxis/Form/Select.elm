@@ -82,7 +82,7 @@ type alias Options model msg =
 defaultOptions : Options model msg
 defaultOptions =
     { attributes = []
-    , classes = [ "a-form-field__select-native" ]
+    , classes = [ "a-form-field__select--native" ]
     , disabled = Nothing
     , id = Nothing
     , value = always Nothing
