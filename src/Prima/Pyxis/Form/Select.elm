@@ -25,7 +25,7 @@ module Prima.Pyxis.Form.Select exposing (..)
 -}
 
 import Html exposing (Attribute, Html, div, text)
-import Html.Attributes as Attrs exposing (checked, class, classList, id, name, type_, value)
+import Html.Attributes as Attrs exposing (checked, class, classList, id, name, selected, type_, value)
 import Html.Events as Events exposing (on)
 
 
@@ -40,14 +40,15 @@ type Select model msg
 type alias SelectConfig model msg =
     { options : List (SelectOption model msg)
     , selectValues : List ( String, String )
+    , selected : Maybe String
     }
 
 
 {-| Internal.
 -}
-select : List ( String, String ) -> Select model msg
-select selectValues =
-    Select (SelectConfig [] selectValues)
+select : List ( String, String ) -> Maybe String -> Select model msg
+select selectValues selectedSlug =
+    Select (SelectConfig [] selectValues selectedSlug)
 
 
 {-| Internal.
@@ -237,18 +238,27 @@ render model (Select config) =
         (buildAttributes model config.options)
         (List.concat
             (List.map
-                (\( slug, label ) -> renderSelectOption slug label)
+                (\( slug, label ) -> renderSelectOption (Select config) slug label)
                 config.selectValues
             )
         )
     ]
 
 
-renderSelectOption : String -> String -> List (Html msg)
-renderSelectOption slug label =
+renderSelectOption : Select model msg -> String -> String -> List (Html msg)
+renderSelectOption (Select config) slug label =
+    let
+        selected =
+            if config.selected == Just slug then
+                Attrs.selected True
+
+            else
+                Attrs.selected False
+    in
     [ Html.option
         [ value slug
         , id slug
+        , selected
         ]
         [ Html.text label ]
     ]
