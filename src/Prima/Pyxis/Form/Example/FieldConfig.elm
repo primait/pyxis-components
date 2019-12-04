@@ -91,8 +91,8 @@ powerSource =
             "powerSource"
     in
     Select.select
-        []
-        Nothing
+        [ ( "petrol", "Benzina" ), ( "diesel", "Diesel" ) ]
+        (Just "diesel")
         |> Select.withValue (Just << .powerSource)
         |> Select.withId slug
         |> Select.withOnInput (OnInput PowerSource)
