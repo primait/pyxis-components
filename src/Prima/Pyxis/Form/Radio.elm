@@ -221,32 +221,32 @@ buildAttributes model modifiers =
 render : model -> Radio model msg -> List (Html msg)
 render model (Radio config) =
     [ div
-        ([ class "a-form-field__radioOptions"
+        ([ class "a-form-field__radio-options"
          ]
             ++ config.parentAttributes
         )
-        (List.concat
-            (List.map
-                (\( slug, label ) -> renderRadioOption model (Radio config) slug label)
-                config.radioValues
-            )
+        (List.map
+            (\( slug, label ) -> renderRadioOption model (Radio config) slug label)
+            config.radioValues
         )
     ]
 
 
-renderRadioOption : model -> Radio model msg -> String -> String -> List (Html msg)
+renderRadioOption : model -> Radio model msg -> String -> String -> Html msg
 renderRadioOption model (Radio config) slug label =
-    [ Html.input
-        ([ type_ "radio"
-         , value slug
-         , id slug
-         , name config.name
-         ]
-            ++ buildAttributes model config.options
-        )
-        []
-    , Label.label label
-        |> Label.withFor slug
-        |> Label.withExclusiveClass "a-form-field__radio__label"
-        |> Label.render
-    ]
+    div
+        [ class "a-form-field__radio-options__item" ]
+        [ Html.input
+            ([ type_ "radio"
+             , value slug
+             , id slug
+             , name config.name
+             ]
+                ++ buildAttributes model config.options
+            )
+            []
+        , Label.label label
+            |> Label.withFor slug
+            |> Label.withExclusiveClass "a-form-field__radio-options__item__label"
+            |> Label.render
+        ]

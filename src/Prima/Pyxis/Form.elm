@@ -115,19 +115,3 @@ addGridRow model fields =
 
         _ ->
             Grid.row
-
-
-validateColsOfRowConfiguration : Grid.Row msg -> Bool
-validateColsOfRowConfiguration =
-    always True
-
-
-type alias ColsOfRowConfiguration =
-    List Int
-
-
-validColsOfRowConfigurations : List ColsOfRowConfiguration
-validColsOfRowConfigurations =
-    [ [ 4, 4, 4, 4 ]
-    , [ 4, 4, 0, 0 ]
-    ]
