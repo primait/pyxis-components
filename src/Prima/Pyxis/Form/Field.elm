@@ -5,6 +5,7 @@ import Prima.Pyxis.Form.Checkbox as Checkbox
 import Prima.Pyxis.Form.Input as Input
 import Prima.Pyxis.Form.Label as Label
 import Prima.Pyxis.Form.Radio as Radio
+import Prima.Pyxis.Form.Select as Select
 import Prima.Pyxis.Helpers as H
 
 
@@ -12,6 +13,7 @@ type FormField model msg
     = InputField (InputFieldConfig model msg)
     | CheckboxField (CheckboxFieldConfig model msg)
     | RadioField (RadioFieldConfig model msg)
+    | SelectField (SelectFieldConfig model msg)
 
 
 hasLabel : FormField model msg -> Bool
@@ -26,6 +28,9 @@ hasLabel formField =
         RadioField { label } ->
             H.isJust label
 
+        SelectField { label } ->
+            H.isJust label
+
 
 pickLabel : FormField model msg -> Maybe (Label.Label msg)
 pickLabel formField =
@@ -37,6 +42,9 @@ pickLabel formField =
             label
 
         RadioField { label } ->
+            label
+
+        SelectField { label } ->
             label
 
 
@@ -73,6 +81,17 @@ radio config =
     RadioField <| RadioFieldConfig config Nothing
 
 
+type alias SelectFieldConfig model msg =
+    { config : Select.Select model msg
+    , label : Maybe (Label.Label msg)
+    }
+
+
+select : Select.Select model msg -> FormField model msg
+select config =
+    SelectField <| SelectFieldConfig config Nothing
+
+
 addLabel : Label.Label msg -> FormField model msg -> FormField model msg
 addLabel lbl formField =
     case formField of
@@ -84,6 +103,9 @@ addLabel lbl formField =
 
         RadioField fieldConfig ->
             RadioField { fieldConfig | label = Just lbl }
+
+        SelectField fieldConfig ->
+            SelectField { fieldConfig | label = Just lbl }
 
 
 renderLabel : FormField model msg -> Html msg
@@ -105,3 +127,6 @@ renderField model formField =
 
         RadioField { config } ->
             Radio.render model config
+
+        SelectField { config } ->
+            Select.render model config

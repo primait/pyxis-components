@@ -37,6 +37,12 @@ update msg model =
                 |> printModel
                 |> H.withoutCmds
 
+        OnInput PowerSource value ->
+            model
+                |> updatePowerSource value
+                |> printModel
+                |> H.withoutCmds
+
         _ ->
             H.withoutCmds model
 
@@ -64,7 +70,11 @@ updatePrivacy value =
 updateGuideType : String -> Model -> Model
 updateGuideType value =
     updateFormData (\f -> { f | guideType = Just value })
-        |> Debug.log "guideType"
+
+
+updatePowerSource : String -> Model -> Model
+updatePowerSource value =
+    updateFormData (\f -> { f | powerSource = value })
 
 
 updateFormData : (FormData -> FormData) -> Model -> Model

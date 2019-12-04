@@ -1,10 +1,8 @@
 module Prima.Pyxis.Form.Example.Model exposing
     ( Field(..)
     , FormData
-    , GuideType(..)
     , Model
     , Msg(..)
-    , guideTypeToSlug
     , initialModel
     )
 
@@ -32,21 +30,7 @@ type Field
     | Password
     | Privacy
     | GuideTypeField
-
-
-type GuideType
-    = Expert
-    | Free
-
-
-guideTypeToSlug : GuideType -> String
-guideTypeToSlug guideType =
-    case guideType of
-        Expert ->
-            "expert"
-
-        Free ->
-            "free"
+    | PowerSource
 
 
 type alias FormData =
@@ -54,6 +38,7 @@ type alias FormData =
     , password : Maybe String
     , privacy : Maybe Bool
     , guideType : Maybe String
+    , powerSource : String
     }
 
 
@@ -63,4 +48,5 @@ initialFormData =
     , password = Nothing
     , privacy = Nothing
     , guideType = Nothing
+    , powerSource = "petrol"
     }

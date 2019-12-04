@@ -1,11 +1,11 @@
-module Prima.Pyxis.Form.Radio exposing (..)
+module Prima.Pyxis.Form.Select exposing (..)
 
 {-|
 
 
 ## Types
 
-@docs Radio
+@docs Select
 
 
 ## Modifiers
@@ -24,36 +24,35 @@ module Prima.Pyxis.Form.Radio exposing (..)
 
 -}
 
-import Html exposing (Attribute, Html, div)
+import Html exposing (Attribute, Html, div, text)
 import Html.Attributes as Attrs exposing (checked, class, classList, id, name, type_, value)
 import Html.Events as Events exposing (on)
-import Prima.Pyxis.Form.Label as Label
 
 
-{-| Represents the configuration of an Input type.
+{-| Represents the configuration of a Select type.
 -}
-type Radio model msg
-    = Radio (RadioConfig model msg)
+type Select model msg
+    = Select (SelectConfig model msg)
 
 
 {-| Internal.
 -}
-type alias RadioConfig model msg =
-    { options : List (RadioOption model msg)
-    , name : String
-    , parentAttributes : List (Html.Attribute msg)
-    , radioValues : List ( String, String )
+type alias SelectConfig model msg =
+    { options : List (SelectOption model msg)
+    , selectValues : List ( String, String )
     }
 
 
-radio : String -> List (Html.Attribute msg) -> List ( String, String ) -> Radio model msg
-radio name parentAttributes radioOptions =
-    Radio (RadioConfig [] name parentAttributes radioOptions)
+{-| Internal.
+-}
+select : List ( String, String ) -> Select model msg
+select selectValues =
+    Select (SelectConfig [] selectValues)
 
 
 {-| Internal.
 -}
-type RadioOption model msg
+type SelectOption model msg
     = Attributes (List (Html.Attribute msg))
     | Class String
     | Disabled Bool
@@ -62,6 +61,7 @@ type RadioOption model msg
     | OnInput (String -> msg)
     | OnFocus msg
     | OnBlur msg
+    | ExclusiveClass String
 
 
 {-| Internal.
@@ -81,7 +81,7 @@ type alias Options model msg =
 defaultOptions : Options model msg
 defaultOptions =
     { attributes = []
-    , classes = [ "a-form-field__radio" ]
+    , classes = [ "a-form-field__select-native" ]
     , disabled = Nothing
     , id = Nothing
     , value = always Nothing
@@ -93,63 +93,68 @@ defaultOptions =
 
 {-| Internal.
 -}
-addOption : RadioOption model msg -> Radio model msg -> Radio model msg
-addOption option (Radio radioConfig) =
-    Radio { radioConfig | options = radioConfig.options ++ [ option ] }
+addOption : SelectOption model msg -> Select model msg -> Select model msg
+addOption option (Select selectConfig) =
+    Select { selectConfig | options = selectConfig.options ++ [ option ] }
 
 
 {-| Sets an `id` to the `Input config`.
 -}
-withId : String -> Radio model msg -> Radio model msg
+withId : String -> Select model msg -> Select model msg
 withId id =
     addOption (Id id)
 
 
 {-| Sets a `disabled` to the `Input config`.
 -}
-withDisabled : Bool -> Radio model msg -> Radio model msg
+withDisabled : Bool -> Select model msg -> Select model msg
 withDisabled disabled =
     addOption (Disabled disabled)
 
 
 {-| Sets a list of `attributes` to the `Input config`.
 -}
-withAttributes : List (Html.Attribute msg) -> Radio model msg -> Radio model msg
+withAttributes : List (Html.Attribute msg) -> Select model msg -> Select model msg
 withAttributes attributes =
     addOption (Attributes attributes)
 
 
 {-| Sets a `value` to the `Input config`.
 -}
-withValue : (model -> Maybe String) -> Radio model msg -> Radio model msg
+withValue : (model -> Maybe String) -> Select model msg -> Select model msg
 withValue value =
     addOption (Value value)
 
 
 {-| Sets an `onBlur event` to the `Input config`.
 -}
-withOnBlur : msg -> Radio model msg -> Radio model msg
+withOnBlur : msg -> Select model msg -> Select model msg
 withOnBlur tagger =
     addOption (OnBlur tagger)
 
 
 {-| Sets an `onFocus event` to the `Input config`.
 -}
-withOnFocus : msg -> Radio model msg -> Radio model msg
+withOnFocus : msg -> Select model msg -> Select model msg
 withOnFocus tagger =
     addOption (OnFocus tagger)
 
 
 {-| Sets an `onInput event` to the `Input config`.
 -}
-withOnInput : (String -> msg) -> Radio model msg -> Radio model msg
+withOnInput : (String -> msg) -> Select model msg -> Select model msg
 withOnInput tagger =
     addOption (OnInput tagger)
 
 
+withExclusiveClass : String -> Select model msg -> Select model msg
+withExclusiveClass class_ =
+    addOption (ExclusiveClass class_)
+
+
 {-| Internal.
 -}
-applyOption : RadioOption model msg -> Options model msg -> Options model msg
+applyOption : SelectOption model msg -> Options model msg -> Options model msg
 applyOption modifier options =
     case modifier of
         Attributes attributes_ ->
@@ -176,6 +181,9 @@ applyOption modifier options =
         OnInput onInput_ ->
             { options | onInput = Just onInput_ }
 
+        ExclusiveClass class_ ->
+            { options | classes = [ class_ ] }
+
 
 {-| Transforms a `List` of `Class`(es) into a valid `Html.Attribute`.
 -}
@@ -186,7 +194,7 @@ classesAttribute =
 
 {-| Composes all the modifiers into a set of `Html.Attribute`(s).
 -}
-buildAttributes : model -> List (RadioOption model msg) -> List (Html.Attribute msg)
+buildAttributes : model -> List (SelectOption model msg) -> List (Html.Attribute msg)
 buildAttributes model modifiers =
     let
         options =
@@ -206,46 +214,41 @@ buildAttributes model modifiers =
 
 {-| Renders the `Radio config`.
 
-    import Prima.Pyxis.Form.Radio as Radio
+    import Prima.Pyxis.Form.Select as Select
 
     view : List (Html Msg)
-    view =
-        Radio.radio
-            "guideType"
-            [ ( "expert", "Esperta" ), ( "free", "Libera" ) ]
-            guideTypeToSlug
-            |> Field.radio
-            |> Radio.render
+        view =
+        let
+            slug =
+                "powerSource"
+        in
+        Select.select
+            [ ( "petrol", "Benzina" ), ( "diesel", "Diesel" ) ]
+            |> Select.withValue (Just << .powerSource)
+            |> Select.withId slug
+            |> Select.withOnInput (OnInput PowerSource)
+            |> Field.select
+            |> Select.render
 
 -}
-render : model -> Radio model msg -> List (Html msg)
-render model (Radio config) =
-    [ div
-        ([ class "a-form-field__radioOptions"
-         ]
-            ++ config.parentAttributes
-        )
+render : model -> Select model msg -> List (Html msg)
+render model (Select config) =
+    [ Html.select
+        (buildAttributes model config.options)
         (List.concat
             (List.map
-                (\( slug, label ) -> renderRadioOption model (Radio config) slug label)
-                config.radioValues
+                (\( slug, label ) -> renderSelectOption slug label)
+                config.selectValues
             )
         )
     ]
 
 
-renderRadioOption : model -> Radio model msg -> String -> String -> List (Html msg)
-renderRadioOption model (Radio config) slug label =
-    [ Html.input
-        ([ type_ "radio"
-         , value slug
-         , id slug
-         , name config.name
-         ]
-            ++ buildAttributes model config.options
-        )
-        []
-    , Label.label [ Label.for slug ] label
-        |> Label.withExclusiveClass "a-form-field__radio__label"
-        |> Label.render
+renderSelectOption : String -> String -> List (Html msg)
+renderSelectOption slug label =
+    [ Html.option
+        [ value slug
+        , id slug
+        ]
+        [ Html.text label ]
     ]

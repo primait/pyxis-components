@@ -1,13 +1,14 @@
 module Prima.Pyxis.Form.Example.FieldConfig exposing (..)
 
 import Html exposing (Html, text)
-import Html.Attributes exposing (id)
+import Html.Attributes exposing (class, id)
 import Prima.Pyxis.Form.Checkbox as Checkbox
-import Prima.Pyxis.Form.Example.Model exposing (Field(..), FormData, GuideType(..), Model, Msg(..), guideTypeToSlug)
+import Prima.Pyxis.Form.Example.Model exposing (Field(..), FormData, Model, Msg(..))
 import Prima.Pyxis.Form.Field as Field
 import Prima.Pyxis.Form.Input as Input
 import Prima.Pyxis.Form.Label as Label
 import Prima.Pyxis.Form.Radio as Radio
+import Prima.Pyxis.Form.Select as Select
 import Prima.Pyxis.Link as Link
 
 
@@ -76,8 +77,23 @@ guideType =
     Radio.radio
         "guideType"
         [ id "guide-type" ]
-        [ ( "expert", "Esperta" ), ( "free", "Libera" ) ]
+        [ ( "expert", "Esperta" ), ( "free", "Libera" ), ( "exclusive", "Esclusiva" ) ]
         |> Radio.withValue .guideType
         |> Radio.withOnInput (OnInput GuideTypeField)
         |> Field.radio
         |> Field.addLabel (Label.label [] "Tipo di guida")
+
+
+powerSource : Field.FormField FormData Msg
+powerSource =
+    let
+        slug =
+            "powerSource"
+    in
+    Select.select
+        [ ( "petrol", "Benzina" ), ( "diesel", "Diesel" ) ]
+        |> Select.withValue (Just << .powerSource)
+        |> Select.withId slug
+        |> Select.withOnInput (OnInput PowerSource)
+        |> Field.select
+        |> Field.addLabel (Label.label [ Label.for slug ] "Alimentazione")
