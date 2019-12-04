@@ -254,7 +254,8 @@ addOption option (Input inputConfig) =
     Input { inputConfig | options = inputConfig.options ++ [ option ] }
 
 
-{-| Internal.
+{-| Represents the options a user can choose to modify
+the `Input` default behaviour.
 -}
 type alias Options model msg =
     { attributes : List (Html.Attribute msg)
