@@ -245,7 +245,8 @@ renderRadioOption model (Radio config) slug label =
             ++ buildAttributes model config.options
         )
         []
-    , Label.label [ Label.for slug ] label
+    , Label.label label
+        |> Label.withFor slug
         |> Label.withExclusiveClass "a-form-field__radio__label"
         |> Label.render
     ]

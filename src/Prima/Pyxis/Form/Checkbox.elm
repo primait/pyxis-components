@@ -53,7 +53,7 @@ addLabel lbl (Checkbox config) =
     let
         addPyxisClass =
             [ Attrs.class "a-form-field__checkbox__label" ]
-                |> Label.attributes
+                |> Label.withAttributes
                 |> Label.addOption
     in
     Checkbox { config | optionLabel = (Just << addPyxisClass) lbl }

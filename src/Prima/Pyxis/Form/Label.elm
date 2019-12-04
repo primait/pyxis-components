@@ -44,16 +44,16 @@ type alias LabelConfig msg =
 
 {-| Creates a label with string content.
 -}
-label : List (LabelOption msg) -> String -> Label msg
-label options str =
-    Label <| LabelConfig options [ text str ]
+label : String -> Label msg
+label str =
+    Label <| LabelConfig [] [ text str ]
 
 
 {-| Creates a label with html content.
 -}
-labelWithHtml : List (LabelOption msg) -> List (Html msg) -> Label msg
-labelWithHtml options children =
-    Label <| LabelConfig options children
+labelWithHtml : List (Html msg) -> Label msg
+labelWithHtml children =
+    Label <| LabelConfig [] children
 
 
 {-| Represents the possibile modifiers of a `Label`.
