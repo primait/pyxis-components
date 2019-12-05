@@ -91,12 +91,13 @@ privacyLabel =
 
 guideType : Field.FormField FormData Msg
 guideType =
-    Radio.radio
-        "guideType"
-        [ id "guide-type" ]
-        [ ( "expert", "Esperta" ), ( "free", "Libera" ), ( "exclusive", "Esclusiva" ) ]
+    [ Radio.radioChoice "expert" "Esperta"
+    , Radio.radioChoice "free" "Libera"
+    , Radio.radioChoice "exclusive" "Esclusiva"
+    ]
+        |> Radio.radio
         |> Radio.withValue .guideType
-        |> Radio.withOnInput (OnInput GuideTypeField)
+        |> Radio.withOnChange (OnInput GuideTypeField)
         |> Field.radio
         |> Field.addLabel
             ("Tipo di guida"
@@ -110,63 +111,17 @@ powerSource =
         slug =
             "powerSource"
     in
-    Select.select
-        [ ( "petrol", "Benzina" ), ( "diesel", "Diesel" ) ]
-        (Just "diesel")
-        |> Select.withValue (Just << .powerSource)
+    [ Select.selectChoice "diesel" "Diesel"
+    , Select.selectChoice "petrol" "Benzina"
+    , Select.selectChoice "hybrid" "Benzina / Elettrico"
+    ]
+        |> Select.select
+        |> Select.withValue .powerSource
         |> Select.withId slug
-        |> Select.withOnInput (OnInput PowerSource)
+        |> Select.withOnChange (OnInput PowerSource)
         |> Field.select
         |> Field.addLabel
             ("Alimentazione"
-                |> Label.label
-                |> Label.withFor slug
-            )
-
-
-registrationMonth : Model -> Field.FormField FormData Msg
-registrationMonth model =
-    let
-        slug =
-            "registrationMonth"
-    in
-    CustomSelect.customSelect
-        []
-        [ ( "june", "Giugno" ), ( "july", "Luglio" ) ]
-        model.registrationMonthOpen
-        "Mese"
-        .registrationMonth
-        (OnToggle RegistrationMonth)
-        (OnSelect RegistrationMonth)
-        |> CustomSelect.withId slug
-        |> CustomSelect.withRegularSize
-        |> Field.customSelect
-        |> Field.addLabel
-            ("Data di immatricolazione"
-                |> Label.label
-                |> Label.withFor slug
-            )
-
-
-registrationYear : Model -> Field.FormField FormData Msg
-registrationYear model =
-    let
-        slug =
-            "registrationYear"
-    in
-    CustomSelect.customSelect
-        []
-        [ ( "2019", "2019" ), ( "2020", "2020" ) ]
-        model.registrationYearOpen
-        "Anno"
-        .registrationYear
-        (OnToggle RegistrationYear)
-        (OnSelect RegistrationYear)
-        |> CustomSelect.withId slug
-        |> CustomSelect.withRegularSize
-        |> Field.customSelect
-        |> Field.addLabel
-            (""
                 |> Label.label
                 |> Label.withFor slug
             )

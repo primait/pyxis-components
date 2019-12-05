@@ -240,11 +240,12 @@ withValue value =
             |> FormInput.render
 
 -}
-render : model -> Input model msg -> Html msg
+render : model -> Input model msg -> List (Html msg)
 render model (Input config) =
-    Html.input
+    [ Html.input
         (buildAttributes model config.options)
         []
+    ]
 
 
 {-| Internal.

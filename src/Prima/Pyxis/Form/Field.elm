@@ -142,7 +142,7 @@ renderField : model -> FormField model msg -> List (Html msg)
 renderField model formField =
     case formField of
         InputField { config } ->
-            [ Input.render model config ]
+            Input.render model config
 
         CheckboxField { config } ->
             Checkbox.render model config

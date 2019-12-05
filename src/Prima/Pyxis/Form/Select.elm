@@ -37,13 +37,24 @@ type Select model msg
 
 type alias SelectConfig model msg =
     { options : List (SelectOption model msg)
-    , selectOptions : List ( String, String )
+    , selectChoices : List SelectChoice
     }
 
 
-select : List ( String, String ) -> Select model msg
+select : List SelectChoice -> Select model msg
 select =
     Select << SelectConfig []
+
+
+type alias SelectChoice =
+    { value : String
+    , label : String
+    }
+
+
+selectChoice : String -> String -> SelectChoice
+selectChoice value label =
+    SelectChoice value label
 
 
 {-| Internal.
@@ -67,10 +78,10 @@ type alias Options model msg =
     , classes : List String
     , disabled : Maybe Bool
     , id : Maybe String
-    , value : model -> Maybe String
     , onChange : Maybe (String -> msg)
     , onFocus : Maybe msg
     , onBlur : Maybe msg
+    , value : model -> Maybe String
     }
 
 
@@ -209,35 +220,23 @@ buildAttributes model modifiers =
 
 
 {-| Renders the `Radio config`.
-
-    import Prima.Pyxis.Form.Select as Select
-
-    view : List (Html Msg)
-    view =
-        let
-            slug =
-                "powerSource"
-        in
-        Select.select
-            [ ( "petrol", "Benzina" ), ( "diesel", "Diesel" ) ]
-            |> Select.withValue (Just << .powerSource)
-            |> Select.withId slug
-            |> Select.withOnSelect (OnSelect PowerSource)
-            |> Field.select
-            |> Select.render
-
 -}
-render : model -> Select model msg -> Html msg
+render : model -> Select model msg -> List (Html msg)
 render model ((Select config) as selectModel) =
-    Html.select
+    [ Html.select
         (buildAttributes model config.options)
-        (List.map (renderSelectOption selectModel) config.selectOptions)
+        (List.map (renderSelectChoice model selectModel) config.selectChoices)
+    ]
 
 
-renderSelectOption : Select model msg -> ( String, String ) -> Html msg
-renderSelectOption (Select config) ( slug, label ) =
+renderSelectChoice : model -> Select model msg -> SelectChoice -> Html msg
+renderSelectChoice model (Select config) choice =
+    let
+        options =
+            List.foldl applyOption defaultOptions config.options
+    in
     Html.option
-        [ Attrs.value slug
-        , Attrs.selected False
+        [ Attrs.value choice.value
+        , Attrs.selected <| (==) choice.value <| Maybe.withDefault "" <| options.value model
         ]
-        [ Html.text label ]
+        [ Html.text choice.label ]

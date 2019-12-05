@@ -162,14 +162,14 @@ classesAttribute =
 
 {-| Renders a `Label config`.
 
-    import Prima.Pyxis.Form.Label as FormLabel
+    import Prima.Pyxis.Form.Label as Label
 
-    view : Html msg
+    view : List (Html msg)
     view =
-        FormLabel.label
-            [ FormLabel.for "myForId"
-            ]
-            |> FormLabel.render
+        "My Label"
+            |> Label.label
+            |> Label.withId "myForId"
+            |> Label.render
 
 -}
 render : Label msg -> Html msg

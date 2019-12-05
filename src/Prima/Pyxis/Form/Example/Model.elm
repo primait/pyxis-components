@@ -44,7 +44,7 @@ type alias FormData =
     , password : Maybe String
     , privacy : Maybe Bool
     , guideType : Maybe String
-    , powerSource : String
+    , powerSource : Maybe String
     , registrationMonth : Maybe String
     , registrationYear : Maybe String
     }
@@ -56,7 +56,7 @@ initialFormData =
     , password = Nothing
     , privacy = Nothing
     , guideType = Nothing
-    , powerSource = "diesel"
+    , powerSource = Nothing
     , registrationMonth = Nothing
     , registrationYear = Nothing
     }
