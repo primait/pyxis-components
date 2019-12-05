@@ -24,7 +24,11 @@ usernameConfig =
         |> Input.withValue .username
         |> Input.withOnInput (OnInput Username)
         |> Field.input
-        |> Field.addLabel (Label.label [ Label.for slug ] "Username")
+        |> Field.addLabel
+            ("Username"
+                |> Label.label
+                |> Label.withFor slug
+            )
 
 
 passwordConfig : Field.FormField FormData Msg
@@ -38,7 +42,11 @@ passwordConfig =
         |> Input.withValue .password
         |> Input.withOnInput (OnInput Password)
         |> Field.input
-        |> Field.addLabel (Label.label [ Label.for slug ] "Password")
+        |> Field.addLabel
+            ("Password"
+                |> Label.label
+                |> Label.withFor slug
+            )
 
 
 privacyConfig : Model -> Field.FormField FormData Msg
@@ -51,9 +59,17 @@ privacyConfig { formData } =
         |> Checkbox.withValue (checkboxStatus formData.privacy)
         |> Checkbox.withId slug
         |> Checkbox.withOnCheck (OnCheck Privacy)
-        |> Checkbox.addLabel (Label.labelWithHtml [ Label.for slug ] privacyLabel)
+        |> Checkbox.addLabel
+            (privacyLabel
+                |> Label.labelWithHtml
+                |> Label.withFor slug
+            )
         |> Field.checkbox
-        |> Field.addLabel (Label.label [ Label.for slug ] "Privacy")
+        |> Field.addLabel
+            ("Privacy"
+                |> Label.label
+                |> Label.withFor slug
+            )
 
 
 checkboxStatus : Maybe Bool -> Checkbox.CheckboxValue
@@ -82,7 +98,10 @@ guideType =
         |> Radio.withValue .guideType
         |> Radio.withOnInput (OnInput GuideTypeField)
         |> Field.radio
-        |> Field.addLabel (Label.label [] "Tipo di guida")
+        |> Field.addLabel
+            ("Tipo di guida"
+                |> Label.label
+            )
 
 
 powerSource : Field.FormField FormData Msg
@@ -98,7 +117,11 @@ powerSource =
         |> Select.withId slug
         |> Select.withOnInput (OnInput PowerSource)
         |> Field.select
-        |> Field.addLabel (Label.label [ Label.for slug ] "Alimentazione")
+        |> Field.addLabel
+            ("Alimentazione"
+                |> Label.label
+                |> Label.withFor slug
+            )
 
 
 registrationMonth : Model -> Field.FormField FormData Msg
@@ -118,7 +141,11 @@ registrationMonth model =
         |> CustomSelect.withId slug
         |> CustomSelect.withRegularSize
         |> Field.customSelect
-        |> Field.addLabel (Label.label [ Label.for slug ] "Data di immatricolazione")
+        |> Field.addLabel
+            ("Data di immatricolazione"
+                |> Label.label
+                |> Label.withFor slug
+            )
 
 
 registrationYear : Model -> Field.FormField FormData Msg
@@ -138,4 +165,8 @@ registrationYear model =
         |> CustomSelect.withId slug
         |> CustomSelect.withRegularSize
         |> Field.customSelect
-        |> Field.addLabel (Label.label [ Label.for slug ] "")
+        |> Field.addLabel
+            (""
+                |> Label.label
+                |> Label.withFor slug
+            )

@@ -1,39 +1,63 @@
 module Prima.Pyxis.Form.Label exposing
-    ( Label
-    , addOption
-    , attributes
-    , for
-    , label
-    , labelWithHtml
+    ( Label, label, labelWithHtml
+    , withAttributes, withClass, withExclusiveClass, withFor
     , render
-    , withAttributes
-    , withExclusiveClass
+    , addOption
     )
+
+{-|
+
+
+## Types and Configuration
+
+@docs Label, label, labelWithHtml
+
+
+## Generic modifiers
+
+@docs withAttributes, withClass, withExclusiveClass, withFor
+
+
+## Rendering
+
+@docs render
+
+-}
 
 import Html exposing (Html, label, text)
 import Html.Attributes as Attrs
 
 
+{-| Represents the opaque `Label` configuration.
+-}
 type Label msg
     = Label (LabelConfig msg)
 
 
+{-| Represents the `Label` configuration.
+-}
 type alias LabelConfig msg =
     { options : List (LabelOption msg)
     , children : List (Html msg)
     }
 
 
-label : List (LabelOption msg) -> String -> Label msg
-label options str =
-    Label <| LabelConfig options [ text str ]
+{-| Creates a label with string content.
+-}
+label : String -> Label msg
+label str =
+    Label <| LabelConfig [] [ text str ]
 
 
-labelWithHtml : List (LabelOption msg) -> List (Html msg) -> Label msg
-labelWithHtml options children =
-    Label <| LabelConfig options children
+{-| Creates a label with html content.
+-}
+labelWithHtml : List (Html msg) -> Label msg
+labelWithHtml children =
+    Label <| LabelConfig [] children
 
 
+{-| Represents the possibile modifiers of a `Label`.
+-}
 type LabelOption msg
     = Attributes (List (Html.Attribute msg))
     | Class String
@@ -41,16 +65,9 @@ type LabelOption msg
     | ExclusiveClass String
 
 
-attributes : List (Html.Attribute msg) -> LabelOption msg
-attributes =
-    Attributes
-
-
-for : String -> LabelOption msg
-for =
-    For
-
-
+{-| Represents the options a user can choose to modify
+the `Label` default behaviour.
+-}
 type alias Options msg =
     { attributes : List (Html.Attribute msg)
     , classes : List String
@@ -58,6 +75,8 @@ type alias Options msg =
     }
 
 
+{-| Internal
+-}
 defaultOptions : Options msg
 defaultOptions =
     { attributes = []
@@ -66,11 +85,43 @@ defaultOptions =
     }
 
 
+{-| Internal
+-}
 addOption : LabelOption msg -> Label msg -> Label msg
 addOption option (Label labelConfig) =
     Label { labelConfig | options = option :: labelConfig.options }
 
 
+{-| Sets a list of `attributes` to the `Label config`.
+-}
+withAttributes : List (Html.Attribute msg) -> Label msg -> Label msg
+withAttributes attributes_ =
+    addOption (Attributes attributes_)
+
+
+{-| Sets a class which will override the others to the `Label config`.
+-}
+withExclusiveClass : String -> Label msg -> Label msg
+withExclusiveClass class_ =
+    addOption (ExclusiveClass class_)
+
+
+{-| Sets a class to the `Label config`.
+-}
+withClass : String -> Label msg -> Label msg
+withClass class_ =
+    addOption (Class class_)
+
+
+{-| Sets a for to the `Label config`.
+-}
+withFor : String -> Label msg -> Label msg
+withFor for_ =
+    addOption (For for_)
+
+
+{-| Internal
+-}
 applyOption : LabelOption msg -> Options msg -> Options msg
 applyOption modifier options =
     case modifier of
@@ -87,6 +138,8 @@ applyOption modifier options =
             { options | classes = [ class_ ] }
 
 
+{-| Internal
+-}
 buildAttributes : List (LabelOption msg) -> List (Html.Attribute msg)
 buildAttributes modifiers =
     let
@@ -107,16 +160,18 @@ classesAttribute =
     Attrs.class << String.join " "
 
 
-withAttributes : List (Html.Attribute msg) -> Label msg -> Label msg
-withAttributes attributes_ =
-    addOption (Attributes attributes_)
+{-| Renders a `Label config`.
 
+    import Prima.Pyxis.Form.Label as FormLabel
 
-withExclusiveClass : String -> Label msg -> Label msg
-withExclusiveClass class_ =
-    addOption (ExclusiveClass class_)
+    view : Html msg
+    view =
+        FormLabel.label
+            [ FormLabel.for "myForId"
+            ]
+            |> FormLabel.render
 
-
+-}
 render : Label msg -> Html msg
 render (Label labelConfig) =
     Html.label
