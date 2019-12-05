@@ -33,7 +33,7 @@ type Field
     = Username
     | Password
     | Privacy
-    | GuideTypeField
+    | GuideType
     | PowerSource
     | RegistrationMonth
     | RegistrationYear

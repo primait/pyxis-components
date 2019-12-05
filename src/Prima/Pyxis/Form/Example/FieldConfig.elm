@@ -19,10 +19,8 @@ usernameConfig =
         slug =
             "username"
     in
-    Input.text
+    Input.text .username (OnInput Username)
         |> Input.withId slug
-        |> Input.withValue .username
-        |> Input.withOnInput (OnInput Username)
         |> Field.input
         |> Field.addLabel
             ("Username"
@@ -37,10 +35,8 @@ passwordConfig =
         slug =
             "password"
     in
-    Input.password
+    Input.password .password (OnInput Password)
         |> Input.withId slug
-        |> Input.withValue .password
-        |> Input.withOnInput (OnInput Password)
         |> Field.input
         |> Field.addLabel
             ("Password"
@@ -95,9 +91,8 @@ guideType =
     , Radio.radioChoice "free" "Libera"
     , Radio.radioChoice "exclusive" "Esclusiva"
     ]
-        |> Radio.radio
-        |> Radio.withValue .guideType
-        |> Radio.withOnChange (OnInput GuideTypeField)
+        |> Radio.radio .guideType (OnInput GuideType)
+        |> Radio.withName "guide_type"
         |> Field.radio
         |> Field.addLabel
             ("Tipo di guida"

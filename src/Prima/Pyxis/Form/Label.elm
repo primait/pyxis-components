@@ -1,6 +1,6 @@
 module Prima.Pyxis.Form.Label exposing
     ( Label, label, labelWithHtml
-    , withAttributes, withClass, withExclusiveClass, withFor
+    , withAttributes, withClass, withExclusiveClass, withFor, withOnClick
     , render
     , addOption
     )
@@ -15,7 +15,7 @@ module Prima.Pyxis.Form.Label exposing
 
 ## Generic modifiers
 
-@docs withAttributes, withClass, withExclusiveClass, withFor
+@docs withAttributes, withClass, withExclusiveClass, withFor, withOnClick
 
 
 ## Rendering
@@ -26,6 +26,7 @@ module Prima.Pyxis.Form.Label exposing
 
 import Html exposing (Html, label, text)
 import Html.Attributes as Attrs
+import Html.Events as Events
 
 
 {-| Represents the opaque `Label` configuration.
@@ -63,6 +64,7 @@ type LabelOption msg
     | Class String
     | For String
     | ExclusiveClass String
+    | OnClick msg
 
 
 {-| Represents the options a user can choose to modify
@@ -72,6 +74,7 @@ type alias Options msg =
     { attributes : List (Html.Attribute msg)
     , classes : List String
     , for : Maybe String
+    , onClick : Maybe msg
     }
 
 
@@ -82,6 +85,7 @@ defaultOptions =
     { attributes = []
     , classes = [ "a-form-field__label" ]
     , for = Nothing
+    , onClick = Nothing
     }
 
 
@@ -120,6 +124,13 @@ withFor for_ =
     addOption (For for_)
 
 
+{-| Sets an `onClick` to the `Label config`.
+-}
+withOnClick : msg -> Label msg -> Label msg
+withOnClick onClick =
+    addOption (OnClick onClick)
+
+
 {-| Internal
 -}
 applyOption : LabelOption msg -> Options msg -> Options msg
@@ -137,6 +148,9 @@ applyOption modifier options =
         ExclusiveClass class_ ->
             { options | classes = [ class_ ] }
 
+        OnClick msg ->
+            { options | onClick = Just msg }
+
 
 {-| Internal
 -}
@@ -146,7 +160,10 @@ buildAttributes modifiers =
         options =
             List.foldl applyOption defaultOptions modifiers
     in
-    [ Maybe.map Attrs.for options.for
+    [ options.for
+        |> Maybe.map Attrs.for
+    , options.onClick
+        |> Maybe.map Events.onClick
     ]
         |> List.filterMap identity
         |> (++) options.attributes

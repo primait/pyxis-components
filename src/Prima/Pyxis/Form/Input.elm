@@ -1,8 +1,8 @@
 module Prima.Pyxis.Form.Input exposing
     ( Input, text, password, date, number, email
-    , withAttributes, withClass, withDisabled, withId, withName, withPlaceholder, withValue
+    , withAttributes, withClass, withDisabled, withId, withName, withPlaceholder
     , withRegularSize, withSmallSize, withLargeSize
-    , withOnInput, withOnBlur, withOnFocus
+    , withOnBlur, withOnFocus
     , render
     )
 
@@ -16,7 +16,7 @@ module Prima.Pyxis.Form.Input exposing
 
 ## Generic modifiers
 
-@docs withAttributes, withClass, withDisabled, withId, withName, withPlaceholder, withValue
+@docs withAttributes, withClass, withDisabled, withId, withName, withPlaceholder
 
 
 ## Size modifiers
@@ -26,7 +26,7 @@ module Prima.Pyxis.Form.Input exposing
 
 ## Events
 
-@docs withOnInput, withOnBlur, withOnFocus
+@docs withOnBlur, withOnFocus
 
 
 ## Rendering
@@ -51,6 +51,8 @@ type Input model msg
 type alias InputConfig model msg =
     { options : List (InputOption model msg)
     , type_ : InputType
+    , reader : model -> Maybe String
+    , writer : String -> msg
     }
 
 
@@ -66,44 +68,44 @@ type InputType
 
 {-| Internal.
 -}
-input : InputType -> Input model msg
-input =
-    Input << InputConfig []
+input : InputType -> (model -> Maybe String) -> (String -> msg) -> Input model msg
+input type_ reader writer =
+    Input <| InputConfig [] type_ reader writer
 
 
 {-| Creates an `input[type="text"]` with the default options.
 -}
-text : Input model msg
-text =
-    input Text
+text : (model -> Maybe String) -> (String -> msg) -> Input model msg
+text reader writer =
+    input Text reader writer
 
 
 {-| Creates an `input[type="password"]` with the default options.
 -}
-password : Input model msg
-password =
-    input Password
+password : (model -> Maybe String) -> (String -> msg) -> Input model msg
+password reader writer =
+    input Password reader writer
 
 
 {-| Creates an `input[type="date"]` with the default options.
 -}
-date : Input model msg
-date =
-    input Date
+date : (model -> Maybe String) -> (String -> msg) -> Input model msg
+date reader writer =
+    input Date reader writer
 
 
 {-| Creates an `input[type="number"]` with the default options.
 -}
-number : Input model msg
-number =
-    input Number
+number : (model -> Maybe String) -> (String -> msg) -> Input model msg
+number reader writer =
+    input Number reader writer
 
 
 {-| Creates an `input[type="email"]` with the default options.
 -}
-email : Input model msg
-email =
-    input Email
+email : (model -> Maybe String) -> (String -> msg) -> Input model msg
+email reader writer =
+    input Email reader writer
 
 
 {-| Represents the possibile modifiers of an `Input`.
@@ -116,10 +118,8 @@ type InputOption model msg
     | Name String
     | OnBlur msg
     | OnFocus msg
-    | OnInput (String -> msg)
     | Placeholder String
     | Size InputSize
-    | Value (model -> Maybe String)
 
 
 {-| Represents the `Input` size.
@@ -186,13 +186,6 @@ withOnFocus tagger =
     addOption (OnFocus tagger)
 
 
-{-| Sets an `onInput event` to the `Input config`.
--}
-withOnInput : (String -> msg) -> Input model msg -> Input model msg
-withOnInput tagger =
-    addOption (OnInput tagger)
-
-
 {-| Sets a `placeholder` to the `Input config`.
 -}
 withPlaceholder : String -> Input model msg -> Input model msg
@@ -212,13 +205,6 @@ withRegularSize =
 withSmallSize : Input model msg -> Input model msg
 withSmallSize =
     addOption (Size Small)
-
-
-{-| Sets a `value` to the `Input config`.
--}
-withValue : (model -> Maybe String) -> Input model msg -> Input model msg
-withValue value =
-    addOption (Value value)
 
 
 {-| Renders the `Input config`.
@@ -241,9 +227,9 @@ withValue value =
 
 -}
 render : model -> Input model msg -> List (Html msg)
-render model (Input config) =
+render model inputModel =
     [ Html.input
-        (buildAttributes model config.options)
+        (buildAttributes model inputModel)
         []
     ]
 
@@ -258,44 +244,38 @@ addOption option (Input inputConfig) =
 {-| Represents the options a user can choose to modify
 the `Input` default behaviour.
 -}
-type alias Options model msg =
+type alias Options msg =
     { attributes : List (Html.Attribute msg)
     , disabled : Maybe Bool
     , classes : List String
     , id : Maybe String
     , name : Maybe String
-    , onInput : Maybe (String -> msg)
     , onFocus : Maybe msg
     , onBlur : Maybe msg
     , placeholder : Maybe String
     , size : InputSize
-    , type_ : InputType
-    , value : model -> Maybe String
     }
 
 
 {-| Internal.
 -}
-defaultOptions : Options model msg
+defaultOptions : Options msg
 defaultOptions =
     { attributes = []
     , disabled = Nothing
     , classes = [ "a-form-field__input" ]
     , id = Nothing
     , name = Nothing
-    , onInput = Nothing
     , onFocus = Nothing
     , onBlur = Nothing
     , placeholder = Nothing
     , size = Regular
-    , type_ = Text
-    , value = always Nothing
     }
 
 
 {-| Internal.
 -}
-applyOption : InputOption model msg -> Options model msg -> Options model msg
+applyOption : InputOption model msg -> Options msg -> Options msg
 applyOption modifier options =
     case modifier of
         Attributes attributes_ ->
@@ -313,9 +293,6 @@ applyOption modifier options =
         Name name_ ->
             { options | name = Just name_ }
 
-        OnInput onInput_ ->
-            { options | onInput = Just onInput_ }
-
         OnBlur onBlur_ ->
             { options | onBlur = Just onBlur_ }
 
@@ -327,9 +304,6 @@ applyOption modifier options =
 
         Size size_ ->
             { options | size = size_ }
-
-        Value valueReader_ ->
-            { options | value = valueReader_ }
 
 
 {-| Transforms an `InputType` into a valid `Html.Attribute`.
@@ -379,25 +353,33 @@ sizeAttribute size =
         )
 
 
+readerAttribute : model -> Input model msg -> Html.Attribute msg
+readerAttribute model (Input config) =
+    (Attrs.value << Maybe.withDefault "" << config.reader) model
+
+
+writerAttribute : Input model msg -> Html.Attribute msg
+writerAttribute (Input config) =
+    Events.onInput config.writer
+
+
 {-| Composes all the modifiers into a set of `Html.Attribute`(s).
 -}
-buildAttributes : model -> List (InputOption model msg) -> List (Html.Attribute msg)
-buildAttributes model modifiers =
+buildAttributes : model -> Input model msg -> List (Html.Attribute msg)
+buildAttributes model (Input config) =
     let
         options =
-            List.foldl applyOption defaultOptions modifiers
+            List.foldl applyOption defaultOptions config.options
     in
     [ Maybe.map Attrs.id options.id
     , Maybe.map Attrs.name options.name
     , Maybe.map Attrs.disabled options.disabled
     , Maybe.map Attrs.placeholder options.placeholder
-    , Maybe.map Attrs.value (options.value model)
-    , Maybe.map Events.onInput options.onInput
     , Maybe.map Events.onBlur options.onBlur
     , Maybe.map Events.onFocus options.onFocus
     ]
         |> List.filterMap identity
         |> (++) options.attributes
         |> (::) (classesAttribute options.classes)
-        |> (::) (typeAttribute options.type_)
+        |> (::) (typeAttribute config.type_)
         |> (::) (sizeAttribute options.size)

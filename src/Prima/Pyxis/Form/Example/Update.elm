@@ -12,7 +12,7 @@ import Prima.Pyxis.Helpers as H
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-    case msg of
+    case Debug.log "update" msg of
         OnInput Username value ->
             model
                 |> updateUsername (Just value)
@@ -31,7 +31,7 @@ update msg model =
                 |> printModel
                 |> H.withoutCmds
 
-        OnInput GuideTypeField value ->
+        OnInput GuideType value ->
             model
                 |> updateGuideType value
                 |> printModel
