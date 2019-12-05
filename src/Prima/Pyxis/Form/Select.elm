@@ -68,7 +68,7 @@ type alias Options model msg =
     , disabled : Maybe Bool
     , id : Maybe String
     , value : model -> Maybe String
-    , onSelect : Maybe (String -> msg)
+    , onChange : Maybe (String -> msg)
     , onFocus : Maybe msg
     , onBlur : Maybe msg
     }
@@ -81,7 +81,7 @@ defaultOptions =
     , disabled = Nothing
     , id = Nothing
     , value = always Nothing
-    , onSelect = Nothing
+    , onChange = Nothing
     , onFocus = Nothing
     , onBlur = Nothing
     }
@@ -134,7 +134,7 @@ withOnFocus tagger =
     addOption (OnFocus tagger)
 
 
-{-| Sets an `onSelect event` to the `Select config`.
+{-| Sets an `onChange event` to the `Select config`.
 -}
 withOnChange : (String -> msg) -> Select model msg -> Select model msg
 withOnChange tagger =
@@ -174,8 +174,8 @@ applyOption modifier options =
         OnBlur onBlur_ ->
             { options | onBlur = Just onBlur_ }
 
-        OnSelect onSelect_ ->
-            { options | onSelect = Just onSelect_ }
+        OnChange onChange_ ->
+            { options | onChange = Just onChange_ }
 
         ExclusiveClass class_ ->
             { options | classes = [ class_ ] }
@@ -199,7 +199,7 @@ buildAttributes model modifiers =
     [ Maybe.map Attrs.id options.id
     , Maybe.map Attrs.disabled options.disabled
     , Maybe.map Attrs.value (options.value model)
-    , Maybe.map Events.onSelect options.onSelect
+    , Maybe.map Events.onInput options.onChange
     , Maybe.map Events.onFocus options.onFocus
     , Maybe.map Events.onBlur options.onBlur
     ]
@@ -213,7 +213,7 @@ buildAttributes model modifiers =
     import Prima.Pyxis.Form.Select as Select
 
     view : List (Html Msg)
-        view =
+    view =
         let
             slug =
                 "powerSource"
@@ -227,33 +227,17 @@ buildAttributes model modifiers =
             |> Select.render
 
 -}
-render : model -> Select model msg -> List (Html msg)
-render model (Select config) =
-    [ Html.select
+render : model -> Select model msg -> Html msg
+render model ((Select config) as selectModel) =
+    Html.select
         (buildAttributes model config.options)
-        (List.concat
-            (List.map
-                (\( slug, label ) -> renderSelectOption (Select config) slug label)
-                config.selectValues
-            )
-        )
-    ]
+        (List.map (renderSelectOption selectModel) config.selectOptions)
 
 
-renderSelectOption : Select model msg -> String -> String -> List (Html msg)
-renderSelectOption (Select config) slug label =
-    let
-        selected =
-            if config.selected == Just slug then
-                Attrs.selected True
-
-            else
-                Attrs.selected False
-    in
-    [ Html.option
-        [ value slug
-        , id slug
-        , selected
+renderSelectOption : Select model msg -> ( String, String ) -> Html msg
+renderSelectOption (Select config) ( slug, label ) =
+    Html.option
+        [ Attrs.value slug
+        , Attrs.selected False
         ]
         [ Html.text label ]
-    ]

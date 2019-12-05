@@ -64,7 +64,7 @@ type alias AutocompleteResult =
 -}
 autocomplete : List AutocompleteResult -> Autocomplete model msg
 autocomplete =
-    Autocomplete <<< AutocompleteConfig []
+    Autocomplete << AutocompleteConfig []
 
 
 {-| Represents the possibile modifiers of an `Autocomplete`.
@@ -92,6 +92,13 @@ type AutocompleteSize
     = Small
     | Regular
     | Large
+
+
+{-| Internal
+-}
+autocompleteResult : String -> String -> AutocompleteResult
+autocompleteResult label value =
+    AutocompleteResult label value
 
 
 {-| Sets a list of `attributes` to the `Autocomplete config`.
