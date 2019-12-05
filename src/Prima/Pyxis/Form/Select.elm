@@ -5,7 +5,7 @@ module Prima.Pyxis.Form.Select exposing (..)
 
 ## Types
 
-@docs Select
+@docs Select, select
 
 
 ## Modifiers
@@ -15,7 +15,7 @@ module Prima.Pyxis.Form.Select exposing (..)
 
 ## Events
 
-@docs withOnInput
+@docs withOnSelect
 
 
 ## Render
@@ -35,20 +35,15 @@ type Select model msg
     = Select (SelectConfig model msg)
 
 
-{-| Internal.
--}
 type alias SelectConfig model msg =
     { options : List (SelectOption model msg)
-    , selectValues : List ( String, String )
-    , selected : Maybe String
+    , selectOptions : List ( String, String )
     }
 
 
-{-| Internal.
--}
-select : List ( String, String ) -> Maybe String -> Select model msg
-select selectValues selectedSlug =
-    Select (SelectConfig [] selectValues selectedSlug)
+select : List ( String, String ) -> Select model msg
+select =
+    Select << SelectConfig []
 
 
 {-| Internal.
@@ -57,12 +52,12 @@ type SelectOption model msg
     = Attributes (List (Html.Attribute msg))
     | Class String
     | Disabled Bool
+    | ExclusiveClass String
     | Id String
-    | Value (model -> Maybe String)
-    | OnInput (String -> msg)
+    | OnChange (String -> msg)
     | OnFocus msg
     | OnBlur msg
-    | ExclusiveClass String
+    | Value (model -> Maybe String)
 
 
 {-| Internal.
@@ -73,7 +68,7 @@ type alias Options model msg =
     , disabled : Maybe Bool
     , id : Maybe String
     , value : model -> Maybe String
-    , onInput : Maybe (String -> msg)
+    , onSelect : Maybe (String -> msg)
     , onFocus : Maybe msg
     , onBlur : Maybe msg
     }
@@ -86,7 +81,7 @@ defaultOptions =
     , disabled = Nothing
     , id = Nothing
     , value = always Nothing
-    , onInput = Nothing
+    , onSelect = Nothing
     , onFocus = Nothing
     , onBlur = Nothing
     }
@@ -99,58 +94,58 @@ addOption option (Select selectConfig) =
     Select { selectConfig | options = selectConfig.options ++ [ option ] }
 
 
-{-| Sets an `id` to the `Input config`.
--}
-withId : String -> Select model msg -> Select model msg
-withId id =
-    addOption (Id id)
-
-
-{-| Sets a `disabled` to the `Input config`.
--}
-withDisabled : Bool -> Select model msg -> Select model msg
-withDisabled disabled =
-    addOption (Disabled disabled)
-
-
-{-| Sets a list of `attributes` to the `Input config`.
+{-| Sets a list of `attributes` to the `Select config`.
 -}
 withAttributes : List (Html.Attribute msg) -> Select model msg -> Select model msg
 withAttributes attributes =
     addOption (Attributes attributes)
 
 
-{-| Sets a `value` to the `Input config`.
+{-| Sets a `disabled` to the `Select config`.
 -}
-withValue : (model -> Maybe String) -> Select model msg -> Select model msg
-withValue value =
-    addOption (Value value)
+withDisabled : Bool -> Select model msg -> Select model msg
+withDisabled disabled =
+    addOption (Disabled disabled)
 
 
-{-| Sets an `onBlur event` to the `Input config`.
+withExclusiveClass : String -> Select model msg -> Select model msg
+withExclusiveClass class_ =
+    addOption (ExclusiveClass class_)
+
+
+{-| Sets an `id` to the `Select config`.
+-}
+withId : String -> Select model msg -> Select model msg
+withId id =
+    addOption (Id id)
+
+
+{-| Sets an `onBlur event` to the `Select config`.
 -}
 withOnBlur : msg -> Select model msg -> Select model msg
 withOnBlur tagger =
     addOption (OnBlur tagger)
 
 
-{-| Sets an `onFocus event` to the `Input config`.
+{-| Sets an `onFocus event` to the `Select config`.
 -}
 withOnFocus : msg -> Select model msg -> Select model msg
 withOnFocus tagger =
     addOption (OnFocus tagger)
 
 
-{-| Sets an `onInput event` to the `Input config`.
+{-| Sets an `onSelect event` to the `Select config`.
 -}
-withOnInput : (String -> msg) -> Select model msg -> Select model msg
-withOnInput tagger =
-    addOption (OnInput tagger)
+withOnChange : (String -> msg) -> Select model msg -> Select model msg
+withOnChange tagger =
+    addOption (OnChange tagger)
 
 
-withExclusiveClass : String -> Select model msg -> Select model msg
-withExclusiveClass class_ =
-    addOption (ExclusiveClass class_)
+{-| Sets a `value` to the `Select config`.
+-}
+withValue : (model -> Maybe String) -> Select model msg -> Select model msg
+withValue value =
+    addOption (Value value)
 
 
 {-| Internal.
@@ -179,8 +174,8 @@ applyOption modifier options =
         OnBlur onBlur_ ->
             { options | onBlur = Just onBlur_ }
 
-        OnInput onInput_ ->
-            { options | onInput = Just onInput_ }
+        OnSelect onSelect_ ->
+            { options | onSelect = Just onSelect_ }
 
         ExclusiveClass class_ ->
             { options | classes = [ class_ ] }
@@ -204,7 +199,7 @@ buildAttributes model modifiers =
     [ Maybe.map Attrs.id options.id
     , Maybe.map Attrs.disabled options.disabled
     , Maybe.map Attrs.value (options.value model)
-    , Maybe.map Events.onInput options.onInput
+    , Maybe.map Events.onSelect options.onSelect
     , Maybe.map Events.onFocus options.onFocus
     , Maybe.map Events.onBlur options.onBlur
     ]
@@ -227,7 +222,7 @@ buildAttributes model modifiers =
             [ ( "petrol", "Benzina" ), ( "diesel", "Diesel" ) ]
             |> Select.withValue (Just << .powerSource)
             |> Select.withId slug
-            |> Select.withOnInput (OnInput PowerSource)
+            |> Select.withOnSelect (OnSelect PowerSource)
             |> Field.select
             |> Select.render
 
