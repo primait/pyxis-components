@@ -3,6 +3,7 @@ module Prima.Pyxis.Form.Example.FieldConfig exposing (..)
 import Html exposing (Html, text)
 import Html.Attributes exposing (class, id)
 import Prima.Pyxis.Form.Checkbox as Checkbox
+import Prima.Pyxis.Form.CustomSelect as CustomSelect
 import Prima.Pyxis.Form.Example.Model exposing (Field(..), FormData, Model, Msg(..))
 import Prima.Pyxis.Form.Field as Field
 import Prima.Pyxis.Form.Input as Input
@@ -98,3 +99,23 @@ powerSource =
         |> Select.withOnInput (OnInput PowerSource)
         |> Field.select
         |> Field.addLabel (Label.label [ Label.for slug ] "Alimentazione")
+
+
+registrationMonth : Model -> Field.FormField FormData Msg
+registrationMonth model =
+    let
+        slug =
+            "registrationMonth"
+    in
+    CustomSelect.customSelect
+        []
+        [ ( "june", "Giugno" ), ( "july", "Luglio" ) ]
+        model.registrationMonthOpen
+        "Mese"
+        .registrationMonth
+        (OnToggle RegistrationMonth)
+        (OnSelect RegistrationMonth)
+        |> CustomSelect.withId slug
+        |> CustomSelect.withSmallSize
+        |> Field.customSelect
+        |> Field.addLabel (Label.label [ Label.for slug ] "Data di immatricolazione")

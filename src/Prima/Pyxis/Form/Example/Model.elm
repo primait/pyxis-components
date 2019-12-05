@@ -12,17 +12,20 @@ import Prima.Pyxis.Form as Form
 type Msg
     = OnInput Field String
     | OnCheck Field Bool
+    | OnToggle Field Bool
+    | OnSelect Field (Maybe String)
 
 
 type alias Model =
     { form : Form.Form FormData Msg
     , formData : FormData
+    , registrationMonthOpen : Bool
     }
 
 
 initialModel : Model
 initialModel =
-    Model (Form.init Form.Always) initialFormData
+    Model (Form.init Form.Always) initialFormData False
 
 
 type Field
@@ -31,6 +34,7 @@ type Field
     | Privacy
     | GuideTypeField
     | PowerSource
+    | RegistrationMonth
 
 
 type alias FormData =
@@ -39,6 +43,7 @@ type alias FormData =
     , privacy : Maybe Bool
     , guideType : Maybe String
     , powerSource : String
+    , registrationMonth : Maybe String
     }
 
 
@@ -48,5 +53,6 @@ initialFormData =
     , password = Nothing
     , privacy = Nothing
     , guideType = Nothing
-    , powerSource = "petrol"
+    , powerSource = "diesel"
+    , registrationMonth = Nothing
     }
