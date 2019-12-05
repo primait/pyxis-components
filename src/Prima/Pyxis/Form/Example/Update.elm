@@ -55,6 +55,18 @@ update msg model =
                 |> printModel
                 |> H.withoutCmds
 
+        OnToggle RegistrationYear value ->
+            model
+                |> updateRegistrationYearOpen value
+                |> printModel
+                |> H.withoutCmds
+
+        OnSelect RegistrationYear value ->
+            model
+                |> updateRegistrationYear value
+                |> printModel
+                |> H.withoutCmds
+
         _ ->
             H.withoutCmds model
 
@@ -98,6 +110,17 @@ updateRegistrationMonth value model =
 updateRegistrationMonthOpen : Bool -> Model -> Model
 updateRegistrationMonthOpen value model =
     { model | registrationMonthOpen = not value }
+
+
+updateRegistrationYear : Maybe String -> Model -> Model
+updateRegistrationYear value model =
+    { model | registrationYearOpen = False }
+        |> updateFormData (\f -> { f | registrationYear = value })
+
+
+updateRegistrationYearOpen : Bool -> Model -> Model
+updateRegistrationYearOpen value model =
+    { model | registrationYearOpen = not value }
 
 
 updateFormData : (FormData -> FormData) -> Model -> Model

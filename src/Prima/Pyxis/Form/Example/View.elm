@@ -33,4 +33,4 @@ formConfig model =
         |> Form.addFieldsInRow [ Config.privacyConfig model ]
         |> Form.addFieldsInRow [ Config.guideType ]
         |> Form.addFieldsInRow [ Config.powerSource ]
-        |> Form.addFieldsInRow [ Config.registrationMonth model ]
+        |> Form.addFieldsInRow [ Config.registrationMonth model, Config.registrationYear model ]

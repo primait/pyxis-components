@@ -20,12 +20,13 @@ type alias Model =
     { form : Form.Form FormData Msg
     , formData : FormData
     , registrationMonthOpen : Bool
+    , registrationYearOpen : Bool
     }
 
 
 initialModel : Model
 initialModel =
-    Model (Form.init Form.Always) initialFormData False
+    Model (Form.init Form.Always) initialFormData False False
 
 
 type Field
@@ -35,6 +36,7 @@ type Field
     | GuideTypeField
     | PowerSource
     | RegistrationMonth
+    | RegistrationYear
 
 
 type alias FormData =
@@ -44,6 +46,7 @@ type alias FormData =
     , guideType : Maybe String
     , powerSource : String
     , registrationMonth : Maybe String
+    , registrationYear : Maybe String
     }
 
 
@@ -55,4 +58,5 @@ initialFormData =
     , guideType = Nothing
     , powerSource = "diesel"
     , registrationMonth = Nothing
+    , registrationYear = Nothing
     }

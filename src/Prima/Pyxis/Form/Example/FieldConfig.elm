@@ -116,6 +116,26 @@ registrationMonth model =
         (OnToggle RegistrationMonth)
         (OnSelect RegistrationMonth)
         |> CustomSelect.withId slug
-        |> CustomSelect.withSmallSize
+        |> CustomSelect.withRegularSize
         |> Field.customSelect
         |> Field.addLabel (Label.label [ Label.for slug ] "Data di immatricolazione")
+
+
+registrationYear : Model -> Field.FormField FormData Msg
+registrationYear model =
+    let
+        slug =
+            "registrationYear"
+    in
+    CustomSelect.customSelect
+        []
+        [ ( "2019", "2019" ), ( "2020", "2020" ) ]
+        model.registrationYearOpen
+        "Anno"
+        .registrationYear
+        (OnToggle RegistrationYear)
+        (OnSelect RegistrationYear)
+        |> CustomSelect.withId slug
+        |> CustomSelect.withRegularSize
+        |> Field.customSelect
+        |> Field.addLabel (Label.label [ Label.for slug ] "")
