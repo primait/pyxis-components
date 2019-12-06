@@ -70,6 +70,7 @@ type SelectOption model msg
     | OnFocus msg
     | OnBlur msg
     | OverridingClass String
+    | Placeholder String
 
 
 {-| Internal.
@@ -81,6 +82,7 @@ type alias Options msg =
     , id : Maybe String
     , onFocus : Maybe msg
     , onBlur : Maybe msg
+    , placeholder : String
     }
 
 
@@ -92,6 +94,7 @@ defaultOptions =
     , id = Nothing
     , onFocus = Nothing
     , onBlur = Nothing
+    , placeholder = "Seleziona"
     }
 
 
@@ -116,9 +119,11 @@ withDisabled disabled =
     addOption (Disabled disabled)
 
 
-withOverridingClass : String -> Select model msg -> Select model msg
-withOverridingClass class =
-    addOption (OverridingClass class)
+{-| Sets a `disabled` to the `Select config`.
+-}
+withPlaceholder : String -> Select model msg -> Select model msg
+withPlaceholder placeholder =
+    addOption (Placeholder placeholder)
 
 
 {-| Sets an `id` to the `Select config`.
@@ -142,31 +147,39 @@ withOnFocus tagger =
     addOption (OnFocus tagger)
 
 
+withOverridingClass : String -> Select model msg -> Select model msg
+withOverridingClass class =
+    addOption (OverridingClass class)
+
+
 {-| Internal.
 -}
 applyOption : SelectOption model msg -> Options msg -> Options msg
 applyOption modifier options =
     case modifier of
-        Attributes attributes_ ->
-            { options | attributes = options.attributes ++ attributes_ }
+        Attributes attributes ->
+            { options | attributes = options.attributes ++ attributes }
 
-        Class class_ ->
-            { options | class = class_ :: options.class }
+        Class class ->
+            { options | class = class :: options.class }
 
-        Disabled disabled_ ->
-            { options | disabled = Just disabled_ }
+        Disabled disabled ->
+            { options | disabled = Just disabled }
 
-        Id id_ ->
-            { options | id = Just id_ }
+        Id id ->
+            { options | id = Just id }
 
-        OnFocus onFocus_ ->
-            { options | onFocus = Just onFocus_ }
+        OnFocus onFocus ->
+            { options | onFocus = Just onFocus }
 
-        OnBlur onBlur_ ->
-            { options | onBlur = Just onBlur_ }
+        OnBlur onBlur ->
+            { options | onBlur = Just onBlur }
 
-        OverridingClass class_ ->
-            { options | class = [ class_ ] }
+        OverridingClass class ->
+            { options | class = [ class ] }
+
+        Placeholder placeholder ->
+            { options | placeholder = placeholder }
 
 
 {-| Transforms a `List` of `Class`(es) into a valid `Html.Attribute`.
@@ -209,6 +222,7 @@ buildAttributes model ((Select config) as selectModel) =
 render : model -> Select model msg -> List (Html msg)
 render model selectModel =
     [ renderSelect model selectModel
+    , renderCustomSelect model selectModel
     ]
 
 
@@ -226,3 +240,60 @@ renderSelectChoice model (Select config) choice =
         , Attrs.selected <| (==) choice.value <| Maybe.withDefault "" <| config.reader model
         ]
         [ Html.text choice.label ]
+
+
+renderCustomSelect : model -> Select model msg -> Html msg
+renderCustomSelect model ((Select config) as selectModel) =
+    let
+        options =
+            List.foldl applyOption defaultOptions config.options
+    in
+    Html.div
+        [ Attrs.classList
+            [ ( "a-form-field__custom-select", True )
+            , ( "is-open", config.openedReader model )
+            , ( "is-disabled", Maybe.withDefault False options.disabled )
+            ]
+        ]
+        [ selectModel
+            |> renderCustomSelectStatus model
+        , config.selectChoices
+            |> List.map (renderCustomSelectChoice model selectModel)
+            |> renderCustomSelectChoiceWrapper
+        ]
+
+
+renderCustomSelectStatus : model -> Select model msg -> Html msg
+renderCustomSelectStatus model (Select config) =
+    let
+        options =
+            List.foldl applyOption defaultOptions config.options
+    in
+    Html.span
+        [ Attrs.class "a-form-field__custom-select__status"
+        ]
+        [ config.selectChoices
+            |> List.filter ((==) (config.reader model) << Just << .value)
+            |> List.map .label
+            |> List.head
+            |> Maybe.withDefault options.placeholder
+            |> Html.text
+        ]
+
+
+renderCustomSelectChoiceWrapper : List (Html msg) -> Html msg
+renderCustomSelectChoiceWrapper =
+    Html.ul
+        [ class "a-form-field__custom-select__list" ]
+
+
+renderCustomSelectChoice : model -> Select model msg -> SelectChoice -> Html msg
+renderCustomSelectChoice model (Select config) choice =
+    Html.li
+        [ Attrs.classList
+            [ ( "a-form-field__custom-select__list__item", True )
+            , ( "is-selected", ((==) (Just choice.value) << config.reader) model )
+            ]
+        ]
+        [ text choice.label
+        ]
