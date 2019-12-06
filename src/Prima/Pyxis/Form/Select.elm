@@ -308,7 +308,7 @@ renderCustomSelect model ((Select config) as selectModel) =
             , ( "is-open", config.openedReader model )
             , ( "is-disabled", Maybe.withDefault False options.disabled )
             ]
-            |> (::) (sizeAttribute options.size)
+        , sizeAttribute options.size
         ]
         [ selectModel
             |> renderCustomSelectStatus model
