@@ -72,6 +72,15 @@ type SelectOption model msg
     | OnBlur msg
     | OverridingClass String
     | Placeholder String
+    | Size SelectSize
+
+
+{-| Represents the `Select` size.
+-}
+type SelectSize
+    = Small
+    | Regular
+    | Large
 
 
 {-| Internal.
@@ -84,6 +93,7 @@ type alias Options msg =
     , onFocus : Maybe msg
     , onBlur : Maybe msg
     , placeholder : String
+    , size : SelectSize
     }
 
 
@@ -96,6 +106,7 @@ defaultOptions =
     , onFocus = Nothing
     , onBlur = Nothing
     , placeholder = "Seleziona"
+    , size = Regular
     }
 
 
@@ -134,6 +145,13 @@ withId id =
     addOption (Id id)
 
 
+{-| Sets a `size` to the `Select config`.
+-}
+withLargeSize : Select model msg -> Select model msg
+withLargeSize =
+    addOption (Size Large)
+
+
 {-| Sets an `onBlur event` to the `Select config`.
 -}
 withOnBlur : msg -> Select model msg -> Select model msg
@@ -151,6 +169,20 @@ withOnFocus tagger =
 withOverridingClass : String -> Select model msg -> Select model msg
 withOverridingClass class =
     addOption (OverridingClass class)
+
+
+{-| Sets a `size` to the `Select config`.
+-}
+withRegularSize : Select model msg -> Select model msg
+withRegularSize =
+    addOption (Size Regular)
+
+
+{-| Sets a `size` to the `Select config`.
+-}
+withSmallSize : Select model msg -> Select model msg
+withSmallSize =
+    addOption (Size Small)
 
 
 {-| Internal.
@@ -182,12 +214,32 @@ applyOption modifier options =
         Placeholder placeholder ->
             { options | placeholder = placeholder }
 
+        Size size ->
+            { options | size = size }
+
 
 {-| Transforms a `List` of `Class`(es) into a valid `Html.Attribute`.
 -}
 classAttribute : List String -> Html.Attribute msg
 classAttribute =
     Attrs.class << String.join " "
+
+
+{-| Transforms an `SelectSize` into a valid `Html.Attribute`.
+-}
+sizeAttribute : SelectSize -> Html.Attribute msg
+sizeAttribute size =
+    Attrs.class
+        (case size of
+            Small ->
+                "is-small"
+
+            Regular ->
+                "is-medium"
+
+            Large ->
+                "is-large"
+        )
 
 
 writerAttribute : Select model msg -> Html.Attribute msg
@@ -215,6 +267,7 @@ buildAttributes model ((Select config) as selectModel) =
         |> List.filterMap identity
         |> (++) options.attributes
         |> (::) (classAttribute options.class)
+        |> (::) (sizeAttribute options.size)
         |> (::) (writerAttribute selectModel)
 
 
@@ -255,7 +308,7 @@ renderCustomSelect model ((Select config) as selectModel) =
             , ( "is-open", config.openedReader model )
             , ( "is-disabled", Maybe.withDefault False options.disabled )
             ]
-        , Events.onClick config.openedWriter
+            |> (::) (sizeAttribute options.size)
         ]
         [ selectModel
             |> renderCustomSelectStatus model
@@ -273,6 +326,7 @@ renderCustomSelectStatus model (Select config) =
     in
     Html.span
         [ Attrs.class "a-form-field__custom-select__status"
+        , Events.onClick config.openedWriter
         ]
         [ config.selectChoices
             |> List.filter ((==) (config.reader model) << Just << .value)
