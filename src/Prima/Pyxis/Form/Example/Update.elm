@@ -41,6 +41,7 @@ update msg model =
         OnInput PowerSource value ->
             model
                 |> updatePowerSource value
+                |> closePowerSourceSelect
                 |> printModel
                 |> H.withoutCmds
 
@@ -106,12 +107,22 @@ updateCountryFilter value =
 
 openCountryAutocomplete : Model -> Model
 openCountryAutocomplete =
-    updateFormData (updateUiState (\ui -> { ui | countryAutocompleteOpened = True }))
+    updateFormData <| updateUiState (\ui -> { ui | countryAutocompleteOpened = True })
 
 
 closeCountryAutocomplete : Model -> Model
 closeCountryAutocomplete =
-    updateFormData (updateUiState (\ui -> { ui | countryAutocompleteOpened = False }))
+    updateFormData <| updateUiState (\ui -> { ui | countryAutocompleteOpened = False })
+
+
+openPowerSourceSelect : Model -> Model
+openPowerSourceSelect =
+    updateFormData <| updateUiState (\ui -> { ui | powerSourceSelectOpened = True })
+
+
+closePowerSourceSelect : Model -> Model
+closePowerSourceSelect =
+    updateFormData <| updateUiState (\ui -> { ui | powerSourceSelectOpened = False })
 
 
 updateFormData : (FormData -> FormData) -> Model -> Model

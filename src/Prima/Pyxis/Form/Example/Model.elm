@@ -63,10 +63,12 @@ initialFormData =
 
 type alias UIState =
     { countryAutocompleteOpened : Bool
+    , powerSourceSelectOpened : Bool
     }
 
 
 initialUIState : UIState
 initialUIState =
     { countryAutocompleteOpened = False
+    , powerSourceSelectOpened = False
     }

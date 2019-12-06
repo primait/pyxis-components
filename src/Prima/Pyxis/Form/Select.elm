@@ -37,13 +37,16 @@ type Select model msg
 
 type alias SelectConfig model msg =
     { options : List (SelectOption model msg)
+    , reader : model -> Maybe String
+    , writer : String -> msg
+    , openedReader : model -> Bool
     , selectChoices : List SelectChoice
     }
 
 
-select : List SelectChoice -> Select model msg
-select =
-    Select << SelectConfig []
+select : (model -> Maybe String) -> (String -> msg) -> (model -> Bool) -> List SelectChoice -> Select model msg
+select reader writer openedReader =
+    Select << SelectConfig [] reader writer openedReader
 
 
 type alias SelectChoice =
@@ -63,36 +66,30 @@ type SelectOption model msg
     = Attributes (List (Html.Attribute msg))
     | Class String
     | Disabled Bool
-    | ExclusiveClass String
     | Id String
-    | OnChange (String -> msg)
     | OnFocus msg
     | OnBlur msg
-    | Value (model -> Maybe String)
+    | OverridingClass String
 
 
 {-| Internal.
 -}
-type alias Options model msg =
+type alias Options msg =
     { attributes : List (Html.Attribute msg)
-    , classes : List String
+    , class : List String
     , disabled : Maybe Bool
     , id : Maybe String
-    , onChange : Maybe (String -> msg)
     , onFocus : Maybe msg
     , onBlur : Maybe msg
-    , value : model -> Maybe String
     }
 
 
-defaultOptions : Options model msg
+defaultOptions : Options msg
 defaultOptions =
     { attributes = []
-    , classes = [ "a-form-field__select--native" ]
+    , class = [ "a-form-field__select" ]
     , disabled = Nothing
     , id = Nothing
-    , value = always Nothing
-    , onChange = Nothing
     , onFocus = Nothing
     , onBlur = Nothing
     }
@@ -119,9 +116,9 @@ withDisabled disabled =
     addOption (Disabled disabled)
 
 
-withExclusiveClass : String -> Select model msg -> Select model msg
-withExclusiveClass class_ =
-    addOption (ExclusiveClass class_)
+withOverridingClass : String -> Select model msg -> Select model msg
+withOverridingClass class =
+    addOption (OverridingClass class)
 
 
 {-| Sets an `id` to the `Select config`.
@@ -145,30 +142,16 @@ withOnFocus tagger =
     addOption (OnFocus tagger)
 
 
-{-| Sets an `onChange event` to the `Select config`.
--}
-withOnChange : (String -> msg) -> Select model msg -> Select model msg
-withOnChange tagger =
-    addOption (OnChange tagger)
-
-
-{-| Sets a `value` to the `Select config`.
--}
-withValue : (model -> Maybe String) -> Select model msg -> Select model msg
-withValue value =
-    addOption (Value value)
-
-
 {-| Internal.
 -}
-applyOption : SelectOption model msg -> Options model msg -> Options model msg
+applyOption : SelectOption model msg -> Options msg -> Options msg
 applyOption modifier options =
     case modifier of
         Attributes attributes_ ->
             { options | attributes = options.attributes ++ attributes_ }
 
         Class class_ ->
-            { options | classes = class_ :: options.classes }
+            { options | class = class_ :: options.class }
 
         Disabled disabled_ ->
             { options | disabled = Just disabled_ }
@@ -176,67 +159,70 @@ applyOption modifier options =
         Id id_ ->
             { options | id = Just id_ }
 
-        Value reader ->
-            { options | value = reader }
-
         OnFocus onFocus_ ->
             { options | onFocus = Just onFocus_ }
 
         OnBlur onBlur_ ->
             { options | onBlur = Just onBlur_ }
 
-        OnChange onChange_ ->
-            { options | onChange = Just onChange_ }
-
-        ExclusiveClass class_ ->
-            { options | classes = [ class_ ] }
+        OverridingClass class_ ->
+            { options | class = [ class_ ] }
 
 
 {-| Transforms a `List` of `Class`(es) into a valid `Html.Attribute`.
 -}
-classesAttribute : List String -> Html.Attribute msg
-classesAttribute =
+classAttribute : List String -> Html.Attribute msg
+classAttribute =
     Attrs.class << String.join " "
+
+
+writerAttribute : Select model msg -> Html.Attribute msg
+writerAttribute (Select config) =
+    Events.onInput config.writer
 
 
 {-| Composes all the modifiers into a set of `Html.Attribute`(s).
 -}
-buildAttributes : model -> List (SelectOption model msg) -> List (Html.Attribute msg)
-buildAttributes model modifiers =
+buildAttributes : model -> Select model msg -> List (Html.Attribute msg)
+buildAttributes model ((Select config) as selectModel) =
     let
         options =
-            List.foldl applyOption defaultOptions modifiers
+            List.foldl applyOption defaultOptions config.options
     in
-    [ Maybe.map Attrs.id options.id
-    , Maybe.map Attrs.disabled options.disabled
-    , Maybe.map Attrs.value (options.value model)
-    , Maybe.map Events.onInput options.onChange
-    , Maybe.map Events.onFocus options.onFocus
-    , Maybe.map Events.onBlur options.onBlur
+    [ options.id
+        |> Maybe.map Attrs.id
+    , options.disabled
+        |> Maybe.map Attrs.disabled
+    , options.onFocus
+        |> Maybe.map Events.onFocus
+    , options.onBlur
+        |> Maybe.map Events.onBlur
     ]
         |> List.filterMap identity
         |> (++) options.attributes
-        |> (::) (classesAttribute options.classes)
+        |> (::) (classAttribute options.class)
+        |> (::) (writerAttribute selectModel)
 
 
 {-| Renders the `Radio config`.
 -}
 render : model -> Select model msg -> List (Html msg)
-render model ((Select config) as selectModel) =
-    [ Html.select
-        (buildAttributes model config.options)
-        (List.map (renderSelectChoice model selectModel) config.selectChoices)
+render model selectModel =
+    [ renderSelect model selectModel
     ]
+
+
+renderSelect : model -> Select model msg -> Html msg
+renderSelect model ((Select config) as selectModel) =
+    Html.select
+        (buildAttributes model selectModel)
+        (List.map (renderSelectChoice model selectModel) config.selectChoices)
 
 
 renderSelectChoice : model -> Select model msg -> SelectChoice -> Html msg
 renderSelectChoice model (Select config) choice =
-    let
-        options =
-            List.foldl applyOption defaultOptions config.options
-    in
     Html.option
         [ Attrs.value choice.value
-        , Attrs.selected <| (==) choice.value <| Maybe.withDefault "" <| options.value model
+        , Attrs.selected <| (==) choice.value <| Maybe.withDefault "" <| config.reader model
         ]
         [ Html.text choice.label ]

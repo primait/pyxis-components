@@ -98,10 +98,8 @@ powerSourceConfig =
     , Select.selectChoice "petrol" "Benzina"
     , Select.selectChoice "hybrid" "Benzina / Elettrico"
     ]
-        |> Select.select
-        |> Select.withValue .powerSource
+        |> Select.select .powerSource (OnInput PowerSource) (.powerSourceSelectOpened << .uiState)
         |> Select.withId slug
-        |> Select.withOnChange (OnInput PowerSource)
         |> Field.select
         |> Field.addLabel
             ("Alimentazione"

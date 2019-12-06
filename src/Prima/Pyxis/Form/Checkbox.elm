@@ -163,10 +163,14 @@ renderCheckboxChoice model ((Checkbox config) as checkboxModel) choice =
             (buildAttributes model checkboxModel choice)
             []
         , choice.label
-            |> Maybe.map
-                (Label.withOverridingClass "a-form-field__checkbox__label"
-                    >> Label.withFor choice.value
-                    >> Label.render
-                )
+            |> Maybe.map (renderCheckboxLabel choice)
             |> Maybe.withDefault (Html.text "")
         ]
+
+
+renderCheckboxLabel : CheckboxChoice msg -> Label.Label msg -> Html msg
+renderCheckboxLabel choice lbl =
+    lbl
+        |> Label.withOverridingClass "a-form-field__checkbox-options__item__label"
+        |> Label.withFor choice.value
+        |> Label.render
