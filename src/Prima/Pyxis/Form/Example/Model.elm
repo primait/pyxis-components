@@ -14,6 +14,7 @@ type Msg
     = OnInput Field String
     | OnCheck Field String
     | OnFilter Field String
+    | OnToggle Field
 
 
 type alias Model =

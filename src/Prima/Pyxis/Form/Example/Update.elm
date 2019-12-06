@@ -61,6 +61,11 @@ update msg model =
                 |> printModel
                 |> H.withoutCmds
 
+        OnToggle PowerSource ->
+            model
+                |> togglePowerSourceSelect
+                |> H.withoutCmds
+
         _ ->
             H.withoutCmds model
 
@@ -113,6 +118,15 @@ openCountryAutocomplete =
 closeCountryAutocomplete : Model -> Model
 closeCountryAutocomplete =
     updateFormData <| updateUiState (\ui -> { ui | countryAutocompleteOpened = False })
+
+
+togglePowerSourceSelect : Model -> Model
+togglePowerSourceSelect model =
+    if model.formData.uiState.powerSourceSelectOpened then
+        closePowerSourceSelect model
+
+    else
+        openPowerSourceSelect model
 
 
 openPowerSourceSelect : Model -> Model

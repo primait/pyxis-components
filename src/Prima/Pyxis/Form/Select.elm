@@ -40,13 +40,14 @@ type alias SelectConfig model msg =
     , reader : model -> Maybe String
     , writer : String -> msg
     , openedReader : model -> Bool
+    , openedWriter : msg
     , selectChoices : List SelectChoice
     }
 
 
-select : (model -> Maybe String) -> (String -> msg) -> (model -> Bool) -> List SelectChoice -> Select model msg
-select reader writer openedReader =
-    Select << SelectConfig [] reader writer openedReader
+select : (model -> Maybe String) -> (String -> msg) -> (model -> Bool) -> msg -> List SelectChoice -> Select model msg
+select reader writer openedReader toggleWriter =
+    Select << SelectConfig [] reader writer openedReader toggleWriter
 
 
 type alias SelectChoice =
@@ -254,6 +255,7 @@ renderCustomSelect model ((Select config) as selectModel) =
             , ( "is-open", config.openedReader model )
             , ( "is-disabled", Maybe.withDefault False options.disabled )
             ]
+        , Events.onClick config.openedWriter
         ]
         [ selectModel
             |> renderCustomSelectStatus model
@@ -294,6 +296,7 @@ renderCustomSelectChoice model (Select config) choice =
             [ ( "a-form-field__custom-select__list__item", True )
             , ( "is-selected", ((==) (Just choice.value) << config.reader) model )
             ]
+        , (Events.onClick << config.writer) choice.value
         ]
         [ text choice.label
         ]
