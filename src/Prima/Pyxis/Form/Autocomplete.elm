@@ -1,8 +1,8 @@
 module Prima.Pyxis.Form.Autocomplete exposing
-    ( Autocomplete, autocomplete
-    , withAttributes, withClass, withDisabled, withId, withName, withPlaceholder, withValue
+    ( Autocomplete, AutocompleteChoice, autocomplete, autocompleteChoice
+    , withAttributes, withClass, withDisabled, withId, withName, withPlaceholder
     , withRegularSize, withSmallSize, withLargeSize
-    , withOnFilter, withOnChange, withOnBlur, withOnFocus
+    , withOnBlur, withOnFocus
     , render
     )
 
@@ -11,12 +11,12 @@ module Prima.Pyxis.Form.Autocomplete exposing
 
 ## Types and Configuration
 
-@docs Autocomplete, autocomplete
+@docs Autocomplete, AutocompleteChoice, autocomplete, autocompleteChoice
 
 
 ## Generic modifiers
 
-@docs withAttributes, withClass, withDisabled, withId, withName, withPlaceholder, withValue
+@docs withAttributes, withClass, withDisabled, withId, withName, withPlaceholder
 
 
 ## Size modifiers
@@ -26,7 +26,7 @@ module Prima.Pyxis.Form.Autocomplete exposing
 
 ## Events
 
-@docs withOnFilter, withOnChange, withOnBlur, withOnFocus
+@docs withOnBlur, withOnFocus
 
 
 ## Rendering
@@ -50,21 +50,29 @@ type Autocomplete model msg
 -}
 type alias AutocompleteConfig model msg =
     { options : List (AutocompleteOption model msg)
-    , results : List AutocompleteResult
+    , reader : model -> Maybe String
+    , writer : String -> msg
+    , filterReader : model -> Maybe String
+    , filterWriter : String -> msg
+    , openedReader : model -> Bool
+    , autocompleteChoices : List AutocompleteChoice
     }
 
 
-type alias AutocompleteResult =
-    { label : String
-    , value : String
+autocomplete : (model -> Maybe String) -> (String -> msg) -> (model -> Maybe String) -> (String -> msg) -> (model -> Bool) -> List AutocompleteChoice -> Autocomplete model msg
+autocomplete reader writer filterReader filterWriter openedReader =
+    Autocomplete << AutocompleteConfig [] reader writer filterReader filterWriter openedReader
+
+
+type alias AutocompleteChoice =
+    { value : String
+    , label : String
     }
 
 
-{-| Internal.
--}
-autocomplete : List AutocompleteResult -> Autocomplete model msg
-autocomplete =
-    Autocomplete << AutocompleteConfig []
+autocompleteChoice : String -> String -> AutocompleteChoice
+autocompleteChoice value label =
+    AutocompleteChoice value label
 
 
 {-| Represents the possibile modifiers of an `Autocomplete`.
@@ -75,15 +83,11 @@ type AutocompleteOption model msg
     | Disabled Bool
     | Id String
     | Name String
-    | NoResultsLabel String
     | OnBlur msg
     | OnFocus msg
-    | OnFilter (String -> msg)
-    | OnChange (String -> msg)
+    | OverridingClass String
     | Placeholder String
     | Size AutocompleteSize
-    | FilterValue (model -> Maybe String)
-    | Value (model -> Maybe String)
 
 
 {-| Represents the `Autocomplete` size.
@@ -92,13 +96,6 @@ type AutocompleteSize
     = Small
     | Regular
     | Large
-
-
-{-| Internal
--}
-autocompleteResult : String -> String -> AutocompleteResult
-autocompleteResult label value =
-    AutocompleteResult label value
 
 
 {-| Sets a list of `attributes` to the `Autocomplete config`.
@@ -122,11 +119,6 @@ withDisabled disabled =
     addOption (Disabled disabled)
 
 
-withFilterValue : (model -> Maybe String) -> Autocomplete model msg -> Autocomplete model msg
-withFilterValue reader =
-    addOption (FilterValue reader)
-
-
 {-| Sets an `id` to the `Autocomplete config`.
 -}
 withId : String -> Autocomplete model msg -> Autocomplete model msg
@@ -148,13 +140,6 @@ withName name =
     addOption (Name name)
 
 
-{-| Sets the label for `no-results` message into to the `Autocomplete config`.
--}
-withNoResultsLabel : String -> Autocomplete model msg -> Autocomplete model msg
-withNoResultsLabel lbl =
-    addOption (NoResultsLabel lbl)
-
-
 {-| Sets an `onBlur event` to the `Autocomplete config`.
 -}
 withOnBlur : msg -> Autocomplete model msg -> Autocomplete model msg
@@ -162,25 +147,18 @@ withOnBlur tagger =
     addOption (OnBlur tagger)
 
 
-{-| Sets an `onChange event` to the `Autocomplete config`.
--}
-withOnChange : (String -> msg) -> Autocomplete model msg -> Autocomplete model msg
-withOnChange tagger =
-    addOption (OnChange tagger)
-
-
-{-| Sets an `onFilter event` to the `Autocomplete config`.
--}
-withOnFilter : (String -> msg) -> Autocomplete model msg -> Autocomplete model msg
-withOnFilter tagger =
-    addOption (OnFilter tagger)
-
-
 {-| Sets an `onFocus event` to the `Autocomplete config`.
 -}
 withOnFocus : msg -> Autocomplete model msg -> Autocomplete model msg
 withOnFocus tagger =
     addOption (OnFocus tagger)
+
+
+{-| Sets a `class` which overrides default classes to the `Autocomplete config`.
+-}
+withOverridingClass : String -> Autocomplete model msg -> Autocomplete model msg
+withOverridingClass class =
+    addOption (OverridingClass class)
 
 
 {-| Sets a `placeholder` to the `Autocomplete config`.
@@ -204,159 +182,138 @@ withSmallSize =
     addOption (Size Small)
 
 
-{-| Sets a `value` to the `Autocomplete config`.
--}
-withValue : (model -> Maybe String) -> Autocomplete model msg -> Autocomplete model msg
-withValue value =
-    addOption (Value value)
-
-
 {-| Renders the `Autocomplete config`.
-
-    import Prima.Pyxis.Form.Autocomplete as FormAutocomplete
-
-    type Msg
-        = OnFilter String
-        | OnChange String
-        | OnBlur
-        | OnFocus
-
-    view : Html Msg
-    view =
-        FormAutocomplete.autocomplete
-            [ FormAutocomplete.id "myId"
-            , FormAutocomplete.onFilter OnFilter
-            , FormAutocomplete.onChange OnChange
-            , FormAutocomplete.onBlur OnBlur
-            ]
-            |> FormAutocomplete.render
-
 -}
-render : model -> Autocomplete model msg -> Html msg
-render model autocompleteModel =
-    renderWrapper
-        [ renderInput model autocompleteModel
-        , renderList model autocompleteModel
-        ]
-
-
-renderWrapper : List (Html msg) -> Html msg
-renderWrapper =
-    Html.div
+render : model -> Autocomplete model msg -> List (Html msg)
+render model ((Autocomplete config) as autocompleteModel) =
+    let
+        choices =
+            config.autocompleteChoices
+                |> List.filter
+                    (.label
+                        >> String.toLower
+                        >> String.contains
+                            (model
+                                |> config.filterReader
+                                |> Maybe.map String.toLower
+                                |> Maybe.withDefault ""
+                            )
+                    )
+    in
+    [ Html.div
         [ Attrs.classList
             [ ( "a-form-field__autocomplete", True )
-            , ( "is-open", True )
+            , ( "is-open", config.openedReader model )
             ]
         ]
+        [ Html.input
+            (buildAttributes model autocompleteModel)
+            []
+        , Html.ul
+            [ Attrs.class "a-form-field__autocomplete__list" ]
+            (if List.length choices > 0 then
+                List.map (renderAutocompleteChoice model autocompleteModel) choices
+
+             else
+                renderAutocompleteNoResults model autocompleteModel
+            )
+        ]
+    ]
 
 
-renderInput : model -> Autocomplete model msg -> Html msg
-renderInput model (Autocomplete config) =
-    Html.input
-        (buildAttributes model config.options)
-        []
+renderAutocompleteChoice : model -> Autocomplete model msg -> AutocompleteChoice -> Html msg
+renderAutocompleteChoice model (Autocomplete config) choice =
+    Html.li
+        [ Attrs.classList
+            [ ( "a-form-field__autocomplete__list__item", True )
+            , ( "is-selected", Just choice.value == config.reader model )
+            ]
+        , (Events.onClick << config.writer) choice.value
+        ]
+        [ Html.text choice.label ]
 
 
-renderList : model -> Autocomplete model msg -> Html msg
-renderList model (Autocomplete config) =
-    Html.ul
-        [ Attrs.class "a-form-field__autocomplete__list" ]
+renderAutocompleteNoResults : model -> Autocomplete model msg -> List (Html msg)
+renderAutocompleteNoResults model (Autocomplete config) =
+    [ Html.li
+        [ Attrs.class "a-form-field__autocomplete__list--no-results" ]
+        [ Html.text "Nessun risultato." ]
+    ]
 
 
 {-| Internal.
 -}
 addOption : AutocompleteOption model msg -> Autocomplete model msg -> Autocomplete model msg
-addOption option (Autocomplete inputConfig) =
-    Autocomplete { inputConfig | options = inputConfig.options ++ [ option ] }
+addOption option (Autocomplete autocompleteConfig) =
+    Autocomplete { autocompleteConfig | options = autocompleteConfig.options ++ [ option ] }
 
 
-{-| Internal.
+{-| Represents the options a user can choose to modify
+the `Autocomplete` default behaviour.
 -}
-type alias Options model msg =
+type alias Options msg =
     { attributes : List (Html.Attribute msg)
     , disabled : Maybe Bool
     , classes : List String
-    , filterValue : model -> Maybe String
     , id : Maybe String
     , name : Maybe String
-    , noResultsLabel : String
-    , onBlur : Maybe msg
-    , onChange : Maybe (String -> msg)
-    , onFilter : Maybe (String -> msg)
     , onFocus : Maybe msg
+    , onBlur : Maybe msg
     , placeholder : Maybe String
     , size : AutocompleteSize
-    , value : model -> Maybe String
     }
 
 
 {-| Internal.
 -}
-defaultOptions : Options model msg
+defaultOptions : Options msg
 defaultOptions =
     { attributes = []
     , disabled = Nothing
     , classes = [ "a-form-field__input" ]
-    , filterValue = always Nothing
     , id = Nothing
     , name = Nothing
-    , noResultsLabel = "Nessun risultato"
-    , onBlur = Nothing
-    , onChange = Nothing
-    , onFilter = Nothing
     , onFocus = Nothing
+    , onBlur = Nothing
     , placeholder = Nothing
     , size = Regular
-    , value = always Nothing
     }
 
 
 {-| Internal.
 -}
-applyOption : AutocompleteOption model msg -> Options model msg -> Options model msg
+applyOption : AutocompleteOption model msg -> Options msg -> Options msg
 applyOption modifier options =
     case modifier of
-        Attributes attributes_ ->
-            { options | attributes = options.attributes ++ attributes_ }
+        Attributes attributes ->
+            { options | attributes = options.attributes ++ attributes }
 
-        Class class_ ->
-            { options | classes = class_ :: options.classes }
+        Class class ->
+            { options | classes = class :: options.classes }
 
-        Disabled disabled_ ->
-            { options | disabled = Just disabled_ }
+        OverridingClass class ->
+            { options | classes = [ class ] }
 
-        FilterValue filterReader_ ->
-            { options | filterValue = filterReader_ }
+        Disabled disabled ->
+            { options | disabled = Just disabled }
 
-        Id id_ ->
-            { options | id = Just id_ }
+        Id id ->
+            { options | id = Just id }
 
-        Name name_ ->
-            { options | name = Just name_ }
+        Name name ->
+            { options | name = Just name }
 
-        NoResultsLabel noResultsLabel_ ->
-            { options | noResultsLabel = noResultsLabel_ }
+        OnBlur onBlur ->
+            { options | onBlur = Just onBlur }
 
-        OnBlur onBlur_ ->
-            { options | onBlur = Just onBlur_ }
+        OnFocus onFocus ->
+            { options | onFocus = Just onFocus }
 
-        OnChange onChange_ ->
-            { options | onChange = Just onChange_ }
+        Placeholder placeholder ->
+            { options | placeholder = Just placeholder }
 
-        OnFilter onFilter_ ->
-            { options | onFilter = Just onFilter_ }
-
-        OnFocus onFocus_ ->
-            { options | onFocus = Just onFocus_ }
-
-        Placeholder placeholder_ ->
-            { options | placeholder = Just placeholder_ }
-
-        Size size_ ->
-            { options | size = size_ }
-
-        Value valueReader_ ->
-            { options | value = valueReader_ }
+        Size size ->
+            { options | size = size }
 
 
 {-| Transforms a `List` of `Class`(es) into a valid `Html.Attribute`.
@@ -383,24 +340,57 @@ sizeAttribute size =
         )
 
 
+filterReaderAttribute : model -> Autocomplete model msg -> Html.Attribute msg
+filterReaderAttribute model (Autocomplete config) =
+    case
+        ( config.reader model
+        , config.openedReader model
+        )
+    of
+        ( Just currentValue, False ) ->
+            config.autocompleteChoices
+                |> List.filter ((==) currentValue << .value)
+                |> List.map .label
+                |> List.head
+                |> Maybe.withDefault ""
+                |> Attrs.value
+
+        _ ->
+            model
+                |> config.filterReader
+                |> Maybe.withDefault ""
+                |> Attrs.value
+
+
+filterWriterAttribute : Autocomplete model msg -> Html.Attribute msg
+filterWriterAttribute (Autocomplete config) =
+    Events.onInput config.filterWriter
+
+
 {-| Composes all the modifiers into a set of `Html.Attribute`(s).
 -}
-buildAttributes : model -> List (AutocompleteOption model msg) -> List (Html.Attribute msg)
-buildAttributes model modifiers =
+buildAttributes : model -> Autocomplete model msg -> List (Html.Attribute msg)
+buildAttributes model ((Autocomplete config) as autocompleteModel) =
     let
         options =
-            List.foldl applyOption defaultOptions modifiers
+            List.foldl applyOption defaultOptions config.options
     in
-    [ Maybe.map Attrs.id options.id
-    , Maybe.map Attrs.name options.name
-    , Maybe.map Attrs.disabled options.disabled
-    , Maybe.map Attrs.placeholder options.placeholder
-    , Maybe.map Attrs.value (options.value model)
-    , Maybe.map Events.onInput options.onChange
-    , Maybe.map Events.onBlur options.onBlur
-    , Maybe.map Events.onFocus options.onFocus
+    [ options.id
+        |> Maybe.map Attrs.id
+    , options.name
+        |> Maybe.map Attrs.name
+    , options.disabled
+        |> Maybe.map Attrs.disabled
+    , options.placeholder
+        |> Maybe.map Attrs.placeholder
+    , options.onBlur
+        |> Maybe.map Events.onBlur
+    , options.onFocus
+        |> Maybe.map Events.onFocus
     ]
         |> List.filterMap identity
         |> (++) options.attributes
         |> (::) (classesAttribute options.classes)
+        |> (::) (filterReaderAttribute model autocompleteModel)
+        |> (::) (filterWriterAttribute autocompleteModel)
         |> (::) (sizeAttribute options.size)

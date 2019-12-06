@@ -1,9 +1,8 @@
 module Prima.Pyxis.Form.Example.FieldConfig exposing (..)
 
 import Html exposing (Html, text)
-import Html.Attributes exposing (class, id)
+import Prima.Pyxis.Form.Autocomplete as Autocomplete
 import Prima.Pyxis.Form.Checkbox as Checkbox
-import Prima.Pyxis.Form.CustomSelect as CustomSelect
 import Prima.Pyxis.Form.Example.Model exposing (Field(..), FormData, Model, Msg(..))
 import Prima.Pyxis.Form.Field as Field
 import Prima.Pyxis.Form.Input as Input
@@ -45,36 +44,25 @@ passwordConfig =
             )
 
 
-privacyConfig : Model -> Field.FormField FormData Msg
-privacyConfig { formData } =
+privacyConfig : Field.FormField FormData Msg
+privacyConfig =
     let
         slug =
             "privacy"
     in
-    Checkbox.checkbox
-        |> Checkbox.withValue (checkboxStatus formData.privacy)
-        |> Checkbox.withId slug
-        |> Checkbox.withOnCheck (OnCheck Privacy)
-        |> Checkbox.addLabel
-            (privacyLabel
-                |> Label.labelWithHtml
-                |> Label.withFor slug
-            )
+    [ privacyLabel
+        |> Label.labelWithHtml
+        |> Label.withFor slug
+        |> Just
+        |> Checkbox.checkboxChoice "privacy"
+    ]
+        |> Checkbox.checkbox .privacy (OnCheck Privacy)
         |> Field.checkbox
         |> Field.addLabel
             ("Privacy"
                 |> Label.label
                 |> Label.withFor slug
             )
-
-
-checkboxStatus : Maybe Bool -> Checkbox.CheckboxValue
-checkboxStatus flag =
-    if Just True == flag then
-        Checkbox.Checked
-
-    else
-        Checkbox.NotChecked
 
 
 privacyLabel : List (Html Msg)
@@ -85,8 +73,8 @@ privacyLabel =
     ]
 
 
-guideType : Field.FormField FormData Msg
-guideType =
+guideTypeConfig : Field.FormField FormData Msg
+guideTypeConfig =
     [ Radio.radioChoice "expert" "Esperta"
     , Radio.radioChoice "free" "Libera"
     , Radio.radioChoice "exclusive" "Esclusiva"
@@ -100,8 +88,8 @@ guideType =
             )
 
 
-powerSource : Field.FormField FormData Msg
-powerSource =
+powerSourceConfig : Field.FormField FormData Msg
+powerSourceConfig =
     let
         slug =
             "powerSource"
@@ -117,6 +105,28 @@ powerSource =
         |> Field.select
         |> Field.addLabel
             ("Alimentazione"
+                |> Label.label
+                |> Label.withFor slug
+            )
+
+
+countryConfig : Field.FormField FormData Msg
+countryConfig =
+    let
+        slug =
+            "country"
+    in
+    [ Autocomplete.autocompleteChoice "italy" "Italy"
+    , Autocomplete.autocompleteChoice "france" "France"
+    , Autocomplete.autocompleteChoice "spain" "Spain"
+    , Autocomplete.autocompleteChoice "usa" "U.S.A."
+    , Autocomplete.autocompleteChoice "germany" "Germany"
+    , Autocomplete.autocompleteChoice "uk" "U.K."
+    ]
+        |> Autocomplete.autocomplete .country (OnInput Country) .countryFilter (OnFilter Country) (.countryAutocompleteOpened << .uiState)
+        |> Field.autocomplete
+        |> Field.addLabel
+            ("Paese di nascita"
                 |> Label.label
                 |> Label.withFor slug
             )

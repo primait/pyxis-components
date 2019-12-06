@@ -31,11 +31,14 @@ formConfig model =
             , Config.passwordConfig
             ]
         |> Form.addFieldsInRow
-            [ Config.privacyConfig model
+            [ Config.privacyConfig
             ]
         |> Form.addFieldsInRow
-            [ Config.guideType
+            [ Config.guideTypeConfig
             ]
         |> Form.addFieldsInRow
-            [ Config.powerSource
+            [ Config.powerSourceConfig
+            ]
+        |> Form.addFieldsInRow
+            [ Config.countryConfig
             ]

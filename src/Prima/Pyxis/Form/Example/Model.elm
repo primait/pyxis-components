@@ -3,6 +3,7 @@ module Prima.Pyxis.Form.Example.Model exposing
     , FormData
     , Model
     , Msg(..)
+    , UIState
     , initialModel
     )
 
@@ -11,22 +12,19 @@ import Prima.Pyxis.Form as Form
 
 type Msg
     = OnInput Field String
-    | OnCheck Field Bool
-    | OnToggle Field Bool
-    | OnSelect Field (Maybe String)
+    | OnCheck Field String
+    | OnFilter Field String
 
 
 type alias Model =
     { form : Form.Form FormData Msg
     , formData : FormData
-    , registrationMonthOpen : Bool
-    , registrationYearOpen : Bool
     }
 
 
 initialModel : Model
 initialModel =
-    Model (Form.init Form.Always) initialFormData False False
+    Model (Form.init Form.Always) initialFormData
 
 
 type Field
@@ -35,18 +33,18 @@ type Field
     | Privacy
     | GuideType
     | PowerSource
-    | RegistrationMonth
-    | RegistrationYear
+    | Country
 
 
 type alias FormData =
     { username : Maybe String
     , password : Maybe String
-    , privacy : Maybe Bool
+    , privacy : Maybe String
     , guideType : Maybe String
     , powerSource : Maybe String
-    , registrationMonth : Maybe String
-    , registrationYear : Maybe String
+    , country : Maybe String
+    , countryFilter : Maybe String
+    , uiState : UIState
     }
 
 
@@ -57,6 +55,18 @@ initialFormData =
     , privacy = Nothing
     , guideType = Nothing
     , powerSource = Nothing
-    , registrationMonth = Nothing
-    , registrationYear = Nothing
+    , country = Nothing
+    , countryFilter = Nothing
+    , uiState = initialUIState
+    }
+
+
+type alias UIState =
+    { countryAutocompleteOpened : Bool
+    }
+
+
+initialUIState : UIState
+initialUIState =
+    { countryAutocompleteOpened = False
     }

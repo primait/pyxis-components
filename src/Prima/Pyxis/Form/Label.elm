@@ -1,6 +1,6 @@
 module Prima.Pyxis.Form.Label exposing
     ( Label, label, labelWithHtml
-    , withAttributes, withClass, withExclusiveClass, withFor, withOnClick
+    , withAttributes, withClass, withOverridingClass, withFor, withOnClick
     , render
     , addOption
     )
@@ -15,7 +15,7 @@ module Prima.Pyxis.Form.Label exposing
 
 ## Generic modifiers
 
-@docs withAttributes, withClass, withExclusiveClass, withFor, withOnClick
+@docs withAttributes, withClass, withOverridingClass, withFor, withOnClick
 
 
 ## Rendering
@@ -63,8 +63,8 @@ type LabelOption msg
     = Attributes (List (Html.Attribute msg))
     | Class String
     | For String
-    | ExclusiveClass String
     | OnClick msg
+    | OverridingClass String
 
 
 {-| Represents the options a user can choose to modify
@@ -99,29 +99,29 @@ addOption option (Label labelConfig) =
 {-| Sets a list of `attributes` to the `Label config`.
 -}
 withAttributes : List (Html.Attribute msg) -> Label msg -> Label msg
-withAttributes attributes_ =
-    addOption (Attributes attributes_)
+withAttributes attributes =
+    addOption (Attributes attributes)
 
 
 {-| Sets a class which will override the others to the `Label config`.
 -}
-withExclusiveClass : String -> Label msg -> Label msg
-withExclusiveClass class_ =
-    addOption (ExclusiveClass class_)
+withOverridingClass : String -> Label msg -> Label msg
+withOverridingClass class =
+    addOption (OverridingClass class)
 
 
 {-| Sets a class to the `Label config`.
 -}
 withClass : String -> Label msg -> Label msg
-withClass class_ =
-    addOption (Class class_)
+withClass class =
+    addOption (Class class)
 
 
 {-| Sets a for to the `Label config`.
 -}
 withFor : String -> Label msg -> Label msg
-withFor for_ =
-    addOption (For for_)
+withFor for =
+    addOption (For for)
 
 
 {-| Sets an `onClick` to the `Label config`.
@@ -136,20 +136,20 @@ withOnClick onClick =
 applyOption : LabelOption msg -> Options msg -> Options msg
 applyOption modifier options =
     case modifier of
-        Attributes attributes_ ->
-            { options | attributes = options.attributes ++ attributes_ }
+        Attributes attributes ->
+            { options | attributes = options.attributes ++ attributes }
 
-        For for_ ->
-            { options | for = Just for_ }
+        For for ->
+            { options | for = Just for }
 
-        Class class_ ->
-            { options | classes = class_ :: options.classes }
-
-        ExclusiveClass class_ ->
-            { options | classes = [ class_ ] }
+        Class class ->
+            { options | classes = class :: options.classes }
 
         OnClick msg ->
             { options | onClick = Just msg }
+
+        OverridingClass class ->
+            { options | classes = [ class ] }
 
 
 {-| Internal

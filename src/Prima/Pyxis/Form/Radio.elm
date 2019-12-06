@@ -265,6 +265,6 @@ renderRadioChoice model ((Radio config) as radioModel) choice =
             |> Label.label
             |> Label.withOnClick (config.writer choice.value)
             |> Label.withFor choice.value
-            |> Label.withExclusiveClass "a-form-field__radio-options__item__label"
+            |> Label.withOverridingClass "a-form-field__radio-options__item__label"
             |> Label.render
         ]

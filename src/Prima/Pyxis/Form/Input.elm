@@ -118,6 +118,7 @@ type InputOption model msg
     | Name String
     | OnBlur msg
     | OnFocus msg
+    | OverridingClass String
     | Placeholder String
     | Size InputSize
 
@@ -186,6 +187,13 @@ withOnFocus tagger =
     addOption (OnFocus tagger)
 
 
+{-| Sets a `class` which overrides default classes to the `Input config`.
+-}
+withOverridingClass : String -> Input model msg -> Input model msg
+withOverridingClass class =
+    addOption (OverridingClass class)
+
+
 {-| Sets a `placeholder` to the `Input config`.
 -}
 withPlaceholder : String -> Input model msg -> Input model msg
@@ -208,23 +216,6 @@ withSmallSize =
 
 
 {-| Renders the `Input config`.
-
-    import Prima.Pyxis.Form.Input as FormInput
-
-    type Msg
-        = OnInput String
-        | OnBlur
-        | OnFocus
-
-    view : Html Msg
-    view =
-        FormInput.text
-            [ FormInput.id "myId"
-            , FormInput.onInput OnInput
-            , FormInput.onBlur OnBlur
-            ]
-            |> FormInput.render
-
 -}
 render : model -> Input model msg -> List (Html msg)
 render model inputModel =
@@ -278,32 +269,35 @@ defaultOptions =
 applyOption : InputOption model msg -> Options msg -> Options msg
 applyOption modifier options =
     case modifier of
-        Attributes attributes_ ->
-            { options | attributes = options.attributes ++ attributes_ }
+        Attributes attributes ->
+            { options | attributes = options.attributes ++ attributes }
 
-        Class class_ ->
-            { options | classes = class_ :: options.classes }
+        Class class ->
+            { options | classes = class :: options.classes }
 
-        Disabled disabled_ ->
-            { options | disabled = Just disabled_ }
+        OverridingClass class ->
+            { options | classes = [ class ] }
 
-        Id id_ ->
-            { options | id = Just id_ }
+        Disabled disabled ->
+            { options | disabled = Just disabled }
 
-        Name name_ ->
-            { options | name = Just name_ }
+        Id id ->
+            { options | id = Just id }
 
-        OnBlur onBlur_ ->
-            { options | onBlur = Just onBlur_ }
+        Name name ->
+            { options | name = Just name }
 
-        OnFocus onFocus_ ->
-            { options | onFocus = Just onFocus_ }
+        OnBlur onBlur ->
+            { options | onBlur = Just onBlur }
 
-        Placeholder placeholder_ ->
-            { options | placeholder = Just placeholder_ }
+        OnFocus onFocus ->
+            { options | onFocus = Just onFocus }
 
-        Size size_ ->
-            { options | size = size_ }
+        Placeholder placeholder ->
+            { options | placeholder = Just placeholder }
+
+        Size size ->
+            { options | size = size }
 
 
 {-| Transforms an `InputType` into a valid `Html.Attribute`.
@@ -366,20 +360,28 @@ writerAttribute (Input config) =
 {-| Composes all the modifiers into a set of `Html.Attribute`(s).
 -}
 buildAttributes : model -> Input model msg -> List (Html.Attribute msg)
-buildAttributes model (Input config) =
+buildAttributes model ((Input config) as inputModel) =
     let
         options =
             List.foldl applyOption defaultOptions config.options
     in
-    [ Maybe.map Attrs.id options.id
-    , Maybe.map Attrs.name options.name
-    , Maybe.map Attrs.disabled options.disabled
-    , Maybe.map Attrs.placeholder options.placeholder
-    , Maybe.map Events.onBlur options.onBlur
-    , Maybe.map Events.onFocus options.onFocus
+    [ options.id
+        |> Maybe.map Attrs.id
+    , options.name
+        |> Maybe.map Attrs.name
+    , options.disabled
+        |> Maybe.map Attrs.disabled
+    , options.placeholder
+        |> Maybe.map Attrs.placeholder
+    , options.onBlur
+        |> Maybe.map Events.onBlur
+    , options.onFocus
+        |> Maybe.map Events.onFocus
     ]
         |> List.filterMap identity
         |> (++) options.attributes
         |> (::) (classesAttribute options.classes)
+        |> (::) (readerAttribute model inputModel)
+        |> (::) (writerAttribute inputModel)
         |> (::) (typeAttribute config.type_)
         |> (::) (sizeAttribute options.size)
