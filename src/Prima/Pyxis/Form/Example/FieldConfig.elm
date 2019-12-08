@@ -50,13 +50,12 @@ privacyConfig =
         slug =
             "privacy"
     in
-    [ privacyLabel
-        |> Label.labelWithHtml
-        |> Label.withFor slug
-        |> Just
-        |> Checkbox.checkboxChoice "privacy"
-    ]
-        |> Checkbox.checkbox .privacy (OnCheck Privacy)
+    Checkbox.checkbox .privacy (OnCheck Privacy) slug
+        |> Checkbox.withLabel
+            (privacyLabel
+                |> Label.labelWithHtml
+                |> Label.withFor slug
+            )
         |> Field.checkbox
         |> Field.addLabel
             ("Privacy"
@@ -122,6 +121,7 @@ countryConfig =
     , Autocomplete.autocompleteChoice "uk" "U.K."
     ]
         |> Autocomplete.autocomplete .country (OnInput Country) .countryFilter (OnFilter Country) (.countryAutocompleteOpened << .uiState)
+        |> Autocomplete.withThreshold 3
         |> Field.autocomplete
         |> Field.addLabel
             ("Paese di nascita"

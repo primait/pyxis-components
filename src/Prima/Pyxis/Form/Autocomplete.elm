@@ -1,6 +1,6 @@
 module Prima.Pyxis.Form.Autocomplete exposing
     ( Autocomplete, AutocompleteChoice, autocomplete, autocompleteChoice
-    , withAttributes, withClass, withDisabled, withId, withName, withPlaceholder
+    , withAttributes, withClass, withDisabled, withId, withName, withPlaceholder, withThreshold
     , withRegularSize, withSmallSize, withLargeSize
     , withOnBlur, withOnFocus
     , render
@@ -16,7 +16,7 @@ module Prima.Pyxis.Form.Autocomplete exposing
 
 ## Generic modifiers
 
-@docs withAttributes, withClass, withDisabled, withId, withName, withPlaceholder
+@docs withAttributes, withClass, withDisabled, withId, withName, withPlaceholder, withThreshold
 
 
 ## Size modifiers
@@ -88,6 +88,7 @@ type AutocompleteOption model msg
     | OverridingClass String
     | Placeholder String
     | Size AutocompleteSize
+    | Threshold Int
 
 
 {-| Represents the `Autocomplete` size.
@@ -182,11 +183,21 @@ withSmallSize =
     addOption (Size Small)
 
 
+{-| Sets a `threshold` on the filter to the `Autocomplete config`.
+-}
+withThreshold : Int -> Autocomplete model msg -> Autocomplete model msg
+withThreshold threshold =
+    addOption (Threshold threshold)
+
+
 {-| Renders the `Autocomplete config`.
 -}
 render : model -> Autocomplete model msg -> List (Html msg)
 render model ((Autocomplete config) as autocompleteModel) =
     let
+        options =
+            List.foldl applyOption defaultOptions config.options
+
         choices =
             config.autocompleteChoices
                 |> List.filter
@@ -199,11 +210,18 @@ render model ((Autocomplete config) as autocompleteModel) =
                                 |> Maybe.withDefault ""
                             )
                     )
+
+        hasReachedThreshold =
+            model
+                |> config.filterReader
+                |> Maybe.map String.length
+                |> Maybe.withDefault 0
+                |> (<=) options.threshold
     in
     [ Html.div
         [ Attrs.classList
             [ ( "a-form-field__autocomplete", True )
-            , ( "is-open", config.openedReader model )
+            , ( "is-open", hasReachedThreshold && config.openedReader model )
             ]
         ]
         [ Html.input
@@ -261,6 +279,7 @@ type alias Options msg =
     , onBlur : Maybe msg
     , placeholder : Maybe String
     , size : AutocompleteSize
+    , threshold : Int
     }
 
 
@@ -277,6 +296,7 @@ defaultOptions =
     , onBlur = Nothing
     , placeholder = Nothing
     , size = Regular
+    , threshold = 1
     }
 
 
@@ -314,6 +334,9 @@ applyOption modifier options =
 
         Size size ->
             { options | size = size }
+
+        Threshold threshold ->
+            { options | threshold = threshold }
 
 
 {-| Transforms a `List` of `Class`(es) into a valid `Html.Attribute`.

@@ -85,7 +85,7 @@ updatePassword value =
     updateFormData (\f -> { f | password = value })
 
 
-updatePrivacy : String -> Model -> Model
+updatePrivacy : Bool -> Model -> Model
 updatePrivacy value =
     updateFormData (\f -> { f | privacy = Just value })
 

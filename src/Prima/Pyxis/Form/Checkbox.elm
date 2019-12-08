@@ -12,34 +12,24 @@ type Checkbox model msg
 
 type alias CheckboxConfig model msg =
     { options : List (CheckboxOption msg)
-    , reader : model -> Maybe String
-    , writer : String -> msg
-    , checkboxChoices : List (CheckboxChoice msg)
+    , reader : model -> Maybe Bool
+    , writer : Bool -> msg
+    , id : String
     }
 
 
 type CheckboxOption msg
     = Attributes (List (Html.Attribute msg))
     | Disabled Bool
+    | Label (Label msg)
     | Name String
     | OnFocus msg
     | OnBlur msg
 
 
-checkbox : (model -> Maybe String) -> (String -> msg) -> List (CheckboxChoice msg) -> Checkbox model msg
-checkbox reader writer =
-    Checkbox << CheckboxConfig [] reader writer
-
-
-type alias CheckboxChoice msg =
-    { value : String
-    , label : Maybe (Label.Label msg)
-    }
-
-
-checkboxChoice : String -> Maybe (Label.Label msg) -> CheckboxChoice msg
-checkboxChoice value label =
-    CheckboxChoice value label
+checkbox : (model -> Maybe Bool) -> (Bool -> msg) -> String -> Checkbox model msg
+checkbox reader writer id =
+    Checkbox <| CheckboxConfig [] reader writer id
 
 
 {-| Internal.
@@ -49,6 +39,13 @@ addOption option (Checkbox checkboxConfig) =
     Checkbox { checkboxConfig | options = checkboxConfig.options ++ [ option ] }
 
 
+{-| Sets a list of `attributes` to the `Input config`.
+-}
+withAttributes : List (Html.Attribute msg) -> Checkbox model msg -> Checkbox model msg
+withAttributes attributes =
+    addOption (Attributes attributes)
+
+
 {-| Sets a `disabled` to the `Input config`.
 -}
 withDisabled : Bool -> Checkbox model msg -> Checkbox model msg
@@ -56,11 +53,9 @@ withDisabled disabled =
     addOption (Disabled disabled)
 
 
-{-| Sets a list of `attributes` to the `Input config`.
--}
-withAttributes : List (Html.Attribute msg) -> Checkbox model msg -> Checkbox model msg
-withAttributes attributes =
-    addOption (Attributes attributes)
+withLabel : Label msg -> Checkbox model msg -> Checkbox model msg
+withLabel label =
+    addOption (Label label)
 
 
 {-| Sets an `onBlur event` to the `Input config`.
@@ -78,10 +73,10 @@ withOnFocus tagger =
 
 
 type alias Options msg =
-    { name : Maybe String
-    , label : Maybe (Label msg)
+    { attributes : List (Html.Attribute msg)
     , disabled : Maybe Bool
-    , attributes : List (Html.Attribute msg)
+    , label : Maybe (Label msg)
+    , name : Maybe String
     , onFocus : Maybe msg
     , onBlur : Maybe msg
     }
@@ -89,10 +84,10 @@ type alias Options msg =
 
 defaultOptions : Options msg
 defaultOptions =
-    { name = Nothing
-    , label = Nothing
+    { attributes = [ Attrs.class "a-form-field__checkbox" ]
     , disabled = Nothing
-    , attributes = [ Attrs.class "a-form-field__checkbox" ]
+    , label = Nothing
+    , name = Nothing
     , onFocus = Nothing
     , onBlur = Nothing
     }
@@ -110,6 +105,9 @@ applyOption modifier options =
         Name name ->
             { options | name = Just name }
 
+        Label label ->
+            { options | label = Just label }
+
         OnBlur onBlur ->
             { options | onBlur = Just onBlur }
 
@@ -117,18 +115,23 @@ applyOption modifier options =
             { options | onFocus = Just onFocus }
 
 
-readerAttribute : model -> Checkbox model msg -> CheckboxChoice msg -> Html.Attribute msg
-readerAttribute model (Checkbox config) choice =
-    (Attrs.checked << (==) (Just choice.value) << config.reader) model
+readerAttribute : model -> Checkbox model msg -> Html.Attribute msg
+readerAttribute model (Checkbox config) =
+    (Attrs.checked << Maybe.withDefault False << config.reader) model
 
 
-writerAttribute : Checkbox model msg -> CheckboxChoice msg -> Html.Attribute msg
-writerAttribute (Checkbox config) choice =
-    (Events.onClick << config.writer) choice.value
+writerAttribute : model -> Checkbox model msg -> Html.Attribute msg
+writerAttribute model (Checkbox config) =
+    model
+        |> config.reader
+        |> Maybe.withDefault False
+        |> not
+        |> config.writer
+        |> Events.onClick
 
 
-buildAttributes : model -> Checkbox model msg -> CheckboxChoice msg -> List (Html.Attribute msg)
-buildAttributes model ((Checkbox config) as checkboxModel) choice =
+buildAttributes : model -> Checkbox model msg -> List (Html.Attribute msg)
+buildAttributes model ((Checkbox config) as checkboxModel) =
     let
         options =
             List.foldl applyOption defaultOptions config.options
@@ -140,37 +143,34 @@ buildAttributes model ((Checkbox config) as checkboxModel) choice =
     ]
         |> List.filterMap identity
         |> (++) options.attributes
-        |> (::) (readerAttribute model checkboxModel choice)
-        |> (::) (writerAttribute checkboxModel choice)
-        |> (::) (Attrs.value choice.value)
+        |> (::) (readerAttribute model checkboxModel)
+        |> (::) (writerAttribute model checkboxModel)
         |> (::) (Attrs.type_ "checkbox")
-        |> (::) (Attrs.id choice.value)
+        |> (::) (Attrs.id config.id)
 
 
 render : model -> Checkbox model msg -> List (Html msg)
 render model ((Checkbox config) as checkboxModel) =
     [ Html.div
         [ Attrs.class "a-form-field__checkbox-options" ]
-        (List.map (renderCheckboxChoice model checkboxModel) config.checkboxChoices)
+        [ renderCheckboxChoice model checkboxModel ]
     ]
 
 
-renderCheckboxChoice : model -> Checkbox model msg -> CheckboxChoice msg -> Html msg
-renderCheckboxChoice model ((Checkbox config) as checkboxModel) choice =
+renderCheckboxChoice : model -> Checkbox model msg -> Html msg
+renderCheckboxChoice model ((Checkbox config) as checkboxModel) =
+    let
+        options =
+            List.foldl applyOption defaultOptions config.options
+    in
     Html.div
         [ Attrs.class "a-form-field__checkbox-options__item" ]
         [ Html.input
-            (buildAttributes model checkboxModel choice)
+            (buildAttributes model checkboxModel)
             []
-        , choice.label
-            |> Maybe.map (renderCheckboxLabel choice)
-            |> Maybe.withDefault (Html.text "")
+        , options.label
+            |> Maybe.withDefault (Label.labelWithHtml [])
+            |> Label.withFor config.id
+            |> Label.withOverridingClass "a-form-field__checkbox-options__item__label"
+            |> Label.render
         ]
-
-
-renderCheckboxLabel : CheckboxChoice msg -> Label.Label msg -> Html msg
-renderCheckboxLabel choice lbl =
-    lbl
-        |> Label.withOverridingClass "a-form-field__checkbox-options__item__label"
-        |> Label.withFor choice.value
-        |> Label.render

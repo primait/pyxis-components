@@ -12,7 +12,7 @@ import Prima.Pyxis.Form as Form
 
 type Msg
     = OnInput Field String
-    | OnCheck Field String
+    | OnCheck Field Bool
     | OnFilter Field String
     | OnToggle Field
 
@@ -40,7 +40,7 @@ type Field
 type alias FormData =
     { username : Maybe String
     , password : Maybe String
-    , privacy : Maybe String
+    , privacy : Maybe Bool
     , guideType : Maybe String
     , powerSource : Maybe String
     , country : Maybe String
