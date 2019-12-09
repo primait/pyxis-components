@@ -1,6 +1,6 @@
 module Prima.Pyxis.Form.Label exposing
     ( Label, label, labelWithHtml
-    , withAttributes, withClass, withOverridingClass, withFor, withOnClick
+    , withAttribute, withClass, withOverridingClass, withFor, withOnClick
     , render
     , addOption
     )
@@ -15,7 +15,7 @@ module Prima.Pyxis.Form.Label exposing
 
 ## Generic modifiers
 
-@docs withAttributes, withClass, withOverridingClass, withFor, withOnClick
+@docs withAttribute, withClass, withOverridingClass, withFor, withOnClick
 
 
 ## Rendering
@@ -60,7 +60,7 @@ labelWithHtml children =
 {-| Represents the possibile modifiers of a `Label`.
 -}
 type LabelOption msg
-    = Attributes (List (Html.Attribute msg))
+    = Attribute (Html.Attribute msg)
     | Class String
     | For String
     | OnClick msg
@@ -98,9 +98,9 @@ addOption option (Label labelConfig) =
 
 {-| Sets a list of `attributes` to the `Label config`.
 -}
-withAttributes : List (Html.Attribute msg) -> Label msg -> Label msg
-withAttributes attributes =
-    addOption (Attributes attributes)
+withAttribute : Html.Attribute msg -> Label msg -> Label msg
+withAttribute attribute =
+    addOption (Attribute attribute)
 
 
 {-| Sets a class which will override the others to the `Label config`.
@@ -136,8 +136,8 @@ withOnClick onClick =
 applyOption : LabelOption msg -> Options msg -> Options msg
 applyOption modifier options =
     case modifier of
-        Attributes attributes ->
-            { options | attributes = options.attributes ++ attributes }
+        Attribute attribute ->
+            { options | attributes = attribute :: options.attributes }
 
         For for ->
             { options | for = Just for }

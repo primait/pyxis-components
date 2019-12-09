@@ -10,7 +10,7 @@ module Prima.Pyxis.Form.Select exposing (..)
 
 ## Modifiers
 
-@docs withId, withName, withAttributes, withDisabled, withValue
+@docs withId, withName, withAttribute, withDisabled, withValue
 
 
 ## Events
@@ -64,7 +64,7 @@ selectChoice value label =
 {-| Internal.
 -}
 type SelectOption model msg
-    = Attributes (List (Html.Attribute msg))
+    = Attribute (Html.Attribute msg)
     | Class String
     | Disabled Bool
     | Id String
@@ -119,9 +119,9 @@ addOption option (Select selectConfig) =
 
 {-| Sets a list of `attributes` to the `Select config`.
 -}
-withAttributes : List (Html.Attribute msg) -> Select model msg -> Select model msg
-withAttributes attributes =
-    addOption (Attributes attributes)
+withAttribute : Html.Attribute msg -> Select model msg -> Select model msg
+withAttribute attribute =
+    addOption (Attribute attribute)
 
 
 {-| Sets a `disabled` to the `Select config`.
@@ -190,8 +190,8 @@ withSmallSize =
 applyOption : SelectOption model msg -> Options msg -> Options msg
 applyOption modifier options =
     case modifier of
-        Attributes attributes ->
-            { options | attributes = options.attributes ++ attributes }
+        Attribute attribute ->
+            { options | attributes = attribute :: options.attributes }
 
         Class class ->
             { options | class = class :: options.class }

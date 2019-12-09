@@ -1,6 +1,6 @@
 module Prima.Pyxis.Form.Input exposing
     ( Input, text, password, date, number, email
-    , withAttributes, withClass, withDisabled, withId, withName, withPlaceholder
+    , withAttribute, withClass, withDisabled, withId, withName, withPlaceholder
     , withRegularSize, withSmallSize, withLargeSize
     , withOnBlur, withOnFocus
     , render
@@ -16,7 +16,7 @@ module Prima.Pyxis.Form.Input exposing
 
 ## Generic modifiers
 
-@docs withAttributes, withClass, withDisabled, withId, withName, withPlaceholder
+@docs withAttribute, withClass, withDisabled, withId, withName, withPlaceholder
 
 
 ## Size modifiers
@@ -111,7 +111,7 @@ email reader writer =
 {-| Represents the possibile modifiers of an `Input`.
 -}
 type InputOption model msg
-    = Attributes (List (Html.Attribute msg))
+    = Attribute (Html.Attribute msg)
     | Class String
     | Disabled Bool
     | Id String
@@ -133,9 +133,9 @@ type InputSize
 
 {-| Sets a list of `attributes` to the `Input config`.
 -}
-withAttributes : List (Html.Attribute msg) -> Input model msg -> Input model msg
-withAttributes attributes =
-    addOption (Attributes attributes)
+withAttribute : Html.Attribute msg -> Input model msg -> Input model msg
+withAttribute attribute =
+    addOption (Attribute attribute)
 
 
 {-| Sets a `class` to the `Input config`.
@@ -269,8 +269,8 @@ defaultOptions =
 applyOption : InputOption model msg -> Options msg -> Options msg
 applyOption modifier options =
     case modifier of
-        Attributes attributes ->
-            { options | attributes = options.attributes ++ attributes }
+        Attribute attribute ->
+            { options | attributes = attribute :: options.attributes }
 
         Class class ->
             { options | classes = class :: options.classes }

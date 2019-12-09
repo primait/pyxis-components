@@ -1,6 +1,6 @@
 module Prima.Pyxis.Form.Autocomplete exposing
     ( Autocomplete, AutocompleteChoice, autocomplete, autocompleteChoice
-    , withAttributes, withClass, withDisabled, withId, withName, withPlaceholder, withThreshold
+    , withAttribute, withClass, withDisabled, withId, withName, withPlaceholder, withThreshold
     , withRegularSize, withSmallSize, withLargeSize
     , withOnBlur, withOnFocus
     , render
@@ -16,7 +16,7 @@ module Prima.Pyxis.Form.Autocomplete exposing
 
 ## Generic modifiers
 
-@docs withAttributes, withClass, withDisabled, withId, withName, withPlaceholder, withThreshold
+@docs withAttribute, withClass, withDisabled, withId, withName, withPlaceholder, withThreshold
 
 
 ## Size modifiers
@@ -78,7 +78,7 @@ autocompleteChoice value label =
 {-| Represents the possibile modifiers of an `Autocomplete`.
 -}
 type AutocompleteOption model msg
-    = Attributes (List (Html.Attribute msg))
+    = Attribute (Html.Attribute msg)
     | Class String
     | Disabled Bool
     | Id String
@@ -101,9 +101,9 @@ type AutocompleteSize
 
 {-| Sets a list of `attributes` to the `Autocomplete config`.
 -}
-withAttributes : List (Html.Attribute msg) -> Autocomplete model msg -> Autocomplete model msg
-withAttributes attributes =
-    addOption (Attributes attributes)
+withAttribute : Html.Attribute msg -> Autocomplete model msg -> Autocomplete model msg
+withAttribute attribute =
+    addOption (Attribute attribute)
 
 
 {-| Sets a `class` to the `Autocomplete config`.
@@ -305,8 +305,8 @@ defaultOptions =
 applyOption : AutocompleteOption model msg -> Options msg -> Options msg
 applyOption modifier options =
     case modifier of
-        Attributes attributes ->
-            { options | attributes = options.attributes ++ attributes }
+        Attribute attribute ->
+            { options | attributes = attribute :: options.attributes }
 
         Class class ->
             { options | classes = class :: options.classes }

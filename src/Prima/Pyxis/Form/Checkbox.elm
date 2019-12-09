@@ -19,7 +19,7 @@ type alias CheckboxConfig model msg =
 
 
 type CheckboxOption msg
-    = Attributes (List (Html.Attribute msg))
+    = Attribute (Html.Attribute msg)
     | Disabled Bool
     | Label (Label msg)
     | Name String
@@ -41,9 +41,9 @@ addOption option (Checkbox checkboxConfig) =
 
 {-| Sets a list of `attributes` to the `Input config`.
 -}
-withAttributes : List (Html.Attribute msg) -> Checkbox model msg -> Checkbox model msg
-withAttributes attributes =
-    addOption (Attributes attributes)
+withAttribute : Html.Attribute msg -> Checkbox model msg -> Checkbox model msg
+withAttribute attribute =
+    addOption (Attribute attribute)
 
 
 {-| Sets a `disabled` to the `Input config`.
@@ -96,8 +96,8 @@ defaultOptions =
 applyOption : CheckboxOption msg -> Options msg -> Options msg
 applyOption modifier options =
     case modifier of
-        Attributes attributes ->
-            { options | attributes = options.attributes ++ attributes }
+        Attribute attribute ->
+            { options | attributes = attribute :: options.attributes }
 
         Disabled disabled ->
             { options | disabled = Just disabled }

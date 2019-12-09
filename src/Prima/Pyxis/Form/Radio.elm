@@ -10,7 +10,7 @@ module Prima.Pyxis.Form.Radio exposing (..)
 
 ## Modifiers
 
-@docs withId, withName, withChecked, withAttributes, withDisabled
+@docs withId, withName, withChecked, withAttribute, withDisabled
 
 
 ## Events
@@ -66,7 +66,7 @@ radioChoice value label =
 {-| Internal.
 -}
 type RadioOption model msg
-    = Attributes (List (Html.Attribute msg))
+    = Attribute (Html.Attribute msg)
     | Class String
     | Disabled Bool
     | Id String
@@ -109,9 +109,9 @@ addOption option (Radio radioConfig) =
 
 {-| Sets a list of `attributes` to the `Radio config`.
 -}
-withAttributes : List (Html.Attribute msg) -> Radio model msg -> Radio model msg
-withAttributes attributes =
-    addOption (Attributes attributes)
+withAttribute : Html.Attribute msg -> Radio model msg -> Radio model msg
+withAttribute attribute =
+    addOption (Attribute attribute)
 
 
 {-| Sets a `disabled` to the `Radio config`.
@@ -161,26 +161,26 @@ withOnFocus tagger =
 applyOption : RadioOption model msg -> Options msg -> Options msg
 applyOption modifier options =
     case modifier of
-        Attributes attributes_ ->
-            { options | attributes = options.attributes ++ attributes_ }
+        Attribute attribute ->
+            { options | attributes = attribute :: options.attributes }
 
-        Class class_ ->
-            { options | class = class_ :: options.class }
+        Class class ->
+            { options | class = class :: options.class }
 
-        Disabled disabled_ ->
-            { options | disabled = Just disabled_ }
+        Disabled disabled ->
+            { options | disabled = Just disabled }
 
-        Id id_ ->
-            { options | id = Just id_ }
+        Id id ->
+            { options | id = Just id }
 
-        Name name_ ->
-            { options | name = Just name_ }
+        Name name ->
+            { options | name = Just name }
 
-        OnBlur onBlur_ ->
-            { options | onBlur = Just onBlur_ }
+        OnBlur onBlur ->
+            { options | onBlur = Just onBlur }
 
-        OnFocus onFocus_ ->
-            { options | onFocus = Just onFocus_ }
+        OnFocus onFocus ->
+            { options | onFocus = Just onFocus }
 
 
 {-| Transforms a `List` of `Class`(es) into a valid `Html.Attribute`.
