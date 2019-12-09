@@ -107,7 +107,7 @@ addOption option (Radio radioConfig) =
     Radio { radioConfig | options = radioConfig.options ++ [ option ] }
 
 
-{-| Sets a list of `attributes` to the `Radio config`.
+{-| Sets an `attribute` to the `Radio config`.
 -}
 withAttribute : Html.Attribute msg -> Radio model msg -> Radio model msg
 withAttribute attribute =
@@ -211,7 +211,7 @@ buildAttributes : model -> Radio model msg -> RadioChoice -> List (Html.Attribut
 buildAttributes model ((Radio config) as radioModel) choice =
     let
         options =
-            List.foldl applyOption defaultOptions config.options
+            computeOptions radioModel
     in
     [ options.id
         |> Maybe.map Attrs.id
@@ -268,3 +268,10 @@ renderRadioChoice model ((Radio config) as radioModel) choice =
             |> Label.withOverridingClass "a-form-field__radio-options__item__label"
             |> Label.render
         ]
+
+
+{-| Internal
+-}
+computeOptions : Radio model msg -> Options msg
+computeOptions (Radio config) =
+    List.foldl applyOption defaultOptions config.options

@@ -96,7 +96,7 @@ addOption option (Label labelConfig) =
     Label { labelConfig | options = option :: labelConfig.options }
 
 
-{-| Sets a list of `attributes` to the `Label config`.
+{-| Sets an `attribute` to the `Label config`.
 -}
 withAttribute : Html.Attribute msg -> Label msg -> Label msg
 withAttribute attribute =
@@ -154,11 +154,11 @@ applyOption modifier options =
 
 {-| Internal
 -}
-buildAttributes : List (LabelOption msg) -> List (Html.Attribute msg)
-buildAttributes modifiers =
+buildAttributes : Label msg -> List (Html.Attribute msg)
+buildAttributes (Label config) =
     let
         options =
-            List.foldl applyOption defaultOptions modifiers
+            List.foldl applyOption defaultOptions config.options
     in
     [ options.for
         |> Maybe.map Attrs.for
@@ -190,7 +190,14 @@ classesAttribute =
 
 -}
 render : Label msg -> Html msg
-render (Label labelConfig) =
+render ((Label labelConfig) as labelModel) =
     Html.label
-        (buildAttributes labelConfig.options)
+        (buildAttributes labelModel)
         labelConfig.children
+
+
+{-| Internal
+-}
+computeOptions : Label msg -> Options msg
+computeOptions (Label config) =
+    List.foldl applyOption defaultOptions config.options

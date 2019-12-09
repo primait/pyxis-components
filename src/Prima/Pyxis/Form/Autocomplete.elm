@@ -99,7 +99,7 @@ type AutocompleteSize
     | Large
 
 
-{-| Sets a list of `attributes` to the `Autocomplete config`.
+{-| Sets an `attribute` to the `Autocomplete config`.
 -}
 withAttribute : Html.Attribute msg -> Autocomplete model msg -> Autocomplete model msg
 withAttribute attribute =
@@ -196,7 +196,7 @@ render : model -> Autocomplete model msg -> List (Html msg)
 render model ((Autocomplete config) as autocompleteModel) =
     let
         options =
-            List.foldl applyOption defaultOptions config.options
+            computeOptions autocompleteModel
 
         choices =
             config.autocompleteChoices
@@ -396,7 +396,7 @@ buildAttributes : model -> Autocomplete model msg -> List (Html.Attribute msg)
 buildAttributes model ((Autocomplete config) as autocompleteModel) =
     let
         options =
-            List.foldl applyOption defaultOptions config.options
+            computeOptions autocompleteModel
     in
     [ options.id
         |> Maybe.map Attrs.id
@@ -417,3 +417,10 @@ buildAttributes model ((Autocomplete config) as autocompleteModel) =
         |> (::) (filterReaderAttribute model autocompleteModel)
         |> (::) (filterWriterAttribute autocompleteModel)
         |> (::) (sizeAttribute options.size)
+
+
+{-| Internal.
+-}
+computeOptions : Autocomplete model msg -> Options msg
+computeOptions (Autocomplete config) =
+    List.foldl applyOption defaultOptions config.options

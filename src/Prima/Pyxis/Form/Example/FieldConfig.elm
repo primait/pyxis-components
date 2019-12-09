@@ -122,6 +122,7 @@ countryConfig =
     ]
         |> Autocomplete.autocomplete .country (OnInput Country) .countryFilter (OnFilter Country) (.countryAutocompleteOpened << .uiState)
         |> Autocomplete.withThreshold 3
+        |> Autocomplete.withId slug
         |> Field.autocomplete
         |> Field.addLabel
             ("Paese di nascita"

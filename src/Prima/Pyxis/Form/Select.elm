@@ -117,7 +117,7 @@ addOption option (Select selectConfig) =
     Select { selectConfig | options = selectConfig.options ++ [ option ] }
 
 
-{-| Sets a list of `attributes` to the `Select config`.
+{-| Sets an `attribute` to the `Select config`.
 -}
 withAttribute : Html.Attribute msg -> Select model msg -> Select model msg
 withAttribute attribute =
@@ -253,7 +253,7 @@ buildAttributes : model -> Select model msg -> List (Html.Attribute msg)
 buildAttributes model ((Select config) as selectModel) =
     let
         options =
-            List.foldl applyOption defaultOptions config.options
+            computeOptions selectModel
     in
     [ options.id
         |> Maybe.map Attrs.id
@@ -300,7 +300,7 @@ renderCustomSelect : model -> Select model msg -> Html msg
 renderCustomSelect model ((Select config) as selectModel) =
     let
         options =
-            List.foldl applyOption defaultOptions config.options
+            computeOptions selectModel
     in
     Html.div
         [ Attrs.classList
@@ -319,10 +319,10 @@ renderCustomSelect model ((Select config) as selectModel) =
 
 
 renderCustomSelectStatus : model -> Select model msg -> Html msg
-renderCustomSelectStatus model (Select config) =
+renderCustomSelectStatus model ((Select config) as selectModel) =
     let
         options =
-            List.foldl applyOption defaultOptions config.options
+            computeOptions selectModel
     in
     Html.span
         [ Attrs.class "a-form-field__custom-select__status"
@@ -354,3 +354,10 @@ renderCustomSelectChoice model (Select config) choice =
         ]
         [ text choice.label
         ]
+
+
+{-| Internal
+-}
+computeOptions : Select model msg -> Options msg
+computeOptions (Select config) =
+    List.foldl applyOption defaultOptions config.options

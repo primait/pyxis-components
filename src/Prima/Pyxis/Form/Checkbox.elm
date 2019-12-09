@@ -39,7 +39,7 @@ addOption option (Checkbox checkboxConfig) =
     Checkbox { checkboxConfig | options = checkboxConfig.options ++ [ option ] }
 
 
-{-| Sets a list of `attributes` to the `Input config`.
+{-| Sets an `attribute` to the `Input config`.
 -}
 withAttribute : Html.Attribute msg -> Checkbox model msg -> Checkbox model msg
 withAttribute attribute =
@@ -134,7 +134,7 @@ buildAttributes : model -> Checkbox model msg -> List (Html.Attribute msg)
 buildAttributes model ((Checkbox config) as checkboxModel) =
     let
         options =
-            List.foldl applyOption defaultOptions config.options
+            computeOptions checkboxModel
     in
     [ Maybe.map Attrs.name options.name
     , Maybe.map Attrs.disabled options.disabled
@@ -161,7 +161,7 @@ renderCheckboxChoice : model -> Checkbox model msg -> Html msg
 renderCheckboxChoice model ((Checkbox config) as checkboxModel) =
     let
         options =
-            List.foldl applyOption defaultOptions config.options
+            computeOptions checkboxModel
     in
     Html.div
         [ Attrs.class "a-form-field__checkbox-options__item" ]
@@ -174,3 +174,10 @@ renderCheckboxChoice model ((Checkbox config) as checkboxModel) =
             |> Label.withOverridingClass "a-form-field__checkbox-options__item__label"
             |> Label.render
         ]
+
+
+{-| Internal.
+-}
+computeOptions : Checkbox model msg -> Options msg
+computeOptions (Checkbox config) =
+    List.foldl applyOption defaultOptions config.options

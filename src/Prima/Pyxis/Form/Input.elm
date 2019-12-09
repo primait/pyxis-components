@@ -111,7 +111,8 @@ email reader writer =
 {-| Represents the possibile modifiers of an `Input`.
 -}
 type InputOption model msg
-    = Attribute (Html.Attribute msg)
+    = AppendGroup (Html msg)
+    | Attribute (Html.Attribute msg)
     | Class String
     | Disabled Bool
     | Id String
@@ -120,6 +121,7 @@ type InputOption model msg
     | OnFocus msg
     | OverridingClass String
     | Placeholder String
+    | PrependGroup (Html msg)
     | Size InputSize
 
 
@@ -131,7 +133,14 @@ type InputSize
     | Large
 
 
-{-| Sets a list of `attributes` to the `Input config`.
+{-| Sets a `group` which wraps the `Input` and which renders at the end of the Input.
+-}
+withAppendGroup : Html msg -> Input model msg -> Input model msg
+withAppendGroup content =
+    addOption (AppendGroup content)
+
+
+{-| Sets an `attribute` to the `Input config`.
 -}
 withAttribute : Html.Attribute msg -> Input model msg -> Input model msg
 withAttribute attribute =
@@ -201,6 +210,13 @@ withPlaceholder placeholder =
     addOption (Placeholder placeholder)
 
 
+{-| Sets a `group` which wraps the `Input` and which renders at the head of the Input.
+-}
+withPrependGroup : Html msg -> Input model msg -> Input model msg
+withPrependGroup content =
+    addOption (PrependGroup content)
+
+
 {-| Sets a `size` to the `Input config`.
 -}
 withRegularSize : Input model msg -> Input model msg
@@ -245,6 +261,8 @@ type alias Options msg =
     , onBlur : Maybe msg
     , placeholder : Maybe String
     , size : InputSize
+    , prependGroup : Maybe (Html msg)
+    , appendGroup : Maybe (Html msg)
     }
 
 
@@ -261,6 +279,8 @@ defaultOptions =
     , onBlur = Nothing
     , placeholder = Nothing
     , size = Regular
+    , prependGroup = Nothing
+    , appendGroup = Nothing
     }
 
 
@@ -269,6 +289,9 @@ defaultOptions =
 applyOption : InputOption model msg -> Options msg -> Options msg
 applyOption modifier options =
     case modifier of
+        AppendGroup group ->
+            { options | appendGroup = Just group }
+
         Attribute attribute ->
             { options | attributes = attribute :: options.attributes }
 
@@ -295,6 +318,9 @@ applyOption modifier options =
 
         Placeholder placeholder ->
             { options | placeholder = Just placeholder }
+
+        PrependGroup group ->
+            { options | prependGroup = Just group }
 
         Size size ->
             { options | size = size }
@@ -363,7 +389,7 @@ buildAttributes : model -> Input model msg -> List (Html.Attribute msg)
 buildAttributes model ((Input config) as inputModel) =
     let
         options =
-            List.foldl applyOption defaultOptions config.options
+            computeOptions inputModel
     in
     [ options.id
         |> Maybe.map Attrs.id
@@ -385,3 +411,10 @@ buildAttributes model ((Input config) as inputModel) =
         |> (::) (writerAttribute inputModel)
         |> (::) (typeAttribute config.type_)
         |> (::) (sizeAttribute options.size)
+
+
+{-| Internal
+-}
+computeOptions : Input model msg -> Options msg
+computeOptions (Input config) =
+    List.foldl applyOption defaultOptions config.options
