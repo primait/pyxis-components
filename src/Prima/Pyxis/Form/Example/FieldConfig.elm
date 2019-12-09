@@ -1,10 +1,12 @@
 module Prima.Pyxis.Form.Example.FieldConfig exposing (..)
 
 import Html exposing (Html, text)
+import Html.Attributes as Attrs
 import Prima.Pyxis.Form.Autocomplete as Autocomplete
 import Prima.Pyxis.Form.Checkbox as Checkbox
 import Prima.Pyxis.Form.Example.Model exposing (Field(..), FormData, Model, Msg(..))
 import Prima.Pyxis.Form.Field as Field
+import Prima.Pyxis.Form.Group as Group
 import Prima.Pyxis.Form.Input as Input
 import Prima.Pyxis.Form.Label as Label
 import Prima.Pyxis.Form.Radio as Radio
@@ -28,6 +30,30 @@ usernameConfig =
             )
 
 
+usernameGroupConfig : Field.FormField FormData Msg
+usernameGroupConfig =
+    let
+        slug =
+            "username"
+
+        userIcon =
+            Html.i [ Attrs.class "a-icon a-icon-people" ] []
+    in
+    Input.text .username (OnInput Username)
+        |> Input.withId slug
+        |> Group.groupInput
+        |> List.singleton
+        |> Group.group
+        |> Group.withAppendGroup [ userIcon ]
+        |> Group.withClass "my-custom-class"
+        |> Field.group
+        |> Field.addLabel
+            ("Username"
+                |> Label.label
+                |> Label.withFor slug
+            )
+
+
 passwordConfig : Field.FormField FormData Msg
 passwordConfig =
     let
@@ -39,6 +65,54 @@ passwordConfig =
         |> Field.input
         |> Field.addLabel
             ("Password"
+                |> Label.label
+                |> Label.withFor slug
+            )
+
+
+passwordGroupConfig : Field.FormField FormData Msg
+passwordGroupConfig =
+    let
+        slug =
+            "password"
+
+        lockIcon =
+            Html.i [ Attrs.class "a-icon a-icon-lock" ] []
+    in
+    Input.password .password (OnInput Password)
+        |> Input.withId slug
+        |> Group.groupInput
+        |> List.singleton
+        |> Group.group
+        |> Group.withAppendGroup [ lockIcon ]
+        |> Group.withClass "my-custom-class"
+        |> Field.group
+        |> Field.addLabel
+            ("Password"
+                |> Label.label
+                |> Label.withFor slug
+            )
+
+
+fiscalCodeGroupConfig : Field.FormField FormData Msg
+fiscalCodeGroupConfig =
+    let
+        slug =
+            "fiscal_code"
+
+        cta =
+            Link.render <| Link.simple "Calcola" "www.prima.it"
+    in
+    Input.text .fiscalCode (OnInput FiscalCode)
+        |> Input.withId slug
+        |> Group.groupInput
+        |> List.singleton
+        |> Group.group
+        |> Group.withPrependGroup [ cta ]
+        |> Group.withClass "my-custom-class"
+        |> Field.group
+        |> Field.addLabel
+            ("Fiscal code"
                 |> Label.label
                 |> Label.withFor slug
             )

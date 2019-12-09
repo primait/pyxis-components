@@ -3,6 +3,7 @@ module Prima.Pyxis.Form.Field exposing (..)
 import Html exposing (Html, text)
 import Prima.Pyxis.Form.Autocomplete as Autocomplete
 import Prima.Pyxis.Form.Checkbox as Checkbox
+import Prima.Pyxis.Form.Group as Group
 import Prima.Pyxis.Form.Input as Input
 import Prima.Pyxis.Form.Label as Label
 import Prima.Pyxis.Form.Radio as Radio
@@ -16,6 +17,7 @@ type FormField model msg
     | RadioField (RadioFieldConfig model msg)
     | SelectField (SelectFieldConfig model msg)
     | AutocompleteField (AutocompleteFieldConfig model msg)
+    | GroupField (GroupFieldConfig model msg)
 
 
 hasLabel : FormField model msg -> Bool
@@ -26,19 +28,22 @@ hasLabel =
 pickLabel : FormField model msg -> Maybe (Label.Label msg)
 pickLabel formField =
     case formField of
-        InputField { label } ->
+        AutocompleteField { label } ->
             label
 
         CheckboxField { label } ->
+            label
+
+        InputField { label } ->
+            label
+
+        GroupField { label } ->
             label
 
         RadioField { label } ->
             label
 
         SelectField { label } ->
-            label
-
-        AutocompleteField { label } ->
             label
 
 
@@ -97,23 +102,37 @@ autocomplete config =
     AutocompleteField <| AutocompleteFieldConfig config Nothing
 
 
+type alias GroupFieldConfig model msg =
+    { config : Group.Group model msg
+    , label : Maybe (Label.Label msg)
+    }
+
+
+group : Group.Group model msg -> FormField model msg
+group config =
+    GroupField <| GroupFieldConfig config Nothing
+
+
 addLabel : Label.Label msg -> FormField model msg -> FormField model msg
 addLabel lbl formField =
     case formField of
-        InputField fieldConfig ->
-            InputField { fieldConfig | label = Just lbl }
+        AutocompleteField fieldConfig ->
+            AutocompleteField { fieldConfig | label = Just lbl }
 
         CheckboxField fieldConfig ->
             CheckboxField { fieldConfig | label = Just lbl }
 
-        RadioField fieldConfig ->
-            RadioField { fieldConfig | label = Just lbl }
+        GroupField fieldConfig ->
+            GroupField { fieldConfig | label = Just lbl }
+
+        InputField fieldConfig ->
+            InputField { fieldConfig | label = Just lbl }
 
         SelectField fieldConfig ->
             SelectField { fieldConfig | label = Just lbl }
 
-        AutocompleteField fieldConfig ->
-            AutocompleteField { fieldConfig | label = Just lbl }
+        RadioField fieldConfig ->
+            RadioField { fieldConfig | label = Just lbl }
 
 
 renderLabel : FormField model msg -> Html msg
@@ -141,3 +160,6 @@ renderField model formField =
 
         AutocompleteField { config } ->
             Autocomplete.render model config
+
+        GroupField { config } ->
+            [ Group.render model config ]

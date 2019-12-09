@@ -155,10 +155,10 @@ applyOption modifier options =
 {-| Internal
 -}
 buildAttributes : Label msg -> List (Html.Attribute msg)
-buildAttributes (Label config) =
+buildAttributes ((Label config) as labelModel) =
     let
         options =
-            List.foldl applyOption defaultOptions config.options
+            computeOptions labelModel
     in
     [ options.for
         |> Maybe.map Attrs.for

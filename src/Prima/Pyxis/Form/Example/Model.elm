@@ -35,6 +35,7 @@ type Field
     | GuideType
     | PowerSource
     | Country
+    | FiscalCode
 
 
 type alias FormData =
@@ -45,6 +46,7 @@ type alias FormData =
     , powerSource : Maybe String
     , country : Maybe String
     , countryFilter : Maybe String
+    , fiscalCode : Maybe String
     , uiState : UIState
     }
 
@@ -58,6 +60,7 @@ initialFormData =
     , powerSource = Nothing
     , country = Nothing
     , countryFilter = Nothing
+    , fiscalCode = Nothing
     , uiState = initialUIState
     }
 

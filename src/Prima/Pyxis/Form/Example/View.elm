@@ -31,6 +31,13 @@ formConfig model =
             , Config.passwordConfig
             ]
         |> Form.addFieldsInRow
+            [ Config.fiscalCodeGroupConfig
+            ]
+        |> Form.addFieldsInRow
+            [ Config.usernameGroupConfig
+            , Config.passwordGroupConfig
+            ]
+        |> Form.addFieldsInRow
             [ Config.privacyConfig
             ]
         |> Form.addFieldsInRow

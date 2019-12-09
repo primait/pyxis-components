@@ -45,6 +45,12 @@ update msg model =
                 |> printModel
                 |> H.withoutCmds
 
+        OnInput FiscalCode value ->
+            model
+                |> updateFiscalCode (Just value)
+                |> printModel
+                |> H.withoutCmds
+
         OnInput Country value ->
             model
                 |> updateCountry (Just value)
@@ -137,6 +143,11 @@ openPowerSourceSelect =
 closePowerSourceSelect : Model -> Model
 closePowerSourceSelect =
     updateFormData <| updateUiState (\ui -> { ui | powerSourceSelectOpened = False })
+
+
+updateFiscalCode : Maybe String -> Model -> Model
+updateFiscalCode value =
+    updateFormData (\f -> { f | fiscalCode = value })
 
 
 updateFormData : (FormData -> FormData) -> Model -> Model
