@@ -1,4 +1,16 @@
-module Prima.Pyxis.Form.Example.FieldConfig exposing (countryConfig, guideTypeConfig, multiChoicesConfig, passwordConfig, powerSourceConfig, privacyConfig, privacyLabel, usernameConfig)
+module Prima.Pyxis.Form.Example.FieldConfig exposing
+    ( countryConfig
+    , fiscalCodeGroupConfig
+    , guideTypeConfig
+    , multiChoicesConfig
+    , passwordConfig
+    , passwordGroupConfig
+    , powerSourceConfig
+    , privacyConfig
+    , privacyLabel
+    , usernameConfig
+    , usernameGroupConfig
+    )
 
 import Html exposing (Html, text)
 import Html.Attributes as Attrs
