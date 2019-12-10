@@ -6,7 +6,6 @@ import Prima.Pyxis.Form.Autocomplete as Autocomplete
 import Prima.Pyxis.Form.Checkbox as Checkbox
 import Prima.Pyxis.Form.Example.Model exposing (Field(..), FormData, Model, Msg(..))
 import Prima.Pyxis.Form.Field as Field
-import Prima.Pyxis.Form.Group as Group
 import Prima.Pyxis.Form.Input as Input
 import Prima.Pyxis.Form.Label as Label
 import Prima.Pyxis.Form.Radio as Radio
@@ -24,7 +23,7 @@ usernameConfig =
         |> Input.withId slug
         |> Field.input
         |> Field.addLabel
-            ("Username"
+            ("Username & pwd"
                 |> Label.label
                 |> Label.withFor slug
             )
@@ -41,12 +40,8 @@ usernameGroupConfig =
     in
     Input.text .username (OnInput Username)
         |> Input.withId slug
-        |> Group.groupInput
-        |> List.singleton
-        |> Group.group
-        |> Group.withAppendGroup [ userIcon ]
-        |> Group.withClass "my-custom-class"
-        |> Field.group
+        |> Input.withAppendGroup [ userIcon ]
+        |> Field.input
         |> Field.addLabel
             ("Username"
                 |> Label.label
@@ -63,11 +58,6 @@ passwordConfig =
     Input.password .password (OnInput Password)
         |> Input.withId slug
         |> Field.input
-        |> Field.addLabel
-            ("Password"
-                |> Label.label
-                |> Label.withFor slug
-            )
 
 
 passwordGroupConfig : Field.FormField FormData Msg
@@ -81,16 +71,12 @@ passwordGroupConfig =
     in
     Input.password .password (OnInput Password)
         |> Input.withId slug
-        |> Group.groupInput
-        |> List.singleton
-        |> Group.group
-        |> Group.withAppendGroup [ lockIcon ]
-        |> Group.withClass "my-custom-class"
-        |> Field.group
+        |> Field.input
         |> Field.addLabel
             ("Password"
                 |> Label.label
                 |> Label.withFor slug
+                |> Label.withSubtitle "(opzionale)"
             )
 
 
@@ -105,12 +91,8 @@ fiscalCodeGroupConfig =
     in
     Input.text .fiscalCode (OnInput FiscalCode)
         |> Input.withId slug
-        |> Group.groupInput
-        |> List.singleton
-        |> Group.group
-        |> Group.withPrependGroup [ cta ]
-        |> Group.withClass "my-custom-class"
-        |> Field.group
+        |> Input.withPrependGroup [ cta ]
+        |> Field.input
         |> Field.addLabel
             ("Fiscal code"
                 |> Label.label

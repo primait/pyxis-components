@@ -4,6 +4,7 @@ module Prima.Pyxis.Form.Input exposing
     , withRegularSize, withSmallSize, withLargeSize
     , withOnBlur, withOnFocus
     , render
+    , withAppendGroup, withPrependGroup
     )
 
 {-|
@@ -111,7 +112,8 @@ email reader writer =
 {-| Represents the possibile modifiers of an `Input`.
 -}
 type InputOption model msg
-    = Attribute (Html.Attribute msg)
+    = AppendGroup (List (Html msg))
+    | Attribute (Html.Attribute msg)
     | Class String
     | Disabled Bool
     | Id String
@@ -120,6 +122,7 @@ type InputOption model msg
     | OnFocus msg
     | OverridingClass String
     | Placeholder String
+    | PrependGroup (List (Html msg))
     | Size InputSize
 
 
@@ -129,6 +132,11 @@ type InputSize
     = Small
     | Regular
     | Large
+
+
+withAppendGroup : List (Html msg) -> Input model msg -> Input model msg
+withAppendGroup html =
+    addOption (AppendGroup html)
 
 
 {-| Sets an `attribute` to the `Input config`.
@@ -201,6 +209,11 @@ withPlaceholder placeholder =
     addOption (Placeholder placeholder)
 
 
+withPrependGroup : List (Html msg) -> Input model msg -> Input model msg
+withPrependGroup html =
+    addOption (PrependGroup html)
+
+
 {-| Sets a `size` to the `Input config`.
 -}
 withRegularSize : Input model msg -> Input model msg
@@ -219,10 +232,53 @@ withSmallSize =
 -}
 render : model -> Input model msg -> List (Html msg)
 render model inputModel =
-    [ Html.input
+    let
+        options =
+            computeOptions inputModel
+    in
+    case ( options.prependGroup, options.appendGroup ) of
+        ( Just html, _ ) ->
+            [ renderGroup
+                [ renderPrependGroup html
+                , renderInput model inputModel
+                ]
+            ]
+
+        ( _, Just html ) ->
+            [ renderGroup
+                [ renderAppendGroup html
+                , renderInput model inputModel
+                ]
+            ]
+
+        _ ->
+            [ renderInput model inputModel
+            ]
+
+
+renderInput : model -> Input model msg -> Html msg
+renderInput model inputModel =
+    Html.input
         (buildAttributes model inputModel)
         []
-    ]
+
+
+renderGroup : List (Html msg) -> Html msg
+renderGroup =
+    Html.div
+        [ Attrs.class "m-form-input-group" ]
+
+
+renderAppendGroup : List (Html msg) -> Html msg
+renderAppendGroup =
+    Html.div
+        [ Attrs.class "m-form-input-group__append" ]
+
+
+renderPrependGroup : List (Html msg) -> Html msg
+renderPrependGroup =
+    Html.div
+        [ Attrs.class "m-form-input-group__prepend" ]
 
 
 {-| Internal.
@@ -236,7 +292,8 @@ addOption option (Input inputConfig) =
 the `Input` default behaviour.
 -}
 type alias Options msg =
-    { attributes : List (Html.Attribute msg)
+    { appendGroup : Maybe (List (Html msg))
+    , attributes : List (Html.Attribute msg)
     , disabled : Maybe Bool
     , classes : List String
     , id : Maybe String
@@ -244,6 +301,7 @@ type alias Options msg =
     , onFocus : Maybe msg
     , onBlur : Maybe msg
     , placeholder : Maybe String
+    , prependGroup : Maybe (List (Html msg))
     , size : InputSize
     }
 
@@ -252,7 +310,8 @@ type alias Options msg =
 -}
 defaultOptions : Options msg
 defaultOptions =
-    { attributes = []
+    { appendGroup = Nothing
+    , attributes = []
     , disabled = Nothing
     , classes = [ "a-form-field__input" ]
     , id = Nothing
@@ -260,6 +319,7 @@ defaultOptions =
     , onFocus = Nothing
     , onBlur = Nothing
     , placeholder = Nothing
+    , prependGroup = Nothing
     , size = Regular
     }
 
@@ -269,6 +329,9 @@ defaultOptions =
 applyOption : InputOption model msg -> Options msg -> Options msg
 applyOption modifier options =
     case modifier of
+        AppendGroup html ->
+            { options | appendGroup = Just html }
+
         Attribute attribute ->
             { options | attributes = attribute :: options.attributes }
 
@@ -295,6 +358,9 @@ applyOption modifier options =
 
         Placeholder placeholder ->
             { options | placeholder = Just placeholder }
+
+        PrependGroup html ->
+            { options | prependGroup = Just html }
 
         Size size ->
             { options | size = size }

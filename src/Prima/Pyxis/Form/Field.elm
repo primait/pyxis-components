@@ -3,7 +3,6 @@ module Prima.Pyxis.Form.Field exposing (..)
 import Html exposing (Html, text)
 import Prima.Pyxis.Form.Autocomplete as Autocomplete
 import Prima.Pyxis.Form.Checkbox as Checkbox
-import Prima.Pyxis.Form.Group as Group
 import Prima.Pyxis.Form.Input as Input
 import Prima.Pyxis.Form.Label as Label
 import Prima.Pyxis.Form.Radio as Radio
@@ -17,7 +16,6 @@ type FormField model msg
     | RadioField (RadioFieldConfig model msg)
     | SelectField (SelectFieldConfig model msg)
     | AutocompleteField (AutocompleteFieldConfig model msg)
-    | GroupField (GroupFieldConfig model msg)
 
 
 hasLabel : FormField model msg -> Bool
@@ -35,9 +33,6 @@ pickLabel formField =
             label
 
         InputField { label } ->
-            label
-
-        GroupField { label } ->
             label
 
         RadioField { label } ->
@@ -102,17 +97,6 @@ autocomplete config =
     AutocompleteField <| AutocompleteFieldConfig config Nothing
 
 
-type alias GroupFieldConfig model msg =
-    { config : Group.Group model msg
-    , label : Maybe (Label.Label msg)
-    }
-
-
-group : Group.Group model msg -> FormField model msg
-group config =
-    GroupField <| GroupFieldConfig config Nothing
-
-
 addLabel : Label.Label msg -> FormField model msg -> FormField model msg
 addLabel lbl formField =
     case formField of
@@ -121,9 +105,6 @@ addLabel lbl formField =
 
         CheckboxField fieldConfig ->
             CheckboxField { fieldConfig | label = Just lbl }
-
-        GroupField fieldConfig ->
-            GroupField { fieldConfig | label = Just lbl }
 
         InputField fieldConfig ->
             InputField { fieldConfig | label = Just lbl }
@@ -160,6 +141,3 @@ renderField model formField =
 
         AutocompleteField { config } ->
             Autocomplete.render model config
-
-        GroupField { config } ->
-            [ Group.render model config ]

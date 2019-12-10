@@ -1,6 +1,6 @@
 module Prima.Pyxis.Form.Label exposing
     ( Label, label, labelWithHtml
-    , withAttribute, withClass, withOverridingClass, withFor, withOnClick
+    , withAttribute, withClass, withOverridingClass, withFor, withOnClick, withSubtitle
     , render
     , addOption
     )
@@ -15,7 +15,7 @@ module Prima.Pyxis.Form.Label exposing
 
 ## Generic modifiers
 
-@docs withAttribute, withClass, withOverridingClass, withFor, withOnClick
+@docs withAttribute, withClass, withOverridingClass, withFor, withOnClick, withSubtitle
 
 
 ## Rendering
@@ -65,6 +65,7 @@ type LabelOption msg
     | For String
     | OnClick msg
     | OverridingClass String
+    | Subtitle String
 
 
 {-| Represents the options a user can choose to modify
@@ -75,6 +76,7 @@ type alias Options msg =
     , classes : List String
     , for : Maybe String
     , onClick : Maybe msg
+    , subLabel : Maybe String
     }
 
 
@@ -86,6 +88,7 @@ defaultOptions =
     , classes = [ "a-form-field__label" ]
     , for = Nothing
     , onClick = Nothing
+    , subLabel = Nothing
     }
 
 
@@ -131,6 +134,13 @@ withOnClick onClick =
     addOption (OnClick onClick)
 
 
+{-| Sets a `subLabel` to the `Label config`.
+-}
+withSubtitle : String -> Label msg -> Label msg
+withSubtitle lbl =
+    addOption (Subtitle lbl)
+
+
 {-| Internal
 -}
 applyOption : LabelOption msg -> Options msg -> Options msg
@@ -150,6 +160,9 @@ applyOption modifier options =
 
         OverridingClass class ->
             { options | classes = [ class ] }
+
+        Subtitle lbl ->
+            { options | subLabel = Just lbl }
 
 
 {-| Internal
@@ -190,10 +203,26 @@ classesAttribute =
 
 -}
 render : Label msg -> Html msg
-render ((Label labelConfig) as labelModel) =
+render ((Label config) as labelModel) =
     Html.label
         (buildAttributes labelModel)
-        labelConfig.children
+        (config.children ++ [ renderSubtitle labelModel ])
+
+
+renderSubtitle : Label msg -> Html msg
+renderSubtitle ((Label config) as labelModel) =
+    let
+        options =
+            computeOptions labelModel
+    in
+    case options.subLabel of
+        Nothing ->
+            Html.text ""
+
+        Just lbl ->
+            Html.span
+                [ Attrs.class "a-form-field__label__subtitle" ]
+                [ text lbl ]
 
 
 {-| Internal
