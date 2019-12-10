@@ -35,8 +35,22 @@ usernameConfig =
     in
     Input.text .username (OnInput Username)
         |> Input.withId slug
-        |> Input.withValidation (Validation.error (String.isEmpty << Maybe.withDefault "" << .username) "The field is empty")
-        |> Input.withValidation (Validation.warning ((==) "ciao" << Maybe.withDefault "" << .username) "The field value cannot be \"ciao\".")
+        |> Input.withValidation
+            (\m ->
+                if String.isEmpty <| Maybe.withDefault "" <| m.username then
+                    Just <| Validation.ErrorWithMessage "The field is empty"
+
+                else
+                    Nothing
+            )
+        |> Input.withValidation
+            (\m ->
+                if (==) "ciao" <| Maybe.withDefault "" <| m.username then
+                    Just <| Validation.WarningWithMessage "Cannot be 'Ciao'"
+
+                else
+                    Nothing
+            )
         |> Field.input
         |> Field.addLabel
             ("Username & pwd"
@@ -197,7 +211,14 @@ countryConfig =
         |> Autocomplete.withThreshold 3
         |> Autocomplete.withLargeSize
         |> Autocomplete.withId slug
-        |> Autocomplete.withValidation (Validation.error (String.isEmpty << Maybe.withDefault "" << .country) "The field is empty")
+        |> Autocomplete.withValidation
+            (\m ->
+                if (==) "italy" <| Maybe.withDefault "" <| m.country then
+                    Just <| Validation.ErrorWithMessage "The field is empty"
+
+                else
+                    Nothing
+            )
         |> Field.autocomplete
         |> Field.addLabel
             ("Paese di nascita"

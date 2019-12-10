@@ -27,6 +27,7 @@ module Prima.Pyxis.Form.Select exposing (..)
 import Html exposing (Attribute, Html, div, text)
 import Html.Attributes as Attrs exposing (checked, class, classList, id, name, selected, type_, value)
 import Html.Events as Events exposing (on)
+import Prima.Pyxis.Form.Validation as Validation
 
 
 {-| Represents the configuration of a Select type.
@@ -73,6 +74,7 @@ type SelectOption model msg
     | OverridingClass String
     | Placeholder String
     | Size SelectSize
+    | Validation (Validation.Validation model)
 
 
 {-| Represents the `Select` size.
@@ -85,7 +87,7 @@ type SelectSize
 
 {-| Internal.
 -}
-type alias Options msg =
+type alias Options model msg =
     { attributes : List (Html.Attribute msg)
     , class : List String
     , disabled : Maybe Bool
@@ -94,10 +96,11 @@ type alias Options msg =
     , onBlur : Maybe msg
     , placeholder : String
     , size : SelectSize
+    , validations : List (Validation.Validation model)
     }
 
 
-defaultOptions : Options msg
+defaultOptions : Options model msg
 defaultOptions =
     { attributes = []
     , class = [ "a-form-field__select" ]
@@ -107,6 +110,7 @@ defaultOptions =
     , onBlur = Nothing
     , placeholder = "Seleziona"
     , size = Regular
+    , validations = []
     }
 
 
@@ -185,9 +189,14 @@ withSmallSize =
     addOption (Size Small)
 
 
+withValidation : Validation.Validation model -> Select model msg -> Select model msg
+withValidation validation =
+    addOption (Validation validation)
+
+
 {-| Internal.
 -}
-applyOption : SelectOption model msg -> Options msg -> Options msg
+applyOption : SelectOption model msg -> Options model msg -> Options model msg
 applyOption modifier options =
     case modifier of
         Attribute attribute ->
@@ -216,6 +225,9 @@ applyOption modifier options =
 
         Size size ->
             { options | size = size }
+
+        Validation validation ->
+            { options | validations = validation :: options.validations }
 
 
 {-| Transforms a `List` of `Class`(es) into a valid `Html.Attribute`.
@@ -358,6 +370,6 @@ renderCustomSelectChoice model (Select config) choice =
 
 {-| Internal
 -}
-computeOptions : Select model msg -> Options msg
+computeOptions : Select model msg -> Options model msg
 computeOptions (Select config) =
     List.foldl applyOption defaultOptions config.options

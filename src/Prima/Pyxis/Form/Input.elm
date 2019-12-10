@@ -50,7 +50,6 @@ module Prima.Pyxis.Form.Input exposing
 import Html exposing (Html)
 import Html.Attributes as Attrs
 import Html.Events as Events
-import Prima.Pyxis.Form.Helpers as FH
 import Prima.Pyxis.Form.Validation as Validation
 import Prima.Pyxis.Helpers as H
 
@@ -138,7 +137,7 @@ type InputOption model msg
     | Placeholder String
     | PrependGroup (List (Html msg))
     | Size InputSize
-    | Validation (Validation.Validation model)
+    | Validation (model -> Maybe Validation.Type)
 
 
 {-| Represents the `Input` size.
@@ -243,7 +242,7 @@ withSmallSize =
     addOption (Size Small)
 
 
-withValidation : Validation.Validation model -> Input model msg -> Input model msg
+withValidation : (model -> Maybe Validation.Type) -> Input model msg -> Input model msg
 withValidation validation =
     addOption (Validation validation)
 
@@ -323,7 +322,7 @@ type alias Options model msg =
     , placeholder : Maybe String
     , prependGroup : Maybe (List (Html msg))
     , size : InputSize
-    , validations : List (Validation.Validation model)
+    , validations : List (model -> Maybe Validation.Type)
     }
 
 
@@ -456,13 +455,13 @@ validationAttribute model ((Input config) as inputModel) =
 
         errors =
             options.validations
-                |> FH.executeValidation Validation.isError model
-                |> List.filter identity
+                |> List.filterMap (\v -> v model)
+                |> List.filter Validation.isError
 
         warnings =
             options.validations
-                |> FH.executeValidation Validation.isWarning model
-                |> List.filter identity
+                |> List.filterMap (\v -> v model)
+                |> List.filter Validation.isWarning
     in
     case ( errors, warnings ) of
         ( [], [] ) ->

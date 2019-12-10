@@ -44,7 +44,6 @@ module Prima.Pyxis.Form.Autocomplete exposing
 import Html exposing (Html)
 import Html.Attributes as Attrs
 import Html.Events as Events
-import Prima.Pyxis.Form.Helpers as FH
 import Prima.Pyxis.Form.Validation as Validation
 
 
@@ -97,7 +96,7 @@ type AutocompleteOption model msg
     | Placeholder String
     | Size AutocompleteSize
     | Threshold Int
-    | Validation (Validation.Validation model)
+    | Validation (model -> Maybe Validation.Type)
 
 
 {-| Represents the `Autocomplete` size.
@@ -199,7 +198,7 @@ withThreshold threshold =
     addOption (Threshold threshold)
 
 
-withValidation : Validation.Validation model -> Autocomplete model msg -> Autocomplete model msg
+withValidation : (model -> Maybe Validation.Type) -> Autocomplete model msg -> Autocomplete model msg
 withValidation validation =
     addOption (Validation validation)
 
@@ -298,7 +297,7 @@ type alias Options model msg =
     , placeholder : Maybe String
     , size : AutocompleteSize
     , threshold : Int
-    , validations : List (Validation.Validation model)
+    , validations : List (model -> Maybe Validation.Type)
     }
 
 
@@ -377,13 +376,13 @@ validationAttribute model ((Autocomplete config) as inputModel) =
 
         errors =
             options.validations
-                |> FH.executeValidation Validation.isError model
-                |> List.filter identity
+                |> List.filterMap (\v -> v model)
+                |> List.filter Validation.isError
 
         warnings =
             options.validations
-                |> FH.executeValidation Validation.isWarning model
-                |> List.filter identity
+                |> List.filterMap (\v -> v model)
+                |> List.filter Validation.isWarning
     in
     case ( errors, warnings ) of
         ( [], [] ) ->
