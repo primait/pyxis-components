@@ -197,6 +197,7 @@ countryConfig =
         |> Autocomplete.withThreshold 3
         |> Autocomplete.withLargeSize
         |> Autocomplete.withId slug
+        |> Autocomplete.withValidation (Validation.error (String.isEmpty << Maybe.withDefault "" << .country) "The field is empty")
         |> Field.autocomplete
         |> Field.addLabel
             ("Paese di nascita"

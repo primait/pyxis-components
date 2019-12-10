@@ -3,6 +3,7 @@ module Prima.Pyxis.Form.Autocomplete exposing
     , withAttribute, withClass, withDisabled, withId, withName, withPlaceholder, withThreshold
     , withRegularSize, withSmallSize, withLargeSize
     , withOnBlur, withOnFocus
+    , withValidation
     , render
     )
 
@@ -29,6 +30,11 @@ module Prima.Pyxis.Form.Autocomplete exposing
 @docs withOnBlur, withOnFocus
 
 
+## Validations
+
+@docs withValidation
+
+
 ## Rendering
 
 @docs render
@@ -38,6 +44,8 @@ module Prima.Pyxis.Form.Autocomplete exposing
 import Html exposing (Html)
 import Html.Attributes as Attrs
 import Html.Events as Events
+import Prima.Pyxis.Form.Helpers as FH
+import Prima.Pyxis.Form.Validation as Validation
 
 
 {-| Represents the opaque `Autocomplete` configuration.
@@ -89,6 +97,7 @@ type AutocompleteOption model msg
     | Placeholder String
     | Size AutocompleteSize
     | Threshold Int
+    | Validation (Validation.Validation model)
 
 
 {-| Represents the `Autocomplete` size.
@@ -190,6 +199,11 @@ withThreshold threshold =
     addOption (Threshold threshold)
 
 
+withValidation : Validation.Validation model -> Autocomplete model msg -> Autocomplete model msg
+withValidation validation =
+    addOption (Validation validation)
+
+
 {-| Renders the `Autocomplete config`.
 -}
 render : model -> Autocomplete model msg -> List (Html msg)
@@ -226,6 +240,7 @@ render model ((Autocomplete config) as autocompleteModel) =
             , ( "is-medium", options.size == Regular )
             , ( "is-large", options.size == Large )
             ]
+        , validationAttribute model autocompleteModel
         ]
         [ Html.input
             (buildAttributes model autocompleteModel)
@@ -272,7 +287,7 @@ addOption option (Autocomplete autocompleteConfig) =
 {-| Represents the options a user can choose to modify
 the `Autocomplete` default behaviour.
 -}
-type alias Options msg =
+type alias Options model msg =
     { attributes : List (Html.Attribute msg)
     , disabled : Maybe Bool
     , classes : List String
@@ -283,12 +298,13 @@ type alias Options msg =
     , placeholder : Maybe String
     , size : AutocompleteSize
     , threshold : Int
+    , validations : List (Validation.Validation model)
     }
 
 
 {-| Internal.
 -}
-defaultOptions : Options msg
+defaultOptions : Options model msg
 defaultOptions =
     { attributes = []
     , disabled = Nothing
@@ -300,12 +316,13 @@ defaultOptions =
     , placeholder = Nothing
     , size = Regular
     , threshold = 1
+    , validations = []
     }
 
 
 {-| Internal.
 -}
-applyOption : AutocompleteOption model msg -> Options msg -> Options msg
+applyOption : AutocompleteOption model msg -> Options model msg -> Options model msg
 applyOption modifier options =
     case modifier of
         Attribute attribute ->
@@ -341,12 +358,42 @@ applyOption modifier options =
         Threshold threshold ->
             { options | threshold = threshold }
 
+        Validation validation ->
+            { options | validations = validation :: options.validations }
+
 
 {-| Transforms a `List` of `Class`(es) into a valid `Html.Attribute`.
 -}
 classesAttribute : List String -> Html.Attribute msg
 classesAttribute =
     Attrs.class << String.join " "
+
+
+validationAttribute : model -> Autocomplete model msg -> Html.Attribute msg
+validationAttribute model ((Autocomplete config) as inputModel) =
+    let
+        options =
+            computeOptions inputModel
+
+        errors =
+            options.validations
+                |> FH.executeValidation Validation.isError model
+                |> List.filter identity
+
+        warnings =
+            options.validations
+                |> FH.executeValidation Validation.isWarning model
+                |> List.filter identity
+    in
+    case ( errors, warnings ) of
+        ( [], [] ) ->
+            Attrs.class "is-valid"
+
+        ( [], _ ) ->
+            Attrs.class "has-warning"
+
+        ( _, _ ) ->
+            Attrs.class "has-error"
 
 
 filterReaderAttribute : model -> Autocomplete model msg -> Html.Attribute msg
@@ -400,12 +447,13 @@ buildAttributes model ((Autocomplete config) as autocompleteModel) =
         |> List.filterMap identity
         |> (++) options.attributes
         |> (::) (classesAttribute options.classes)
+        |> (::) (validationAttribute model autocompleteModel)
         |> (::) (filterReaderAttribute model autocompleteModel)
         |> (::) (filterWriterAttribute autocompleteModel)
 
 
 {-| Internal.
 -}
-computeOptions : Autocomplete model msg -> Options msg
+computeOptions : Autocomplete model msg -> Options model msg
 computeOptions (Autocomplete config) =
     List.foldl applyOption defaultOptions config.options

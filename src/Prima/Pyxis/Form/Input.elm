@@ -50,6 +50,7 @@ module Prima.Pyxis.Form.Input exposing
 import Html exposing (Html)
 import Html.Attributes as Attrs
 import Html.Events as Events
+import Prima.Pyxis.Form.Helpers as FH
 import Prima.Pyxis.Form.Validation as Validation
 import Prima.Pyxis.Helpers as H
 
@@ -455,12 +456,12 @@ validationAttribute model ((Input config) as inputModel) =
 
         errors =
             options.validations
-                |> executeValidation Validation.isError model
+                |> FH.executeValidation Validation.isError model
                 |> List.filter identity
 
         warnings =
             options.validations
-                |> executeValidation Validation.isWarning model
+                |> FH.executeValidation Validation.isWarning model
                 |> List.filter identity
     in
     case ( errors, warnings ) of
@@ -472,14 +473,6 @@ validationAttribute model ((Input config) as inputModel) =
 
         ( _, _ ) ->
             Attrs.class "has-error"
-
-
-executeValidation : (Validation.Type -> Bool) -> model -> List (Validation.Validation model) -> List Bool
-executeValidation mapper model validations =
-    validations
-        |> List.filter (mapper << Validation.pickType)
-        |> List.map Validation.pickFunction
-        |> List.map (H.flip identity model)
 
 
 {-| Composes all the modifiers into a set of `Html.Attribute`(s).
