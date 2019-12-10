@@ -71,6 +71,7 @@ passwordGroupConfig =
     in
     Input.password .password (OnInput Password)
         |> Input.withId slug
+        |> Input.withPrependGroup [ lockIcon ]
         |> Field.input
         |> Field.addLabel
             ("Password"
@@ -178,6 +179,7 @@ countryConfig =
     ]
         |> Autocomplete.autocomplete .country (OnInput Country) .countryFilter (OnFilter Country) (.countryAutocompleteOpened << .uiState)
         |> Autocomplete.withThreshold 3
+        |> Autocomplete.withLargeSize
         |> Autocomplete.withId slug
         |> Field.autocomplete
         |> Field.addLabel

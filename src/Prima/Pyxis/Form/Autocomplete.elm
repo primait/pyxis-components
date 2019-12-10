@@ -198,7 +198,7 @@ render model ((Autocomplete config) as autocompleteModel) =
         options =
             computeOptions autocompleteModel
 
-        choices =
+        filteredChoices =
             config.autocompleteChoices
                 |> List.filter
                     (.label
@@ -222,6 +222,9 @@ render model ((Autocomplete config) as autocompleteModel) =
         [ Attrs.classList
             [ ( "a-form-field__autocomplete", True )
             , ( "is-open", hasReachedThreshold && config.openedReader model )
+            , ( "is-small", options.size == Small )
+            , ( "is-medium", options.size == Regular )
+            , ( "is-large", options.size == Large )
             ]
         ]
         [ Html.input
@@ -229,8 +232,8 @@ render model ((Autocomplete config) as autocompleteModel) =
             []
         , Html.ul
             [ Attrs.class "a-form-field__autocomplete__list" ]
-            (if List.length choices > 0 then
-                List.map (renderAutocompleteChoice model autocompleteModel) choices
+            (if List.length filteredChoices > 0 then
+                List.map (renderAutocompleteChoice model autocompleteModel) filteredChoices
 
              else
                 renderAutocompleteNoResults model autocompleteModel
@@ -346,23 +349,6 @@ classesAttribute =
     Attrs.class << String.join " "
 
 
-{-| Transforms an `AutocompleteSize` into a valid `Html.Attribute`.
--}
-sizeAttribute : AutocompleteSize -> Html.Attribute msg
-sizeAttribute size =
-    Attrs.class
-        (case size of
-            Small ->
-                "is-small"
-
-            Regular ->
-                "is-medium"
-
-            Large ->
-                "is-large"
-        )
-
-
 filterReaderAttribute : model -> Autocomplete model msg -> Html.Attribute msg
 filterReaderAttribute model (Autocomplete config) =
     case
@@ -416,7 +402,6 @@ buildAttributes model ((Autocomplete config) as autocompleteModel) =
         |> (::) (classesAttribute options.classes)
         |> (::) (filterReaderAttribute model autocompleteModel)
         |> (::) (filterWriterAttribute autocompleteModel)
-        |> (::) (sizeAttribute options.size)
 
 
 {-| Internal.
