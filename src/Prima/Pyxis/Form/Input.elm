@@ -2,9 +2,10 @@ module Prima.Pyxis.Form.Input exposing
     ( Input, text, password, date, number, email
     , withAttribute, withClass, withDisabled, withId, withName, withPlaceholder
     , withRegularSize, withSmallSize, withLargeSize
+    , withPrependGroup, withAppendGroup
     , withOnBlur, withOnFocus
+    , withValidation
     , render
-    , withAppendGroup, withPrependGroup
     )
 
 {-|
@@ -25,9 +26,19 @@ module Prima.Pyxis.Form.Input exposing
 @docs withRegularSize, withSmallSize, withLargeSize
 
 
+## InputGroup modifiers
+
+@docs withPrependGroup, withAppendGroup
+
+
 ## Events
 
 @docs withOnBlur, withOnFocus
+
+
+## Validations
+
+@docs withValidation
 
 
 ## Rendering
@@ -39,6 +50,8 @@ module Prima.Pyxis.Form.Input exposing
 import Html exposing (Html)
 import Html.Attributes as Attrs
 import Html.Events as Events
+import Prima.Pyxis.Form.Validation as Validation
+import Prima.Pyxis.Helpers as H
 
 
 {-| Represents the opaque `Input` configuration.
@@ -124,6 +137,7 @@ type InputOption model msg
     | Placeholder String
     | PrependGroup (List (Html msg))
     | Size InputSize
+    | Validation (Validation.Validation model)
 
 
 {-| Represents the `Input` size.
@@ -228,6 +242,11 @@ withSmallSize =
     addOption (Size Small)
 
 
+withValidation : Validation.Validation model -> Input model msg -> Input model msg
+withValidation validation =
+    addOption (Validation validation)
+
+
 {-| Renders the `Input config`.
 -}
 render : model -> Input model msg -> List (Html msg)
@@ -291,7 +310,7 @@ addOption option (Input inputConfig) =
 {-| Represents the options a user can choose to modify
 the `Input` default behaviour.
 -}
-type alias Options msg =
+type alias Options model msg =
     { appendGroup : Maybe (List (Html msg))
     , attributes : List (Html.Attribute msg)
     , disabled : Maybe Bool
@@ -303,12 +322,13 @@ type alias Options msg =
     , placeholder : Maybe String
     , prependGroup : Maybe (List (Html msg))
     , size : InputSize
+    , validations : List (Validation.Validation model)
     }
 
 
 {-| Internal.
 -}
-defaultOptions : Options msg
+defaultOptions : Options model msg
 defaultOptions =
     { appendGroup = Nothing
     , attributes = []
@@ -321,12 +341,13 @@ defaultOptions =
     , placeholder = Nothing
     , prependGroup = Nothing
     , size = Regular
+    , validations = []
     }
 
 
 {-| Internal.
 -}
-applyOption : InputOption model msg -> Options msg -> Options msg
+applyOption : InputOption model msg -> Options model msg -> Options model msg
 applyOption modifier options =
     case modifier of
         AppendGroup html ->
@@ -364,6 +385,9 @@ applyOption modifier options =
 
         Size size ->
             { options | size = size }
+
+        Validation validation ->
+            { options | validations = validation :: options.validations }
 
 
 {-| Transforms an `InputType` into a valid `Html.Attribute`.
@@ -423,6 +447,41 @@ writerAttribute (Input config) =
     Events.onInput config.writer
 
 
+validationAttribute : model -> Input model msg -> Html.Attribute msg
+validationAttribute model ((Input config) as inputModel) =
+    let
+        options =
+            computeOptions inputModel
+
+        errors =
+            options.validations
+                |> executeValidation Validation.isError model
+                |> List.filter identity
+
+        warnings =
+            options.validations
+                |> executeValidation Validation.isWarning model
+                |> List.filter identity
+    in
+    case ( errors, warnings ) of
+        ( [], [] ) ->
+            Attrs.class "is-valid"
+
+        ( [], _ ) ->
+            Attrs.class "has-warning"
+
+        ( _, _ ) ->
+            Attrs.class "has-error"
+
+
+executeValidation : (Validation.Type -> Bool) -> model -> List (Validation.Validation model) -> List Bool
+executeValidation mapper model validations =
+    validations
+        |> List.filter (mapper << Validation.pickType)
+        |> List.map Validation.pickFunction
+        |> List.map (H.flip identity model)
+
+
 {-| Composes all the modifiers into a set of `Html.Attribute`(s).
 -}
 buildAttributes : model -> Input model msg -> List (Html.Attribute msg)
@@ -451,10 +510,11 @@ buildAttributes model ((Input config) as inputModel) =
         |> (::) (writerAttribute inputModel)
         |> (::) (typeAttribute config.type_)
         |> (::) (sizeAttribute options.size)
+        |> (::) (validationAttribute model inputModel)
 
 
 {-| Internal
 -}
-computeOptions : Input model msg -> Options msg
+computeOptions : Input model msg -> Options model msg
 computeOptions (Input config) =
     List.foldl applyOption defaultOptions config.options

@@ -23,6 +23,7 @@ import Prima.Pyxis.Form.Label as Label
 import Prima.Pyxis.Form.MultipleChoices as MultipleChoice
 import Prima.Pyxis.Form.Radio as Radio
 import Prima.Pyxis.Form.Select as Select
+import Prima.Pyxis.Form.Validation as Validation
 import Prima.Pyxis.Link as Link
 
 
@@ -34,6 +35,8 @@ usernameConfig =
     in
     Input.text .username (OnInput Username)
         |> Input.withId slug
+        |> Input.withValidation (Validation.error (String.isEmpty << Maybe.withDefault "" << .username) "The field is empty")
+        |> Input.withValidation (Validation.warning ((==) "ciao" << Maybe.withDefault "" << .username) "The field value cannot be \"ciao\".")
         |> Field.input
         |> Field.addLabel
             ("Username & pwd"
