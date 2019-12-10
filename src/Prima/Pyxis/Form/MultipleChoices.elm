@@ -1,6 +1,7 @@
 module Prima.Pyxis.Form.MultipleChoices exposing
     ( MultiChoices(..)
     , withId, withName, withAttribute, withDisabled
+    , withValidation
     , render
     , MultiChoicesConfig, MultiChoicesOption(..), Options, addOption, applyOption, buildAttributes, buildMultiChoiceItem, classAttribute, computeOptions, defaultOptions, multiChoices, withClass, withOnBlur, withOnFocus
     )
@@ -23,6 +24,11 @@ module Prima.Pyxis.Form.MultipleChoices exposing
 @docs withOnChange
 
 
+## Validations
+
+@docs withValidation
+
+
 ## Render
 
 @docs render
@@ -33,6 +39,8 @@ import Html exposing (Attribute, Html)
 import Html.Attributes as Attrs
 import Html.Events as Events
 import Prima.Pyxis.Form.Label as Label
+import Prima.Pyxis.Form.Validation as Validation
+import Prima.Pyxis.Helpers as H
 
 
 {-| Represents the configuration of an Change type.
@@ -67,6 +75,7 @@ type MultiChoicesOption model msg
     | Name String
     | OnFocus msg
     | OnBlur msg
+    | Validation (Validation.Validation model)
 
 
 {-| Internal.
@@ -84,7 +93,7 @@ buildMultiChoiceItem value label =
 
 {-| Internal.
 -}
-type alias Options msg =
+type alias Options model msg =
     { attributes : List (Html.Attribute msg)
     , class : List String
     , disabled : Maybe Bool
@@ -92,10 +101,11 @@ type alias Options msg =
     , name : Maybe String
     , onFocus : Maybe msg
     , onBlur : Maybe msg
+    , validations : List (Validation.Validation model)
     }
 
 
-defaultOptions : Options msg
+defaultOptions : Options model msg
 defaultOptions =
     { attributes = []
     , class = [ "a-form-field__checkbox" ]
@@ -104,6 +114,7 @@ defaultOptions =
     , name = Nothing
     , onFocus = Nothing
     , onBlur = Nothing
+    , validations = []
     }
 
 
@@ -165,7 +176,7 @@ withOnFocus tagger =
 
 {-| Internal.
 -}
-applyOption : MultiChoicesOption model msg -> Options msg -> Options msg
+applyOption : MultiChoicesOption model msg -> Options model msg -> Options model msg
 applyOption modifier options =
     case modifier of
         Attribute attribute ->
@@ -188,6 +199,9 @@ applyOption modifier options =
 
         OnFocus onFocus ->
             { options | onFocus = Just onFocus }
+
+        Validation validation ->
+            { options | validations = validation :: options.validations }
 
 
 {-| Transforms a `List` of `Class`(es) into a valid `Html.Attribute`.
@@ -242,6 +256,47 @@ buildAttributes model ((MultiChoices config) as multiChoicesModel) choice =
         |> (::) (writerAttribute multiChoicesModel choice)
         |> (::) (Attrs.type_ "checkbox")
         |> (::) (Attrs.value choice)
+        |> (::) (validationAttribute model multiChoicesModel)
+
+
+validationAttribute : model -> MultiChoices model msg -> Html.Attribute msg
+validationAttribute model ((MultiChoices config) as inputModel) =
+    let
+        options =
+            computeOptions inputModel
+
+        errors =
+            options.validations
+                |> executeValidation Validation.isError model
+                |> List.filter identity
+
+        warnings =
+            options.validations
+                |> executeValidation Validation.isWarning model
+                |> List.filter identity
+    in
+    case ( errors, warnings ) of
+        ( [], [] ) ->
+            Attrs.class "is-valid"
+
+        ( [], _ ) ->
+            Attrs.class "has-warning"
+
+        ( _, _ ) ->
+            Attrs.class "has-error"
+
+
+executeValidation : (Validation.Type -> Bool) -> model -> List (Validation.Validation model) -> List Bool
+executeValidation mapper model validations =
+    validations
+        |> List.filter (mapper << Validation.pickType)
+        |> List.map Validation.pickFunction
+        |> List.map (H.flip identity model)
+
+
+withValidation : Validation.Validation model -> MultiChoices model msg -> MultiChoices model msg
+withValidation validation =
+    addOption (Validation validation)
 
 
 {-| Renders the `MultiChoices config`.
@@ -259,8 +314,33 @@ buildAttributes model ((MultiChoices config) as multiChoicesModel) choice =
 -}
 render : model -> MultiChoices model msg -> List (Html msg)
 render model ((MultiChoices config) as multiChoicesModel) =
+    let
+        options =
+            computeOptions multiChoicesModel
+
+        errors : Bool
+        errors =
+            options.validations
+                |> executeValidation Validation.isError model
+                |> List.filter identity
+                |> List.isEmpty
+                |> not
+
+        warnings : Bool
+        warnings =
+            options.validations
+                |> executeValidation Validation.isWarning model
+                |> List.filter identity
+                |> List.isEmpty
+                |> not
+    in
     [ Html.div
-        [ Attrs.class "a-form-field__checkbox-options" ]
+        [ Attrs.classList
+            [ ( "a-form-field__checkbox-options", True )
+            , ( "has-warning", warnings )
+            , ( "has-error", errors )
+            ]
+        ]
         (List.map (renderMultiChoices model multiChoicesModel) config.values)
     ]
 
@@ -285,6 +365,6 @@ renderMultiChoices model ((MultiChoices config) as multiChoicesModel) multiChoic
 
 {-| Internal
 -}
-computeOptions : MultiChoices model msg -> Options msg
+computeOptions : MultiChoices model msg -> Options model msg
 computeOptions (MultiChoices config) =
     List.foldl applyOption defaultOptions config.options
