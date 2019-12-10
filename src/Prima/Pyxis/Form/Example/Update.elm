@@ -72,6 +72,12 @@ update msg model =
                 |> togglePowerSourceSelect
                 |> H.withoutCmds
 
+        OnChoice CountyVisited value ->
+            model
+                |> updateCountryVisited value
+                |> printModel
+                |> H.withoutCmds
+
         _ ->
             H.withoutCmds model
 
@@ -158,3 +164,21 @@ updateFormData mapper model =
 updateUiState : (UIState -> UIState) -> FormData -> FormData
 updateUiState mapper =
     \f -> { f | uiState = mapper f.uiState }
+
+
+updateCountryVisited : String -> Model -> Model
+updateCountryVisited value ({ formData } as model) =
+    if List.member value formData.countryVisited then
+        let
+            filteredCountryVisited =
+                List.filter (\item -> item /= value)
+                    formData.countryVisited
+        in
+        updateFormData
+            (\f -> { f | countryVisited = filteredCountryVisited })
+            model
+
+    else
+        updateFormData
+            (\f -> { f | countryVisited = value :: formData.countryVisited })
+            model

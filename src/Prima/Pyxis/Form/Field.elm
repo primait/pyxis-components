@@ -1,10 +1,30 @@
-module Prima.Pyxis.Form.Field exposing (..)
+module Prima.Pyxis.Form.Field exposing
+    ( AutocompleteFieldConfig
+    , CheckboxFieldConfig
+    , FormField(..)
+    , InputFieldConfig
+    , MultipleChoicesConfig
+    , RadioFieldConfig
+    , SelectFieldConfig
+    , addLabel
+    , autocomplete
+    , checkbox
+    , hasLabel
+    , input
+    , multiChoices
+    , pickLabel
+    , radio
+    , renderField
+    , renderLabel
+    , select
+    )
 
 import Html exposing (Html, text)
 import Prima.Pyxis.Form.Autocomplete as Autocomplete
 import Prima.Pyxis.Form.Checkbox as Checkbox
 import Prima.Pyxis.Form.Input as Input
 import Prima.Pyxis.Form.Label as Label
+import Prima.Pyxis.Form.MultipleChoices as MultipleChoices
 import Prima.Pyxis.Form.Radio as Radio
 import Prima.Pyxis.Form.Select as Select
 import Prima.Pyxis.Helpers as H
@@ -16,6 +36,7 @@ type FormField model msg
     | RadioField (RadioFieldConfig model msg)
     | SelectField (SelectFieldConfig model msg)
     | AutocompleteField (AutocompleteFieldConfig model msg)
+    | MultipleChoicesField (MultipleChoicesConfig model msg)
 
 
 hasLabel : FormField model msg -> Bool
@@ -39,6 +60,9 @@ pickLabel formField =
             label
 
         SelectField { label } ->
+            label
+
+        MultipleChoicesField { label } ->
             label
 
 
@@ -115,6 +139,9 @@ addLabel lbl formField =
         RadioField fieldConfig ->
             RadioField { fieldConfig | label = Just lbl }
 
+        MultipleChoicesField fieldConfig ->
+            MultipleChoicesField { fieldConfig | label = Just lbl }
+
 
 renderLabel : FormField model msg -> Html msg
 renderLabel formField =
@@ -141,3 +168,17 @@ renderField model formField =
 
         AutocompleteField { config } ->
             Autocomplete.render model config
+
+        MultipleChoicesField { config } ->
+            MultipleChoices.render model config
+
+
+type alias MultipleChoicesConfig model msg =
+    { config : MultipleChoices.MultiChoices model msg
+    , label : Maybe (Label.Label msg)
+    }
+
+
+multiChoices : MultipleChoices.MultiChoices model msg -> FormField model msg
+multiChoices config =
+    MultipleChoicesField <| MultipleChoicesConfig config Nothing

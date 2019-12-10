@@ -1,4 +1,4 @@
-module Prima.Pyxis.Form.Example.FieldConfig exposing (..)
+module Prima.Pyxis.Form.Example.FieldConfig exposing (countryConfig, guideTypeConfig, multiChoicesConfig, passwordConfig, powerSourceConfig, privacyConfig, privacyLabel, usernameConfig)
 
 import Html exposing (Html, text)
 import Html.Attributes as Attrs
@@ -8,6 +8,7 @@ import Prima.Pyxis.Form.Example.Model exposing (Field(..), FormData, Model, Msg(
 import Prima.Pyxis.Form.Field as Field
 import Prima.Pyxis.Form.Input as Input
 import Prima.Pyxis.Form.Label as Label
+import Prima.Pyxis.Form.MultipleChoices as MultipleChoice
 import Prima.Pyxis.Form.Radio as Radio
 import Prima.Pyxis.Form.Select as Select
 import Prima.Pyxis.Link as Link
@@ -186,4 +187,27 @@ countryConfig =
             ("Paese di nascita"
                 |> Label.label
                 |> Label.withFor slug
+            )
+
+
+multiChoicesConfig : Field.FormField FormData Msg
+multiChoicesConfig =
+    let
+        valuesOption =
+            List.map
+                (\( label, value ) ->
+                    MultipleChoice.buildMultiChoiceItem label value
+                )
+                [ ( "italia", "Italia" )
+                , ( "francia", "Francia" )
+                , ( "gb", "GB" )
+                ]
+    in
+    []
+        |> MultipleChoice.multiChoices .countryVisited (OnChoice CountyVisited) valuesOption
+        |> MultipleChoice.withName "country_visited"
+        |> Field.multiChoices
+        |> Field.addLabel
+            ("Paesi visitati"
+                |> Label.label
             )

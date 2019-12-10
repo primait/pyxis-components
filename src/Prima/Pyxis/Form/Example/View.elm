@@ -49,3 +49,6 @@ formConfig model =
         |> Form.addFieldsInRow
             [ Config.countryConfig
             ]
+        |> Form.addFieldsInRow
+            [ Config.multiChoicesConfig
+            ]

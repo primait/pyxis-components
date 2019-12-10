@@ -15,6 +15,7 @@ type Msg
     | OnCheck Field Bool
     | OnFilter Field String
     | OnToggle Field
+    | OnChoice Field String
 
 
 type alias Model =
@@ -36,6 +37,7 @@ type Field
     | PowerSource
     | Country
     | FiscalCode
+    | CountyVisited
 
 
 type alias FormData =
@@ -48,6 +50,7 @@ type alias FormData =
     , countryFilter : Maybe String
     , fiscalCode : Maybe String
     , uiState : UIState
+    , countryVisited : List String
     }
 
 
@@ -62,6 +65,7 @@ initialFormData =
     , countryFilter = Nothing
     , fiscalCode = Nothing
     , uiState = initialUIState
+    , countryVisited = [ "italia", "francia" ]
     }
 
 
