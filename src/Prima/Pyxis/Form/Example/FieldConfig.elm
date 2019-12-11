@@ -242,8 +242,14 @@ multiChoicesConfig =
     in
     []
         |> MultipleChoice.multiChoices .countryVisited (OnChoice CountyVisited) valuesOption
-        |> MultipleChoice.withValidation (Validation.error (List.isEmpty << .countryVisited) "The field is empty")
-        |> MultipleChoice.withValidation (Validation.warning (List.member "ciao" << .countryVisited) "The field value cannot be \"ciao\".")
+        |> MultipleChoice.withValidation
+            (\m ->
+                if List.isEmpty m.countryVisited then
+                    Just <| Validation.ErrorWithMessage "The field is empty"
+
+                else
+                    Nothing
+            )
         |> MultipleChoice.withName "country_visited"
         |> Field.multiChoices
         |> Field.addLabel

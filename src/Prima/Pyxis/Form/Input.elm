@@ -455,12 +455,12 @@ validationAttribute model ((Input config) as inputModel) =
 
         errors =
             options.validations
-                |> List.filterMap (\v -> v model)
+                |> List.filterMap (H.flip identity model)
                 |> List.filter Validation.isError
 
         warnings =
             options.validations
-                |> List.filterMap (\v -> v model)
+                |> List.filterMap (H.flip identity model)
                 |> List.filter Validation.isWarning
     in
     case ( errors, warnings ) of

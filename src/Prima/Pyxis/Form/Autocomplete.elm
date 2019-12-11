@@ -45,6 +45,7 @@ import Html exposing (Html)
 import Html.Attributes as Attrs
 import Html.Events as Events
 import Prima.Pyxis.Form.Validation as Validation
+import Prima.Pyxis.Helpers as H
 
 
 {-| Represents the opaque `Autocomplete` configuration.
@@ -376,12 +377,12 @@ validationAttribute model ((Autocomplete config) as inputModel) =
 
         errors =
             options.validations
-                |> List.filterMap (\v -> v model)
+                |> List.filterMap (H.flip identity model)
                 |> List.filter Validation.isError
 
         warnings =
             options.validations
-                |> List.filterMap (\v -> v model)
+                |> List.filterMap (H.flip identity model)
                 |> List.filter Validation.isWarning
     in
     case ( errors, warnings ) of

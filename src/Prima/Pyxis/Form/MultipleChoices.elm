@@ -75,7 +75,7 @@ type MultiChoicesOption model msg
     | Name String
     | OnFocus msg
     | OnBlur msg
-    | Validation (Validation.Validation model)
+    | Validation (model -> Maybe Validation.Type)
 
 
 {-| Internal.
@@ -101,7 +101,7 @@ type alias Options model msg =
     , name : Maybe String
     , onFocus : Maybe msg
     , onBlur : Maybe msg
-    , validations : List (Validation.Validation model)
+    , validations : List (model -> Maybe Validation.Type)
     }
 
 
@@ -172,6 +172,11 @@ withOnBlur tagger =
 withOnFocus : msg -> MultiChoices model msg -> MultiChoices model msg
 withOnFocus tagger =
     addOption (OnFocus tagger)
+
+
+withValidation : (model -> Maybe Validation.Type) -> MultiChoices model msg -> MultiChoices model msg
+withValidation validation =
+    addOption (Validation validation)
 
 
 {-| Internal.
@@ -260,20 +265,20 @@ buildAttributes model ((MultiChoices config) as multiChoicesModel) choice =
 
 
 validationAttribute : model -> MultiChoices model msg -> Html.Attribute msg
-validationAttribute model ((MultiChoices config) as inputModel) =
+validationAttribute model ((MultiChoices config) as multiChoiceModel) =
     let
         options =
-            computeOptions inputModel
+            computeOptions multiChoiceModel
 
         errors =
             options.validations
-                |> executeValidation Validation.isError model
-                |> List.filter identity
+                |> List.filterMap (H.flip identity model)
+                |> List.filter Validation.isError
 
         warnings =
             options.validations
-                |> executeValidation Validation.isWarning model
-                |> List.filter identity
+                |> List.filterMap (H.flip identity model)
+                |> List.filter Validation.isWarning
     in
     case ( errors, warnings ) of
         ( [], [] ) ->
@@ -284,19 +289,6 @@ validationAttribute model ((MultiChoices config) as inputModel) =
 
         ( _, _ ) ->
             Attrs.class "has-error"
-
-
-executeValidation : (Validation.Type -> Bool) -> model -> List (Validation.Validation model) -> List Bool
-executeValidation mapper model validations =
-    validations
-        |> List.filter (mapper << Validation.pickType)
-        |> List.map Validation.pickFunction
-        |> List.map (H.flip identity model)
-
-
-withValidation : Validation.Validation model -> MultiChoices model msg -> MultiChoices model msg
-withValidation validation =
-    addOption (Validation validation)
 
 
 {-| Renders the `MultiChoices config`.
@@ -318,28 +310,21 @@ render model ((MultiChoices config) as multiChoicesModel) =
         options =
             computeOptions multiChoicesModel
 
-        errors : Bool
         errors =
             options.validations
-                |> executeValidation Validation.isError model
-                |> List.filter identity
-                |> List.isEmpty
-                |> not
+                |> List.filterMap (H.flip identity model)
+                |> List.filter Validation.isError
 
-        warnings : Bool
         warnings =
             options.validations
-                |> executeValidation Validation.isWarning model
-                |> List.filter identity
-                |> List.isEmpty
-                |> not
+                |> List.filterMap (H.flip identity model)
+                |> List.filter Validation.isWarning
     in
     [ Html.div
         [ Attrs.classList
             [ ( "a-form-field__checkbox-options", True )
-            , ( "has-warning", warnings )
-            , ( "has-error", errors )
             ]
+        , validationAttribute model multiChoicesModel
         ]
         (List.map (renderMultiChoices model multiChoicesModel) config.values)
     ]
