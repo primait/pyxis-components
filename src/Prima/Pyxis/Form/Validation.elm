@@ -14,7 +14,6 @@ module Prima.Pyxis.Form.Validation exposing
 
 import Html exposing (Html)
 import Html.Attributes as Attrs
-import Regex
 
 
 {-| Represents a validation entry.
@@ -63,7 +62,7 @@ render type_ =
     case type_ of
         WarningWithMessage message ->
             Html.div
-                [ Attrs.class "a-form-field__error" ]
+                [ Attrs.class "a-form-field__warning" ]
                 [ Html.text message ]
 
         ErrorWithMessage message ->

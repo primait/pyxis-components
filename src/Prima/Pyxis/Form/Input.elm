@@ -258,21 +258,22 @@ render model inputModel =
     case ( options.prependGroup, options.appendGroup ) of
         ( Just html, _ ) ->
             [ renderGroup
-                [ renderPrependGroup html
-                , renderInput model inputModel
-                ]
+                (renderPrependGroup html
+                    :: renderInput model inputModel
+                    :: renderValidationMessages model inputModel
+                )
             ]
 
         ( _, Just html ) ->
             [ renderGroup
-                [ renderAppendGroup html
-                , renderInput model inputModel
-                ]
+                (renderAppendGroup html
+                    :: renderInput model inputModel
+                    :: renderValidationMessages model inputModel
+                )
             ]
 
         _ ->
-            [ renderInput model inputModel
-            ]
+            renderInput model inputModel :: renderValidationMessages model inputModel
 
 
 renderInput : model -> Input model msg -> Html msg
@@ -298,6 +299,30 @@ renderPrependGroup : List (Html msg) -> Html msg
 renderPrependGroup =
     Html.div
         [ Attrs.class "m-form-input-group__prepend" ]
+
+
+renderValidationMessages : model -> Input model msg -> List (Html msg)
+renderValidationMessages model inputModel =
+    let
+        options =
+            computeOptions inputModel
+
+        warnings =
+            options.validations
+                |> List.filterMap (H.flip identity model)
+                |> List.filter Validation.isWarning
+
+        errors =
+            options.validations
+                |> List.filterMap (H.flip identity model)
+                |> List.filter Validation.isError
+    in
+    case ( errors, warnings ) of
+        ( [], _ ) ->
+            List.map Validation.render warnings
+
+        ( _, _ ) ->
+            List.map Validation.render errors
 
 
 {-| Internal.
