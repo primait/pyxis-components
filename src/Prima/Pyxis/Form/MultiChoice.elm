@@ -1,9 +1,9 @@
-module Prima.Pyxis.Form.MultipleChoices exposing
-    ( MultiChoices(..)
+module Prima.Pyxis.Form.MultiChoice exposing
+    ( MultiChoice
     , withId, withName, withAttribute, withDisabled
     , withValidation
     , render
-    , MultiChoicesConfig, MultiChoicesOption(..), Options, addOption, applyOption, buildAttributes, buildMultiChoiceItem, classAttribute, computeOptions, defaultOptions, multiChoices, withClass, withOnBlur, withOnFocus
+    , multiChoice, multiChoiceChoice, withClass, withOnBlur, withOnFocus
     )
 
 {-|
@@ -11,7 +11,7 @@ module Prima.Pyxis.Form.MultipleChoices exposing
 
 ## Types
 
-@docs MultiChoices
+@docs MultiChoice
 
 
 ## Modifiers
@@ -45,29 +45,28 @@ import Prima.Pyxis.Helpers as H
 
 {-| Represents the configuration of an Change type.
 -}
-type MultiChoices model msg
-    = MultiChoices (MultiChoicesConfig model msg)
+type MultiChoice model msg
+    = MultiChoice (MultiChoiceConfig model msg)
 
 
 {-| Internal.
 -}
-type alias MultiChoicesConfig model msg =
-    { options : List (MultiChoicesOption model msg)
+type alias MultiChoiceConfig model msg =
+    { options : List (MultiChoiceOption model msg)
     , reader : model -> List String
     , writer : String -> msg
-    , values : List MultiChoiceItem
-    , checked : List MultiChoiceItem
+    , choices : List MultiChoiceChoice
     }
 
 
-multiChoices : (model -> List String) -> (String -> msg) -> List MultiChoiceItem -> List MultiChoiceItem -> MultiChoices model msg
-multiChoices reader writer values =
-    MultiChoices << MultiChoicesConfig [] reader writer values
+multiChoice : (model -> List String) -> (String -> msg) -> List MultiChoiceChoice -> MultiChoice model msg
+multiChoice reader writer =
+    MultiChoice << MultiChoiceConfig [] reader writer
 
 
 {-| Internal.
 -}
-type MultiChoicesOption model msg
+type MultiChoiceOption model msg
     = Attribute (Html.Attribute msg)
     | Class String
     | Disabled Bool
@@ -80,15 +79,15 @@ type MultiChoicesOption model msg
 
 {-| Internal.
 -}
-type alias MultiChoiceItem =
+type alias MultiChoiceChoice =
     { value : String
     , label : String
     }
 
 
-buildMultiChoiceItem : String -> String -> MultiChoiceItem
-buildMultiChoiceItem value label =
-    MultiChoiceItem value label
+multiChoiceChoice : String -> String -> MultiChoiceChoice
+multiChoiceChoice value label =
+    MultiChoiceChoice value label
 
 
 {-| Internal.
@@ -120,68 +119,68 @@ defaultOptions =
 
 {-| Internal.
 -}
-addOption : MultiChoicesOption model msg -> MultiChoices model msg -> MultiChoices model msg
-addOption option (MultiChoices multiChoicesConfig) =
-    MultiChoices { multiChoicesConfig | options = multiChoicesConfig.options ++ [ option ] }
+addOption : MultiChoiceOption model msg -> MultiChoice model msg -> MultiChoice model msg
+addOption option (MultiChoice multiChoiceConfig) =
+    MultiChoice { multiChoiceConfig | options = multiChoiceConfig.options ++ [ option ] }
 
 
-{-| Sets an `attribute` to the `MultiChoices config`.
+{-| Sets an `attribute` to the `MultiChoice config`.
 -}
-withAttribute : Html.Attribute msg -> MultiChoices model msg -> MultiChoices model msg
+withAttribute : Html.Attribute msg -> MultiChoice model msg -> MultiChoice model msg
 withAttribute attribute =
     addOption (Attribute attribute)
 
 
-{-| Sets a `disabled` to the `MultiChoices config`.
+{-| Sets a `disabled` to the `MultiChoice config`.
 -}
-withDisabled : Bool -> MultiChoices model msg -> MultiChoices model msg
+withDisabled : Bool -> MultiChoice model msg -> MultiChoice model msg
 withDisabled disabled =
     addOption (Disabled disabled)
 
 
-{-| Sets a `class` to the `MultiChoices config`.
+{-| Sets a `class` to the `MultiChoice config`.
 -}
-withClass : String -> MultiChoices model msg -> MultiChoices model msg
+withClass : String -> MultiChoice model msg -> MultiChoice model msg
 withClass class_ =
     addOption (Class class_)
 
 
-{-| Sets an `id` to the `MultiChoices config`.
+{-| Sets an `id` to the `MultiChoice config`.
 -}
-withId : String -> MultiChoices model msg -> MultiChoices model msg
+withId : String -> MultiChoice model msg -> MultiChoice model msg
 withId id =
     addOption (Id id)
 
 
-{-| Sets a `name` to the `MultiChoices config`.
+{-| Sets a `name` to the `MultiChoice config`.
 -}
-withName : String -> MultiChoices model msg -> MultiChoices model msg
+withName : String -> MultiChoice model msg -> MultiChoice model msg
 withName name =
     addOption (Name name)
 
 
-{-| Sets an `onBlur event` to the `MultiChoices config`.
+{-| Sets an `onBlur event` to the `MultiChoice config`.
 -}
-withOnBlur : msg -> MultiChoices model msg -> MultiChoices model msg
+withOnBlur : msg -> MultiChoice model msg -> MultiChoice model msg
 withOnBlur tagger =
     addOption (OnBlur tagger)
 
 
-{-| Sets an `onFocus event` to the `MultiChoices config`.
+{-| Sets an `onFocus event` to the `MultiChoice config`.
 -}
-withOnFocus : msg -> MultiChoices model msg -> MultiChoices model msg
+withOnFocus : msg -> MultiChoice model msg -> MultiChoice model msg
 withOnFocus tagger =
     addOption (OnFocus tagger)
 
 
-withValidation : (model -> Maybe Validation.Type) -> MultiChoices model msg -> MultiChoices model msg
+withValidation : (model -> Maybe Validation.Type) -> MultiChoice model msg -> MultiChoice model msg
 withValidation validation =
     addOption (Validation validation)
 
 
 {-| Internal.
 -}
-applyOption : MultiChoicesOption model msg -> Options model msg -> Options model msg
+applyOption : MultiChoiceOption model msg -> Options model msg -> Options model msg
 applyOption modifier options =
     case modifier of
         Attribute attribute ->
@@ -218,8 +217,8 @@ classAttribute =
 
 {-| Internal
 -}
-readerAttribute : model -> MultiChoices model msg -> String -> Html.Attribute msg
-readerAttribute model (MultiChoices config) choice =
+readerAttribute : model -> MultiChoice model msg -> String -> Html.Attribute msg
+readerAttribute model (MultiChoice config) choice =
     model
         |> config.reader
         |> List.member choice
@@ -228,8 +227,8 @@ readerAttribute model (MultiChoices config) choice =
 
 {-| Internal
 -}
-writerAttribute : MultiChoices model msg -> String -> Html.Attribute msg
-writerAttribute (MultiChoices config) choice =
+writerAttribute : MultiChoice model msg -> String -> Html.Attribute msg
+writerAttribute (MultiChoice config) choice =
     choice
         |> config.writer
         |> Events.onClick
@@ -237,11 +236,11 @@ writerAttribute (MultiChoices config) choice =
 
 {-| Composes all the modifiers into a set of `Html.Attribute`(s).
 -}
-buildAttributes : model -> MultiChoices model msg -> String -> List (Html.Attribute msg)
-buildAttributes model ((MultiChoices config) as multiChoicesModel) choice =
+buildAttributes : model -> MultiChoice model msg -> String -> List (Html.Attribute msg)
+buildAttributes model ((MultiChoice config) as multiChoiceModel) choice =
     let
         options =
-            computeOptions multiChoicesModel
+            computeOptions multiChoiceModel
     in
     [ options.id
         |> Maybe.map Attrs.id
@@ -257,15 +256,15 @@ buildAttributes model ((MultiChoices config) as multiChoicesModel) choice =
         |> List.filterMap identity
         |> (++) options.attributes
         |> (::) (classAttribute options.class)
-        |> (::) (readerAttribute model multiChoicesModel choice)
-        |> (::) (writerAttribute multiChoicesModel choice)
+        |> (::) (readerAttribute model multiChoiceModel choice)
+        |> (::) (writerAttribute multiChoiceModel choice)
         |> (::) (Attrs.type_ "checkbox")
         |> (::) (Attrs.value choice)
-        |> (::) (validationAttribute model multiChoicesModel)
+        |> (::) (validationAttribute model multiChoiceModel)
 
 
-validationAttribute : model -> MultiChoices model msg -> Html.Attribute msg
-validationAttribute model ((MultiChoices config) as multiChoiceModel) =
+validationAttribute : model -> MultiChoice model msg -> Html.Attribute msg
+validationAttribute model ((MultiChoice config) as multiChoiceModel) =
     let
         options =
             computeOptions multiChoiceModel
@@ -291,24 +290,24 @@ validationAttribute model ((MultiChoices config) as multiChoiceModel) =
             Attrs.class "has-error"
 
 
-{-| Renders the `MultiChoices config`.
+{-| Renders the `MultiChoice config`.
 
-    import Prima.Pyxis.Form.MultiChoices as MultiChoices
+    import Prima.Pyxis.Form.MultiChoice as MultiChoice
 
     view : List (Html Msg)
     view =
         [ buildMultiChoiceItem "option_1" "Option 1"
         , buildMultiChoiceItem "option_2" "Option 2"
         ]
-            |> MultiChoices.multiChoices
-            |> MultiChoices.render
+            |> MultiChoice.multiChoice
+            |> MultiChoice.render
 
 -}
-render : model -> MultiChoices model msg -> List (Html msg)
-render model ((MultiChoices config) as multiChoicesModel) =
+render : model -> MultiChoice model msg -> List (Html msg)
+render model ((MultiChoice config) as multiChoiceModel) =
     let
         options =
-            computeOptions multiChoicesModel
+            computeOptions multiChoiceModel
 
         errors =
             options.validations
@@ -324,20 +323,20 @@ render model ((MultiChoices config) as multiChoicesModel) =
         [ Attrs.classList
             [ ( "a-form-field__checkbox-options", True )
             ]
-        , validationAttribute model multiChoicesModel
+        , validationAttribute model multiChoiceModel
         ]
-        (List.map (renderMultiChoices model multiChoicesModel) config.values)
+        (List.map (renderMultiChoice model multiChoiceModel) config.choices)
     ]
 
 
 {-| Internal
 -}
-renderMultiChoices : model -> MultiChoices model msg -> MultiChoiceItem -> Html msg
-renderMultiChoices model ((MultiChoices config) as multiChoicesModel) multiChoiceItem =
+renderMultiChoice : model -> MultiChoice model msg -> MultiChoiceChoice -> Html msg
+renderMultiChoice model ((MultiChoice config) as multiChoiceModel) multiChoiceItem =
     Html.div
         [ Attrs.class "a-form-field__checkbox-options__item" ]
         [ Html.input
-            (buildAttributes model multiChoicesModel multiChoiceItem.value)
+            (buildAttributes model multiChoiceModel multiChoiceItem.value)
             []
         , multiChoiceItem.label
             |> Label.label
@@ -350,6 +349,6 @@ renderMultiChoices model ((MultiChoices config) as multiChoicesModel) multiChoic
 
 {-| Internal
 -}
-computeOptions : MultiChoices model msg -> Options model msg
-computeOptions (MultiChoices config) =
+computeOptions : MultiChoice model msg -> Options model msg
+computeOptions (MultiChoice config) =
     List.foldl applyOption defaultOptions config.options

@@ -20,7 +20,7 @@ import Prima.Pyxis.Form.Example.Model exposing (Field(..), FormData, Model, Msg(
 import Prima.Pyxis.Form.Field as Field
 import Prima.Pyxis.Form.Input as Input
 import Prima.Pyxis.Form.Label as Label
-import Prima.Pyxis.Form.MultipleChoices as MultipleChoice
+import Prima.Pyxis.Form.MultiChoice as MultiChoice
 import Prima.Pyxis.Form.Radio as Radio
 import Prima.Pyxis.Form.Select as Select
 import Prima.Pyxis.Form.Validation as Validation
@@ -233,16 +233,16 @@ multiChoicesConfig =
         valuesOption =
             List.map
                 (\( label, value ) ->
-                    MultipleChoice.buildMultiChoiceItem label value
+                    MultiChoice.multiChoiceChoice label value
                 )
                 [ ( "italia", "Italia" )
                 , ( "francia", "Francia" )
                 , ( "gb", "GB" )
                 ]
     in
-    []
-        |> MultipleChoice.multiChoices .countryVisited (OnChoice CountyVisited) valuesOption
-        |> MultipleChoice.withValidation
+    valuesOption
+        |> MultiChoice.multiChoice .countryVisited (OnChoice CountyVisited)
+        |> MultiChoice.withValidation
             (\m ->
                 if List.isEmpty m.countryVisited then
                     Just <| Validation.ErrorWithMessage "The field is empty"
@@ -250,8 +250,8 @@ multiChoicesConfig =
                 else
                     Nothing
             )
-        |> MultipleChoice.withName "country_visited"
-        |> Field.multiChoices
+        |> MultiChoice.withName "country_visited"
+        |> Field.multiChoice
         |> Field.addLabel
             ("Paesi visitati"
                 |> Label.label
