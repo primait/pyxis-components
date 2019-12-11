@@ -58,6 +58,7 @@ render model (Form formConfig) =
                         |> H.flip Grid.addRow formGrid
                 )
             |> List.map Grid.render
+            |> List.concat
         )
 
 

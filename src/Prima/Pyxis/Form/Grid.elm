@@ -61,17 +61,15 @@ addCols cols (Row rowConfig) =
     Row { rowConfig | children = rowConfig.children ++ cols }
 
 
-render : Grid msg -> Html msg
+render : Grid msg -> List (Html msg)
 render (Grid gridConfig) =
-    div
-        [ Attrs.class "a-fieldset grid" ]
-        (List.map renderRow gridConfig.children)
+    List.map renderRow gridConfig.children
 
 
 renderRow : Row msg -> Html msg
 renderRow (Row rowConfig) =
     div
-        [ Attrs.class "grid__row"
+        [ Attrs.class "a-form-field"
         , rowConfig.children
             |> List.length
             |> String.fromInt
@@ -83,5 +81,5 @@ renderRow (Row rowConfig) =
 renderCol : Column msg -> Html msg
 renderCol (Column colConfig) =
     div
-        [ Attrs.class "grid__row__col" ]
+        [ Attrs.class "a-form-field__item" ]
         colConfig.children

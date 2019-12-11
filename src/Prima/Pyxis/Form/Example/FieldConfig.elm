@@ -53,7 +53,7 @@ usernameConfig =
             )
         |> Field.input
         |> Field.addLabel
-            ("Username & pwd"
+            ("Username"
                 |> Label.label
                 |> Label.withFor slug
             )
@@ -88,6 +88,11 @@ passwordConfig =
     Input.password .password (OnInput Password)
         |> Input.withId slug
         |> Field.input
+        |> Field.addLabel
+            ("Password"
+                |> Label.label
+                |> Label.withFor slug
+            )
 
 
 passwordGroupConfig : Field.FormField FormData Msg

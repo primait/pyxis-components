@@ -206,10 +206,10 @@ render : Label msg -> Html msg
 render ((Label config) as labelModel) =
     Html.label
         (buildAttributes labelModel)
-        (config.children ++ [ renderSubtitle labelModel ])
+        (config.children ++ renderSubtitle labelModel)
 
 
-renderSubtitle : Label msg -> Html msg
+renderSubtitle : Label msg -> List (Html msg)
 renderSubtitle ((Label config) as labelModel) =
     let
         options =
@@ -217,12 +217,14 @@ renderSubtitle ((Label config) as labelModel) =
     in
     case options.subLabel of
         Nothing ->
-            Html.text ""
+            []
 
         Just lbl ->
-            Html.span
+            [ Html.br [] []
+            , Html.span
                 [ Attrs.class "a-form-field__label__subtitle" ]
                 [ text lbl ]
+            ]
 
 
 {-| Internal
