@@ -305,20 +305,6 @@ validationAttribute model ((MultiChoice config) as multiChoiceModel) =
 -}
 render : model -> MultiChoice model msg -> List (Html msg)
 render model ((MultiChoice config) as multiChoiceModel) =
-    let
-        options =
-            computeOptions multiChoiceModel
-
-        errors =
-            options.validations
-                |> List.filterMap (H.flip identity model)
-                |> List.filter Validation.isError
-
-        warnings =
-            options.validations
-                |> List.filterMap (H.flip identity model)
-                |> List.filter Validation.isWarning
-    in
     [ Html.div
         [ Attrs.classList
             [ ( "a-form-field__checkbox-options", True )
