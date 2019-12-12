@@ -29,10 +29,9 @@ module Prima.Pyxis.Form.RadioButton exposing
 
 -}
 
-import Html exposing (Attribute, Html, div)
+import Html exposing (Attribute, Html)
 import Html.Attributes as Attrs
-import Html.Events as Events exposing (on)
-import Prima.Pyxis.Form.Label as Label
+import Html.Events as Events
 import Prima.Pyxis.Form.Validation as Validation
 import Prima.Pyxis.Helpers as H
 
@@ -100,7 +99,7 @@ type alias Options model msg =
 defaultOptions : Options model msg
 defaultOptions =
     { attributes = []
-    , class = [ "a-form-field__radio" ]
+    , class = [ "a-form-field__radio-button" ]
     , disabled = Nothing
     , id = Nothing
     , name = Nothing
@@ -224,7 +223,7 @@ withValidation validation =
 
 
 validationAttribute : model -> RadioButton model msg -> Html.Attribute msg
-validationAttribute model ((RadioButton config) as inputModel) =
+validationAttribute model ((RadioButton _) as inputModel) =
     let
         options =
             computeOptions inputModel
@@ -274,6 +273,7 @@ buildAttributes model ((RadioButton config) as radioButtonModel) choice =
         |> (::) (classAttribute options.class)
         |> (::) (readerAttribute model radioButtonModel choice)
         |> (::) (writerAttribute radioButtonModel choice)
+        |> (::) (validationAttribute model radioButtonModel)
         |> (::) (Attrs.type_ "radio")
         |> (::) (Attrs.value choice.value)
 
@@ -300,17 +300,13 @@ render model ((RadioButton config) as radioButtonModel) =
 
 
 renderRadioChoice : model -> RadioButton model msg -> RadioButtonChoice -> Html msg
-renderRadioChoice model ((RadioButton config) as radioButtonModel) ({ title, subtitle } as choice) =
+renderRadioChoice model ((RadioButton _) as radioButtonModel) ({ title, subtitle } as choice) =
     Html.div
-        [ Attrs.class "a-form-field__radio-button-options__item", writerAttribute radioButtonModel choice, readerAttribute model radioButtonModel choice ]
-        [ Html.div
-            (buildAttributes model radioButtonModel choice)
-            []
-        , radioButtonContent title subtitle
-        ]
+        (buildAttributes model radioButtonModel choice)
+        (radioButtonContent title subtitle)
 
 
-radioButtonContent : String -> Maybe String -> Html msg
+radioButtonContent : String -> Maybe String -> List (Html msg)
 radioButtonContent title subtitle =
     let
         renderMaybeSubtitle : Html msg
@@ -319,11 +315,12 @@ radioButtonContent title subtitle =
                 |> Maybe.map (\s -> Html.p [ Attrs.class "a-form-field__radio-button__subtitle" ] [ Html.text s ])
                 |> Maybe.withDefault (Html.text "")
     in
-    Html.div
-        [ Attrs.class "a-form-field__radio-button__wrapper" ]
-        [ Html.p [ Attrs.class "a-form-field__radio-button__title" ] [ Html.text title ]
-        , renderMaybeSubtitle
-        ]
+    List.singleton <|
+        Html.div
+            [ Attrs.class "a-form-field__radio-button__wrapper" ]
+            [ Html.p [ Attrs.class "a-form-field__radio-button__title" ] [ Html.text title ]
+            , renderMaybeSubtitle
+            ]
 
 
 {-| Internal
