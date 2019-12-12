@@ -128,6 +128,7 @@ fiscalCodeGroupConfig =
     Input.text .fiscalCode (OnInput FiscalCode)
         |> Input.withId slug
         |> Input.withPrependGroup [ cta ]
+        |> Input.withGroupClass "is-large"
         |> Field.input
         |> Field.addLabel
             ("Fiscal code"
@@ -191,6 +192,14 @@ powerSourceConfig =
     ]
         |> Select.select .powerSource (OnInput PowerSource) (.powerSourceSelectOpened << .uiState) (OnToggle PowerSource)
         |> Select.withId slug
+        |> Select.withValidation
+            (\m ->
+                if String.isEmpty <| Maybe.withDefault "" <| m.powerSource then
+                    Just <| Validation.WarningWithMessage "Cannot be empty"
+
+                else
+                    Nothing
+            )
         |> Field.select
         |> Field.addLabel
             ("Alimentazione"

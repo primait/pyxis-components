@@ -28,6 +28,7 @@ import Html exposing (Attribute, Html, div, text)
 import Html.Attributes as Attrs exposing (checked, class, classList, id, name, selected, type_, value)
 import Html.Events as Events exposing (on)
 import Prima.Pyxis.Form.Validation as Validation
+import Prima.Pyxis.Helpers as H
 
 
 {-| Represents the configuration of a Select type.
@@ -74,7 +75,7 @@ type SelectOption model msg
     | OverridingClass String
     | Placeholder String
     | Size SelectSize
-    | Validation (Validation.Validation model)
+    | Validation (model -> Maybe Validation.Type)
 
 
 {-| Represents the `Select` size.
@@ -96,7 +97,7 @@ type alias Options model msg =
     , onBlur : Maybe msg
     , placeholder : String
     , size : SelectSize
-    , validations : List (Validation.Validation model)
+    , validations : List (model -> Maybe Validation.Type)
     }
 
 
@@ -189,7 +190,7 @@ withSmallSize =
     addOption (Size Small)
 
 
-withValidation : Validation.Validation model -> Select model msg -> Select model msg
+withValidation : (model -> Maybe Validation.Type) -> Select model msg -> Select model msg
 withValidation validation =
     addOption (Validation validation)
 
@@ -259,6 +260,33 @@ writerAttribute (Select config) =
     Events.onInput config.writer
 
 
+validationAttribute : model -> Select model msg -> Html.Attribute msg
+validationAttribute model selectModel =
+    let
+        options =
+            computeOptions selectModel
+
+        errors =
+            options.validations
+                |> List.filterMap (H.flip identity model)
+                |> List.filter Validation.isError
+
+        warnings =
+            options.validations
+                |> List.filterMap (H.flip identity model)
+                |> List.filter Validation.isWarning
+    in
+    case ( errors, warnings ) of
+        ( [], [] ) ->
+            Attrs.class "is-valid"
+
+        ( [], _ ) ->
+            Attrs.class "has-warning"
+
+        ( _, _ ) ->
+            Attrs.class "has-error"
+
+
 {-| Composes all the modifiers into a set of `Html.Attribute`(s).
 -}
 buildAttributes : model -> Select model msg -> List (Html.Attribute msg)
@@ -281,6 +309,7 @@ buildAttributes model ((Select config) as selectModel) =
         |> (::) (classAttribute options.class)
         |> (::) (sizeAttribute options.size)
         |> (::) (writerAttribute selectModel)
+        |> (::) (validationAttribute model selectModel)
 
 
 {-| Renders the `Radio config`.
@@ -290,6 +319,7 @@ render model selectModel =
     [ renderSelect model selectModel
     , renderCustomSelect model selectModel
     ]
+        ++ renderValidationMessages model selectModel
 
 
 renderSelect : model -> Select model msg -> Html msg
@@ -321,6 +351,7 @@ renderCustomSelect model ((Select config) as selectModel) =
             , ( "is-disabled", Maybe.withDefault False options.disabled )
             ]
         , sizeAttribute options.size
+        , validationAttribute model selectModel
         ]
         [ selectModel
             |> renderCustomSelectStatus model
@@ -366,6 +397,30 @@ renderCustomSelectChoice model (Select config) choice =
         ]
         [ text choice.label
         ]
+
+
+renderValidationMessages : model -> Select model msg -> List (Html msg)
+renderValidationMessages model selectModel =
+    let
+        options =
+            computeOptions selectModel
+
+        warnings =
+            options.validations
+                |> List.filterMap (H.flip identity model)
+                |> List.filter Validation.isWarning
+
+        errors =
+            options.validations
+                |> List.filterMap (H.flip identity model)
+                |> List.filter Validation.isError
+    in
+    case ( errors, warnings ) of
+        ( [], _ ) ->
+            List.map Validation.render warnings
+
+        ( _, _ ) ->
+            List.map Validation.render errors
 
 
 {-| Internal

@@ -2,7 +2,7 @@ module Prima.Pyxis.Form.Input exposing
     ( Input, text, password, date, number, email
     , withAttribute, withClass, withDisabled, withId, withName, withPlaceholder
     , withRegularSize, withSmallSize, withLargeSize
-    , withPrependGroup, withAppendGroup
+    , withPrependGroup, withAppendGroup, withGroupClass
     , withOnBlur, withOnFocus
     , withValidation
     , render
@@ -28,7 +28,7 @@ module Prima.Pyxis.Form.Input exposing
 
 ## InputGroup modifiers
 
-@docs withPrependGroup, withAppendGroup
+@docs withPrependGroup, withAppendGroup, withGroupClass
 
 
 ## Events
@@ -129,6 +129,7 @@ type InputOption model msg
     | Attribute (Html.Attribute msg)
     | Class String
     | Disabled Bool
+    | GroupClass String
     | Id String
     | Name String
     | OnBlur msg
@@ -172,6 +173,13 @@ withClass class_ =
 withDisabled : Bool -> Input model msg -> Input model msg
 withDisabled disabled =
     addOption (Disabled disabled)
+
+
+{-| Sets a `class` to the `AppendGroup` or `PrependGroup` of the `Input config`.
+-}
+withGroupClass : String -> Input model msg -> Input model msg
+withGroupClass class =
+    addOption (GroupClass class)
 
 
 {-| Sets an `id` to the `Input config`.
@@ -258,7 +266,7 @@ render model inputModel =
     case ( options.prependGroup, options.appendGroup ) of
         ( Just html, _ ) ->
             [ renderGroup
-                (renderPrependGroup html
+                (renderPrependGroup inputModel html
                     :: renderInput model inputModel
                     :: renderValidationMessages model inputModel
                 )
@@ -266,7 +274,7 @@ render model inputModel =
 
         ( _, Just html ) ->
             [ renderGroup
-                (renderAppendGroup html
+                (renderAppendGroup inputModel html
                     :: renderInput model inputModel
                     :: renderValidationMessages model inputModel
                 )
@@ -289,16 +297,28 @@ renderGroup =
         [ Attrs.class "m-form-input-group" ]
 
 
-renderAppendGroup : List (Html msg) -> Html msg
-renderAppendGroup =
+renderAppendGroup : Input model msg -> List (Html msg) -> Html msg
+renderAppendGroup inputModel =
+    let
+        options =
+            computeOptions inputModel
+    in
     Html.div
-        [ Attrs.class "m-form-input-group__append" ]
+        [ Attrs.class "m-form-input-group__append"
+        , Attrs.class <| String.join " " options.groupClasses
+        ]
 
 
-renderPrependGroup : List (Html msg) -> Html msg
-renderPrependGroup =
+renderPrependGroup : Input model msg -> List (Html msg) -> Html msg
+renderPrependGroup inputModel =
+    let
+        options =
+            computeOptions inputModel
+    in
     Html.div
-        [ Attrs.class "m-form-input-group__prepend" ]
+        [ Attrs.class "m-form-input-group__prepend"
+        , Attrs.class <| String.join " " options.groupClasses
+        ]
 
 
 renderValidationMessages : model -> Input model msg -> List (Html msg)
@@ -340,6 +360,7 @@ type alias Options model msg =
     , attributes : List (Html.Attribute msg)
     , disabled : Maybe Bool
     , classes : List String
+    , groupClasses : List String
     , id : Maybe String
     , name : Maybe String
     , onFocus : Maybe msg
@@ -359,6 +380,7 @@ defaultOptions =
     , attributes = []
     , disabled = Nothing
     , classes = [ "a-form-field__input" ]
+    , groupClasses = []
     , id = Nothing
     , name = Nothing
     , onFocus = Nothing
@@ -389,6 +411,9 @@ applyOption modifier options =
 
         Disabled disabled ->
             { options | disabled = Just disabled }
+
+        GroupClass class ->
+            { options | groupClasses = class :: options.groupClasses }
 
         Id id ->
             { options | id = Just id }
