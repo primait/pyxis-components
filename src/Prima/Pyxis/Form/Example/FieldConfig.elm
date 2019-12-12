@@ -1,8 +1,8 @@
 module Prima.Pyxis.Form.Example.FieldConfig exposing
-    ( countryConfig
+    ( checkboxConfig
+    , countryConfig
     , fiscalCodeGroupConfig
     , guideTypeConfig
-    , multiChoicesConfig
     , passwordConfig
     , passwordGroupConfig
     , powerSourceConfig
@@ -19,9 +19,9 @@ import Prima.Pyxis.Form.Autocomplete as Autocomplete
 import Prima.Pyxis.Form.Checkbox as Checkbox
 import Prima.Pyxis.Form.Example.Model exposing (Field(..), FormData, Model, Msg(..))
 import Prima.Pyxis.Form.Field as Field
+import Prima.Pyxis.Form.Flag as Flag
 import Prima.Pyxis.Form.Input as Input
 import Prima.Pyxis.Form.Label as Label
-import Prima.Pyxis.Form.MultiChoice as MultiChoice
 import Prima.Pyxis.Form.Radio as Radio
 import Prima.Pyxis.Form.RadioButton as RadioButton
 import Prima.Pyxis.Form.Select as Select
@@ -147,13 +147,13 @@ privacyConfig =
         slug =
             "privacy"
     in
-    Checkbox.checkbox .privacy (OnCheck Privacy) slug
-        |> Checkbox.withLabel
+    Flag.flag .privacy (OnCheck Privacy) slug
+        |> Flag.withLabel
             (privacyLabel
                 |> Label.labelWithHtml
                 |> Label.withFor slug
             )
-        |> Checkbox.withValidation
+        |> Flag.withValidation
             (\m ->
                 if Maybe.withDefault True <| Maybe.map not m.privacy then
                     Just <| Validation.ErrorWithMessage "You must accept the privacy."
@@ -161,7 +161,7 @@ privacyConfig =
                 else
                     Nothing
             )
-        |> Field.checkbox
+        |> Field.flag
         |> Field.addLabel
             ("Privacy"
                 |> Label.label
@@ -269,13 +269,13 @@ countryConfig =
             )
 
 
-multiChoicesConfig : Field.FormField FormData Msg
-multiChoicesConfig =
+checkboxConfig : Field.FormField FormData Msg
+checkboxConfig =
     let
         valuesOption =
             List.map
                 (\( label, value ) ->
-                    MultiChoice.multiChoiceChoice label value
+                    Checkbox.checkboxChoice label value
                 )
                 [ ( "italia", "Italia" )
                 , ( "francia", "Francia" )
@@ -283,8 +283,8 @@ multiChoicesConfig =
                 ]
     in
     valuesOption
-        |> MultiChoice.multiChoice .countryVisited (OnChoice CountyVisited)
-        |> MultiChoice.withValidation
+        |> Checkbox.checkbox .countryVisited (OnChoice CountyVisited)
+        |> Checkbox.withValidation
             (\m ->
                 if List.isEmpty m.countryVisited then
                     Just <| Validation.ErrorWithMessage "The field is empty"
@@ -292,8 +292,8 @@ multiChoicesConfig =
                 else
                     Nothing
             )
-        |> MultiChoice.withName "country_visited"
-        |> Field.multiChoice
+        |> Checkbox.withName "country_visited"
+        |> Field.checkbox
         |> Field.addLabel
             ("Paesi visitati"
                 |> Label.label

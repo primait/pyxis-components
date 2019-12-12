@@ -50,7 +50,7 @@ formConfig model =
             [ Config.countryConfig
             ]
         |> Form.addFieldsInRow
-            [ Config.multiChoicesConfig
+            [ Config.checkboxConfig
             ]
         |> Form.addFieldsInRow
             [ Config.radioButtonConfig

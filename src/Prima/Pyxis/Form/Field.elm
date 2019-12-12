@@ -1,17 +1,16 @@
 module Prima.Pyxis.Form.Field exposing
     ( AutocompleteFieldConfig
-    , CheckboxFieldConfig
+    , CheckboxConfig
     , FormField(..)
     , InputFieldConfig
-    , MultiChoiceConfig
     , RadioFieldConfig
     , SelectFieldConfig
     , addLabel
     , autocomplete
     , checkbox
+    , flag
     , hasLabel
     , input
-    , multiChoice
     , pickLabel
     , radio
     , radioButtonChoice
@@ -23,9 +22,9 @@ module Prima.Pyxis.Form.Field exposing
 import Html exposing (Html, text)
 import Prima.Pyxis.Form.Autocomplete as Autocomplete
 import Prima.Pyxis.Form.Checkbox as Checkbox
+import Prima.Pyxis.Form.Flag as Flag
 import Prima.Pyxis.Form.Input as Input
 import Prima.Pyxis.Form.Label as Label
-import Prima.Pyxis.Form.MultiChoice as MultiChoice
 import Prima.Pyxis.Form.Radio as Radio
 import Prima.Pyxis.Form.RadioButton as RadioButton
 import Prima.Pyxis.Form.Select as Select
@@ -34,11 +33,11 @@ import Prima.Pyxis.Helpers as H
 
 type FormField model msg
     = InputField (InputFieldConfig model msg)
-    | CheckboxField (CheckboxFieldConfig model msg)
+    | FlagField (FlagFieldConfig model msg)
     | RadioField (RadioFieldConfig model msg)
     | SelectField (SelectFieldConfig model msg)
     | AutocompleteField (AutocompleteFieldConfig model msg)
-    | MultiChoiceField (MultiChoiceConfig model msg)
+    | CheckboxField (CheckboxConfig model msg)
     | RadioButtonField (RadioButtonConfig model msg)
 
 
@@ -53,7 +52,7 @@ pickLabel formField =
         AutocompleteField { label } ->
             label
 
-        CheckboxField { label } ->
+        FlagField { label } ->
             label
 
         InputField { label } ->
@@ -65,7 +64,7 @@ pickLabel formField =
         SelectField { label } ->
             label
 
-        MultiChoiceField { label } ->
+        CheckboxField { label } ->
             label
 
         RadioButtonField { label } ->
@@ -83,15 +82,15 @@ input config =
     InputField <| InputFieldConfig config Nothing
 
 
-type alias CheckboxFieldConfig model msg =
-    { config : Checkbox.Checkbox model msg
+type alias FlagFieldConfig model msg =
+    { config : Flag.Flag model msg
     , label : Maybe (Label.Label msg)
     }
 
 
-checkbox : Checkbox.Checkbox model msg -> FormField model msg
-checkbox config =
-    CheckboxField <| CheckboxFieldConfig config Nothing
+flag : Flag.Flag model msg -> FormField model msg
+flag config =
+    FlagField <| FlagFieldConfig config Nothing
 
 
 type alias RadioFieldConfig model msg =
@@ -133,8 +132,8 @@ addLabel lbl formField =
         AutocompleteField fieldConfig ->
             AutocompleteField { fieldConfig | label = Just lbl }
 
-        CheckboxField fieldConfig ->
-            CheckboxField { fieldConfig | label = Just lbl }
+        FlagField fieldConfig ->
+            FlagField { fieldConfig | label = Just lbl }
 
         InputField fieldConfig ->
             InputField { fieldConfig | label = Just lbl }
@@ -145,8 +144,8 @@ addLabel lbl formField =
         RadioField fieldConfig ->
             RadioField { fieldConfig | label = Just lbl }
 
-        MultiChoiceField fieldConfig ->
-            MultiChoiceField { fieldConfig | label = Just lbl }
+        CheckboxField fieldConfig ->
+            CheckboxField { fieldConfig | label = Just lbl }
 
         RadioButtonField fieldConfig ->
             RadioButtonField { fieldConfig | label = Just lbl }
@@ -166,8 +165,8 @@ renderField model formField =
         InputField { config } ->
             Input.render model config
 
-        CheckboxField { config } ->
-            Checkbox.render model config
+        FlagField { config } ->
+            Flag.render model config
 
         RadioField { config } ->
             Radio.render model config
@@ -178,22 +177,22 @@ renderField model formField =
         AutocompleteField { config } ->
             Autocomplete.render model config
 
-        MultiChoiceField { config } ->
-            MultiChoice.render model config
+        CheckboxField { config } ->
+            Checkbox.render model config
 
         RadioButtonField { config } ->
             RadioButton.render model config
 
 
-type alias MultiChoiceConfig model msg =
-    { config : MultiChoice.MultiChoice model msg
+type alias CheckboxConfig model msg =
+    { config : Checkbox.Checkbox model msg
     , label : Maybe (Label.Label msg)
     }
 
 
-multiChoice : MultiChoice.MultiChoice model msg -> FormField model msg
-multiChoice config =
-    MultiChoiceField <| MultiChoiceConfig config Nothing
+checkbox : Checkbox.Checkbox model msg -> FormField model msg
+checkbox config =
+    CheckboxField <| CheckboxConfig config Nothing
 
 
 type alias RadioButtonConfig model msg =
