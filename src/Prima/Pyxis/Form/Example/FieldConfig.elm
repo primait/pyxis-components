@@ -128,6 +128,7 @@ fiscalCodeGroupConfig =
     in
     Input.text .fiscalCode (OnInput FiscalCode)
         |> Input.withId slug
+        |> Input.withLargeSize
         |> Input.withPrependGroup [ cta ]
         |> Input.withGroupClass "is-large"
         |> Field.input
