@@ -24,6 +24,7 @@ import Prima.Pyxis.Form.MultiChoice as MultiChoice
 import Prima.Pyxis.Form.Radio as Radio
 import Prima.Pyxis.Form.Select as Select
 import Prima.Pyxis.Form.Validation as Validation
+import Prima.Pyxis.Helpers as H
 import Prima.Pyxis.Link as Link
 
 
@@ -149,6 +150,14 @@ privacyConfig =
                 |> Label.labelWithHtml
                 |> Label.withFor slug
             )
+        |> Checkbox.withValidation
+            (\m ->
+                if Maybe.withDefault True <| Maybe.map not m.privacy then
+                    Just <| Validation.ErrorWithMessage "You must accept the privacy."
+
+                else
+                    Nothing
+            )
         |> Field.checkbox
         |> Field.addLabel
             ("Privacy"
@@ -173,6 +182,14 @@ guideTypeConfig =
     ]
         |> Radio.radio .guideType (OnInput GuideType)
         |> Radio.withName "guide_type"
+        |> Radio.withValidation
+            (\m ->
+                if H.isNothing m.guideType then
+                    Just <| Validation.ErrorWithMessage "Cannot be empty"
+
+                else
+                    Nothing
+            )
         |> Field.radio
         |> Field.addLabel
             ("Tipo di guida"
@@ -196,6 +213,14 @@ powerSourceConfig =
             (\m ->
                 if String.isEmpty <| Maybe.withDefault "" <| m.powerSource then
                     Just <| Validation.WarningWithMessage "Cannot be empty"
+
+                else
+                    Nothing
+            )
+        |> Select.withValidation
+            (\m ->
+                if (==) "diesel" <| Maybe.withDefault "" <| m.powerSource then
+                    Just <| Validation.ErrorWithMessage "Cannot be Diesel"
 
                 else
                     Nothing

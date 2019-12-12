@@ -1,4 +1,10 @@
-module Prima.Pyxis.Form.Radio exposing (..)
+module Prima.Pyxis.Form.Radio exposing
+    ( Radio
+    , withId, withName, withAttribute, withDisabled
+    , withValidation
+    , render
+    , radio, radioChoice, withClass, withOnBlur, withOnFocus
+    )
 
 {-|
 
@@ -18,6 +24,11 @@ module Prima.Pyxis.Form.Radio exposing (..)
 @docs withOnChange
 
 
+## Validation
+
+@docs withValidation
+
+
 ## Render
 
 @docs render
@@ -28,6 +39,7 @@ import Html exposing (Attribute, Html, div)
 import Html.Attributes as Attrs
 import Html.Events as Events exposing (on)
 import Prima.Pyxis.Form.Label as Label
+import Prima.Pyxis.Form.Validation as Validation
 import Prima.Pyxis.Helpers as H
 
 
@@ -73,11 +85,12 @@ type RadioOption model msg
     | Name String
     | OnFocus msg
     | OnBlur msg
+    | Validation (model -> Maybe Validation.Type)
 
 
 {-| Internal.
 -}
-type alias Options msg =
+type alias Options model msg =
     { attributes : List (Html.Attribute msg)
     , class : List String
     , disabled : Maybe Bool
@@ -85,10 +98,11 @@ type alias Options msg =
     , name : Maybe String
     , onFocus : Maybe msg
     , onBlur : Maybe msg
+    , validations : List (model -> Maybe Validation.Type)
     }
 
 
-defaultOptions : Options msg
+defaultOptions : Options model msg
 defaultOptions =
     { attributes = []
     , class = [ "a-form-field__radio" ]
@@ -97,6 +111,7 @@ defaultOptions =
     , name = Nothing
     , onFocus = Nothing
     , onBlur = Nothing
+    , validations = []
     }
 
 
@@ -156,9 +171,14 @@ withOnFocus tagger =
     addOption (OnFocus tagger)
 
 
+withValidation : (model -> Maybe Validation.Type) -> Radio model msg -> Radio model msg
+withValidation validation =
+    addOption (Validation validation)
+
+
 {-| Internal.
 -}
-applyOption : RadioOption model msg -> Options msg -> Options msg
+applyOption : RadioOption model msg -> Options model msg -> Options model msg
 applyOption modifier options =
     case modifier of
         Attribute attribute ->
@@ -182,6 +202,9 @@ applyOption modifier options =
         OnFocus onFocus ->
             { options | onFocus = Just onFocus }
 
+        Validation validation ->
+            { options | validations = validation :: options.validations }
+
 
 {-| Transforms a `List` of `Class`(es) into a valid `Html.Attribute`.
 -}
@@ -203,6 +226,33 @@ writerAttribute (Radio config) choice =
     choice.value
         |> config.writer
         |> Events.onClick
+
+
+validationAttribute : model -> Radio model msg -> Html.Attribute msg
+validationAttribute model radioModel =
+    let
+        options =
+            computeOptions radioModel
+
+        errors =
+            options.validations
+                |> List.filterMap (H.flip identity model)
+                |> List.filter Validation.isError
+
+        warnings =
+            options.validations
+                |> List.filterMap (H.flip identity model)
+                |> List.filter Validation.isWarning
+    in
+    case ( errors, warnings ) of
+        ( [], [] ) ->
+            Attrs.class "is-valid"
+
+        ( [], _ ) ->
+            Attrs.class "has-warning"
+
+        ( _, _ ) ->
+            Attrs.class "has-error"
 
 
 {-| Composes all the modifiers into a set of `Html.Attribute`(s).
@@ -229,6 +279,7 @@ buildAttributes model ((Radio config) as radioModel) choice =
         |> (::) (classAttribute options.class)
         |> (::) (readerAttribute model radioModel choice)
         |> (::) (writerAttribute radioModel choice)
+        |> (::) (validationAttribute model radioModel)
         |> (::) (Attrs.type_ "radio")
         |> (::) (Attrs.value choice.value)
 
@@ -248,10 +299,10 @@ buildAttributes model ((Radio config) as radioModel) choice =
 -}
 render : model -> Radio model msg -> List (Html msg)
 render model ((Radio config) as radioModel) =
-    [ Html.div
+    Html.div
         [ Attrs.class "a-form-field__radio-options" ]
         (List.map (renderRadioChoice model radioModel) config.radioChoices)
-    ]
+        :: renderValidationMessages model radioModel
 
 
 renderRadioChoice : model -> Radio model msg -> RadioChoice -> Html msg
@@ -270,8 +321,32 @@ renderRadioChoice model ((Radio config) as radioModel) choice =
         ]
 
 
+renderValidationMessages : model -> Radio model msg -> List (Html msg)
+renderValidationMessages model radioModel =
+    let
+        options =
+            computeOptions radioModel
+
+        warnings =
+            options.validations
+                |> List.filterMap (H.flip identity model)
+                |> List.filter Validation.isWarning
+
+        errors =
+            options.validations
+                |> List.filterMap (H.flip identity model)
+                |> List.filter Validation.isError
+    in
+    case ( errors, warnings ) of
+        ( [], _ ) ->
+            List.map Validation.render warnings
+
+        ( _, _ ) ->
+            List.map Validation.render errors
+
+
 {-| Internal
 -}
-computeOptions : Radio model msg -> Options msg
+computeOptions : Radio model msg -> Options model msg
 computeOptions (Radio config) =
     List.foldl applyOption defaultOptions config.options
