@@ -39,6 +39,7 @@ type Field
     | FiscalCode
     | CountyVisited
     | InsurancePolicyType
+    | Note
 
 
 type alias FormData =
@@ -53,6 +54,7 @@ type alias FormData =
     , uiState : UIState
     , countryVisited : List String
     , tipoPolizza : Maybe String
+    , note : Maybe String
     }
 
 
@@ -69,6 +71,7 @@ initialFormData =
     , uiState = initialUIState
     , countryVisited = [ "italia", "francia" ]
     , tipoPolizza = Nothing
+    , note = Nothing
     }
 
 

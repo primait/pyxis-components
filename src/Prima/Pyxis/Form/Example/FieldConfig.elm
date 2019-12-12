@@ -9,6 +9,7 @@ module Prima.Pyxis.Form.Example.FieldConfig exposing
     , privacyConfig
     , privacyLabel
     , radioButtonConfig
+    , textAreaConfig
     , usernameConfig
     , usernameGroupConfig
     )
@@ -25,6 +26,7 @@ import Prima.Pyxis.Form.Label as Label
 import Prima.Pyxis.Form.Radio as Radio
 import Prima.Pyxis.Form.RadioButton as RadioButton
 import Prima.Pyxis.Form.Select as Select
+import Prima.Pyxis.Form.TextArea as TextArea
 import Prima.Pyxis.Form.Validation as Validation
 import Prima.Pyxis.Helpers as H
 import Prima.Pyxis.Link as Link
@@ -327,4 +329,38 @@ radioButtonConfig =
         |> Field.addLabel
             ("Tipo di polizza"
                 |> Label.label
+            )
+
+
+textAreaConfig : Field.FormField FormData Msg
+textAreaConfig =
+    let
+        slug =
+            "note"
+    in
+    TextArea.textArea .note (OnInput Note)
+        |> TextArea.withId slug
+        |> TextArea.withLargeSize
+        |> TextArea.withPlaceholder "Describe something happened"
+        |> TextArea.withValidation
+            (\m ->
+                if String.isEmpty <| Maybe.withDefault "" <| m.note then
+                    Just <| Validation.ErrorWithMessage "The field is empty"
+
+                else
+                    Nothing
+            )
+        |> TextArea.withValidation
+            (\m ->
+                if (==) "ciao" <| Maybe.withDefault "" <| m.note then
+                    Just <| Validation.WarningWithMessage "Cannot be 'Ciao'"
+
+                else
+                    Nothing
+            )
+        |> Field.textArea
+        |> Field.addLabel
+            ("Note"
+                |> Label.label
+                |> Label.withFor slug
             )

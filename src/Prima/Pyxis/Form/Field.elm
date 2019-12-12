@@ -1,10 +1,5 @@
 module Prima.Pyxis.Form.Field exposing
-    ( AutocompleteFieldConfig
-    , CheckboxConfig
-    , FormField(..)
-    , InputFieldConfig
-    , RadioFieldConfig
-    , SelectFieldConfig
+    ( FormField(..)
     , addLabel
     , autocomplete
     , checkbox
@@ -17,6 +12,7 @@ module Prima.Pyxis.Form.Field exposing
     , renderField
     , renderLabel
     , select
+    , textArea
     )
 
 import Html exposing (Html, text)
@@ -28,6 +24,7 @@ import Prima.Pyxis.Form.Label as Label
 import Prima.Pyxis.Form.Radio as Radio
 import Prima.Pyxis.Form.RadioButton as RadioButton
 import Prima.Pyxis.Form.Select as Select
+import Prima.Pyxis.Form.TextArea as TextArea
 import Prima.Pyxis.Helpers as H
 
 
@@ -37,8 +34,9 @@ type FormField model msg
     | RadioField (RadioFieldConfig model msg)
     | SelectField (SelectFieldConfig model msg)
     | AutocompleteField (AutocompleteFieldConfig model msg)
-    | CheckboxField (CheckboxConfig model msg)
-    | RadioButtonField (RadioButtonConfig model msg)
+    | CheckboxField (CheckboxFieldConfig model msg)
+    | RadioButtonField (RadioButtonFieldConfig model msg)
+    | TextAreaField (TextAreaFieldConfig model msg)
 
 
 hasLabel : FormField model msg -> Bool
@@ -68,6 +66,9 @@ pickLabel formField =
             label
 
         RadioButtonField { label } ->
+            label
+
+        TextAreaField { label } ->
             label
 
 
@@ -150,6 +151,9 @@ addLabel lbl formField =
         RadioButtonField fieldConfig ->
             RadioButtonField { fieldConfig | label = Just lbl }
 
+        TextAreaField fieldConfig ->
+            TextAreaField { fieldConfig | label = Just lbl }
+
 
 renderLabel : FormField model msg -> Html msg
 renderLabel formField =
@@ -183,8 +187,11 @@ renderField model formField =
         RadioButtonField { config } ->
             RadioButton.render model config
 
+        TextAreaField { config } ->
+            TextArea.render model config
 
-type alias CheckboxConfig model msg =
+
+type alias CheckboxFieldConfig model msg =
     { config : Checkbox.Checkbox model msg
     , label : Maybe (Label.Label msg)
     }
@@ -192,10 +199,10 @@ type alias CheckboxConfig model msg =
 
 checkbox : Checkbox.Checkbox model msg -> FormField model msg
 checkbox config =
-    CheckboxField <| CheckboxConfig config Nothing
+    CheckboxField <| CheckboxFieldConfig config Nothing
 
 
-type alias RadioButtonConfig model msg =
+type alias RadioButtonFieldConfig model msg =
     { config : RadioButton.RadioButton model msg
     , label : Maybe (Label.Label msg)
     }
@@ -203,4 +210,15 @@ type alias RadioButtonConfig model msg =
 
 radioButtonChoice : RadioButton.RadioButton model msg -> FormField model msg
 radioButtonChoice config =
-    RadioButtonField <| RadioButtonConfig config Nothing
+    RadioButtonField <| RadioButtonFieldConfig config Nothing
+
+
+type alias TextAreaFieldConfig model msg =
+    { config : TextArea.TextArea model msg
+    , label : Maybe (Label.Label msg)
+    }
+
+
+textArea : TextArea.TextArea model msg -> FormField model msg
+textArea config =
+    TextAreaField <| TextAreaFieldConfig config Nothing

@@ -208,7 +208,6 @@ readerAttribute model (RadioButton config) choice =
     model
         |> config.reader
         |> (==) (Just choice.value)
-        |> Debug.log "Reader"
         |> Attrs.checked
 
 

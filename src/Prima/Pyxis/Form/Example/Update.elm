@@ -84,6 +84,12 @@ update msg model =
                 |> printModel
                 |> H.withoutCmds
 
+        OnInput Note value ->
+            model
+                |> updateNote (Just value)
+                |> printModel
+                |> H.withoutCmds
+
         _ ->
             H.withoutCmds model
 
@@ -193,3 +199,8 @@ updateCountryVisited value ({ formData } as model) =
 updateInsurancePolicyType : String -> Model -> Model
 updateInsurancePolicyType value =
     updateFormData (\f -> { f | tipoPolizza = Just value })
+
+
+updateNote : Maybe String -> Model -> Model
+updateNote value =
+    updateFormData (\f -> { f | note = value })
