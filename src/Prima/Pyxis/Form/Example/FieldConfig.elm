@@ -8,6 +8,7 @@ module Prima.Pyxis.Form.Example.FieldConfig exposing
     , powerSourceConfig
     , privacyConfig
     , privacyLabel
+    , radioButtonConfig
     , usernameConfig
     , usernameGroupConfig
     )
@@ -22,6 +23,7 @@ import Prima.Pyxis.Form.Input as Input
 import Prima.Pyxis.Form.Label as Label
 import Prima.Pyxis.Form.MultiChoice as MultiChoice
 import Prima.Pyxis.Form.Radio as Radio
+import Prima.Pyxis.Form.RadioButton as RadioButton
 import Prima.Pyxis.Form.Select as Select
 import Prima.Pyxis.Form.Validation as Validation
 import Prima.Pyxis.Helpers as H
@@ -294,5 +296,35 @@ multiChoicesConfig =
         |> Field.multiChoice
         |> Field.addLabel
             ("Paesi visitati"
+                |> Label.label
+            )
+
+
+radioButtonConfig : Field.FormField FormData Msg
+radioButtonConfig =
+    let
+        valuesOption =
+            [ RadioButton.radioButtonChoice "soloMutuo" "Solo mutuo" <| Just "Polizza incendio e scoppio obbligatoria per mutuo."
+            , RadioButton.radioButtonChoice "estensioneMutuo" "Estensione mutuo" <| Just "Polizza intregativa: estende la protezione obbligatoria per mutuo."
+            , RadioButton.radioButtonChoice "altreSoluzioni" "Altre soluzioni" <| Just "Offerta completa adatta a tutte le esigenze."
+            ]
+
+        isEmpty val =
+            String.isEmpty val
+    in
+    valuesOption
+        |> RadioButton.radioButton .tipoPolizza (OnChoice InsurancePolicyType)
+        |> RadioButton.withValidation
+            (\m ->
+                if isEmpty (Maybe.withDefault "" m.tipoPolizza) then
+                    Just <| Validation.ErrorWithMessage "The field is empty"
+
+                else
+                    Nothing
+            )
+        |> RadioButton.withName "policy_type"
+        |> Field.radioButtonChoice
+        |> Field.addLabel
+            ("Tipo di polizza"
                 |> Label.label
             )

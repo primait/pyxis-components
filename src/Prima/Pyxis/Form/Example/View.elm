@@ -52,3 +52,6 @@ formConfig model =
         |> Form.addFieldsInRow
             [ Config.multiChoicesConfig
             ]
+        |> Form.addFieldsInRow
+            [ Config.radioButtonConfig
+            ]

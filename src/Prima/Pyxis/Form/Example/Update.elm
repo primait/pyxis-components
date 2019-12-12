@@ -78,6 +78,12 @@ update msg model =
                 |> printModel
                 |> H.withoutCmds
 
+        OnChoice InsurancePolicyType value ->
+            model
+                |> updateInsurancePolicyType value
+                |> printModel
+                |> H.withoutCmds
+
         _ ->
             H.withoutCmds model
 
@@ -182,3 +188,8 @@ updateCountryVisited value ({ formData } as model) =
         updateFormData
             (\f -> { f | countryVisited = value :: formData.countryVisited })
             model
+
+
+updateInsurancePolicyType : String -> Model -> Model
+updateInsurancePolicyType value =
+    updateFormData (\f -> { f | tipoPolizza = Just value })

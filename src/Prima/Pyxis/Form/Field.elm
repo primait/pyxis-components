@@ -14,6 +14,7 @@ module Prima.Pyxis.Form.Field exposing
     , multiChoice
     , pickLabel
     , radio
+    , radioButtonChoice
     , renderField
     , renderLabel
     , select
@@ -26,6 +27,7 @@ import Prima.Pyxis.Form.Input as Input
 import Prima.Pyxis.Form.Label as Label
 import Prima.Pyxis.Form.MultiChoice as MultiChoice
 import Prima.Pyxis.Form.Radio as Radio
+import Prima.Pyxis.Form.RadioButton as RadioButton
 import Prima.Pyxis.Form.Select as Select
 import Prima.Pyxis.Helpers as H
 
@@ -37,6 +39,7 @@ type FormField model msg
     | SelectField (SelectFieldConfig model msg)
     | AutocompleteField (AutocompleteFieldConfig model msg)
     | MultiChoiceField (MultiChoiceConfig model msg)
+    | RadioButtonField (RadioButtonConfig model msg)
 
 
 hasLabel : FormField model msg -> Bool
@@ -63,6 +66,9 @@ pickLabel formField =
             label
 
         MultiChoiceField { label } ->
+            label
+
+        RadioButtonField { label } ->
             label
 
 
@@ -142,6 +148,9 @@ addLabel lbl formField =
         MultiChoiceField fieldConfig ->
             MultiChoiceField { fieldConfig | label = Just lbl }
 
+        RadioButtonField fieldConfig ->
+            RadioButtonField { fieldConfig | label = Just lbl }
+
 
 renderLabel : FormField model msg -> Html msg
 renderLabel formField =
@@ -172,6 +181,9 @@ renderField model formField =
         MultiChoiceField { config } ->
             MultiChoice.render model config
 
+        RadioButtonField { config } ->
+            RadioButton.render model config
+
 
 type alias MultiChoiceConfig model msg =
     { config : MultiChoice.MultiChoice model msg
@@ -182,3 +194,14 @@ type alias MultiChoiceConfig model msg =
 multiChoice : MultiChoice.MultiChoice model msg -> FormField model msg
 multiChoice config =
     MultiChoiceField <| MultiChoiceConfig config Nothing
+
+
+type alias RadioButtonConfig model msg =
+    { config : RadioButton.RadioButton model msg
+    , label : Maybe (Label.Label msg)
+    }
+
+
+radioButtonChoice : RadioButton.RadioButton model msg -> FormField model msg
+radioButtonChoice config =
+    RadioButtonField <| RadioButtonConfig config Nothing
