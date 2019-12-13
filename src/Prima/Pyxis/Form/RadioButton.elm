@@ -287,10 +287,10 @@ buildAttributes model radioButtonModel choice =
 -}
 render : model -> RadioButton model msg -> List (Html msg)
 render model ((RadioButton config) as radioButtonModel) =
-    [ Html.div
+    Html.div
         [ Attrs.class "a-form-field__radio-button-options" ]
         (List.map (renderRadioButtonChoice model radioButtonModel) config.choices)
-    ]
+        :: renderValidationMessages model radioButtonModel
 
 
 renderRadioButtonChoice : model -> RadioButton model msg -> RadioButtonChoice -> Html msg
@@ -300,6 +300,30 @@ renderRadioButtonChoice model ((RadioButton _) as radioButtonModel) ({ title, su
         [ renderTitle title
         , H.renderMaybe <| Maybe.map renderSubtitle subtitle
         ]
+
+
+renderValidationMessages : model -> RadioButton model msg -> List (Html msg)
+renderValidationMessages model radioButtonModel =
+    let
+        options =
+            computeOptions radioButtonModel
+
+        warnings =
+            options.validations
+                |> List.filterMap (H.flip identity model)
+                |> List.filter Validation.isWarning
+
+        errors =
+            options.validations
+                |> List.filterMap (H.flip identity model)
+                |> List.filter Validation.isError
+    in
+    case ( errors, warnings ) of
+        ( [], _ ) ->
+            List.map Validation.render warnings
+
+        ( _, _ ) ->
+            List.map Validation.render errors
 
 
 renderTitle : String -> Html msg

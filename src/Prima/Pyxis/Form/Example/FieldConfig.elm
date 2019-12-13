@@ -264,7 +264,7 @@ radioButtonConfig =
         |> RadioButton.withValidation
             (\m ->
                 if String.isEmpty <| Maybe.withDefault "" m.tipoPolizza then
-                    Just <| Validation.ErrorWithMessage "The field is empty"
+                    Just <| Validation.ErrorWithMessage "Cannot be empty"
 
                 else
                     Nothing
