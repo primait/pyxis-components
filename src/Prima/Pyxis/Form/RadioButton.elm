@@ -295,12 +295,12 @@ render : model -> RadioButton model msg -> List (Html msg)
 render model ((RadioButton config) as radioButtonModel) =
     [ Html.div
         [ Attrs.class "a-form-field__radio-button-options" ]
-        (List.map (renderRadioChoice model radioButtonModel) config.choices)
+        (List.map (renderRadioButtonChoice model radioButtonModel) config.choices)
     ]
 
 
-renderRadioChoice : model -> RadioButton model msg -> RadioButtonChoice -> Html msg
-renderRadioChoice model ((RadioButton _) as radioButtonModel) ({ title, subtitle } as choice) =
+renderRadioButtonChoice : model -> RadioButton model msg -> RadioButtonChoice -> Html msg
+renderRadioButtonChoice model ((RadioButton _) as radioButtonModel) ({ title, subtitle } as choice) =
     Html.div
         (buildAttributes model radioButtonModel choice)
         (radioButtonContent title subtitle)
