@@ -48,25 +48,25 @@ type alias RadioConfig model msg =
     { options : List (RadioButtonOption model msg)
     , reader : model -> Maybe String
     , writer : String -> msg
-    , choices : List RadioButtonChoice
+    , choices : List (RadioButtonChoice msg)
     }
 
 
-radioButton : (model -> Maybe String) -> (String -> msg) -> List RadioButtonChoice -> RadioButton model msg
+radioButton : (model -> Maybe String) -> (String -> msg) -> List (RadioButtonChoice msg) -> RadioButton model msg
 radioButton reader writer =
     RadioButton << RadioConfig [] reader writer
 
 
-type alias RadioButtonChoice =
+type alias RadioButtonChoice msg =
     { value : String
     , title : String
-    , subtitle : Maybe String
+    , children : Html msg
     }
 
 
-radioButtonChoice : String -> String -> Maybe String -> RadioButtonChoice
-radioButtonChoice value title subtitle =
-    RadioButtonChoice value title subtitle
+radioButtonChoice : String -> String -> Html msg -> RadioButtonChoice msg
+radioButtonChoice value title =
+    RadioButtonChoice value title
 
 
 {-| Internal.
@@ -202,7 +202,7 @@ classAttribute =
     Attrs.class << String.join " "
 
 
-readerAttribute : model -> RadioButton model msg -> RadioButtonChoice -> Html.Attribute msg
+readerAttribute : model -> RadioButton model msg -> RadioButtonChoice msg -> Html.Attribute msg
 readerAttribute model (RadioButton config) choice =
     model
         |> config.reader
@@ -210,7 +210,7 @@ readerAttribute model (RadioButton config) choice =
         |> Attrs.checked
 
 
-writerAttribute : RadioButton model msg -> RadioButtonChoice -> Html.Attribute msg
+writerAttribute : RadioButton model msg -> RadioButtonChoice msg -> Html.Attribute msg
 writerAttribute (RadioButton config) choice =
     choice.value
         |> config.writer
@@ -251,7 +251,7 @@ validationAttribute model ((RadioButton _) as inputModel) =
 
 {-| Composes all the modifiers into a set of `Html.Attribute`(s).
 -}
-buildAttributes : model -> RadioButton model msg -> RadioButtonChoice -> List (Html.Attribute msg)
+buildAttributes : model -> RadioButton model msg -> RadioButtonChoice msg -> List (Html.Attribute msg)
 buildAttributes model ((RadioButton config) as radioButtonModel) choice =
     let
         options =
@@ -299,27 +299,39 @@ render model ((RadioButton config) as radioButtonModel) =
     ]
 
 
-renderRadioButtonChoice : model -> RadioButton model msg -> RadioButtonChoice -> Html msg
-renderRadioButtonChoice model ((RadioButton _) as radioButtonModel) ({ title, subtitle } as choice) =
+renderRadioButtonChoice : model -> RadioButton model msg -> RadioButtonChoice msg -> Html msg
+renderRadioButtonChoice model ((RadioButton _) as radioButtonModel) ({ children, title } as choice) =
     Html.div
         (buildAttributes model radioButtonModel choice)
-        (radioButtonContent title subtitle)
+        --        (radioButtonContent title subtitle)
+        [ Html.div
+            [ Attrs.class "a-form-field__radio-button__wrapper" ]
+            [ Html.p [ Attrs.class "a-form-field__radio-button__title" ] [ Html.text title ]
+            , children
+            ]
+        ]
+
+
+withSubTitle : Maybe String -> Html msg
+withSubTitle subtitle =
+    subtitle
+        |> Maybe.map (\s -> Html.p [ Attrs.class "a-form-field__radio-button__subtitle" ] [ Html.text s ])
+        |> Maybe.withDefault (Html.text "")
+
+
+
+--withCustomContent : Html msg -> Html msg
+--withCustomContent =
 
 
 radioButtonContent : String -> Maybe String -> List (Html msg)
 radioButtonContent title subtitle =
-    let
-        renderMaybeSubtitle : Html msg
-        renderMaybeSubtitle =
-            subtitle
-                |> Maybe.map (\s -> Html.p [ Attrs.class "a-form-field__radio-button__subtitle" ] [ Html.text s ])
-                |> Maybe.withDefault (Html.text "")
-    in
     List.singleton <|
         Html.div
             [ Attrs.class "a-form-field__radio-button__wrapper" ]
             [ Html.p [ Attrs.class "a-form-field__radio-button__title" ] [ Html.text title ]
-            , renderMaybeSubtitle
+
+            --            , renderMaybeSubtitle
             ]
 
 
