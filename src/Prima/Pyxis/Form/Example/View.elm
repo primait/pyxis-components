@@ -27,15 +27,14 @@ formConfig : Model -> Form.Form FormData Msg
 formConfig model =
     model.form
         |> Form.addFieldsInRow
-            [ Config.usernameConfig
-            , Config.passwordConfig
+            [ Config.usernameGroupConfig
+            , Config.passwordGroupConfig
+            ]
+        |> Form.addFieldsInRow
+            [ Config.birthDateConfig
             ]
         |> Form.addFieldsInRow
             [ Config.fiscalCodeGroupConfig
-            ]
-        |> Form.addFieldsInRow
-            [ Config.usernameGroupConfig
-            , Config.passwordGroupConfig
             ]
         |> Form.addFieldsInRow
             [ Config.privacyConfig

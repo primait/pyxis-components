@@ -1,16 +1,15 @@
 module Prima.Pyxis.Form.Example.FieldConfig exposing
-    ( checkboxConfig
+    ( birthDateConfig
+    , checkboxConfig
     , countryConfig
     , fiscalCodeGroupConfig
     , guideTypeConfig
-    , passwordConfig
     , passwordGroupConfig
     , powerSourceConfig
     , privacyConfig
     , privacyLabel
     , radioButtonConfig
     , textAreaConfig
-    , usernameConfig
     , usernameGroupConfig
     )
 
@@ -18,6 +17,7 @@ import Html exposing (Html, text)
 import Html.Attributes as Attrs
 import Prima.Pyxis.Form.Autocomplete as Autocomplete
 import Prima.Pyxis.Form.Checkbox as Checkbox
+import Prima.Pyxis.Form.Date as Date
 import Prima.Pyxis.Form.Example.Model exposing (Field(..), FormData, Model, Msg(..))
 import Prima.Pyxis.Form.Field as Field
 import Prima.Pyxis.Form.Flag as Flag
@@ -30,38 +30,6 @@ import Prima.Pyxis.Form.TextArea as TextArea
 import Prima.Pyxis.Form.Validation as Validation
 import Prima.Pyxis.Helpers as H
 import Prima.Pyxis.Link as Link
-
-
-usernameConfig : Field.FormField FormData Msg
-usernameConfig =
-    let
-        slug =
-            "username"
-    in
-    Input.text .username (OnInput Username)
-        |> Input.withId slug
-        |> Input.withValidation
-            (\m ->
-                if String.isEmpty <| Maybe.withDefault "" <| m.username then
-                    Just <| Validation.ErrorWithMessage "The field is empty"
-
-                else
-                    Nothing
-            )
-        |> Input.withValidation
-            (\m ->
-                if (==) "ciao" <| Maybe.withDefault "" <| m.username then
-                    Just <| Validation.WarningWithMessage "Cannot be 'Ciao'"
-
-                else
-                    Nothing
-            )
-        |> Field.input
-        |> Field.addLabel
-            ("Username"
-                |> Label.label
-                |> Label.withFor slug
-            )
 
 
 usernameGroupConfig : Field.FormField FormData Msg
@@ -79,22 +47,6 @@ usernameGroupConfig =
         |> Field.input
         |> Field.addLabel
             ("Username"
-                |> Label.label
-                |> Label.withFor slug
-            )
-
-
-passwordConfig : Field.FormField FormData Msg
-passwordConfig =
-    let
-        slug =
-            "password"
-    in
-    Input.password .password (OnInput Password)
-        |> Input.withId slug
-        |> Field.input
-        |> Field.addLabel
-            ("Password"
                 |> Label.label
                 |> Label.withFor slug
             )
@@ -285,7 +237,7 @@ checkboxConfig =
                 ]
     in
     valuesOption
-        |> Checkbox.checkbox .countryVisited (OnChoice CountyVisited)
+        |> Checkbox.checkbox .countryVisited (OnChange VisitedCountries)
         |> Checkbox.withValidation
             (\m ->
                 if List.isEmpty m.countryVisited then
@@ -304,28 +256,21 @@ checkboxConfig =
 
 radioButtonConfig : Field.FormField FormData Msg
 radioButtonConfig =
-    let
-        valuesOption =
-            [ RadioButton.radioButtonChoice "soloMutuo" "Solo mutuo" <| Just "Polizza incendio e scoppio obbligatoria per mutuo."
-            , RadioButton.radioButtonChoice "estensioneMutuo" "Estensione mutuo" <| Just "Polizza intregativa: estende la protezione obbligatoria per mutuo."
-            , RadioButton.radioButtonChoice "altreSoluzioni" "Altre soluzioni" <| Just "Offerta completa adatta a tutte le esigenze."
-            ]
-
-        isEmpty val =
-            String.isEmpty val
-    in
-    valuesOption
-        |> RadioButton.radioButton .tipoPolizza (OnChoice InsurancePolicyType)
+    [ RadioButton.radioButtonChoice "soloMutuo" "Solo mutuo" <| Just "Polizza incendio e scoppio obbligatoria per mutuo."
+    , RadioButton.radioButtonChoice "estensioneMutuo" "Estensione mutuo" <| Just "Polizza intregativa: estende la protezione obbligatoria per mutuo."
+    , RadioButton.radioButtonChoice "altreSoluzioni" "Altre soluzioni" <| Just "Offerta completa adatta a tutte le esigenze."
+    ]
+        |> RadioButton.radioButton .tipoPolizza (OnChange InsurancePolicyType)
         |> RadioButton.withValidation
             (\m ->
-                if isEmpty (Maybe.withDefault "" m.tipoPolizza) then
+                if String.isEmpty <| Maybe.withDefault "" m.tipoPolizza then
                     Just <| Validation.ErrorWithMessage "The field is empty"
 
                 else
                     Nothing
             )
         |> RadioButton.withName "policy_type"
-        |> Field.radioButtonChoice
+        |> Field.radioButton
         |> Field.addLabel
             ("Tipo di polizza"
                 |> Label.label
@@ -361,6 +306,25 @@ textAreaConfig =
         |> Field.textArea
         |> Field.addLabel
             ("Note"
+                |> Label.label
+                |> Label.withFor slug
+            )
+
+
+birthDateConfig : Field.FormField FormData Msg
+birthDateConfig =
+    let
+        slug =
+            "birth_date"
+    in
+    Date.date .birthDate (OnDateInput BirthDate)
+        |> Date.withId slug
+        |> Date.withOnFocus (OnFocus BirthDate)
+        |> Date.withDatePicker (OnDatePickerUpdate BirthDate) .birthDateDatePicker
+        |> Date.withDatePickerVisibility (.birthDateDatePickerOpened << .uiState)
+        |> Field.date
+        |> Field.addLabel
+            ("Data di nascita"
                 |> Label.label
                 |> Label.withFor slug
             )

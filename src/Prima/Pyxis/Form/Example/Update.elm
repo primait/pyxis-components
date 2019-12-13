@@ -1,5 +1,7 @@
 module Prima.Pyxis.Form.Example.Update exposing (update)
 
+import Date
+import Prima.Pyxis.Form.DatePicker as DatePicker
 import Prima.Pyxis.Form.Example.Model
     exposing
         ( Field(..)
@@ -59,6 +61,12 @@ update msg model =
                 |> printModel
                 |> H.withoutCmds
 
+        OnDateInput BirthDate value ->
+            model
+                |> updateBirthDate value
+                |> printModel
+                |> H.withoutCmds
+
         OnFilter Country value ->
             model
                 |> updateCountryFilter (Just value)
@@ -72,13 +80,38 @@ update msg model =
                 |> togglePowerSourceSelect
                 |> H.withoutCmds
 
-        OnChoice CountyVisited value ->
+        OnChange VisitedCountries value ->
             model
                 |> updateCountryVisited value
                 |> printModel
                 |> H.withoutCmds
 
-        OnChoice InsurancePolicyType value ->
+        OnDatePickerUpdate BirthDate ((DatePicker.SelectDay _) as dpMsg) ->
+            model
+                |> updateBirthDateDatePicker dpMsg
+                |> closeBirthDateDatePicker
+                |> printModel
+                |> H.withoutCmds
+
+        OnDatePickerUpdate BirthDate dpMsg ->
+            model
+                |> updateBirthDateDatePicker dpMsg
+                |> printModel
+                |> H.withoutCmds
+
+        OnTodayDateReceived today ->
+            { model | today = Just today }
+                |> updateFormData (\fd -> { fd | birthDateDatePicker = Just <| DatePicker.init today ( Date.add Date.Years -1 today, Date.add Date.Years 1 today ) })
+                |> printModel
+                |> H.withoutCmds
+
+        OnFocus BirthDate ->
+            model
+                |> openBirthDateDatePicker
+                |> printModel
+                |> H.withoutCmds
+
+        OnChange InsurancePolicyType value ->
             model
                 |> updateInsurancePolicyType value
                 |> printModel
@@ -166,6 +199,43 @@ closePowerSourceSelect =
 updateFiscalCode : Maybe String -> Model -> Model
 updateFiscalCode value =
     updateFormData (\f -> { f | fiscalCode = value })
+
+
+updateBirthDate : DatePicker.Date -> Model -> Model
+updateBirthDate value =
+    updateFormData (\f -> { f | birthDate = value })
+
+
+updateBirthDateDatePicker : DatePicker.Msg -> Model -> Model
+updateBirthDateDatePicker dpMsg model =
+    model
+        |> updateFormData
+            (\fd ->
+                { fd
+                    | birthDateDatePicker =
+                        fd.birthDateDatePicker
+                            |> Maybe.map (DatePicker.update dpMsg)
+                }
+            )
+        |> updateFormData
+            (\fd ->
+                { fd
+                    | birthDate =
+                        fd.birthDateDatePicker
+                            |> Maybe.map DatePicker.selectedDate
+                            |> Maybe.withDefault fd.birthDate
+                }
+            )
+
+
+openBirthDateDatePicker : Model -> Model
+openBirthDateDatePicker =
+    updateFormData <| updateUiState (\ui -> { ui | birthDateDatePickerOpened = True })
+
+
+closeBirthDateDatePicker : Model -> Model
+closeBirthDateDatePicker =
+    updateFormData <| updateUiState (\ui -> { ui | birthDateDatePickerOpened = False })
 
 
 updateFormData : (FormData -> FormData) -> Model -> Model

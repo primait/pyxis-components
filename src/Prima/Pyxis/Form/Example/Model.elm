@@ -7,26 +7,33 @@ module Prima.Pyxis.Form.Example.Model exposing
     , initialModel
     )
 
+import Date
 import Prima.Pyxis.Form as Form
+import Prima.Pyxis.Form.DatePicker as DatePicker
 
 
 type Msg
     = OnInput Field String
     | OnCheck Field Bool
+    | OnChange Field String
     | OnFilter Field String
     | OnToggle Field
-    | OnChoice Field String
+    | OnFocus Field
+    | OnDateInput Field DatePicker.Date
+    | OnDatePickerUpdate Field DatePicker.Msg
+    | OnTodayDateReceived Date.Date
 
 
 type alias Model =
     { form : Form.Form FormData Msg
     , formData : FormData
+    , today : Maybe Date.Date
     }
 
 
 initialModel : Model
 initialModel =
-    Model (Form.init Form.Always) initialFormData
+    Model (Form.init Form.Always) initialFormData Nothing
 
 
 type Field
@@ -37,9 +44,10 @@ type Field
     | PowerSource
     | Country
     | FiscalCode
-    | CountyVisited
     | InsurancePolicyType
     | Note
+    | VisitedCountries
+    | BirthDate
 
 
 type alias FormData =
@@ -51,10 +59,12 @@ type alias FormData =
     , country : Maybe String
     , countryFilter : Maybe String
     , fiscalCode : Maybe String
-    , uiState : UIState
     , countryVisited : List String
+    , birthDate : DatePicker.Date
+    , birthDateDatePicker : Maybe DatePicker.Model
     , tipoPolizza : Maybe String
     , note : Maybe String
+    , uiState : UIState
     }
 
 
@@ -68,16 +78,19 @@ initialFormData =
     , country = Nothing
     , countryFilter = Nothing
     , fiscalCode = Nothing
-    , uiState = initialUIState
     , countryVisited = [ "italia", "francia" ]
+    , birthDate = DatePicker.PartialDate Nothing
+    , birthDateDatePicker = Nothing
     , tipoPolizza = Nothing
     , note = Nothing
+    , uiState = initialUIState
     }
 
 
 type alias UIState =
     { countryAutocompleteOpened : Bool
     , powerSourceSelectOpened : Bool
+    , birthDateDatePickerOpened : Bool
     }
 
 
@@ -85,4 +98,5 @@ initialUIState : UIState
 initialUIState =
     { countryAutocompleteOpened = False
     , powerSourceSelectOpened = False
+    , birthDateDatePickerOpened = False
     }

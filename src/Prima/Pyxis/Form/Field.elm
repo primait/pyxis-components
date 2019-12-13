@@ -3,12 +3,13 @@ module Prima.Pyxis.Form.Field exposing
     , addLabel
     , autocomplete
     , checkbox
+    , date
     , flag
     , hasLabel
     , input
     , pickLabel
     , radio
-    , radioButtonChoice
+    , radioButton
     , renderField
     , renderLabel
     , select
@@ -18,6 +19,7 @@ module Prima.Pyxis.Form.Field exposing
 import Html exposing (Html, text)
 import Prima.Pyxis.Form.Autocomplete as Autocomplete
 import Prima.Pyxis.Form.Checkbox as Checkbox
+import Prima.Pyxis.Form.Date as Date
 import Prima.Pyxis.Form.Flag as Flag
 import Prima.Pyxis.Form.Input as Input
 import Prima.Pyxis.Form.Label as Label
@@ -33,6 +35,7 @@ type FormField model msg
     | FlagField (FlagFieldConfig model msg)
     | RadioField (RadioFieldConfig model msg)
     | SelectField (SelectFieldConfig model msg)
+    | DateField (DateFieldConfig model msg)
     | AutocompleteField (AutocompleteFieldConfig model msg)
     | CheckboxField (CheckboxFieldConfig model msg)
     | RadioButtonField (RadioButtonFieldConfig model msg)
@@ -71,6 +74,9 @@ pickLabel formField =
         TextAreaField { label } ->
             label
 
+        DateField { label } ->
+            label
+
 
 type alias InputFieldConfig model msg =
     { config : Input.Input model msg
@@ -105,6 +111,17 @@ radio config =
     RadioField <| RadioFieldConfig config Nothing
 
 
+type alias RadioButtonFieldConfig model msg =
+    { config : RadioButton.RadioButton model msg
+    , label : Maybe (Label.Label msg)
+    }
+
+
+radioButton : RadioButton.RadioButton model msg -> FormField model msg
+radioButton config =
+    RadioButtonField <| RadioButtonFieldConfig config Nothing
+
+
 type alias SelectFieldConfig model msg =
     { config : Select.Select model msg
     , label : Maybe (Label.Label msg)
@@ -125,6 +142,39 @@ type alias AutocompleteFieldConfig model msg =
 autocomplete : Autocomplete.Autocomplete model msg -> FormField model msg
 autocomplete config =
     AutocompleteField <| AutocompleteFieldConfig config Nothing
+
+
+type alias DateFieldConfig model msg =
+    { config : Date.Date model msg
+    , label : Maybe (Label.Label msg)
+    }
+
+
+date : Date.Date model msg -> FormField model msg
+date config =
+    DateField <| DateFieldConfig config Nothing
+
+
+type alias CheckboxFieldConfig model msg =
+    { config : Checkbox.Checkbox model msg
+    , label : Maybe (Label.Label msg)
+    }
+
+
+checkbox : Checkbox.Checkbox model msg -> FormField model msg
+checkbox config =
+    CheckboxField <| CheckboxFieldConfig config Nothing
+
+
+type alias TextAreaFieldConfig model msg =
+    { config : TextArea.TextArea model msg
+    , label : Maybe (Label.Label msg)
+    }
+
+
+textArea : TextArea.TextArea model msg -> FormField model msg
+textArea config =
+    TextAreaField <| TextAreaFieldConfig config Nothing
 
 
 addLabel : Label.Label msg -> FormField model msg -> FormField model msg
@@ -153,6 +203,9 @@ addLabel lbl formField =
 
         TextAreaField fieldConfig ->
             TextAreaField { fieldConfig | label = Just lbl }
+
+        DateField fieldConfig ->
+            DateField { fieldConfig | label = Just lbl }
 
 
 renderLabel : FormField model msg -> Html msg
@@ -190,35 +243,5 @@ renderField model formField =
         TextAreaField { config } ->
             TextArea.render model config
 
-
-type alias CheckboxFieldConfig model msg =
-    { config : Checkbox.Checkbox model msg
-    , label : Maybe (Label.Label msg)
-    }
-
-
-checkbox : Checkbox.Checkbox model msg -> FormField model msg
-checkbox config =
-    CheckboxField <| CheckboxFieldConfig config Nothing
-
-
-type alias RadioButtonFieldConfig model msg =
-    { config : RadioButton.RadioButton model msg
-    , label : Maybe (Label.Label msg)
-    }
-
-
-radioButtonChoice : RadioButton.RadioButton model msg -> FormField model msg
-radioButtonChoice config =
-    RadioButtonField <| RadioButtonFieldConfig config Nothing
-
-
-type alias TextAreaFieldConfig model msg =
-    { config : TextArea.TextArea model msg
-    , label : Maybe (Label.Label msg)
-    }
-
-
-textArea : TextArea.TextArea model msg -> FormField model msg
-textArea config =
-    TextAreaField <| TextAreaFieldConfig config Nothing
+        DateField { config } ->
+            Date.render model config
