@@ -1,8 +1,9 @@
 module Prima.Pyxis.Form.RadioButton exposing
-    ( RadioButton
-    , withId, withName, withAttribute, withDisabled
+    ( RadioButton, radioButton, radioButtonChoice, radioButtonChoiceWithSubtitle
+    , withId, withAttribute, withClass
+    , withOnBlur, withOnFocus
+    , withValidation
     , render
-    , radioButton, radioButtonChoice, withClass, withOnBlur, withOnFocus, withValidation
     )
 
 {-|
@@ -10,17 +11,22 @@ module Prima.Pyxis.Form.RadioButton exposing
 
 ## Types
 
-@docs RadioButton
+@docs RadioButton, radioButton, radioButtonChoice, radioButtonChoiceWithSubtitle
 
 
 ## Modifiers
 
-@docs withId, withName, withChecked, withAttribute, withDisabled
+@docs withId, withAttribute, withClass
 
 
 ## Events
 
-@docs withOnChange
+@docs withOnChange, withOnBlur, withOnFocus
+
+
+## Validation
+
+@docs withValidation
 
 
 ## Render
@@ -48,25 +54,30 @@ type alias RadioConfig model msg =
     { options : List (RadioButtonOption model msg)
     , reader : model -> Maybe String
     , writer : String -> msg
-    , choices : List (RadioButtonChoice msg)
+    , choices : List RadioButtonChoice
     }
 
 
-radioButton : (model -> Maybe String) -> (String -> msg) -> List (RadioButtonChoice msg) -> RadioButton model msg
+radioButton : (model -> Maybe String) -> (String -> msg) -> List RadioButtonChoice -> RadioButton model msg
 radioButton reader writer =
     RadioButton << RadioConfig [] reader writer
 
 
-type alias RadioButtonChoice msg =
+type alias RadioButtonChoice =
     { value : String
     , title : String
-    , children : Html msg
+    , subtitle : Maybe String
     }
 
 
-radioButtonChoice : String -> String -> Html msg -> RadioButtonChoice msg
+radioButtonChoice : String -> String -> RadioButtonChoice
 radioButtonChoice value title =
-    RadioButtonChoice value title
+    RadioButtonChoice value title Nothing
+
+
+radioButtonChoiceWithSubtitle : String -> String -> String -> RadioButtonChoice
+radioButtonChoiceWithSubtitle value title subtitle =
+    RadioButtonChoice value title (Just subtitle)
 
 
 {-| Internal.
@@ -74,9 +85,7 @@ radioButtonChoice value title =
 type RadioButtonOption model msg
     = Attribute (Html.Attribute msg)
     | Class String
-    | Disabled Bool
     | Id String
-    | Name String
     | OnFocus msg
     | OnBlur msg
     | Validation (model -> Maybe Validation.Type)
@@ -87,9 +96,7 @@ type RadioButtonOption model msg
 type alias Options model msg =
     { attributes : List (Html.Attribute msg)
     , class : List String
-    , disabled : Maybe Bool
     , id : Maybe String
-    , name : Maybe String
     , onFocus : Maybe msg
     , onBlur : Maybe msg
     , validations : List (model -> Maybe Validation.Type)
@@ -99,10 +106,8 @@ type alias Options model msg =
 defaultOptions : Options model msg
 defaultOptions =
     { attributes = []
-    , class = [ "a-form-field__radio-button" ]
-    , disabled = Nothing
+    , class = [ "a-form-field__radio-button-options__item" ]
     , id = Nothing
-    , name = Nothing
     , onFocus = Nothing
     , onBlur = Nothing
     , validations = []
@@ -123,13 +128,6 @@ withAttribute attribute =
     addOption (Attribute attribute)
 
 
-{-| Sets a `disabled` to the `RadioButton config`.
--}
-withDisabled : Bool -> RadioButton model msg -> RadioButton model msg
-withDisabled disabled =
-    addOption (Disabled disabled)
-
-
 {-| Sets a `class` to the `RadioButton config`.
 -}
 withClass : String -> RadioButton model msg -> RadioButton model msg
@@ -142,13 +140,6 @@ withClass class_ =
 withId : String -> RadioButton model msg -> RadioButton model msg
 withId id =
     addOption (Id id)
-
-
-{-| Sets a `name` to the `RadioButton config`.
--}
-withName : String -> RadioButton model msg -> RadioButton model msg
-withName name =
-    addOption (Name name)
 
 
 {-| Sets an `onBlur event` to the `RadioButton config`.
@@ -176,14 +167,8 @@ applyOption modifier options =
         Class class ->
             { options | class = class :: options.class }
 
-        Disabled disabled ->
-            { options | disabled = Just disabled }
-
         Id id ->
             { options | id = Just id }
-
-        Name name ->
-            { options | name = Just name }
 
         OnBlur onBlur ->
             { options | onBlur = Just onBlur }
@@ -202,19 +187,33 @@ classAttribute =
     Attrs.class << String.join " "
 
 
-readerAttribute : model -> RadioButton model msg -> RadioButtonChoice msg -> Html.Attribute msg
+readerAttribute : model -> RadioButton model msg -> RadioButtonChoice -> Html.Attribute msg
 readerAttribute model (RadioButton config) choice =
-    model
-        |> config.reader
-        |> (==) (Just choice.value)
-        |> Attrs.checked
+    if
+        model
+            |> config.reader
+            |> (==) (Just choice.value)
+    then
+        Attrs.class "is-selected"
+
+    else
+        Attrs.class ""
 
 
-writerAttribute : RadioButton model msg -> RadioButtonChoice msg -> Html.Attribute msg
+writerAttribute : RadioButton model msg -> RadioButtonChoice -> Html.Attribute msg
 writerAttribute (RadioButton config) choice =
     choice.value
         |> config.writer
         |> Events.onClick
+
+
+hasSubtitleAttribute : RadioButtonChoice -> Html.Attribute msg
+hasSubtitleAttribute choice =
+    if H.isJust choice.subtitle then
+        Attrs.class "has-subtitle"
+
+    else
+        Attrs.class ""
 
 
 withValidation : (model -> Maybe Validation.Type) -> RadioButton model msg -> RadioButton model msg
@@ -251,18 +250,14 @@ validationAttribute model ((RadioButton _) as inputModel) =
 
 {-| Composes all the modifiers into a set of `Html.Attribute`(s).
 -}
-buildAttributes : model -> RadioButton model msg -> RadioButtonChoice msg -> List (Html.Attribute msg)
-buildAttributes model ((RadioButton config) as radioButtonModel) choice =
+buildAttributes : model -> RadioButton model msg -> RadioButtonChoice -> List (Html.Attribute msg)
+buildAttributes model radioButtonModel choice =
     let
         options =
             computeOptions radioButtonModel
     in
     [ options.id
         |> Maybe.map Attrs.id
-    , options.name
-        |> Maybe.map Attrs.name
-    , options.disabled
-        |> Maybe.map Attrs.disabled
     , options.onFocus
         |> Maybe.map Events.onFocus
     , options.onBlur
@@ -274,8 +269,7 @@ buildAttributes model ((RadioButton config) as radioButtonModel) choice =
         |> (::) (readerAttribute model radioButtonModel choice)
         |> (::) (writerAttribute radioButtonModel choice)
         |> (::) (validationAttribute model radioButtonModel)
-        |> (::) (Attrs.type_ "radio")
-        |> (::) (Attrs.value choice.value)
+        |> (::) (hasSubtitleAttribute choice)
 
 
 {-| Renders the `RadioButton config`.
@@ -299,40 +293,27 @@ render model ((RadioButton config) as radioButtonModel) =
     ]
 
 
-renderRadioButtonChoice : model -> RadioButton model msg -> RadioButtonChoice msg -> Html msg
-renderRadioButtonChoice model ((RadioButton _) as radioButtonModel) ({ children, title } as choice) =
+renderRadioButtonChoice : model -> RadioButton model msg -> RadioButtonChoice -> Html msg
+renderRadioButtonChoice model ((RadioButton _) as radioButtonModel) ({ title, subtitle } as choice) =
     Html.div
         (buildAttributes model radioButtonModel choice)
-        --        (radioButtonContent title subtitle)
-        [ Html.div
-            [ Attrs.class "a-form-field__radio-button__wrapper" ]
-            [ Html.p [ Attrs.class "a-form-field__radio-button__title" ] [ Html.text title ]
-            , children
-            ]
+        [ renderTitle title
+        , H.renderMaybe <| Maybe.map renderSubtitle subtitle
         ]
 
 
-withSubTitle : Maybe String -> Html msg
-withSubTitle subtitle =
-    subtitle
-        |> Maybe.map (\s -> Html.p [ Attrs.class "a-form-field__radio-button__subtitle" ] [ Html.text s ])
-        |> Maybe.withDefault (Html.text "")
+renderTitle : String -> Html msg
+renderTitle title =
+    Html.strong
+        [ Attrs.class "a-form-field__radio-button__title" ]
+        [ Html.text title ]
 
 
-
---withCustomContent : Html msg -> Html msg
---withCustomContent =
-
-
-radioButtonContent : String -> Maybe String -> List (Html msg)
-radioButtonContent title subtitle =
-    List.singleton <|
-        Html.div
-            [ Attrs.class "a-form-field__radio-button__wrapper" ]
-            [ Html.p [ Attrs.class "a-form-field__radio-button__title" ] [ Html.text title ]
-
-            --            , renderMaybeSubtitle
-            ]
+renderSubtitle : String -> Html msg
+renderSubtitle subtitle =
+    Html.p
+        [ Attrs.class "a-form-field__radio-button__subtitle" ]
+        [ Html.text subtitle ]
 
 
 {-| Internal

@@ -256,9 +256,9 @@ checkboxConfig =
 
 radioButtonConfig : Field.FormField FormData Msg
 radioButtonConfig =
-    [ RadioButton.radioButtonChoice "soloMutuo" "Solo mutuo" <| Just "Polizza incendio e scoppio obbligatoria per mutuo."
-    , RadioButton.radioButtonChoice "estensioneMutuo" "Estensione mutuo" <| Just "Polizza intregativa: estende la protezione obbligatoria per mutuo."
-    , RadioButton.radioButtonChoice "altreSoluzioni" "Altre soluzioni" <| Just "Offerta completa adatta a tutte le esigenze."
+    [ RadioButton.radioButtonChoiceWithSubtitle "soloMutuo" "Solo mutuo" "Lorem ipsum dolor sit amet"
+    , RadioButton.radioButtonChoiceWithSubtitle "estensioneMutuo" "Estensione mutuo" "Polizza intregativa: estende la protezione obbligatoria per mutuo."
+    , RadioButton.radioButtonChoiceWithSubtitle "altreSoluzioni" "Altre soluzioni" "Offerta completa adatta a tutte le esigenze."
     ]
         |> RadioButton.radioButton .tipoPolizza (OnChange InsurancePolicyType)
         |> RadioButton.withValidation
@@ -269,7 +269,6 @@ radioButtonConfig =
                 else
                     Nothing
             )
-        |> RadioButton.withName "policy_type"
         |> Field.radioButton
         |> Field.addLabel
             ("Tipo di polizza"

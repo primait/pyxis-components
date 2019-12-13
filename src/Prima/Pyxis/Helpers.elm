@@ -6,6 +6,7 @@ module Prima.Pyxis.Helpers exposing
     , pyxisStyle
     , renderIf
     , renderListIf
+    , renderMaybe
     , spacer
     , withCmds
     , withoutCmds
@@ -52,6 +53,16 @@ renderIf condition html =
 
     else
         text ""
+
+
+renderMaybe : Maybe (Html msg) -> Html msg
+renderMaybe theMaybe =
+    case theMaybe of
+        Just html ->
+            html
+
+        Nothing ->
+            Html.text ""
 
 
 renderListIf : Bool -> List (Html msg) -> List (Html msg)
