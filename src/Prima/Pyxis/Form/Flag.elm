@@ -140,7 +140,7 @@ applyOption modifier options =
 
 readerAttribute : model -> Flag model msg -> Html.Attribute msg
 readerAttribute model (Flag config) =
-    (Attrs.checked << Maybe.withDefault False << config.reader) model
+    (Attrs.checked << Maybe.withDefault False << Debug.log "reader says" << config.reader) model
 
 
 writerAttribute : model -> Flag model msg -> Html.Attribute msg
@@ -196,7 +196,7 @@ buildAttributes model ((Flag config) as flagModel) =
         |> (::) (readerAttribute model flagModel)
         |> (::) (writerAttribute model flagModel)
         |> (::) (validationAttribute model flagModel)
-        |> (::) (Attrs.type_ "flag")
+        |> (::) (Attrs.type_ "checkbox")
         |> (::) (Attrs.id config.id)
 
 
