@@ -68,15 +68,15 @@ type Date model msg
 type alias DateConfig model msg =
     { options : List (DateOption model msg)
     , reader : model -> DatePicker.Date
-    , writer : DatePicker.Date -> msg
+    , tagger : DatePicker.Date -> msg
     }
 
 
 {-| Creates an `input[type="date"]` with the default options.
 -}
 date : (model -> DatePicker.Date) -> (DatePicker.Date -> msg) -> Date model msg
-date reader writer =
-    Date <| DateConfig [] reader writer
+date reader tagger =
+    Date <| DateConfig [] reader tagger
 
 
 {-| Represents the possibile modifiers of an `Date`.
@@ -432,10 +432,10 @@ readerAttribute model (Date config) =
                 |> Attrs.value
 
 
-writerAttribute : Date model msg -> Html.Attribute msg
-writerAttribute (Date config) =
+taggerAttribute : Date model msg -> Html.Attribute msg
+taggerAttribute (Date config) =
     Events.targetValue
-        |> Json.Decode.map (config.writer << stringToDate)
+        |> Json.Decode.map (config.tagger << stringToDate)
         |> Json.Decode.map (\any -> ( any, True ))
         |> Events.stopPropagationOn "input"
 
@@ -514,7 +514,7 @@ buildAttributes model dateModel =
         |> (++) options.attributes
         |> (::) (classesAttribute options.classes)
         |> (::) (readerAttribute model dateModel)
-        |> (::) (writerAttribute dateModel)
+        |> (::) (taggerAttribute dateModel)
         |> (::) (sizeAttribute options.size)
         |> (::) (validationAttribute model dateModel)
         |> (::) (Attrs.type_ "text")

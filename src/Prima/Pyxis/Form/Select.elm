@@ -1,4 +1,9 @@
-module Prima.Pyxis.Form.Select exposing (..)
+module Prima.Pyxis.Form.Select exposing
+    ( Select(..), select
+    , withId, withAttribute, withDisabled
+    , render
+    , Options, SelectChoice, SelectConfig, SelectOption(..), SelectSize(..), addOption, applyOption, buildAttributes, classAttribute, computeOptions, defaultOptions, renderCustomSelect, renderCustomSelectChoice, renderCustomSelectChoiceWrapper, renderCustomSelectStatus, renderSelect, renderSelectChoice, renderValidationMessages, selectChoice, sizeAttribute, taggerAttribute, validationAttribute, withLargeSize, withOnBlur, withOnFocus, withOverridingClass, withPlaceholder, withRegularSize, withSmallSize, withValidation
+    )
 
 {-|
 
@@ -40,16 +45,16 @@ type Select model msg
 type alias SelectConfig model msg =
     { options : List (SelectOption model msg)
     , reader : model -> Maybe String
-    , writer : String -> msg
+    , tagger : String -> msg
     , openedReader : model -> Bool
-    , openedWriter : msg
+    , openedTagger : msg
     , selectChoices : List SelectChoice
     }
 
 
 select : (model -> Maybe String) -> (String -> msg) -> (model -> Bool) -> msg -> List SelectChoice -> Select model msg
-select reader writer openedReader toggleWriter =
-    Select << SelectConfig [] reader writer openedReader toggleWriter
+select reader tagger openedReader toggleTagger =
+    Select << SelectConfig [] reader tagger openedReader toggleTagger
 
 
 type alias SelectChoice =
@@ -255,9 +260,9 @@ sizeAttribute size =
         )
 
 
-writerAttribute : Select model msg -> Html.Attribute msg
-writerAttribute (Select config) =
-    Events.onInput config.writer
+taggerAttribute : Select model msg -> Html.Attribute msg
+taggerAttribute (Select config) =
+    Events.onInput config.tagger
 
 
 validationAttribute : model -> Select model msg -> Html.Attribute msg
@@ -308,7 +313,7 @@ buildAttributes model ((Select config) as selectModel) =
         |> (++) options.attributes
         |> (::) (classAttribute options.class)
         |> (::) (sizeAttribute options.size)
-        |> (::) (writerAttribute selectModel)
+        |> (::) (taggerAttribute selectModel)
         |> (::) (validationAttribute model selectModel)
 
 
@@ -369,7 +374,7 @@ renderCustomSelectStatus model ((Select config) as selectModel) =
     in
     Html.span
         [ Attrs.class "a-form-field__custom-select__status"
-        , Events.onClick config.openedWriter
+        , Events.onClick config.openedTagger
         ]
         [ config.selectChoices
             |> List.filter ((==) (config.reader model) << Just << .value)
@@ -393,7 +398,7 @@ renderCustomSelectChoice model (Select config) choice =
             [ ( "a-form-field__custom-select__list__item", True )
             , ( "is-selected", ((==) (Just choice.value) << config.reader) model )
             ]
-        , (Events.onClick << config.writer) choice.value
+        , (Events.onClick << config.tagger) choice.value
         ]
         [ text choice.label
         ]

@@ -54,14 +54,14 @@ type Checkbox model msg
 type alias CheckboxConfig model msg =
     { options : List (CheckboxOption model msg)
     , reader : model -> List String
-    , writer : String -> msg
+    , tagger : String -> msg
     , choices : List CheckboxChoice
     }
 
 
 checkbox : (model -> List String) -> (String -> msg) -> List CheckboxChoice -> Checkbox model msg
-checkbox reader writer =
-    Checkbox << CheckboxConfig [] reader writer
+checkbox reader tagger =
+    Checkbox << CheckboxConfig [] reader tagger
 
 
 {-| Internal.
@@ -227,10 +227,10 @@ readerAttribute model (Checkbox config) choice =
 
 {-| Internal
 -}
-writerAttribute : Checkbox model msg -> String -> Html.Attribute msg
-writerAttribute (Checkbox config) choice =
+taggerAttribute : Checkbox model msg -> String -> Html.Attribute msg
+taggerAttribute (Checkbox config) choice =
     choice
-        |> config.writer
+        |> config.tagger
         |> Events.onClick
 
 
@@ -257,7 +257,7 @@ buildAttributes model ((Checkbox config) as checkboxModel) choice =
         |> (++) options.attributes
         |> (::) (classAttribute options.class)
         |> (::) (readerAttribute model checkboxModel choice)
-        |> (::) (writerAttribute checkboxModel choice)
+        |> (::) (taggerAttribute checkboxModel choice)
         |> (::) (Attrs.type_ "checkbox")
         |> (::) (Attrs.value choice)
         |> (::) (validationAttribute model checkboxModel)
@@ -326,7 +326,7 @@ renderCheckbox model ((Checkbox config) as checkboxModel) checkboxItem =
             []
         , checkboxItem.label
             |> Label.label
-            |> Label.withOnClick (config.writer checkboxItem.value)
+            |> Label.withOnClick (config.tagger checkboxItem.value)
             |> Label.withFor checkboxItem.value
             |> Label.withOverridingClass "a-form-field__checkbox-options__item__label"
             |> Label.render

@@ -53,14 +53,14 @@ type RadioButton model msg
 type alias RadioConfig model msg =
     { options : List (RadioButtonOption model msg)
     , reader : model -> Maybe String
-    , writer : String -> msg
+    , tagger : String -> msg
     , choices : List RadioButtonChoice
     }
 
 
 radioButton : (model -> Maybe String) -> (String -> msg) -> List RadioButtonChoice -> RadioButton model msg
-radioButton reader writer =
-    RadioButton << RadioConfig [] reader writer
+radioButton reader tagger =
+    RadioButton << RadioConfig [] reader tagger
 
 
 type alias RadioButtonChoice =
@@ -200,10 +200,10 @@ readerAttribute model (RadioButton config) choice =
         Attrs.class ""
 
 
-writerAttribute : RadioButton model msg -> RadioButtonChoice -> Html.Attribute msg
-writerAttribute (RadioButton config) choice =
+taggerAttribute : RadioButton model msg -> RadioButtonChoice -> Html.Attribute msg
+taggerAttribute (RadioButton config) choice =
     choice.value
-        |> config.writer
+        |> config.tagger
         |> Events.onClick
 
 
@@ -267,7 +267,7 @@ buildAttributes model radioButtonModel choice =
         |> (++) options.attributes
         |> (::) (classAttribute options.class)
         |> (::) (readerAttribute model radioButtonModel choice)
-        |> (::) (writerAttribute radioButtonModel choice)
+        |> (::) (taggerAttribute radioButtonModel choice)
         |> (::) (validationAttribute model radioButtonModel)
         |> (::) (hasSubtitleAttribute choice)
 

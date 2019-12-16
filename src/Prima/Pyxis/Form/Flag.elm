@@ -25,7 +25,7 @@ type Flag model msg
 type alias FlagConfig model msg =
     { options : List (FlagOption model msg)
     , reader : model -> Maybe Bool
-    , writer : Bool -> msg
+    , tagger : Bool -> msg
     , id : String
     }
 
@@ -41,8 +41,8 @@ type FlagOption model msg
 
 
 flag : (model -> Maybe Bool) -> (Bool -> msg) -> String -> Flag model msg
-flag reader writer id =
-    Flag <| FlagConfig [] reader writer id
+flag reader tagger id =
+    Flag <| FlagConfig [] reader tagger id
 
 
 {-| Internal.
@@ -143,13 +143,13 @@ readerAttribute model (Flag config) =
     (Attrs.checked << Maybe.withDefault False << Debug.log "reader says" << config.reader) model
 
 
-writerAttribute : model -> Flag model msg -> Html.Attribute msg
-writerAttribute model (Flag config) =
+taggerAttribute : model -> Flag model msg -> Html.Attribute msg
+taggerAttribute model (Flag config) =
     model
         |> config.reader
         |> Maybe.withDefault False
         |> not
-        |> config.writer
+        |> config.tagger
         |> Events.onClick
 
 
@@ -194,7 +194,7 @@ buildAttributes model ((Flag config) as flagModel) =
         |> List.filterMap identity
         |> (++) options.attributes
         |> (::) (readerAttribute model flagModel)
-        |> (::) (writerAttribute model flagModel)
+        |> (::) (taggerAttribute model flagModel)
         |> (::) (validationAttribute model flagModel)
         |> (::) (Attrs.type_ "checkbox")
         |> (::) (Attrs.id config.id)

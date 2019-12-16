@@ -5,7 +5,7 @@ module Prima.Pyxis.Form.TextArea exposing
     , withPrependGroup, withAppendGroup, withGroupClass
     , withOnBlur, withOnFocus
     , render
-    , textArea, withOverridingClass, writerAttribute
+    , taggerAttribute, textArea, withOverridingClass
     )
 
 {-|
@@ -65,15 +65,15 @@ type TextArea model msg
 type alias TextAreaConfig model msg =
     { options : List (TextAreaOption model msg)
     , reader : model -> Maybe String
-    , writer : String -> msg
+    , tagger : String -> msg
     }
 
 
 {-| Creates a textArea with the default options.
 -}
 textArea : (model -> Maybe String) -> (String -> msg) -> TextArea model msg
-textArea reader writer =
-    TextArea <| TextAreaConfig [] reader writer
+textArea reader tagger =
+    TextArea <| TextAreaConfig [] reader tagger
 
 
 {-| Represents the possible modifiers of an `TextArea`.
@@ -423,9 +423,9 @@ readerAttribute model (TextArea config) =
     (Attrs.value << Maybe.withDefault "" << config.reader) model
 
 
-writerAttribute : TextArea model msg -> Html.Attribute msg
-writerAttribute (TextArea config) =
-    Events.onInput config.writer
+taggerAttribute : TextArea model msg -> Html.Attribute msg
+taggerAttribute (TextArea config) =
+    Events.onInput config.tagger
 
 
 validationAttribute : model -> TextArea model msg -> Html.Attribute msg
@@ -480,7 +480,7 @@ buildAttributes model ((TextArea config) as textAreaModel) =
         |> (++) options.attributes
         |> (::) (classesAttribute options.classes)
         |> (::) (readerAttribute model textAreaModel)
-        |> (::) (writerAttribute textAreaModel)
+        |> (::) (taggerAttribute textAreaModel)
         |> (::) (sizeAttribute options.size)
         |> (::) (validationAttribute model textAreaModel)
 

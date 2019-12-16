@@ -54,14 +54,14 @@ type Radio model msg
 type alias RadioConfig model msg =
     { options : List (RadioOption model msg)
     , reader : model -> Maybe String
-    , writer : String -> msg
+    , tagger : String -> msg
     , radioChoices : List RadioChoice
     }
 
 
 radio : (model -> Maybe String) -> (String -> msg) -> List RadioChoice -> Radio model msg
-radio reader writer =
-    Radio << RadioConfig [] reader writer
+radio reader tagger =
+    Radio << RadioConfig [] reader tagger
 
 
 type alias RadioChoice =
@@ -221,10 +221,10 @@ readerAttribute model (Radio config) choice =
         |> Attrs.checked
 
 
-writerAttribute : Radio model msg -> RadioChoice -> Html.Attribute msg
-writerAttribute (Radio config) choice =
+taggerAttribute : Radio model msg -> RadioChoice -> Html.Attribute msg
+taggerAttribute (Radio config) choice =
     choice.value
-        |> config.writer
+        |> config.tagger
         |> Events.onClick
 
 
@@ -278,7 +278,7 @@ buildAttributes model ((Radio config) as radioModel) choice =
         |> (++) options.attributes
         |> (::) (classAttribute options.class)
         |> (::) (readerAttribute model radioModel choice)
-        |> (::) (writerAttribute radioModel choice)
+        |> (::) (taggerAttribute radioModel choice)
         |> (::) (validationAttribute model radioModel)
         |> (::) (Attrs.type_ "radio")
         |> (::) (Attrs.value choice.value)
@@ -314,7 +314,7 @@ renderRadioChoice model ((Radio config) as radioModel) choice =
             []
         , choice.label
             |> Label.label
-            |> Label.withOnClick (config.writer choice.value)
+            |> Label.withOnClick (config.tagger choice.value)
             |> Label.withFor choice.value
             |> Label.withOverridingClass "a-form-field__radio-options__item__label"
             |> Label.render

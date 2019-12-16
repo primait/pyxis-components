@@ -59,17 +59,17 @@ type Autocomplete model msg
 type alias AutocompleteConfig model msg =
     { options : List (AutocompleteOption model msg)
     , reader : model -> Maybe String
-    , writer : String -> msg
+    , tagger : String -> msg
     , filterReader : model -> Maybe String
-    , filterWriter : String -> msg
+    , filterTagger : String -> msg
     , openedReader : model -> Bool
     , autocompleteChoices : List AutocompleteChoice
     }
 
 
 autocomplete : (model -> Maybe String) -> (String -> msg) -> (model -> Maybe String) -> (String -> msg) -> (model -> Bool) -> List AutocompleteChoice -> Autocomplete model msg
-autocomplete reader writer filterReader filterWriter openedReader =
-    Autocomplete << AutocompleteConfig [] reader writer filterReader filterWriter openedReader
+autocomplete reader tagger filterReader filterTagger openedReader =
+    Autocomplete << AutocompleteConfig [] reader tagger filterReader filterTagger openedReader
 
 
 type alias AutocompleteChoice =
@@ -264,7 +264,7 @@ renderAutocompleteChoice model (Autocomplete config) choice =
             [ ( "a-form-field__autocomplete__list__item", True )
             , ( "is-selected", Just choice.value == config.reader model )
             ]
-        , (Events.onClick << config.writer) choice.value
+        , (Events.onClick << config.tagger) choice.value
         ]
         [ Html.text choice.label ]
 
@@ -418,9 +418,9 @@ filterReaderAttribute model (Autocomplete config) =
                 |> Attrs.value
 
 
-filterWriterAttribute : Autocomplete model msg -> Html.Attribute msg
-filterWriterAttribute (Autocomplete config) =
-    Events.onInput config.filterWriter
+filterTaggerAttribute : Autocomplete model msg -> Html.Attribute msg
+filterTaggerAttribute (Autocomplete config) =
+    Events.onInput config.filterTagger
 
 
 {-| Composes all the modifiers into a set of `Html.Attribute`(s).
@@ -449,7 +449,7 @@ buildAttributes model ((Autocomplete config) as autocompleteModel) =
         |> (::) (classesAttribute options.classes)
         |> (::) (validationAttribute model autocompleteModel)
         |> (::) (filterReaderAttribute model autocompleteModel)
-        |> (::) (filterWriterAttribute autocompleteModel)
+        |> (::) (filterTaggerAttribute autocompleteModel)
 
 
 {-| Internal.
