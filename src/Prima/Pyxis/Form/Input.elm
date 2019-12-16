@@ -66,7 +66,7 @@ type alias InputConfig model msg =
     { options : List (InputOption model msg)
     , type_ : InputType
     , reader : model -> Maybe String
-    , mapper : String -> msg
+    , tagger : String -> msg
     }
 
 
@@ -83,43 +83,43 @@ type InputType
 {-| Internal. Creates the configuration.
 -}
 input : InputType -> (model -> Maybe String) -> (String -> msg) -> Input model msg
-input type_ reader mapper =
-    Input <| InputConfig [] type_ reader mapper
+input type_ reader tagger =
+    Input <| InputConfig [] type_ reader tagger
 
 
 {-| Creates an `input[type="text"]`.
 -}
 text : (model -> Maybe String) -> (String -> msg) -> Input model msg
-text reader mapper =
-    input Text reader mapper
+text reader tagger =
+    input Text reader tagger
 
 
 {-| Creates an `input[type="password"]`.
 -}
 password : (model -> Maybe String) -> (String -> msg) -> Input model msg
-password reader mapper =
-    input Password reader mapper
+password reader tagger =
+    input Password reader tagger
 
 
 {-| Creates an `input[type="date"]`.
 -}
 date : (model -> Maybe String) -> (String -> msg) -> Input model msg
-date reader mapper =
-    input Date reader mapper
+date reader tagger =
+    input Date reader tagger
 
 
 {-| Creates an `input[type="number"]`.
 -}
 number : (model -> Maybe String) -> (String -> msg) -> Input model msg
-number reader mapper =
-    input Number reader mapper
+number reader tagger =
+    input Number reader tagger
 
 
 {-| Creates an `input[type="email"]`.
 -}
 email : (model -> Maybe String) -> (String -> msg) -> Input model msg
-email reader mapper =
-    input Email reader mapper
+email reader tagger =
+    input Email reader tagger
 
 
 {-| Internal. Represents the possibile modifiers for an `Input`.
@@ -543,11 +543,11 @@ readerAttribute model (Input config) =
     (Attrs.value << Maybe.withDefault "" << config.reader) model
 
 
-{-| Internal. Transforms the `mapper` function into a valid Html.Attribute.
+{-| Internal. Transforms the `tagger` function into a valid Html.Attribute.
 -}
-mapperAttribute : Input model msg -> Html.Attribute msg
-mapperAttribute (Input config) =
-    Events.onInput config.mapper
+taggerAttribute : Input model msg -> Html.Attribute msg
+taggerAttribute (Input config) =
+    Events.onInput config.tagger
 
 
 {-| Internal. Transforms the `Validation` status into an Html.Attribute `class`.
@@ -604,7 +604,7 @@ buildAttributes model ((Input config) as inputModel) =
         |> (++) options.attributes
         |> (::) (classesAttribute options.classes)
         |> (::) (readerAttribute model inputModel)
-        |> (::) (mapperAttribute inputModel)
+        |> (::) (taggerAttribute inputModel)
         |> (::) (typeAttribute config.type_)
         |> (::) (sizeAttribute options.size)
         |> (::) (validationAttribute model inputModel)
