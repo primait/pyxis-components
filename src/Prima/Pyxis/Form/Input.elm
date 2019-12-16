@@ -191,13 +191,6 @@ withId id =
     addOption (Id id)
 
 
-{-| Adds a `size` of `Large` to the `Input`.
--}
-withLargeSize : Input model msg -> Input model msg
-withLargeSize =
-    addOption (Size Large)
-
-
 {-| Adds a `name` Html.Attribute to the `Input`.
 -}
 withName : String -> Input model msg -> Input model msg
@@ -238,6 +231,13 @@ withPlaceholder placeholder =
 withPrependGroup : List (Html msg) -> Input model msg -> Input model msg
 withPrependGroup html =
     addOption (PrependGroup html)
+
+
+{-| Adds a `size` of `Large` to the `Input`.
+-}
+withLargeSize : Input model msg -> Input model msg
+withLargeSize =
+    addOption (Size Large)
 
 
 {-| Adds a `size` of `Large` to the `Input`.

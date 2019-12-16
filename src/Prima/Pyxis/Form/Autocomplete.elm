@@ -15,12 +15,12 @@ module Prima.Pyxis.Form.Autocomplete exposing
 @docs Autocomplete, AutocompleteChoice, autocomplete, autocompleteChoice
 
 
-## Generic modifiers
+## Options
 
 @docs withAttribute, withClass, withDisabled, withId, withName, withPlaceholder, withThreshold
 
 
-## Size modifiers
+## Size
 
 @docs withRegularSize, withSmallSize, withLargeSize
 
@@ -67,23 +67,29 @@ type alias AutocompleteConfig model msg =
     }
 
 
+{-| Internal. Creates the configuration.
+-}
 autocomplete : (model -> Maybe String) -> (String -> msg) -> (model -> Maybe String) -> (String -> msg) -> (model -> Bool) -> List AutocompleteChoice -> Autocomplete model msg
 autocomplete reader tagger filterReader filterTagger openedReader =
     Autocomplete << AutocompleteConfig [] reader tagger filterReader filterTagger openedReader
 
 
+{-| Represents the `AutocompleteChoice` configuration.
+-}
 type alias AutocompleteChoice =
     { value : String
     , label : String
     }
 
 
+{-| Internal. Creates the AutocompleteChoice configuration.
+-}
 autocompleteChoice : String -> String -> AutocompleteChoice
 autocompleteChoice value label =
     AutocompleteChoice value label
 
 
-{-| Represents the possibile modifiers of an `Autocomplete`.
+{-| Internal. Represents the possibile modifiers for an `Autocomplete`.
 -}
 type AutocompleteOption model msg
     = Attribute (Html.Attribute msg)
@@ -108,103 +114,139 @@ type AutocompleteSize
     | Large
 
 
-{-| Sets an `attribute` to the `Autocomplete config`.
+{-| Adds a generic Html.Attribute to the `Autocomplete`.
 -}
 withAttribute : Html.Attribute msg -> Autocomplete model msg -> Autocomplete model msg
 withAttribute attribute =
     addOption (Attribute attribute)
 
 
-{-| Sets a `class` to the `Autocomplete config`.
+{-| Adds a `class` to the `Autocomplete`.
 -}
 withClass : String -> Autocomplete model msg -> Autocomplete model msg
 withClass class_ =
     addOption (Class class_)
 
 
-{-| Sets a `disabled` to the `Autocomplete config`.
+{-| Adds a `disabled` Html.Attribute to the `Autocomplete`.
 -}
 withDisabled : Bool -> Autocomplete model msg -> Autocomplete model msg
 withDisabled disabled =
     addOption (Disabled disabled)
 
 
-{-| Sets an `id` to the `Autocomplete config`.
+{-| Adds an `id` Html.Attribute to the `Autocomplete`.
 -}
 withId : String -> Autocomplete model msg -> Autocomplete model msg
 withId id =
     addOption (Id id)
 
 
-{-| Sets a `size` to the `Autocomplete config`.
--}
-withLargeSize : Autocomplete model msg -> Autocomplete model msg
-withLargeSize =
-    addOption (Size Large)
-
-
-{-| Sets a `name` to the `Autocomplete config`.
+{-| Adds a `name` Html.Attribute to the `Autocomplete`.
 -}
 withName : String -> Autocomplete model msg -> Autocomplete model msg
 withName name =
     addOption (Name name)
 
 
-{-| Sets an `onBlur event` to the `Autocomplete config`.
+{-| Attaches the `onBlur` event to the `Autocomplete`.
 -}
 withOnBlur : msg -> Autocomplete model msg -> Autocomplete model msg
 withOnBlur tagger =
     addOption (OnBlur tagger)
 
 
-{-| Sets an `onFocus event` to the `Autocomplete config`.
+{-| Attaches the `onFocus` event to the `Autocomplete`.
 -}
 withOnFocus : msg -> Autocomplete model msg -> Autocomplete model msg
 withOnFocus tagger =
     addOption (OnFocus tagger)
 
 
-{-| Sets a `class` which overrides default classes to the `Autocomplete config`.
+{-| Adds a `class` to the `Autocomplete` which overrides all the previous.
 -}
 withOverridingClass : String -> Autocomplete model msg -> Autocomplete model msg
 withOverridingClass class =
     addOption (OverridingClass class)
 
 
-{-| Sets a `placeholder` to the `Autocomplete config`.
+{-| Adds a `placeholder` Html.Attribute to the `Autocomplete`.
 -}
 withPlaceholder : String -> Autocomplete model msg -> Autocomplete model msg
 withPlaceholder placeholder =
     addOption (Placeholder placeholder)
 
 
-{-| Sets a `size` to the `Autocomplete config`.
+{-| Adds a `size` of `Large` to the `Autocomplete`.
+-}
+withLargeSize : Autocomplete model msg -> Autocomplete model msg
+withLargeSize =
+    addOption (Size Large)
+
+
+{-| Adds a `size` of `Regular` to the `Autocomplete`.
 -}
 withRegularSize : Autocomplete model msg -> Autocomplete model msg
 withRegularSize =
     addOption (Size Regular)
 
 
-{-| Sets a `size` to the `Autocomplete config`.
+{-| Adds a `size` of `Small` to the `Autocomplete`.
 -}
 withSmallSize : Autocomplete model msg -> Autocomplete model msg
 withSmallSize =
     addOption (Size Small)
 
 
-{-| Sets a `threshold` on the filter to the `Autocomplete config`.
+{-| Adds a `threshold` on the filter to the `Autocomplete`.
 -}
 withThreshold : Int -> Autocomplete model msg -> Autocomplete model msg
 withThreshold threshold =
     addOption (Threshold threshold)
 
 
+{-| Adds a `Validation` rule to the `Autocomplete`.
+-}
 withValidation : (model -> Maybe Validation.Type) -> Autocomplete model msg -> Autocomplete model msg
 withValidation validation =
     addOption (Validation validation)
 
 
-{-| Renders the `Autocomplete config`.
+{-|
+
+
+## Renders the `Input`.
+
+    import Html
+    import Prima.Pyxis.Form.Autocomplete as Autocomplete
+    import Prima.Pyxis.Form.Validation as Validation
+
+    ...
+
+    type Msg =
+        OnInput String
+
+    type alias Model =
+        { country: Maybe String }
+
+    ...
+
+    view : Html Msg
+    view =
+        Html.div
+            []
+            (Autocomplete.country .country OnInput
+                |> Input.withClass "my-custom-class"
+                |> Input.withValidation (Maybe.andThen validate << .country)
+            )
+
+    validate : String -> Validation.Type
+    validate str =
+        if String.isEmpty str then
+            Just <| Validation.ErrorWithMessage "Country is empty".
+        else
+            Nothing
+
 -}
 render : model -> Autocomplete model msg -> List (Html msg)
 render model ((Autocomplete config) as autocompleteModel) =
@@ -257,6 +299,8 @@ render model ((Autocomplete config) as autocompleteModel) =
     ]
 
 
+{-| Internal. Renders the `Autocomplete` with results.
+-}
 renderAutocompleteChoice : model -> Autocomplete model msg -> AutocompleteChoice -> Html msg
 renderAutocompleteChoice model (Autocomplete config) choice =
     Html.li
@@ -269,6 +313,8 @@ renderAutocompleteChoice model (Autocomplete config) choice =
         [ Html.text choice.label ]
 
 
+{-| Internal. Renders the `Autocomplete` with no results.
+-}
 renderAutocompleteNoResults : model -> Autocomplete model msg -> List (Html msg)
 renderAutocompleteNoResults model (Autocomplete config) =
     [ Html.li
@@ -277,15 +323,14 @@ renderAutocompleteNoResults model (Autocomplete config) =
     ]
 
 
-{-| Internal.
+{-| Internal. Adds a generic option to the `Autocomplete`.
 -}
 addOption : AutocompleteOption model msg -> Autocomplete model msg -> Autocomplete model msg
 addOption option (Autocomplete autocompleteConfig) =
     Autocomplete { autocompleteConfig | options = autocompleteConfig.options ++ [ option ] }
 
 
-{-| Represents the options a user can choose to modify
-the `Autocomplete` default behaviour.
+{-| Internal. Represents the list of customizations for the `Autocomplete` component.
 -}
 type alias Options model msg =
     { attributes : List (Html.Attribute msg)
@@ -302,7 +347,7 @@ type alias Options model msg =
     }
 
 
-{-| Internal.
+{-| Internal. Represents the initial state of the list of customizations for the `Autocomplete` component.
 -}
 defaultOptions : Options model msg
 defaultOptions =
@@ -320,7 +365,7 @@ defaultOptions =
     }
 
 
-{-| Internal.
+{-| Internal. Applies the customizations made by end user to the `Autocomplete` component.
 -}
 applyOption : AutocompleteOption model msg -> Options model msg -> Options model msg
 applyOption modifier options =
@@ -362,15 +407,17 @@ applyOption modifier options =
             { options | validations = validation :: options.validations }
 
 
-{-| Transforms a `List` of `Class`(es) into a valid `Html.Attribute`.
+{-| Internal. Transforms a list of `class`(es) into a valid Html.Attribute.
 -}
 classesAttribute : List String -> Html.Attribute msg
 classesAttribute =
     Attrs.class << String.join " "
 
 
+{-| Internal. Transforms the `Validation` status into an Html.Attribute `class`.
+-}
 validationAttribute : model -> Autocomplete model msg -> Html.Attribute msg
-validationAttribute model ((Autocomplete config) as inputModel) =
+validationAttribute model inputModel =
     let
         options =
             computeOptions inputModel
@@ -396,6 +443,8 @@ validationAttribute model ((Autocomplete config) as inputModel) =
             Attrs.class "has-error"
 
 
+{-| Internal. Transforms the `reader` function into a valid Html.Attribute.
+-}
 filterReaderAttribute : model -> Autocomplete model msg -> Html.Attribute msg
 filterReaderAttribute model (Autocomplete config) =
     case
@@ -418,12 +467,14 @@ filterReaderAttribute model (Autocomplete config) =
                 |> Attrs.value
 
 
+{-| Internal. Transforms the `tagger` function into a valid Html.Attribute.
+-}
 filterTaggerAttribute : Autocomplete model msg -> Html.Attribute msg
 filterTaggerAttribute (Autocomplete config) =
     Events.onInput config.filterTagger
 
 
-{-| Composes all the modifiers into a set of `Html.Attribute`(s).
+{-| Internal. Transforms all the customizations into a list of valid Html.Attribute(s).
 -}
 buildAttributes : model -> Autocomplete model msg -> List (Html.Attribute msg)
 buildAttributes model ((Autocomplete config) as autocompleteModel) =
@@ -452,7 +503,7 @@ buildAttributes model ((Autocomplete config) as autocompleteModel) =
         |> (::) (filterTaggerAttribute autocompleteModel)
 
 
-{-| Internal.
+{-| Internal. Applies all the customizations and returns the internal `Options` type.
 -}
 computeOptions : Autocomplete model msg -> Options model msg
 computeOptions (Autocomplete config) =
