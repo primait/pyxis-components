@@ -16,17 +16,17 @@ module Prima.Pyxis.Form.Input exposing
 @docs Input, text, password, date, number, email
 
 
-## Generic modifiers
+## Options
 
 @docs withAttribute, withClass, withDisabled, withId, withName, withPlaceholder
 
 
-## Size modifiers
+## Size
 
 @docs withRegularSize, withSmallSize, withLargeSize
 
 
-## InputGroup modifiers
+## InputGroup
 
 @docs withPrependGroup, withAppendGroup, withGroupClass
 
@@ -66,7 +66,7 @@ type alias InputConfig model msg =
     { options : List (InputOption model msg)
     , type_ : InputType
     , reader : model -> Maybe String
-    , writer : String -> msg
+    , mapper : String -> msg
     }
 
 
@@ -80,49 +80,49 @@ type InputType
     | Email
 
 
-{-| Internal.
+{-| Internal. Creates the configuration.
 -}
 input : InputType -> (model -> Maybe String) -> (String -> msg) -> Input model msg
-input type_ reader writer =
-    Input <| InputConfig [] type_ reader writer
+input type_ reader mapper =
+    Input <| InputConfig [] type_ reader mapper
 
 
-{-| Creates an `input[type="text"]` with the default options.
+{-| Creates an `input[type="text"]`.
 -}
 text : (model -> Maybe String) -> (String -> msg) -> Input model msg
-text reader writer =
-    input Text reader writer
+text reader mapper =
+    input Text reader mapper
 
 
-{-| Creates an `input[type="password"]` with the default options.
+{-| Creates an `input[type="password"]`.
 -}
 password : (model -> Maybe String) -> (String -> msg) -> Input model msg
-password reader writer =
-    input Password reader writer
+password reader mapper =
+    input Password reader mapper
 
 
-{-| Creates an `input[type="date"]` with the default options.
+{-| Creates an `input[type="date"]`.
 -}
 date : (model -> Maybe String) -> (String -> msg) -> Input model msg
-date reader writer =
-    input Date reader writer
+date reader mapper =
+    input Date reader mapper
 
 
-{-| Creates an `input[type="number"]` with the default options.
+{-| Creates an `input[type="number"]`.
 -}
 number : (model -> Maybe String) -> (String -> msg) -> Input model msg
-number reader writer =
-    input Number reader writer
+number reader mapper =
+    input Number reader mapper
 
 
-{-| Creates an `input[type="email"]` with the default options.
+{-| Creates an `input[type="email"]`.
 -}
 email : (model -> Maybe String) -> (String -> msg) -> Input model msg
-email reader writer =
-    input Email reader writer
+email reader mapper =
+    input Email reader mapper
 
 
-{-| Represents the possibile modifiers of an `Input`.
+{-| Internal. Represents the possibile modifiers for an `Input`.
 -}
 type InputOption model msg
     = AppendGroup (List (Html msg))
@@ -141,7 +141,7 @@ type InputOption model msg
     | Validation (model -> Maybe Validation.Type)
 
 
-{-| Represents the `Input` size.
+{-| Internal. Represents the `Input` size.
 -}
 type InputSize
     = Small
@@ -149,113 +149,153 @@ type InputSize
     | Large
 
 
+{-| Appends an `InputGroup` with custom `Html`.
+-}
 withAppendGroup : List (Html msg) -> Input model msg -> Input model msg
 withAppendGroup html =
     addOption (AppendGroup html)
 
 
-{-| Sets an `attribute` to the `Input config`.
+{-| Adds a generic Html.Attribute to the `Input`.
 -}
 withAttribute : Html.Attribute msg -> Input model msg -> Input model msg
 withAttribute attribute =
     addOption (Attribute attribute)
 
 
-{-| Sets a `class` to the `Input config`.
+{-| Adds a `class` to the `Input`.
 -}
 withClass : String -> Input model msg -> Input model msg
 withClass class_ =
     addOption (Class class_)
 
 
-{-| Sets a `disabled` to the `Input config`.
+{-| Adds a `disabled` Html.Attribute to the `Input`.
 -}
 withDisabled : Bool -> Input model msg -> Input model msg
 withDisabled disabled =
     addOption (Disabled disabled)
 
 
-{-| Sets a `class` to the `AppendGroup` or `PrependGroup` of the `Input config`.
+{-| Adds a `class` to the `InputGroup` which wraps the `Input`.
 -}
 withGroupClass : String -> Input model msg -> Input model msg
 withGroupClass class =
     addOption (GroupClass class)
 
 
-{-| Sets an `id` to the `Input config`.
+{-| Adds an `id` Html.Attribute to the `Input`.
 -}
 withId : String -> Input model msg -> Input model msg
 withId id =
     addOption (Id id)
 
 
-{-| Sets a `size` to the `Input config`.
+{-| Adds a `size` of `Large` to the `Input`.
 -}
 withLargeSize : Input model msg -> Input model msg
 withLargeSize =
     addOption (Size Large)
 
 
-{-| Sets a `name` to the `Input config`.
+{-| Adds a `name` Html.Attribute to the `Input`.
 -}
 withName : String -> Input model msg -> Input model msg
 withName name =
     addOption (Name name)
 
 
-{-| Sets an `onBlur event` to the `Input config`.
+{-| Attaches the `onBlur` event to the `Input`.
 -}
 withOnBlur : msg -> Input model msg -> Input model msg
 withOnBlur tagger =
     addOption (OnBlur tagger)
 
 
-{-| Sets an `onFocus event` to the `Input config`.
+{-| Attaches the `onFocus` event to the `Input`.
 -}
 withOnFocus : msg -> Input model msg -> Input model msg
 withOnFocus tagger =
     addOption (OnFocus tagger)
 
 
-{-| Sets a `class` which overrides default classes to the `Input config`.
+{-| Adds a `class` to the `Input` which overrides all the previous.
 -}
 withOverridingClass : String -> Input model msg -> Input model msg
 withOverridingClass class =
     addOption (OverridingClass class)
 
 
-{-| Sets a `placeholder` to the `Input config`.
+{-| Adds a `placeholder` Html.Attribute to the `Input`.
 -}
 withPlaceholder : String -> Input model msg -> Input model msg
 withPlaceholder placeholder =
     addOption (Placeholder placeholder)
 
 
+{-| Prepends an `InputGroup` with custom `Html`.
+-}
 withPrependGroup : List (Html msg) -> Input model msg -> Input model msg
 withPrependGroup html =
     addOption (PrependGroup html)
 
 
-{-| Sets a `size` to the `Input config`.
+{-| Adds a `size` of `Large` to the `Input`.
 -}
 withRegularSize : Input model msg -> Input model msg
 withRegularSize =
     addOption (Size Regular)
 
 
-{-| Sets a `size` to the `Input config`.
+{-| Sets a `size` of `Small` to the `Input`.
 -}
 withSmallSize : Input model msg -> Input model msg
 withSmallSize =
     addOption (Size Small)
 
 
+{-| Adds a `Validation` rule to the `Input`.
+-}
 withValidation : (model -> Maybe Validation.Type) -> Input model msg -> Input model msg
 withValidation validation =
     addOption (Validation validation)
 
 
-{-| Renders the `Input config`.
+{-|
+
+
+## Renders the `Input`.
+
+    import Html
+    import Prima.Pyxis.Form.Input as Input
+    import Prima.Pyxis.Form.Validation as Validation
+
+    ...
+
+    type Msg =
+        OnInput String
+
+    type alias Model =
+        { username: Maybe String }
+
+    ...
+
+    view : Html Msg
+    view =
+        Html.div
+            []
+            (Input.email .username OnInput
+                |> Input.withClass "my-custom-class"
+                |> Input.withValidation (Maybe.andThen validate << .username)
+            )
+
+    validate : String -> Validation.Type
+    validate str =
+        if String.isEmpty str then
+            Just <| Validation.ErrorWithMessage "Username is empty".
+        else
+            Nothing
+
 -}
 render : model -> Input model msg -> List (Html msg)
 render model inputModel =
@@ -284,6 +324,8 @@ render model inputModel =
             renderInput model inputModel :: renderValidationMessages model inputModel
 
 
+{-| Internal. Renders the `Input` alone.
+-}
 renderInput : model -> Input model msg -> Html msg
 renderInput model inputModel =
     Html.input
@@ -291,12 +333,16 @@ renderInput model inputModel =
         []
 
 
+{-| Internal. Renders the `InputGroup` which wraps the `Input`.
+-}
 renderGroup : List (Html msg) -> Html msg
 renderGroup =
     Html.div
         [ Attrs.class "m-form-input-group" ]
 
 
+{-| Internal. Renders the `InputGroup` which wraps the `Input`.
+-}
 renderAppendGroup : Input model msg -> List (Html msg) -> Html msg
 renderAppendGroup inputModel =
     let
@@ -309,6 +355,8 @@ renderAppendGroup inputModel =
         ]
 
 
+{-| Internal. Renders the `InputGroup` which wraps the `Input`.
+-}
 renderPrependGroup : Input model msg -> List (Html msg) -> Html msg
 renderPrependGroup inputModel =
     let
@@ -321,6 +369,8 @@ renderPrependGroup inputModel =
         ]
 
 
+{-| Internal. Renders the list of errors if present. Renders the list of warnings if not.
+-}
 renderValidationMessages : model -> Input model msg -> List (Html msg)
 renderValidationMessages model inputModel =
     let
@@ -345,15 +395,14 @@ renderValidationMessages model inputModel =
             List.map Validation.render errors
 
 
-{-| Internal.
+{-| Internal. Adds a generic option to the `Input`.
 -}
 addOption : InputOption model msg -> Input model msg -> Input model msg
 addOption option (Input inputConfig) =
     Input { inputConfig | options = inputConfig.options ++ [ option ] }
 
 
-{-| Represents the options a user can choose to modify
-the `Input` default behaviour.
+{-| Internal. Represents the list of customizations for the `Input` component.
 -}
 type alias Options model msg =
     { appendGroup : Maybe (List (Html msg))
@@ -372,7 +421,7 @@ type alias Options model msg =
     }
 
 
-{-| Internal.
+{-| Internal. Represents the initial state of the list of customizations for the `Input` component.
 -}
 defaultOptions : Options model msg
 defaultOptions =
@@ -392,7 +441,7 @@ defaultOptions =
     }
 
 
-{-| Internal.
+{-| Internal. Applies the customizations made by end user to the `Input` component.
 -}
 applyOption : InputOption model msg -> Options model msg -> Options model msg
 applyOption modifier options =
@@ -440,7 +489,7 @@ applyOption modifier options =
             { options | validations = validation :: options.validations }
 
 
-{-| Transforms an `InputType` into a valid `Html.Attribute`.
+{-| Internal. Transforms an `InputType` into a valid Html.Attribute.
 -}
 typeAttribute : InputType -> Html.Attribute msg
 typeAttribute type_ =
@@ -463,14 +512,14 @@ typeAttribute type_ =
         )
 
 
-{-| Transforms a `List` of `Class`(es) into a valid `Html.Attribute`.
+{-| Internal. Transforms a list of `class`(es) into a valid Html.Attribute.
 -}
 classesAttribute : List String -> Html.Attribute msg
 classesAttribute =
     Attrs.class << String.join " "
 
 
-{-| Transforms an `InputSize` into a valid `Html.Attribute`.
+{-| Internal. Transforms an `InputSize` into a valid Html.Attribute.
 -}
 sizeAttribute : InputSize -> Html.Attribute msg
 sizeAttribute size =
@@ -487,18 +536,24 @@ sizeAttribute size =
         )
 
 
+{-| Internal. Transforms the `reader` function into a valid Html.Attribute.
+-}
 readerAttribute : model -> Input model msg -> Html.Attribute msg
 readerAttribute model (Input config) =
     (Attrs.value << Maybe.withDefault "" << config.reader) model
 
 
-writerAttribute : Input model msg -> Html.Attribute msg
-writerAttribute (Input config) =
-    Events.onInput config.writer
+{-| Internal. Transforms the `mapper` function into a valid Html.Attribute.
+-}
+mapperAttribute : Input model msg -> Html.Attribute msg
+mapperAttribute (Input config) =
+    Events.onInput config.mapper
 
 
+{-| Internal. Transforms the `Validation` status into an Html.Attribute `class`.
+-}
 validationAttribute : model -> Input model msg -> Html.Attribute msg
-validationAttribute model ((Input config) as inputModel) =
+validationAttribute model inputModel =
     let
         options =
             computeOptions inputModel
@@ -524,7 +579,7 @@ validationAttribute model ((Input config) as inputModel) =
             Attrs.class "has-error"
 
 
-{-| Composes all the modifiers into a set of `Html.Attribute`(s).
+{-| Internal. Transforms all the customizations into a list of valid Html.Attribute(s).
 -}
 buildAttributes : model -> Input model msg -> List (Html.Attribute msg)
 buildAttributes model ((Input config) as inputModel) =
@@ -549,13 +604,13 @@ buildAttributes model ((Input config) as inputModel) =
         |> (++) options.attributes
         |> (::) (classesAttribute options.classes)
         |> (::) (readerAttribute model inputModel)
-        |> (::) (writerAttribute inputModel)
+        |> (::) (mapperAttribute inputModel)
         |> (::) (typeAttribute config.type_)
         |> (::) (sizeAttribute options.size)
         |> (::) (validationAttribute model inputModel)
 
 
-{-| Internal
+{-| Internal. Applies all the customizations and returns the internal `Options` type.
 -}
 computeOptions : Input model msg -> Options model msg
 computeOptions (Input config) =

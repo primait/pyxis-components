@@ -51,19 +51,10 @@ addFieldsInRow fields (Form formConfig) =
 
 render : model -> Form model msg -> Html msg
 render model (Form formConfig) =
-    let
-        formGrid =
-            Grid.create
-    in
     div
         [ class "m-form" ]
         (formConfig.fields
-            |> List.map
-                (\fields ->
-                    fields
-                        |> addGridRow model
-                        |> H.flip Grid.addRow formGrid
-                )
+            |> List.map (H.flip Grid.addRow Grid.create << addGridRow model)
             |> List.map Grid.render
             |> List.concat
         )
