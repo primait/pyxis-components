@@ -240,7 +240,7 @@ withLargeSize =
     addOption (Size Large)
 
 
-{-| Adds a `size` of `Large` to the `Input`.
+{-| Adds a `size` of `Regular` to the `Input`.
 -}
 withRegularSize : Input model msg -> Input model msg
 withRegularSize =
@@ -259,140 +259,6 @@ withSmallSize =
 withValidation : (model -> Maybe Validation.Type) -> Input model msg -> Input model msg
 withValidation validation =
     addOption (Validation validation)
-
-
-{-|
-
-
-## Renders the `Input`.
-
-    import Html
-    import Prima.Pyxis.Form.Input as Input
-    import Prima.Pyxis.Form.Validation as Validation
-
-    ...
-
-    type Msg =
-        OnInput String
-
-    type alias Model =
-        { username: Maybe String }
-
-    ...
-
-    view : Html Msg
-    view =
-        Html.div
-            []
-            (Input.email .username OnInput
-                |> Input.withClass "my-custom-class"
-                |> Input.withValidation (Maybe.andThen validate << .username)
-            )
-
-    validate : String -> Validation.Type
-    validate str =
-        if String.isEmpty str then
-            Just <| Validation.ErrorWithMessage "Username is empty".
-        else
-            Nothing
-
--}
-render : model -> Input model msg -> List (Html msg)
-render model inputModel =
-    let
-        options =
-            computeOptions inputModel
-    in
-    case ( options.prependGroup, options.appendGroup ) of
-        ( Just html, _ ) ->
-            [ renderGroup
-                (renderPrependGroup inputModel html
-                    :: renderInput model inputModel
-                    :: renderValidationMessages model inputModel
-                )
-            ]
-
-        ( _, Just html ) ->
-            [ renderGroup
-                (renderAppendGroup inputModel html
-                    :: renderInput model inputModel
-                    :: renderValidationMessages model inputModel
-                )
-            ]
-
-        _ ->
-            renderInput model inputModel :: renderValidationMessages model inputModel
-
-
-{-| Internal. Renders the `Input` alone.
--}
-renderInput : model -> Input model msg -> Html msg
-renderInput model inputModel =
-    Html.input
-        (buildAttributes model inputModel)
-        []
-
-
-{-| Internal. Renders the `InputGroup` which wraps the `Input`.
--}
-renderGroup : List (Html msg) -> Html msg
-renderGroup =
-    Html.div
-        [ Attrs.class "m-form-input-group" ]
-
-
-{-| Internal. Renders the `InputGroup` which wraps the `Input`.
--}
-renderAppendGroup : Input model msg -> List (Html msg) -> Html msg
-renderAppendGroup inputModel =
-    let
-        options =
-            computeOptions inputModel
-    in
-    Html.div
-        [ Attrs.class "m-form-input-group__append"
-        , Attrs.class <| String.join " " options.groupClasses
-        ]
-
-
-{-| Internal. Renders the `InputGroup` which wraps the `Input`.
--}
-renderPrependGroup : Input model msg -> List (Html msg) -> Html msg
-renderPrependGroup inputModel =
-    let
-        options =
-            computeOptions inputModel
-    in
-    Html.div
-        [ Attrs.class "m-form-input-group__prepend"
-        , Attrs.class <| String.join " " options.groupClasses
-        ]
-
-
-{-| Internal. Renders the list of errors if present. Renders the list of warnings if not.
--}
-renderValidationMessages : model -> Input model msg -> List (Html msg)
-renderValidationMessages model inputModel =
-    let
-        options =
-            computeOptions inputModel
-
-        warnings =
-            options.validations
-                |> List.filterMap (H.flip identity model)
-                |> List.filter Validation.isWarning
-
-        errors =
-            options.validations
-                |> List.filterMap (H.flip identity model)
-                |> List.filter Validation.isError
-    in
-    case ( errors, warnings ) of
-        ( [], _ ) ->
-            List.map Validation.render warnings
-
-        ( _, _ ) ->
-            List.map Validation.render errors
 
 
 {-| Internal. Adds a generic option to the `Input`.
@@ -579,6 +445,13 @@ validationAttribute model inputModel =
             Attrs.class "has-error"
 
 
+{-| Internal. Applies all the customizations and returns the internal `Options` type.
+-}
+computeOptions : Input model msg -> Options model msg
+computeOptions (Input config) =
+    List.foldl applyOption defaultOptions config.options
+
+
 {-| Internal. Transforms all the customizations into a list of valid Html.Attribute(s).
 -}
 buildAttributes : model -> Input model msg -> List (Html.Attribute msg)
@@ -610,8 +483,135 @@ buildAttributes model ((Input config) as inputModel) =
         |> (::) (validationAttribute model inputModel)
 
 
-{-| Internal. Applies all the customizations and returns the internal `Options` type.
+{-|
+
+
+## Renders the `Input`.
+
+    import Html
+    import Prima.Pyxis.Form.Input as Input
+    import Prima.Pyxis.Form.Validation as Validation
+
+    ...
+
+    type Msg =
+        OnInput String
+
+    type alias Model =
+        { username: Maybe String }
+
+    ...
+
+    view : Html Msg
+    view =
+        Html.div
+            []
+            (Input.email .username OnInput
+                |> Input.withClass "my-custom-class"
+                |> Input.withValidation (Maybe.andThen validate << .username)
+            )
+
+    validate : String -> Validation.Type
+    validate str =
+        if String.isEmpty str then
+            Just <| Validation.ErrorWithMessage "Username is empty".
+        else
+            Nothing
+
 -}
-computeOptions : Input model msg -> Options model msg
-computeOptions (Input config) =
-    List.foldl applyOption defaultOptions config.options
+render : model -> Input model msg -> List (Html msg)
+render model inputModel =
+    let
+        options =
+            computeOptions inputModel
+    in
+    case ( options.prependGroup, options.appendGroup ) of
+        ( Just html, _ ) ->
+            [ renderGroup
+                (renderPrependGroup inputModel html
+                    :: renderInput model inputModel
+                    :: renderValidationMessages model inputModel
+                )
+            ]
+
+        ( _, Just html ) ->
+            [ renderGroup
+                (renderAppendGroup inputModel html
+                    :: renderInput model inputModel
+                    :: renderValidationMessages model inputModel
+                )
+            ]
+
+        _ ->
+            renderInput model inputModel :: renderValidationMessages model inputModel
+
+
+{-| Internal. Renders the `Input` alone.
+-}
+renderInput : model -> Input model msg -> Html msg
+renderInput model inputModel =
+    Html.input
+        (buildAttributes model inputModel)
+        []
+
+
+{-| Internal. Renders the `InputGroup` which wraps the `Input`.
+-}
+renderGroup : List (Html msg) -> Html msg
+renderGroup =
+    Html.div
+        [ Attrs.class "m-form-input-group" ]
+
+
+{-| Internal. Renders the `InputGroup` which wraps the `Input`.
+-}
+renderAppendGroup : Input model msg -> List (Html msg) -> Html msg
+renderAppendGroup inputModel =
+    let
+        options =
+            computeOptions inputModel
+    in
+    Html.div
+        [ Attrs.class "m-form-input-group__append"
+        , Attrs.class <| String.join " " options.groupClasses
+        ]
+
+
+{-| Internal. Renders the `InputGroup` which wraps the `Input`.
+-}
+renderPrependGroup : Input model msg -> List (Html msg) -> Html msg
+renderPrependGroup inputModel =
+    let
+        options =
+            computeOptions inputModel
+    in
+    Html.div
+        [ Attrs.class "m-form-input-group__prepend"
+        , Attrs.class <| String.join " " options.groupClasses
+        ]
+
+
+{-| Internal. Renders the list of errors if present. Renders the list of warnings if not.
+-}
+renderValidationMessages : model -> Input model msg -> List (Html msg)
+renderValidationMessages model inputModel =
+    let
+        options =
+            computeOptions inputModel
+
+        warnings =
+            options.validations
+                |> List.filterMap (H.flip identity model)
+                |> List.filter Validation.isWarning
+
+        errors =
+            options.validations
+                |> List.filterMap (H.flip identity model)
+                |> List.filter Validation.isError
+    in
+    case ( errors, warnings ) of
+        ( [], _ ) ->
+            List.map Validation.render warnings
+
+        ( _, _ ) ->
+            List.map Validation.render errors

@@ -244,35 +244,6 @@ taggerAttribute (Checkbox config) choice =
 
 {-| Internal. Transforms all the customizations into a list of valid Html.Attribute(s).
 -}
-buildAttributes : model -> Checkbox model msg -> String -> List (Html.Attribute msg)
-buildAttributes model ((Checkbox config) as checkboxModel) choice =
-    let
-        options =
-            computeOptions checkboxModel
-    in
-    [ options.id
-        |> Maybe.map Attrs.id
-    , options.name
-        |> Maybe.map Attrs.name
-    , options.disabled
-        |> Maybe.map Attrs.disabled
-    , options.onFocus
-        |> Maybe.map Events.onFocus
-    , options.onBlur
-        |> Maybe.map Events.onBlur
-    ]
-        |> List.filterMap identity
-        |> (++) options.attributes
-        |> (::) (classAttribute options.class)
-        |> (::) (readerAttribute model checkboxModel choice)
-        |> (::) (taggerAttribute checkboxModel choice)
-        |> (::) (Attrs.type_ "checkbox")
-        |> (::) (Attrs.value choice)
-        |> (::) (validationAttribute model checkboxModel)
-
-
-{-| Internal. Transforms all the customizations into a list of valid Html.Attribute(s).
--}
 validationAttribute : model -> Checkbox model msg -> Html.Attribute msg
 validationAttribute model checkboxModel =
     let
@@ -298,6 +269,42 @@ validationAttribute model checkboxModel =
 
         ( _, _ ) ->
             Attrs.class "has-error"
+
+
+{-| Internal. Applies all the customizations and returns the internal `Options` type.
+-}
+computeOptions : Checkbox model msg -> Options model msg
+computeOptions (Checkbox config) =
+    List.foldl applyOption defaultOptions config.options
+
+
+{-| Internal. Transforms all the customizations into a list of valid Html.Attribute(s).
+-}
+buildAttributes : model -> Checkbox model msg -> String -> List (Html.Attribute msg)
+buildAttributes model ((Checkbox config) as checkboxModel) choice =
+    let
+        options =
+            computeOptions checkboxModel
+    in
+    [ options.id
+        |> Maybe.map Attrs.id
+    , options.name
+        |> Maybe.map Attrs.name
+    , options.disabled
+        |> Maybe.map Attrs.disabled
+    , options.onFocus
+        |> Maybe.map Events.onFocus
+    , options.onBlur
+        |> Maybe.map Events.onBlur
+    ]
+        |> List.filterMap identity
+        |> (++) options.attributes
+        |> (::) (classAttribute options.class)
+        |> (::) (readerAttribute model checkboxModel choice)
+        |> (::) (taggerAttribute checkboxModel choice)
+        |> (::) (Attrs.type_ "checkbox")
+        |> (::) (Attrs.value choice)
+        |> (::) (validationAttribute model checkboxModel)
 
 
 {-|
@@ -364,10 +371,3 @@ renderCheckbox model ((Checkbox config) as checkboxModel) checkboxItem =
             |> Label.withOverridingClass "a-form-field__checkbox-options__item__label"
             |> Label.render
         ]
-
-
-{-| Internal. Applies all the customizations and returns the internal `Options` type.
--}
-computeOptions : Checkbox model msg -> Options model msg
-computeOptions (Checkbox config) =
-    List.foldl applyOption defaultOptions config.options

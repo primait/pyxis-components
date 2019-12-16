@@ -236,6 +236,13 @@ validationAttribute model flagModel =
             Attrs.class "has-error"
 
 
+{-| Internal. Applies all the customizations and returns the internal `Options` type.
+-}
+computeOptions : Flag model msg -> Options model msg
+computeOptions (Flag config) =
+    List.foldl applyOption defaultOptions config.options
+
+
 {-| Internal. Transforms all the customizations into a list of valid Html.Attribute(s).
 -}
 buildAttributes : model -> Flag model msg -> List (Html.Attribute msg)
@@ -346,10 +353,3 @@ renderValidationMessages model flagModel =
 
         ( _, _ ) ->
             List.map Validation.render errors
-
-
-{-| Internal. Applies all the customizations and returns the internal `Options` type.
--}
-computeOptions : Flag model msg -> Options model msg
-computeOptions (Flag config) =
-    List.foldl applyOption defaultOptions config.options

@@ -212,115 +212,6 @@ withValidation validation =
     addOption (Validation validation)
 
 
-{-|
-
-
-## Renders the `Input`.
-
-    import Html
-    import Prima.Pyxis.Form.Autocomplete as Autocomplete
-    import Prima.Pyxis.Form.Validation as Validation
-
-    ...
-
-    type Msg =
-        OnInput String
-
-    type alias Model =
-        { country: Maybe String }
-
-    ...
-
-    view : Html Msg
-    view =
-        Html.div
-            []
-            (Autocomplete.country .country OnInput
-                |> Autocomplete.withClass "my-custom-class"
-                |> Autocomplete.withValidation (Maybe.andThen validate << .country)
-            )
-
-    validate : String -> Validation.Type
-    validate str =
-        if String.isEmpty str then
-            Just <| Validation.ErrorWithMessage "Country is empty".
-        else
-            Nothing
-
--}
-render : model -> Autocomplete model msg -> List (Html msg)
-render model ((Autocomplete config) as autocompleteModel) =
-    let
-        options =
-            computeOptions autocompleteModel
-
-        filteredChoices =
-            config.autocompleteChoices
-                |> List.filter
-                    (.label
-                        >> String.toLower
-                        >> String.contains
-                            (model
-                                |> config.filterReader
-                                |> Maybe.map String.toLower
-                                |> Maybe.withDefault ""
-                            )
-                    )
-
-        hasReachedThreshold =
-            model
-                |> config.filterReader
-                |> Maybe.map String.length
-                |> Maybe.withDefault 0
-                |> (<=) options.threshold
-    in
-    [ Html.div
-        [ Attrs.classList
-            [ ( "a-form-field__autocomplete", True )
-            , ( "is-open", hasReachedThreshold && config.openedReader model )
-            , ( "is-small", options.size == Small )
-            , ( "is-medium", options.size == Regular )
-            , ( "is-large", options.size == Large )
-            ]
-        , validationAttribute model autocompleteModel
-        ]
-        [ Html.input
-            (buildAttributes model autocompleteModel)
-            []
-        , Html.ul
-            [ Attrs.class "a-form-field__autocomplete__list" ]
-            (if List.length filteredChoices > 0 then
-                List.map (renderAutocompleteChoice model autocompleteModel) filteredChoices
-
-             else
-                renderAutocompleteNoResults model autocompleteModel
-            )
-        ]
-    ]
-
-
-renderAutocompleteChoice : model -> Autocomplete model msg -> AutocompleteChoice -> Html msg
-renderAutocompleteChoice model (Autocomplete config) choice =
-    Html.li
-        [ Attrs.classList
-            [ ( "a-form-field__autocomplete__list__item", True )
-            , ( "is-selected", Just choice.value == config.reader model )
-            ]
-        , (Events.onClick << config.tagger) choice.value
-        ]
-        [ Html.text choice.label ]
-
-
-{-| Internal. Renders the `Autocomplete` with no results.
--}
-renderAutocompleteNoResults : model -> Autocomplete model msg -> List (Html msg)
-renderAutocompleteNoResults model (Autocomplete config) =
-    [ Html.li
-        [ Attrs.class "a-form-field__autocomplete__list--no-results" ]
-        [ Html.text "Nessun risultato." ]
-    ]
-
-
 {-| Internal. Adds a generic option to the `Autocomplete`.
 -}
 addOption : AutocompleteOption model msg -> Autocomplete model msg -> Autocomplete model msg
@@ -472,6 +363,13 @@ filterTaggerAttribute (Autocomplete config) =
     Events.onInput config.filterTagger
 
 
+{-| Internal. Applies all the customizations and returns the internal `Options` type.
+-}
+computeOptions : Autocomplete model msg -> Options model msg
+computeOptions (Autocomplete config) =
+    List.foldl applyOption defaultOptions config.options
+
+
 {-| Internal. Transforms all the customizations into a list of valid Html.Attribute(s).
 -}
 buildAttributes : model -> Autocomplete model msg -> List (Html.Attribute msg)
@@ -501,8 +399,110 @@ buildAttributes model ((Autocomplete config) as autocompleteModel) =
         |> (::) (filterTaggerAttribute autocompleteModel)
 
 
-{-| Internal. Applies all the customizations and returns the internal `Options` type.
+{-|
+
+
+## Renders the `Input`.
+
+    import Html
+    import Prima.Pyxis.Form.Autocomplete as Autocomplete
+    import Prima.Pyxis.Form.Validation as Validation
+
+    ...
+
+    type Msg =
+        OnInput String
+
+    type alias Model =
+        { country: Maybe String }
+
+    ...
+
+    view : Html Msg
+    view =
+        Html.div
+            []
+            (Autocomplete.country .country OnInput
+                |> Autocomplete.withClass "my-custom-class"
+                |> Autocomplete.withValidation (Maybe.andThen validate << .country)
+            )
+
+    validate : String -> Validation.Type
+    validate str =
+        if String.isEmpty str then
+            Just <| Validation.ErrorWithMessage "Country is empty".
+        else
+            Nothing
+
 -}
-computeOptions : Autocomplete model msg -> Options model msg
-computeOptions (Autocomplete config) =
-    List.foldl applyOption defaultOptions config.options
+render : model -> Autocomplete model msg -> List (Html msg)
+render model ((Autocomplete config) as autocompleteModel) =
+    let
+        options =
+            computeOptions autocompleteModel
+
+        filteredChoices =
+            config.autocompleteChoices
+                |> List.filter
+                    (.label
+                        >> String.toLower
+                        >> String.contains
+                            (model
+                                |> config.filterReader
+                                |> Maybe.map String.toLower
+                                |> Maybe.withDefault ""
+                            )
+                    )
+
+        hasReachedThreshold =
+            model
+                |> config.filterReader
+                |> Maybe.map String.length
+                |> Maybe.withDefault 0
+                |> (<=) options.threshold
+    in
+    [ Html.div
+        [ Attrs.classList
+            [ ( "a-form-field__autocomplete", True )
+            , ( "is-open", hasReachedThreshold && config.openedReader model )
+            , ( "is-small", options.size == Small )
+            , ( "is-medium", options.size == Regular )
+            , ( "is-large", options.size == Large )
+            ]
+        , validationAttribute model autocompleteModel
+        ]
+        [ Html.input
+            (buildAttributes model autocompleteModel)
+            []
+        , Html.ul
+            [ Attrs.class "a-form-field__autocomplete__list" ]
+            (if List.length filteredChoices > 0 then
+                List.map (renderAutocompleteChoice model autocompleteModel) filteredChoices
+
+             else
+                renderAutocompleteNoResults model autocompleteModel
+            )
+        ]
+    ]
+
+
+renderAutocompleteChoice : model -> Autocomplete model msg -> AutocompleteChoice -> Html msg
+renderAutocompleteChoice model (Autocomplete config) choice =
+    Html.li
+        [ Attrs.classList
+            [ ( "a-form-field__autocomplete__list__item", True )
+            , ( "is-selected", Just choice.value == config.reader model )
+            ]
+        , (Events.onClick << config.tagger) choice.value
+        ]
+        [ Html.text choice.label ]
+
+
+{-| Internal. Renders the `Autocomplete` with no results.
+-}
+renderAutocompleteNoResults : model -> Autocomplete model msg -> List (Html msg)
+renderAutocompleteNoResults model (Autocomplete config) =
+    [ Html.li
+        [ Attrs.class "a-form-field__autocomplete__list--no-results" ]
+        [ Html.text "Nessun risultato." ]
+    ]

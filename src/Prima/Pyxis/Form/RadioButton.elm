@@ -14,7 +14,7 @@ module Prima.Pyxis.Form.RadioButton exposing
 @docs RadioButton, radioButton, radioButtonChoice, radioButtonChoiceWithSubtitle
 
 
-## Modifiers
+## Options
 
 @docs withId, withAttribute, withClass
 
@@ -268,6 +268,13 @@ validationAttribute model ((RadioButton _) as inputModel) =
             Attrs.class "has-error"
 
 
+{-| Internal. Applies all the customizations and returns the internal `Options` type.
+-}
+computeOptions : RadioButton model msg -> Options model msg
+computeOptions (RadioButton config) =
+    List.foldl applyOption defaultOptions config.options
+
+
 {-| Internal. Transforms all the customizations into a list of valid Html.Attribute(s).
 -}
 buildAttributes : model -> RadioButton model msg -> RadioButtonChoice -> List (Html.Attribute msg)
@@ -290,21 +297,6 @@ buildAttributes model radioButtonModel choice =
         |> (::) (taggerAttribute radioButtonModel choice)
         |> (::) (validationAttribute model radioButtonModel)
         |> (::) (hasSubtitleAttribute choice)
-
-
-{-| Renders the `RadioButton config`.
-
-    import Prima.Pyxis.Form.RadioButton as RadioButton
-
-    view : List (Html Msg)
-    view =
-        [ radioButtonChoice "option_1" "Option 1"
-        , radioButtonChoice "option_2" "Option 2"
-        ]
-            |> RadioButton.radioButton
-            |> RadioButton.render
-
--}
 
 
 {-|
@@ -405,10 +397,3 @@ renderSubtitle subtitle =
     Html.p
         [ Attrs.class "a-form-field__radio-button__subtitle" ]
         [ Html.text subtitle ]
-
-
-{-| Internal. Applies all the customizations and returns the internal `Options` type.
--}
-computeOptions : RadioButton model msg -> Options model msg
-computeOptions (RadioButton config) =
-    List.foldl applyOption defaultOptions config.options
