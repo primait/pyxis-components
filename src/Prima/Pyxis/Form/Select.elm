@@ -53,8 +53,8 @@ type alias SelectConfig model msg =
 
 
 select : (model -> Maybe String) -> (String -> msg) -> (model -> Bool) -> msg -> List SelectChoice -> Select model msg
-select reader tagger openedReader toggleTagger =
-    Select << SelectConfig [] reader tagger openedReader toggleTagger
+select reader tagger openedReader openedTagger =
+    Select << SelectConfig [] reader tagger openedReader openedTagger
 
 
 type alias SelectChoice =
