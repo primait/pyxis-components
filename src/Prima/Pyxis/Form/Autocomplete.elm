@@ -54,7 +54,7 @@ type Autocomplete model msg
     = Autocomplete (AutocompleteConfig model msg)
 
 
-{-| Represents the `Autocomplete` configuration.
+{-| Internal. Represents the `Autocomplete` configuration.
 -}
 type alias AutocompleteConfig model msg =
     { options : List (AutocompleteOption model msg)
@@ -67,7 +67,7 @@ type alias AutocompleteConfig model msg =
     }
 
 
-{-| Internal. Creates the configuration.
+{-| Creates an autocomplete.
 -}
 autocomplete : (model -> Maybe String) -> (String -> msg) -> (model -> Maybe String) -> (String -> msg) -> (model -> Bool) -> List AutocompleteChoice -> Autocomplete model msg
 autocomplete reader tagger filterReader filterTagger openedReader =
@@ -82,14 +82,14 @@ type alias AutocompleteChoice =
     }
 
 
-{-| Internal. Creates the AutocompleteChoice configuration.
+{-| Creates the AutocompleteChoice configuration.
 -}
 autocompleteChoice : String -> String -> AutocompleteChoice
 autocompleteChoice value label =
     AutocompleteChoice value label
 
 
-{-| Internal. Represents the possibile modifiers for an `Autocomplete`.
+{-| Internal. Represents the possible modifiers for an `Autocomplete`.
 -}
 type AutocompleteOption model msg
     = Attribute (Html.Attribute msg)
@@ -236,8 +236,8 @@ withValidation validation =
         Html.div
             []
             (Autocomplete.country .country OnInput
-                |> Input.withClass "my-custom-class"
-                |> Input.withValidation (Maybe.andThen validate << .country)
+                |> Autocomplete.withClass "my-custom-class"
+                |> Autocomplete.withValidation (Maybe.andThen validate << .country)
             )
 
     validate : String -> Validation.Type
@@ -299,8 +299,6 @@ render model ((Autocomplete config) as autocompleteModel) =
     ]
 
 
-{-| Internal. Renders the `Autocomplete` with results.
--}
 renderAutocompleteChoice : model -> Autocomplete model msg -> AutocompleteChoice -> Html msg
 renderAutocompleteChoice model (Autocomplete config) choice =
     Html.li

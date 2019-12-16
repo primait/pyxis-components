@@ -60,7 +60,7 @@ type Input model msg
     = Input (InputConfig model msg)
 
 
-{-| Represents the `Input` configuration.
+{-| Internal. Represents the `Input` configuration.
 -}
 type alias InputConfig model msg =
     { options : List (InputOption model msg)
@@ -122,7 +122,7 @@ email reader tagger =
     input Email reader tagger
 
 
-{-| Internal. Represents the possibile modifiers for an `Input`.
+{-| Internal. Represents the possible modifiers for an `Input`.
 -}
 type InputOption model msg
     = AppendGroup (List (Html msg))

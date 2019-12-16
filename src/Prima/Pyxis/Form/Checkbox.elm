@@ -1,27 +1,27 @@
 module Prima.Pyxis.Form.Checkbox exposing
-    ( Checkbox
-    , withId, withName, withAttribute, withDisabled
+    ( Checkbox, checkbox, checkboxChoice
+    , withId, withName, withAttribute, withDisabled, withClass
+    , withOnFocus, withOnBlur
     , withValidation
     , render
-    , checkbox, checkboxChoice, withClass, withOnBlur, withOnFocus
     )
 
 {-|
 
 
-## Types
+## Types and Configuration
 
-@docs Checkbox
+@docs Checkbox, CheckboxChoice, checkbox, checkboxChoice
 
 
-## Modifiers
+## Options
 
-@docs withId, withName, withChecked, withAttribute, withDisabled
+@docs withId, withName, withChecked, withAttribute, withDisabled, withClass
 
 
 ## Events
 
-@docs withOnChange
+@docs withOnFocus, withOnBlur
 
 
 ## Validations
@@ -29,7 +29,7 @@ module Prima.Pyxis.Form.Checkbox exposing
 @docs withValidation
 
 
-## Render
+## Rendering
 
 @docs render
 
@@ -43,13 +43,13 @@ import Prima.Pyxis.Form.Validation as Validation
 import Prima.Pyxis.Helpers as H
 
 
-{-| Represents the configuration of an Change type.
+{-| Represents the opaque `Checkbox` configuration.
 -}
 type Checkbox model msg
     = Checkbox (CheckboxConfig model msg)
 
 
-{-| Internal.
+{-| Internal. Represents the `Checkbox` configuration.
 -}
 type alias CheckboxConfig model msg =
     { options : List (CheckboxOption model msg)
@@ -59,12 +59,14 @@ type alias CheckboxConfig model msg =
     }
 
 
+{-| Creates a checkbox.
+-}
 checkbox : (model -> List String) -> (String -> msg) -> List CheckboxChoice -> Checkbox model msg
 checkbox reader tagger =
     Checkbox << CheckboxConfig [] reader tagger
 
 
-{-| Internal.
+{-| Internal. Represents the possible modifiers for an `Checkbox`.
 -}
 type CheckboxOption model msg
     = Attribute (Html.Attribute msg)
@@ -77,7 +79,7 @@ type CheckboxOption model msg
     | Validation (model -> Maybe Validation.Type)
 
 
-{-| Internal.
+{-| Represents the `CheckboxChoice` configuration.
 -}
 type alias CheckboxChoice =
     { value : String
@@ -85,12 +87,14 @@ type alias CheckboxChoice =
     }
 
 
+{-| Creates the 'CheckboxChoice' configuration.
+-}
 checkboxChoice : String -> String -> CheckboxChoice
 checkboxChoice value label =
     CheckboxChoice value label
 
 
-{-| Internal.
+{-| Internal. Represents the list of customizations for the `Checkbox` component.
 -}
 type alias Options model msg =
     { attributes : List (Html.Attribute msg)
@@ -104,6 +108,8 @@ type alias Options model msg =
     }
 
 
+{-| Internal. Represents the initial state of the list of customizations for the `Checkbox` component.
+-}
 defaultOptions : Options model msg
 defaultOptions =
     { attributes = []
@@ -117,68 +123,70 @@ defaultOptions =
     }
 
 
-{-| Internal.
+{-| Internal. Adds a generic option to the `Checkbox`.
 -}
 addOption : CheckboxOption model msg -> Checkbox model msg -> Checkbox model msg
 addOption option (Checkbox checkboxConfig) =
     Checkbox { checkboxConfig | options = checkboxConfig.options ++ [ option ] }
 
 
-{-| Sets an `attribute` to the `Checkbox config`.
+{-| Adds a generic Html.Attribute to the `Checkbox`.
 -}
 withAttribute : Html.Attribute msg -> Checkbox model msg -> Checkbox model msg
 withAttribute attribute =
     addOption (Attribute attribute)
 
 
-{-| Sets a `disabled` to the `Checkbox config`.
+{-| Adds a `disabled` Html.Attribute to the `Checkbox`.
 -}
 withDisabled : Bool -> Checkbox model msg -> Checkbox model msg
 withDisabled disabled =
     addOption (Disabled disabled)
 
 
-{-| Sets a `class` to the `Checkbox config`.
+{-| Adds a `class` to the `Checkbox`.
 -}
 withClass : String -> Checkbox model msg -> Checkbox model msg
 withClass class_ =
     addOption (Class class_)
 
 
-{-| Sets an `id` to the `Checkbox config`.
+{-| Adds an `id` Html.Attribute to the `Checkbox`.
 -}
 withId : String -> Checkbox model msg -> Checkbox model msg
 withId id =
     addOption (Id id)
 
 
-{-| Sets a `name` to the `Checkbox config`.
+{-| Adds a `name` Html.Attribute to the `Checkbox`.
 -}
 withName : String -> Checkbox model msg -> Checkbox model msg
 withName name =
     addOption (Name name)
 
 
-{-| Sets an `onBlur event` to the `Checkbox config`.
+{-| Attaches the `onBlur` event to the `Checkbox`.
 -}
 withOnBlur : msg -> Checkbox model msg -> Checkbox model msg
 withOnBlur tagger =
     addOption (OnBlur tagger)
 
 
-{-| Sets an `onFocus event` to the `Checkbox config`.
+{-| Attaches the `onFocus` event to the `Checkbox`.
 -}
 withOnFocus : msg -> Checkbox model msg -> Checkbox model msg
 withOnFocus tagger =
     addOption (OnFocus tagger)
 
 
+{-| Adds a `Validation` rule to the `Checkbox`.
+-}
 withValidation : (model -> Maybe Validation.Type) -> Checkbox model msg -> Checkbox model msg
 withValidation validation =
     addOption (Validation validation)
 
 
-{-| Internal.
+{-| Internal. Applies the customizations made by end user to the `Checkbox` component.
 -}
 applyOption : CheckboxOption model msg -> Options model msg -> Options model msg
 applyOption modifier options =
@@ -208,14 +216,14 @@ applyOption modifier options =
             { options | validations = validation :: options.validations }
 
 
-{-| Transforms a `List` of `Class`(es) into a valid `Html.Attribute`.
+{-| Internal. Transforms a `List` of `Class`(es) into a valid `Html.Attribute`.
 -}
 classAttribute : List String -> Html.Attribute msg
 classAttribute =
     Attrs.class << String.join " "
 
 
-{-| Internal
+{-| Internal. Transforms the `reader` function into a valid Html.Attribute.
 -}
 readerAttribute : model -> Checkbox model msg -> String -> Html.Attribute msg
 readerAttribute model (Checkbox config) choice =
@@ -225,7 +233,7 @@ readerAttribute model (Checkbox config) choice =
         |> Attrs.checked
 
 
-{-| Internal
+{-| Internal. Transforms the `tagger` function into a valid Html.Attribute.
 -}
 taggerAttribute : Checkbox model msg -> String -> Html.Attribute msg
 taggerAttribute (Checkbox config) choice =
@@ -234,7 +242,7 @@ taggerAttribute (Checkbox config) choice =
         |> Events.onClick
 
 
-{-| Composes all the modifiers into a set of `Html.Attribute`(s).
+{-| Internal. Transforms all the customizations into a list of valid Html.Attribute(s).
 -}
 buildAttributes : model -> Checkbox model msg -> String -> List (Html.Attribute msg)
 buildAttributes model ((Checkbox config) as checkboxModel) choice =
@@ -263,8 +271,10 @@ buildAttributes model ((Checkbox config) as checkboxModel) choice =
         |> (::) (validationAttribute model checkboxModel)
 
 
+{-| Internal. Transforms all the customizations into a list of valid Html.Attribute(s).
+-}
 validationAttribute : model -> Checkbox model msg -> Html.Attribute msg
-validationAttribute model ((Checkbox config) as checkboxModel) =
+validationAttribute model checkboxModel =
     let
         options =
             computeOptions checkboxModel
@@ -290,17 +300,40 @@ validationAttribute model ((Checkbox config) as checkboxModel) =
             Attrs.class "has-error"
 
 
-{-| Renders the `Checkbox config`.
+{-|
 
+
+## Renders the `Checkbox`.
+
+    import Html
     import Prima.Pyxis.Form.Checkbox as Checkbox
+    import Prima.Pyxis.Form.Validation as Validation
 
-    view : List (Html Msg)
+    ...
+
+    type Msg =
+        OnChange String
+
+    type alias Model =
+        { countryVisited: Maybe String }
+
+    ...
+
+    view : Html Msg
     view =
-        [ buildCheckboxItem "option_1" "Option 1"
-        , buildCheckboxItem "option_2" "Option 2"
-        ]
-            |> Checkbox.checkbox
-            |> Checkbox.render
+        Html.div
+            []
+            (Checkbox.checkbox .countryVisited OnChange
+                |> Checkbox.withClass "my-custom-class"
+                |> Checkbox.withValidation (Maybe.andThen validate << .countryVisited)
+            )
+
+    validate : List String -> Validation.Type
+    validate list =
+        if List.isEmpty list then
+            Just <| Validation.ErrorWithMessage "Country visited is empty".
+        else
+            Nothing
 
 -}
 render : model -> Checkbox model msg -> List (Html msg)
@@ -315,7 +348,7 @@ render model ((Checkbox config) as checkboxModel) =
     ]
 
 
-{-| Internal
+{-| Internal. Renders the `Checkbox` alone.
 -}
 renderCheckbox : model -> Checkbox model msg -> CheckboxChoice -> Html msg
 renderCheckbox model ((Checkbox config) as checkboxModel) checkboxItem =
@@ -333,7 +366,7 @@ renderCheckbox model ((Checkbox config) as checkboxModel) checkboxItem =
         ]
 
 
-{-| Internal
+{-| Internal. Applies all the customizations and returns the internal `Options` type.
 -}
 computeOptions : Checkbox model msg -> Options model msg
 computeOptions (Checkbox config) =
