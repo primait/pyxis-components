@@ -26,34 +26,34 @@ appBody model =
 formConfig : Model -> Form.Form FormData Msg
 formConfig model =
     model.form
-        |> Form.addFieldsInRow
+        |> Form.withFields
             [ Config.usernameGroupConfig
             , Config.passwordGroupConfig
             ]
-        |> Form.addFieldsInRow
+        |> Form.withFields
             [ Config.birthDateConfig
             ]
-        |> Form.addFieldsInRow
+        |> Form.withFields
             [ Config.fiscalCodeGroupConfig
             ]
-        |> Form.addFieldsInRow
+        |> Form.withFields
             [ Config.privacyConfig
             ]
-        |> Form.addFieldsInRow
+        |> Form.withFields
             [ Config.guideTypeConfig
             ]
-        |> Form.addFieldsInRow
+        |> Form.withFields
             [ Config.powerSourceConfig
             ]
-        |> Form.addFieldsInRow
+        |> Form.withFields
             [ Config.countryConfig
             ]
-        |> Form.addFieldsInRow
+        |> Form.withFields
             [ Config.checkboxConfig
             ]
-        |> Form.addFieldsInRow
+        |> Form.withFields
             [ Config.radioButtonConfig
             ]
-        |> Form.addFieldsInRow
+        |> Form.withFields
             [ Config.textAreaConfig
             ]

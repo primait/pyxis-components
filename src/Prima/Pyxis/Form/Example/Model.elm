@@ -33,7 +33,7 @@ type alias Model =
 
 initialModel : Model
 initialModel =
-    Model (Form.init Form.Always) initialFormData Nothing
+    Model Form.init initialFormData Nothing
 
 
 type Field

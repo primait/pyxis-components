@@ -15,11 +15,11 @@ module Prima.Pyxis.Form.Example.FieldConfig exposing
 
 import Html exposing (Html, text)
 import Html.Attributes as Attrs
+import Prima.Pyxis.Form as Form
 import Prima.Pyxis.Form.Autocomplete as Autocomplete
 import Prima.Pyxis.Form.Checkbox as Checkbox
 import Prima.Pyxis.Form.Date as Date
 import Prima.Pyxis.Form.Example.Model exposing (Field(..), FormData, Model, Msg(..))
-import Prima.Pyxis.Form.Field as Field
 import Prima.Pyxis.Form.Flag as Flag
 import Prima.Pyxis.Form.Input as Input
 import Prima.Pyxis.Form.Label as Label
@@ -32,7 +32,7 @@ import Prima.Pyxis.Helpers as H
 import Prima.Pyxis.Link as Link
 
 
-usernameGroupConfig : Field.FormField FormData Msg
+usernameGroupConfig : Form.FormField FormData Msg
 usernameGroupConfig =
     let
         slug =
@@ -44,15 +44,15 @@ usernameGroupConfig =
     Input.text .username (OnInput Username)
         |> Input.withId slug
         |> Input.withAppendGroup [ userIcon ]
-        |> Field.input
-        |> Field.addLabel
+        |> Form.input
+        |> Form.withLabel
             ("Username"
                 |> Label.label
                 |> Label.withFor slug
             )
 
 
-passwordGroupConfig : Field.FormField FormData Msg
+passwordGroupConfig : Form.FormField FormData Msg
 passwordGroupConfig =
     let
         slug =
@@ -64,8 +64,8 @@ passwordGroupConfig =
     Input.password .password (OnInput Password)
         |> Input.withId slug
         |> Input.withPrependGroup [ lockIcon ]
-        |> Field.input
-        |> Field.addLabel
+        |> Form.input
+        |> Form.withLabel
             ("Password"
                 |> Label.label
                 |> Label.withFor slug
@@ -73,7 +73,7 @@ passwordGroupConfig =
             )
 
 
-fiscalCodeGroupConfig : Field.FormField FormData Msg
+fiscalCodeGroupConfig : Form.FormField FormData Msg
 fiscalCodeGroupConfig =
     let
         slug =
@@ -87,15 +87,15 @@ fiscalCodeGroupConfig =
         |> Input.withLargeSize
         |> Input.withPrependGroup [ cta ]
         |> Input.withGroupClass "is-large"
-        |> Field.input
-        |> Field.addLabel
+        |> Form.input
+        |> Form.withLabel
             ("Fiscal code"
                 |> Label.label
                 |> Label.withFor slug
             )
 
 
-privacyConfig : Field.FormField FormData Msg
+privacyConfig : Form.FormField FormData Msg
 privacyConfig =
     let
         slug =
@@ -115,8 +115,8 @@ privacyConfig =
                 else
                     Nothing
             )
-        |> Field.flag
-        |> Field.addLabel
+        |> Form.flag
+        |> Form.withLabel
             ("Privacy"
                 |> Label.label
                 |> Label.withFor slug
@@ -131,7 +131,7 @@ privacyLabel =
     ]
 
 
-guideTypeConfig : Field.FormField FormData Msg
+guideTypeConfig : Form.FormField FormData Msg
 guideTypeConfig =
     [ Radio.radioChoice "expert" "Esperta"
     , Radio.radioChoice "free" "Libera"
@@ -147,14 +147,14 @@ guideTypeConfig =
                 else
                     Nothing
             )
-        |> Field.radio
-        |> Field.addLabel
+        |> Form.radio
+        |> Form.withLabel
             ("Tipo di guida"
                 |> Label.label
             )
 
 
-powerSourceConfig : Field.FormField FormData Msg
+powerSourceConfig : Form.FormField FormData Msg
 powerSourceConfig =
     let
         slug =
@@ -182,15 +182,15 @@ powerSourceConfig =
                 else
                     Nothing
             )
-        |> Field.select
-        |> Field.addLabel
+        |> Form.select
+        |> Form.withLabel
             ("Alimentazione"
                 |> Label.label
                 |> Label.withFor slug
             )
 
 
-countryConfig : Field.FormField FormData Msg
+countryConfig : Form.FormField FormData Msg
 countryConfig =
     let
         slug =
@@ -215,15 +215,15 @@ countryConfig =
                 else
                     Nothing
             )
-        |> Field.autocomplete
-        |> Field.addLabel
+        |> Form.autocomplete
+        |> Form.withLabel
             ("Paese di nascita"
                 |> Label.label
                 |> Label.withFor slug
             )
 
 
-checkboxConfig : Field.FormField FormData Msg
+checkboxConfig : Form.FormField FormData Msg
 checkboxConfig =
     let
         valuesOption =
@@ -247,14 +247,14 @@ checkboxConfig =
                     Nothing
             )
         |> Checkbox.withName "country_visited"
-        |> Field.checkbox
-        |> Field.addLabel
+        |> Form.checkbox
+        |> Form.withLabel
             ("Paesi visitati"
                 |> Label.label
             )
 
 
-radioButtonConfig : Field.FormField FormData Msg
+radioButtonConfig : Form.FormField FormData Msg
 radioButtonConfig =
     [ RadioButton.radioButtonChoiceWithSubtitle "soloMutuo" "Solo mutuo" "Lorem ipsum dolor sit amet"
     , RadioButton.radioButtonChoiceWithSubtitle "estensioneMutuo" "Estensione mutuo" "Polizza intregativa: estende la protezione obbligatoria per mutuo."
@@ -269,14 +269,14 @@ radioButtonConfig =
                 else
                     Nothing
             )
-        |> Field.radioButton
-        |> Field.addLabel
+        |> Form.radioButton
+        |> Form.withLabel
             ("Tipo di polizza"
                 |> Label.label
             )
 
 
-textAreaConfig : Field.FormField FormData Msg
+textAreaConfig : Form.FormField FormData Msg
 textAreaConfig =
     let
         slug =
@@ -302,15 +302,15 @@ textAreaConfig =
                 else
                     Nothing
             )
-        |> Field.textArea
-        |> Field.addLabel
+        |> Form.textArea
+        |> Form.withLabel
             ("Note"
                 |> Label.label
                 |> Label.withFor slug
             )
 
 
-birthDateConfig : Field.FormField FormData Msg
+birthDateConfig : Form.FormField FormData Msg
 birthDateConfig =
     let
         slug =
@@ -321,8 +321,8 @@ birthDateConfig =
         |> Date.withOnFocus (OnFocus BirthDate)
         |> Date.withDatePicker (OnDatePickerUpdate BirthDate) .birthDateDatePicker
         |> Date.withDatePickerVisibility (.birthDateDatePickerOpened << .uiState)
-        |> Field.date
-        |> Field.addLabel
+        |> Form.date
+        |> Form.withLabel
             ("Data di nascita"
                 |> Label.label
                 |> Label.withFor slug
