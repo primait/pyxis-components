@@ -363,46 +363,10 @@ filterTaggerAttribute (Autocomplete config) =
     Events.onInput config.filterTagger
 
 
-{-| Internal. Applies all the customizations and returns the internal `Options` type.
--}
-computeOptions : Autocomplete model msg -> Options model msg
-computeOptions (Autocomplete config) =
-    List.foldl applyOption defaultOptions config.options
-
-
-{-| Internal. Transforms all the customizations into a list of valid Html.Attribute(s).
--}
-buildAttributes : model -> Autocomplete model msg -> List (Html.Attribute msg)
-buildAttributes model ((Autocomplete config) as autocompleteModel) =
-    let
-        options =
-            computeOptions autocompleteModel
-    in
-    [ options.id
-        |> Maybe.map Attrs.id
-    , options.name
-        |> Maybe.map Attrs.name
-    , options.disabled
-        |> Maybe.map Attrs.disabled
-    , options.placeholder
-        |> Maybe.map Attrs.placeholder
-    , options.onBlur
-        |> Maybe.map Events.onBlur
-    , options.onFocus
-        |> Maybe.map Events.onFocus
-    ]
-        |> List.filterMap identity
-        |> (++) options.attributes
-        |> (::) (classesAttribute options.classes)
-        |> (::) (validationAttribute model autocompleteModel)
-        |> (::) (filterReaderAttribute model autocompleteModel)
-        |> (::) (filterTaggerAttribute autocompleteModel)
-
-
 {-|
 
 
-## Renders the `Input`.
+## Renders the `Autocomplete`.
 
     import Html
     import Prima.Pyxis.Form.Autocomplete as Autocomplete
@@ -506,3 +470,39 @@ renderAutocompleteNoResults model (Autocomplete config) =
         [ Attrs.class "a-form-field__autocomplete__list--no-results" ]
         [ Html.text "Nessun risultato." ]
     ]
+
+
+{-| Internal. Transforms all the customizations into a list of valid Html.Attribute(s).
+-}
+buildAttributes : model -> Autocomplete model msg -> List (Html.Attribute msg)
+buildAttributes model ((Autocomplete config) as autocompleteModel) =
+    let
+        options =
+            computeOptions autocompleteModel
+    in
+    [ options.id
+        |> Maybe.map Attrs.id
+    , options.name
+        |> Maybe.map Attrs.name
+    , options.disabled
+        |> Maybe.map Attrs.disabled
+    , options.placeholder
+        |> Maybe.map Attrs.placeholder
+    , options.onBlur
+        |> Maybe.map Events.onBlur
+    , options.onFocus
+        |> Maybe.map Events.onFocus
+    ]
+        |> List.filterMap identity
+        |> (++) options.attributes
+        |> (::) (classesAttribute options.classes)
+        |> (::) (validationAttribute model autocompleteModel)
+        |> (::) (filterReaderAttribute model autocompleteModel)
+        |> (::) (filterTaggerAttribute autocompleteModel)
+
+
+{-| Internal. Applies all the customizations and returns the internal `Options` type.
+-}
+computeOptions : Autocomplete model msg -> Options model msg
+computeOptions (Autocomplete config) =
+    List.foldl applyOption defaultOptions config.options
