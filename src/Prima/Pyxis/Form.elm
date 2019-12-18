@@ -11,7 +11,7 @@ module Prima.Pyxis.Form exposing
 
 ## Types and Configuration
 
-@docs Form, init
+@docs Form, init, setAsPristine, setAsSubmitted, setAsTouched, isPristine, isTouched, isSubmitted
 
 
 ## Fields
@@ -53,13 +53,50 @@ type Form model msg
 
 
 type alias FormConfig model msg =
-    { fields : List (List (FormField model msg))
+    { state : FormState
+    , fields : List (List (FormField model msg))
     }
 
 
 init : Form model msg
 init =
-    Form <| FormConfig []
+    Form <| FormConfig Pristine []
+
+
+type FormState
+    = Pristine
+    | Touched
+    | Submitted
+
+
+isPristine : FormState -> Bool
+isPristine =
+    (==) Pristine
+
+
+isTouched : FormState -> Bool
+isTouched =
+    (==) Touched
+
+
+isSubmitted : FormState -> Bool
+isSubmitted =
+    (==) Submitted
+
+
+setAsPristine : Form model msg -> Form model msg
+setAsPristine (Form config) =
+    Form { config | state = Pristine }
+
+
+setAsSubmitted : Form model msg -> Form model msg
+setAsSubmitted (Form config) =
+    Form { config | state = Submitted }
+
+
+setAsTouched : Form model msg -> Form model msg
+setAsTouched (Form config) =
+    Form { config | state = Touched }
 
 
 withFields : List (FormField model msg) -> Form model msg -> Form model msg
