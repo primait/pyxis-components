@@ -319,7 +319,7 @@ birthDateConfig =
     Date.date .birthDate (OnDateInput BirthDate)
         |> Date.withId slug
         |> Date.withOnFocus (OnFocus BirthDate)
-        |> Date.withDatePicker (OnDatePickerUpdate BirthDate) .birthDateDatePicker
+        |> Date.withDatePicker .birthDateDatePicker (OnDatePickerUpdate BirthDate)
         |> Date.withDatePickerVisibility (.birthDateDatePickerOpened << .uiState)
         |> Form.date
         |> Form.withLabel

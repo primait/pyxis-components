@@ -84,7 +84,7 @@ date reader tagger =
 type DateOption model msg
     = Attribute (Html.Attribute msg)
     | Class String
-    | DatePicker (DatePicker.Msg -> msg) (model -> Maybe DatePicker.Model)
+    | DatePicker (model -> Maybe DatePicker.Model) (DatePicker.Msg -> msg)
     | DatePickerVisibility (model -> Bool)
     | Disabled Bool
     | Id String
@@ -118,9 +118,9 @@ withClass class_ =
     addOption (Class class_)
 
 
-withDatePicker : (DatePicker.Msg -> msg) -> (model -> Maybe DatePicker.Model) -> Date model msg -> Date model msg
-withDatePicker tagger model =
-    addOption (DatePicker tagger model)
+withDatePicker : (model -> Maybe DatePicker.Model) -> (DatePicker.Msg -> msg) -> Date model msg -> Date model msg
+withDatePicker reader tagger =
+    addOption (DatePicker reader tagger)
 
 
 withDatePickerVisibility : (model -> Bool) -> Date model msg -> Date model msg
@@ -363,7 +363,7 @@ applyOption modifier options =
         Class class ->
             { options | classes = class :: options.classes }
 
-        DatePicker tagger reader ->
+        DatePicker reader tagger ->
             { options | datePickerTagger = Just tagger, datePickerReader = reader }
 
         DatePickerVisibility reader ->
