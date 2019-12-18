@@ -1,5 +1,5 @@
 module Prima.Pyxis.Form exposing
-    ( Form, init
+    ( Form, init, setAsPristine, setAsSubmitted, setAsTouched, isPristine, isTouched, isSubmitted
     , FormField, input, autocomplete, checkbox, date, flag, radio, radioButton, select
     , withLabel, withFields
     , render
