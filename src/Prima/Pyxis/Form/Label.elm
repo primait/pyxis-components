@@ -24,9 +24,10 @@ module Prima.Pyxis.Form.Label exposing
 
 -}
 
-import Html exposing (Html, label, text)
+import Html exposing (Html, text)
 import Html.Attributes as Attrs
 import Html.Events as Events
+import Prima.Pyxis.Helpers as H
 
 
 {-| Represents the opaque `Label` configuration.
