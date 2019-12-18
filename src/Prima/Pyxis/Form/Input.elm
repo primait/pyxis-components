@@ -70,7 +70,7 @@ type alias InputConfig model msg =
     }
 
 
-{-| Represents the `Input` type.
+{-| Internal. Represents the `Input` type.
 -}
 type InputType
     = Text
