@@ -25,6 +25,7 @@ module Prima.Pyxis.Tooltip exposing
 
 import Html exposing (Html)
 import Html.Attributes as Attrs
+import Prima.Pyxis.Helpers as H
 
 
 {-| Represents the opaque `Tooltip` configuration.
@@ -155,13 +156,6 @@ computeOptions (Tooltip config) =
     List.foldl applyOption defaultOptions config.options
 
 
-{-| Internal. Transforms a list of `class`(es) into a valid Html.Attribute.
--}
-classesAttribute : List String -> Html.Attribute msg
-classesAttribute =
-    Attrs.class << String.join " "
-
-
 {-| Internal. Transforms all the customizations into a list of valid Html.Attribute(s).
 -}
 buildAttributes : Tooltip msg -> List (Html.Attribute msg)
@@ -172,7 +166,7 @@ buildAttributes tooltip =
     in
     [ Maybe.map Attrs.id options.id ]
         |> List.filterMap identity
-        |> (::) (classesAttribute options.classes)
+        |> (::) (H.classesAttribute options.classes)
 
 
 {-| Internal. Represents the initial state of the list of customizations for the `Tooltip` component.

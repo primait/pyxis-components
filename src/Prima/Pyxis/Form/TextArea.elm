@@ -267,13 +267,6 @@ applyOption modifier options =
             { options | validations = validation :: options.validations }
 
 
-{-| Internal. Transforms a list of `class`(es) into a valid Html.Attribute.
--}
-classesAttribute : List String -> Html.Attribute msg
-classesAttribute =
-    Attrs.class << String.join " "
-
-
 {-| Internal. Transforms an `TextAreaSize` into a valid Html.Attribute.
 -}
 sizeAttribute : TextAreaSize -> Html.Attribute msg
@@ -364,7 +357,7 @@ buildAttributes model textAreaModel =
     ]
         |> List.filterMap identity
         |> (++) options.attributes
-        |> (::) (classesAttribute options.classes)
+        |> (::) (H.classesAttribute options.classes)
         |> (::) (readerAttribute model textAreaModel)
         |> (::) (taggerAttribute textAreaModel)
         |> (::) (sizeAttribute options.size)

@@ -296,13 +296,6 @@ applyOption modifier options =
             { options | validations = validation :: options.validations }
 
 
-{-| Internal. Transforms a list of `class`(es) into a valid Html.Attribute.
--}
-classesAttribute : List String -> Html.Attribute msg
-classesAttribute =
-    Attrs.class << String.join " "
-
-
 {-| Internal. Transforms the `Validation` status into an Html.Attribute `class`.
 -}
 validationAttribute : model -> Autocomplete model msg -> Html.Attribute msg
@@ -495,7 +488,7 @@ buildAttributes model ((Autocomplete config) as autocompleteModel) =
     ]
         |> List.filterMap identity
         |> (++) options.attributes
-        |> (::) (classesAttribute options.classes)
+        |> (::) (H.classesAttribute options.classes)
         |> (::) (validationAttribute model autocompleteModel)
         |> (::) (filterReaderAttribute model autocompleteModel)
         |> (::) (filterTaggerAttribute autocompleteModel)

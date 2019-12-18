@@ -1,5 +1,6 @@
 module Prima.Pyxis.Helpers exposing
-    ( flip
+    ( classesAttribute
+    , flip
     , isJust
     , isNothing
     , loremIpsum
@@ -13,7 +14,7 @@ module Prima.Pyxis.Helpers exposing
     )
 
 import Html exposing (Html, br, text)
-import Html.Attributes exposing (href, rel)
+import Html.Attributes exposing (class, href, rel)
 
 
 pyxisStyle : Html msg
@@ -87,3 +88,10 @@ withCmds cmds model =
 withoutCmds : model -> ( model, Cmd msg )
 withoutCmds =
     withCmds []
+
+
+{-| Transforms a list of `class`(es) into a valid Html.Attribute.
+-}
+classesAttribute : List String -> Html.Attribute msg
+classesAttribute =
+    class << String.join " "

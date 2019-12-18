@@ -180,14 +180,7 @@ buildAttributes ((Label config) as labelModel) =
     ]
         |> List.filterMap identity
         |> (++) options.attributes
-        |> (::) (classesAttribute options.classes)
-
-
-{-| Transforms a `List` of `Class`(es) into a valid `Html.Attribute`.
--}
-classesAttribute : List String -> Html.Attribute msg
-classesAttribute =
-    Attrs.class << String.join " "
+        |> (::) (H.classesAttribute options.classes)
 
 
 {-| Renders a `Label config`.

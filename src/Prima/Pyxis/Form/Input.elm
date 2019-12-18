@@ -378,13 +378,6 @@ typeAttribute type_ =
         )
 
 
-{-| Internal. Transforms a list of `class`(es) into a valid Html.Attribute.
--}
-classesAttribute : List String -> Html.Attribute msg
-classesAttribute =
-    Attrs.class << String.join " "
-
-
 {-| Internal. Transforms an `InputSize` into a valid Html.Attribute.
 -}
 sizeAttribute : InputSize -> Html.Attribute msg
@@ -475,7 +468,7 @@ buildAttributes model ((Input config) as inputModel) =
     ]
         |> List.filterMap identity
         |> (++) options.attributes
-        |> (::) (classesAttribute options.classes)
+        |> (::) (H.classesAttribute options.classes)
         |> (::) (readerAttribute model inputModel)
         |> (::) (taggerAttribute inputModel)
         |> (::) (typeAttribute config.type_)

@@ -394,13 +394,6 @@ applyOption modifier options =
             { options | validations = validation :: options.validations }
 
 
-{-| Transforms a `List` of `Class`(es) into a valid `Html.Attribute`.
--}
-classesAttribute : List String -> Html.Attribute msg
-classesAttribute =
-    Attrs.class << String.join " "
-
-
 {-| Transforms an `DateSize` into a valid `Html.Attribute`.
 -}
 sizeAttribute : DateSize -> Html.Attribute msg
@@ -512,7 +505,7 @@ buildAttributes model dateModel =
     ]
         |> List.filterMap identity
         |> (++) options.attributes
-        |> (::) (classesAttribute options.classes)
+        |> (::) (H.classesAttribute options.classes)
         |> (::) (readerAttribute model dateModel)
         |> (::) (taggerAttribute dateModel)
         |> (::) (sizeAttribute options.size)
