@@ -1,6 +1,6 @@
 module Prima.Pyxis.Form.Select exposing
     ( Select(..), select
-    , withId, withAttribute, withDisabled
+    , withId, withAttribute, withDefaultValue, withDisabled
     , render
     , Options, SelectChoice, SelectConfig, SelectOption(..), SelectSize(..), addOption, applyOption, buildAttributes, classAttribute, computeOptions, defaultOptions, renderCustomSelect, renderCustomSelectChoice, renderCustomSelectChoiceWrapper, renderCustomSelectStatus, renderSelect, renderSelectChoice, renderValidationMessages, selectChoice, sizeAttribute, taggerAttribute, validationAttribute, withLargeSize, withOnBlur, withOnFocus, withOverridingClass, withPlaceholder, withRegularSize, withSmallSize, withValidation
     )
@@ -15,7 +15,7 @@ module Prima.Pyxis.Form.Select exposing
 
 ## Modifiers
 
-@docs withId, withName, withAttribute, withDisabled, withValue
+@docs withId, withName, withAttribute, withDefaultValue, withDisabled, withValue
 
 
 ## Events
@@ -73,6 +73,7 @@ selectChoice value label =
 type SelectOption model msg
     = Attribute (Html.Attribute msg)
     | Class String
+    | DefaultValue (Maybe String)
     | Disabled Bool
     | Id String
     | OnFocus msg
@@ -81,6 +82,11 @@ type SelectOption model msg
     | Placeholder String
     | Size SelectSize
     | Validation (model -> Maybe Validation.Type)
+
+
+type Default
+    = Indeterminate
+    | Value (Maybe String)
 
 
 {-| Represents the `Select` size.
@@ -96,6 +102,7 @@ type SelectSize
 type alias Options model msg =
     { attributes : List (Html.Attribute msg)
     , class : List String
+    , defaultValue : Default
     , disabled : Maybe Bool
     , id : Maybe String
     , onFocus : Maybe msg
@@ -110,6 +117,7 @@ defaultOptions : Options model msg
 defaultOptions =
     { attributes = []
     , class = [ "a-form-field__select" ]
+    , defaultValue = Indeterminate
     , disabled = Nothing
     , id = Nothing
     , onFocus = Nothing
@@ -132,6 +140,14 @@ addOption option (Select selectConfig) =
 withAttribute : Html.Attribute msg -> Select model msg -> Select model msg
 withAttribute attribute =
     addOption (Attribute attribute)
+
+
+{-| Adds a default value to the `Select`.
+Useful to teach the component about it's `pristine/touched` state.
+-}
+withDefaultValue : Maybe String -> Select model msg -> Select model msg
+withDefaultValue value =
+    addOption (DefaultValue value)
 
 
 {-| Sets a `disabled` to the `Select config`.
@@ -210,6 +226,9 @@ applyOption modifier options =
 
         Class class ->
             { options | class = class :: options.class }
+
+        DefaultValue value ->
+            { options | defaultValue = Value value }
 
         Disabled disabled ->
             { options | disabled = Just disabled }
@@ -292,6 +311,21 @@ validationAttribute model selectModel =
             Attrs.class "has-error"
 
 
+{-| Internal. Applies the `pristine/touched` visual state to the component.
+-}
+pristineAttribute : model -> Select model msg -> Html.Attribute msg
+pristineAttribute model ((Select config) as selectModel) =
+    let
+        options =
+            computeOptions selectModel
+    in
+    if Value (config.reader model) == options.defaultValue then
+        Attrs.class "is-pristine"
+
+    else
+        Attrs.class "is-touched"
+
+
 {-| Composes all the modifiers into a set of `Html.Attribute`(s).
 -}
 buildAttributes : model -> Select model msg -> List (Html.Attribute msg)
@@ -315,6 +349,7 @@ buildAttributes model ((Select config) as selectModel) =
         |> (::) (sizeAttribute options.size)
         |> (::) (taggerAttribute selectModel)
         |> (::) (validationAttribute model selectModel)
+        |> (::) (pristineAttribute model selectModel)
 
 
 {-| Renders the `Radio config`.

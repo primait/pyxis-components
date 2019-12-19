@@ -1,6 +1,6 @@
 module Prima.Pyxis.Form.Input exposing
     ( Input, text, password, date, number, email
-    , withAttribute, withClass, withDisabled, withId, withName, withPlaceholder
+    , withAttribute, withClass, withDefaultValue, withDisabled, withId, withName, withPlaceholder
     , withRegularSize, withSmallSize, withLargeSize
     , withPrependGroup, withAppendGroup, withGroupClass
     , withOnBlur, withOnFocus
@@ -18,7 +18,7 @@ module Prima.Pyxis.Form.Input exposing
 
 ## Options
 
-@docs withAttribute, withClass, withDisabled, withId, withName, withPlaceholder
+@docs withAttribute, withClass, withDefaultValue, withDisabled, withId, withName, withPlaceholder
 
 
 ## Size
@@ -128,6 +128,7 @@ type InputOption model msg
     = AppendGroup (List (Html msg))
     | Attribute (Html.Attribute msg)
     | Class String
+    | DefaultValue (Maybe String)
     | Disabled Bool
     | GroupClass String
     | Id String
@@ -139,6 +140,11 @@ type InputOption model msg
     | PrependGroup (List (Html msg))
     | Size InputSize
     | Validation (model -> Maybe Validation.Type)
+
+
+type Default
+    = Indeterminate
+    | Value (Maybe String)
 
 
 {-| Internal. Represents the `Input` size.
@@ -168,6 +174,14 @@ withAttribute attribute =
 withClass : String -> Input model msg -> Input model msg
 withClass class_ =
     addOption (Class class_)
+
+
+{-| Adds a default value to the `Input`.
+Useful to teach the component about it's `pristine/touched` state.
+-}
+withDefaultValue : Maybe String -> Input model msg -> Input model msg
+withDefaultValue value =
+    addOption (DefaultValue value)
 
 
 {-| Adds a `disabled` Html.Attribute to the `Input`.
@@ -273,6 +287,7 @@ addOption option (Input inputConfig) =
 type alias Options model msg =
     { appendGroup : Maybe (List (Html msg))
     , attributes : List (Html.Attribute msg)
+    , defaultValue : Default
     , disabled : Maybe Bool
     , classes : List String
     , groupClasses : List String
@@ -293,6 +308,7 @@ defaultOptions : Options model msg
 defaultOptions =
     { appendGroup = Nothing
     , attributes = []
+    , defaultValue = Indeterminate
     , disabled = Nothing
     , classes = [ "a-form-field__input" ]
     , groupClasses = []
@@ -323,6 +339,9 @@ applyOption modifier options =
 
         OverridingClass class ->
             { options | classes = [ class ] }
+
+        DefaultValue value ->
+            { options | defaultValue = Value value }
 
         Disabled disabled ->
             { options | disabled = Just disabled }
@@ -438,6 +457,21 @@ validationAttribute model inputModel =
             Attrs.class "has-error"
 
 
+{-| Internal. Applies the `pristine/touched` visual state to the component.
+-}
+pristineAttribute : model -> Input model msg -> Html.Attribute msg
+pristineAttribute model ((Input config) as inputModel) =
+    let
+        options =
+            computeOptions inputModel
+    in
+    if Value (config.reader model) == options.defaultValue then
+        Attrs.class "is-pristine"
+
+    else
+        Attrs.class "is-touched"
+
+
 {-| Internal. Applies all the customizations and returns the internal `Options` type.
 -}
 computeOptions : Input model msg -> Options model msg
@@ -474,6 +508,7 @@ buildAttributes model ((Input config) as inputModel) =
         |> (::) (typeAttribute config.type_)
         |> (::) (sizeAttribute options.size)
         |> (::) (validationAttribute model inputModel)
+        |> (::) (pristineAttribute model inputModel)
 
 
 {-|

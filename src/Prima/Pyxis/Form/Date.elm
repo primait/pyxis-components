@@ -1,6 +1,6 @@
 module Prima.Pyxis.Form.Date exposing
     ( Date, date
-    , withAttribute, withClass, withDisabled, withId, withName, withPlaceholder
+    , withAttribute, withClass, withDefaultValue, withDisabled, withId, withName, withPlaceholder
     , withRegularSize, withSmallSize, withLargeSize
     , withDatePicker, withDatePickerVisibility
     , withOnBlur, withOnFocus
@@ -18,7 +18,7 @@ module Prima.Pyxis.Form.Date exposing
 
 ## Generic modifiers
 
-@docs withAttribute, withClass, withDisabled, withId, withName, withPlaceholder
+@docs withAttribute, withClass, withDefaultValue, withDisabled, withId, withName, withPlaceholder
 
 
 ## Size modifiers
@@ -86,6 +86,7 @@ type DateOption model msg
     | Class String
     | DatePicker (model -> Maybe DatePicker.Model) (DatePicker.Msg -> msg)
     | DatePickerVisibility (model -> Bool)
+    | DefaultValue DatePicker.Date
     | Disabled Bool
     | Id String
     | Name String
@@ -96,6 +97,11 @@ type DateOption model msg
     | Validation (model -> Maybe Validation.Type)
 
 
+type Default
+    = Indeterminate
+    | Value DatePicker.Date
+
+
 {-| Represents the `Date` size.
 -}
 type DateSize
@@ -104,87 +110,100 @@ type DateSize
     | Large
 
 
-{-| Sets an `attribute` to the `Date config`.
+{-| Sets an `attribute` to the `Date`.
 -}
 withAttribute : Html.Attribute msg -> Date model msg -> Date model msg
 withAttribute attribute =
     addOption (Attribute attribute)
 
 
-{-| Sets a `class` to the `Date config`.
+{-| Sets a `class` to the `Date`.
 -}
 withClass : String -> Date model msg -> Date model msg
 withClass class_ =
     addOption (Class class_)
 
 
+{-| Adds a default value to the `Date`.
+Useful to teach the component about it's `pristine/touched` state.
+-}
+withDefaultValue : DatePicker.Date -> Date model msg -> Date model msg
+withDefaultValue value =
+    addOption (DefaultValue value)
+
+
+{-| Adds a DatePicker to the `Date`.
+Remember to add the visibility policy with `withDatePickerVisibility`.
+-}
 withDatePicker : (model -> Maybe DatePicker.Model) -> (DatePicker.Msg -> msg) -> Date model msg -> Date model msg
 withDatePicker reader tagger =
     addOption (DatePicker reader tagger)
 
 
+{-| Adds a visibility policy to the DatePicker built via `withDatePicker`.
+-}
 withDatePickerVisibility : (model -> Bool) -> Date model msg -> Date model msg
 withDatePickerVisibility reader =
     addOption (DatePickerVisibility reader)
 
 
-{-| Sets a `disabled` to the `Date config`.
+{-| Sets a `disabled` to the `Date`.
 -}
 withDisabled : Bool -> Date model msg -> Date model msg
 withDisabled disabled =
     addOption (Disabled disabled)
 
 
-{-| Sets an `id` to the `Date config`.
+{-| Sets an `id` to the `Date`.
 -}
 withId : String -> Date model msg -> Date model msg
 withId id =
     addOption (Id id)
 
 
-{-| Sets a `size` to the `Date config`.
+{-| Sets a `size` to the `Date`.
 -}
 withLargeSize : Date model msg -> Date model msg
 withLargeSize =
     addOption (Size Large)
 
 
-{-| Sets a `name` to the `Date config`.
+{-| Sets a `name` to the `Date`.
 -}
 withName : String -> Date model msg -> Date model msg
 withName name =
     addOption (Name name)
 
 
-{-| Sets an `onBlur event` to the `Date config`.
+{-| Sets an `onBlur event` to the `Date`.
 -}
 withOnBlur : msg -> Date model msg -> Date model msg
 withOnBlur tagger =
     addOption (OnBlur tagger)
 
 
-{-| Sets an `onFocus event` to the `Date config`.
+{-| Sets an `onFocus event` to the `Date`.
 -}
 withOnFocus : msg -> Date model msg -> Date model msg
 withOnFocus tagger =
     addOption (OnFocus tagger)
 
 
-{-| Sets a `placeholder` to the `Date config`.
+{-| Sets a `placeholder` to the `Date`.
 -}
 withPlaceholder : String -> Date model msg -> Date model msg
 withPlaceholder placeholder =
     addOption (Placeholder placeholder)
 
 
-{-| Sets a `size` to the `Date config`.
+{-| Sets a `size` to the `Date`.
 -}
 withRegularSize : Date model msg -> Date model msg
 withRegularSize =
     addOption (Size Regular)
 
 
-{-| Sets a `size` to the `Date config`.
+{-| Sets a `size` to the `Date`.
 -}
 withSmallSize : Date model msg -> Date model msg
 withSmallSize =
@@ -196,14 +215,18 @@ withValidation validation =
     addOption (Validation validation)
 
 
-{-| Renders the `Date config`.
+{-| Renders the `Date`.
 -}
 render : model -> Date model msg -> List (Html msg)
 render model dateModel =
+    let
+        options =
+            computeOptions dateModel
+    in
     if shouldShowDatePicker model dateModel then
         [ renderGroup
             (renderAppendGroup dateModel
-                [ renderDatePickerIcon
+                [ renderDatePickerIcon <| Maybe.withDefault "" options.id
                 ]
                 :: renderDate model dateModel
                 :: renderDatePicker model dateModel
@@ -238,9 +261,9 @@ renderDatePicker model dateModel =
             Html.text ""
 
 
-renderDatePickerIcon : Html msg
-renderDatePickerIcon =
-    Html.i [ Attrs.class "a-icon a-icon-calendar" ] []
+renderDatePickerIcon : String -> Html msg
+renderDatePickerIcon fieldId =
+    Html.label [ Attrs.class "a-icon a-icon-calendar", Attrs.for fieldId ] []
 
 
 renderGroup : List (Html msg) -> Html msg
@@ -315,6 +338,7 @@ type alias Options model msg =
     , datePickerReader : model -> Maybe DatePicker.Model
     , datePickerTagger : Maybe (DatePicker.Msg -> msg)
     , datePickerVisibility : model -> Bool
+    , defaultValue : Default
     , disabled : Maybe Bool
     , classes : List String
     , groupClasses : List String
@@ -338,6 +362,7 @@ defaultOptions =
     , datePickerReader = always Nothing
     , datePickerTagger = Nothing
     , datePickerVisibility = always False
+    , defaultValue = Indeterminate
     , disabled = Nothing
     , classes = [ "a-form-field__input", "a-form-field__datepicker" ]
     , groupClasses = []
@@ -368,6 +393,9 @@ applyOption modifier options =
 
         DatePickerVisibility reader ->
             { options | datePickerVisibility = reader }
+
+        DefaultValue value ->
+            { options | defaultValue = Value value }
 
         Disabled disabled ->
             { options | disabled = Just disabled }
@@ -482,6 +510,21 @@ validationAttribute model dateModel =
             Attrs.class "has-error"
 
 
+{-| Internal. Applies the `pristine/touched` visual state to the component.
+-}
+pristineAttribute : model -> Date model msg -> Html.Attribute msg
+pristineAttribute model ((Date config) as dateModel) =
+    let
+        options =
+            computeOptions dateModel
+    in
+    if Value (config.reader model) == options.defaultValue then
+        Attrs.class "is-pristine"
+
+    else
+        Attrs.class "is-touched"
+
+
 {-| Composes all the modifiers into a set of `Html.Attribute`(s).
 -}
 buildAttributes : model -> Date model msg -> List (Html.Attribute msg)
@@ -510,6 +553,7 @@ buildAttributes model dateModel =
         |> (::) (taggerAttribute dateModel)
         |> (::) (sizeAttribute options.size)
         |> (::) (validationAttribute model dateModel)
+        |> (::) (pristineAttribute model dateModel)
         |> (::) (Attrs.type_ "text")
 
 

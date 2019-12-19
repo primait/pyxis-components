@@ -1,6 +1,6 @@
 module Prima.Pyxis.Form.TextArea exposing
     ( TextArea
-    , withAttribute, withClass, withDisabled, withId, withName, withPlaceholder
+    , withAttribute, withClass, withDefaultValue, withDisabled, withId, withName, withPlaceholder
     , withRegularSize, withSmallSize, withLargeSize
     , withOnBlur, withOnFocus
     , withValidation
@@ -18,7 +18,7 @@ module Prima.Pyxis.Form.TextArea exposing
 
 ## Options
 
-@docs withAttribute, withClass, withDisabled, withId, withName, withPlaceholder
+@docs withAttribute, withClass, withDefaultValue, withDisabled, withId, withName, withPlaceholder
 
 
 ## Size modifiers
@@ -76,6 +76,7 @@ textArea reader tagger =
 type TextAreaOption model msg
     = Attribute (Html.Attribute msg)
     | Class String
+    | DefaultValue (Maybe String)
     | Disabled Bool
     | Id String
     | Name String
@@ -85,6 +86,11 @@ type TextAreaOption model msg
     | Placeholder String
     | Size TextAreaSize
     | Validation (model -> Maybe Validation.Type)
+
+
+type Default
+    = Indeterminate
+    | Value (Maybe String)
 
 
 {-| Internal. Represents the `TextArea` size.
@@ -107,6 +113,14 @@ withAttribute attribute =
 withClass : String -> TextArea model msg -> TextArea model msg
 withClass class_ =
     addOption (Class class_)
+
+
+{-| Adds a default value to the `Textarea`.
+Useful to teach the component about it's `pristine/touched` state.
+-}
+withDefaultValue : Maybe String -> TextArea model msg -> TextArea model msg
+withDefaultValue value =
+    addOption (DefaultValue value)
 
 
 {-| Adds a `disabled` Html.Attribute to the `TextArea`.
@@ -197,6 +211,7 @@ addOption option (TextArea textAreaConfig) =
 -}
 type alias Options model msg =
     { attributes : List (Html.Attribute msg)
+    , defaultValue : Default
     , disabled : Maybe Bool
     , classes : List String
     , groupClasses : List String
@@ -215,6 +230,7 @@ type alias Options model msg =
 defaultOptions : Options model msg
 defaultOptions =
     { attributes = []
+    , defaultValue = Indeterminate
     , disabled = Nothing
     , classes = [ "a-form-field__textarea" ]
     , groupClasses = []
@@ -241,6 +257,9 @@ applyOption modifier options =
 
         OverridingClass class ->
             { options | classes = [ class ] }
+
+        DefaultValue value ->
+            { options | defaultValue = Value value }
 
         Disabled disabled ->
             { options | disabled = Just disabled }
@@ -325,6 +344,21 @@ validationAttribute model ((TextArea config) as textAreaModel) =
 
         ( _, _ ) ->
             Attrs.class "has-error"
+
+
+{-| Internal. Applies the `pristine/touched` visual state to the component.
+-}
+pristineAttribute : model -> TextArea model msg -> Html.Attribute msg
+pristineAttribute model ((TextArea config) as textAreaModel) =
+    let
+        options =
+            computeOptions textAreaModel
+    in
+    if Value (config.reader model) == options.defaultValue then
+        Attrs.class "is-pristine"
+
+    else
+        Attrs.class "is-touched"
 
 
 {-| Internal. Applies all the customizations and returns the internal `Options` type.

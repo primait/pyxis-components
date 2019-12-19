@@ -1,9 +1,8 @@
 module Prima.Pyxis.Form exposing
     ( Form, init, setAsPristine, setAsSubmitted, setAsTouched, isPristine, isTouched, isSubmitted
-    , FormField, input, autocomplete, checkbox, date, flag, radio, radioButton, select
+    , FormField, input, autocomplete, checkbox, date, flag, radio, radioButton, select, textArea
     , withLabel, withFields
     , render
-    , gridRow, hasLabel, pickLabel, textArea
     )
 
 {-|
@@ -16,7 +15,7 @@ module Prima.Pyxis.Form exposing
 
 ## Fields
 
-@docs FormField, input, autocomplete, checkbox, date, flag, radio, radioButton, select, textarea
+@docs FormField, input, autocomplete, checkbox, date, flag, radio, radioButton, select, textArea
 
 
 ## Manipulating Form and Fields
@@ -69,19 +68,19 @@ type FormState
     | Submitted
 
 
-isPristine : FormState -> Bool
-isPristine =
-    (==) Pristine
+isPristine : Form model msg -> Bool
+isPristine (Form config) =
+    config.state == Pristine
 
 
-isTouched : FormState -> Bool
-isTouched =
-    (==) Touched
+isTouched : Form model msg -> Bool
+isTouched (Form config) =
+    config.state == Touched
 
 
-isSubmitted : FormState -> Bool
-isSubmitted =
-    (==) Submitted
+isSubmitted : Form model msg -> Bool
+isSubmitted (Form config) =
+    config.state == Submitted
 
 
 setAsPristine : Form model msg -> Form model msg

@@ -1,6 +1,6 @@
 module Prima.Pyxis.Form.Autocomplete exposing
     ( Autocomplete, AutocompleteChoice, autocomplete, autocompleteChoice
-    , withAttribute, withClass, withDisabled, withId, withName, withPlaceholder, withThreshold
+    , withAttribute, withClass, withDefaultValue, withDisabled, withId, withName, withPlaceholder, withThreshold
     , withRegularSize, withSmallSize, withLargeSize
     , withOnBlur, withOnFocus
     , withValidation
@@ -17,7 +17,7 @@ module Prima.Pyxis.Form.Autocomplete exposing
 
 ## Options
 
-@docs withAttribute, withClass, withDisabled, withId, withName, withPlaceholder, withThreshold
+@docs withAttribute, withClass, withDefaultValue, withDisabled, withId, withName, withPlaceholder, withThreshold
 
 
 ## Size
@@ -94,6 +94,7 @@ autocompleteChoice value label =
 type AutocompleteOption model msg
     = Attribute (Html.Attribute msg)
     | Class String
+    | DefaultValue (Maybe String)
     | Disabled Bool
     | Id String
     | Name String
@@ -104,6 +105,13 @@ type AutocompleteOption model msg
     | Size AutocompleteSize
     | Threshold Int
     | Validation (model -> Maybe Validation.Type)
+
+
+{-| Internal. The default value in order to represent the `pristine/touched` state.
+-}
+type DefaultValue
+    = Indeterminate
+    | Value (Maybe String)
 
 
 {-| Represents the `Autocomplete` size.
@@ -126,6 +134,14 @@ withAttribute attribute =
 withClass : String -> Autocomplete model msg -> Autocomplete model msg
 withClass class_ =
     addOption (Class class_)
+
+
+{-| Adds a default value to the `Input`.
+Useful to teach the component about it's `pristine/touched` state.
+-}
+withDefaultValue : Maybe String -> Autocomplete model msg -> Autocomplete model msg
+withDefaultValue value =
+    addOption (DefaultValue value)
 
 
 {-| Adds a `disabled` Html.Attribute to the `Autocomplete`.
@@ -224,6 +240,7 @@ addOption option (Autocomplete autocompleteConfig) =
 type alias Options model msg =
     { attributes : List (Html.Attribute msg)
     , disabled : Maybe Bool
+    , defaultValue : DefaultValue
     , classes : List String
     , id : Maybe String
     , name : Maybe String
@@ -241,6 +258,7 @@ type alias Options model msg =
 defaultOptions : Options model msg
 defaultOptions =
     { attributes = []
+    , defaultValue = Indeterminate
     , disabled = Nothing
     , classes = [ "a-form-field__input" ]
     , id = Nothing
@@ -267,6 +285,9 @@ applyOption modifier options =
 
         OverridingClass class ->
             { options | classes = [ class ] }
+
+        DefaultValue value ->
+            { options | defaultValue = Value value }
 
         Disabled disabled ->
             { options | disabled = Just disabled }
@@ -323,6 +344,21 @@ validationAttribute model autocompleteModel =
 
         ( _, _ ) ->
             Attrs.class "has-error"
+
+
+{-| Internal. Applies the `pristine/touched` visual state to the component.
+-}
+pristineAttribute : model -> Autocomplete model msg -> Html.Attribute msg
+pristineAttribute model ((Autocomplete config) as inputModel) =
+    let
+        options =
+            computeOptions inputModel
+    in
+    if Value (config.reader model) == options.defaultValue then
+        Attrs.class "is-pristine"
+
+    else
+        Attrs.class "is-touched"
 
 
 {-| Internal. Transforms the `reader` function into a valid Html.Attribute.
@@ -427,6 +463,7 @@ render model ((Autocomplete config) as autocompleteModel) =
             , ( "is-large", options.size == Large )
             ]
         , validationAttribute model autocompleteModel
+        , pristineAttribute model autocompleteModel
         ]
         [ Html.input
             (buildAttributes model autocompleteModel)
@@ -516,6 +553,7 @@ buildAttributes model ((Autocomplete config) as autocompleteModel) =
         |> (++) options.attributes
         |> (::) (H.classesAttribute options.classes)
         |> (::) (validationAttribute model autocompleteModel)
+        |> (::) (pristineAttribute model autocompleteModel)
         |> (::) (filterReaderAttribute model autocompleteModel)
         |> (::) (filterTaggerAttribute autocompleteModel)
 
