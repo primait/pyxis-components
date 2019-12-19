@@ -299,10 +299,10 @@ applyOption modifier options =
 {-| Internal. Transforms the `Validation` status into an Html.Attribute `class`.
 -}
 validationAttribute : model -> Autocomplete model msg -> Html.Attribute msg
-validationAttribute model inputModel =
+validationAttribute model autocompleteModel =
     let
         options =
-            computeOptions inputModel
+            computeOptions autocompleteModel
 
         errors =
             options.validations
@@ -418,7 +418,7 @@ render model ((Autocomplete config) as autocompleteModel) =
                 |> Maybe.withDefault 0
                 |> (<=) options.threshold
     in
-    [ Html.div
+    Html.div
         [ Attrs.classList
             [ ( "a-form-field__autocomplete", True )
             , ( "is-open", hasReachedThreshold && config.openedReader model )
@@ -440,7 +440,7 @@ render model ((Autocomplete config) as autocompleteModel) =
                 renderAutocompleteNoResults model autocompleteModel
             )
         ]
-    ]
+        :: renderValidationMessages model autocompleteModel
 
 
 renderAutocompleteChoice : model -> Autocomplete model msg -> AutocompleteChoice -> Html msg
@@ -463,6 +463,32 @@ renderAutocompleteNoResults model (Autocomplete config) =
         [ Attrs.class "a-form-field__autocomplete__list--no-results" ]
         [ Html.text "Nessun risultato." ]
     ]
+
+
+{-| Internal. Renders the list of errors if present. Renders the list of warnings if not.
+-}
+renderValidationMessages : model -> Autocomplete model msg -> List (Html msg)
+renderValidationMessages model autocompleteModel =
+    let
+        options =
+            computeOptions autocompleteModel
+
+        warnings =
+            options.validations
+                |> List.filterMap (H.flip identity model)
+                |> List.filter Validation.isWarning
+
+        errors =
+            options.validations
+                |> List.filterMap (H.flip identity model)
+                |> List.filter Validation.isError
+    in
+    case ( errors, warnings ) of
+        ( [], _ ) ->
+            List.map Validation.render warnings
+
+        ( _, _ ) ->
+            List.map Validation.render errors
 
 
 {-| Internal. Transforms all the customizations into a list of valid Html.Attribute(s).
