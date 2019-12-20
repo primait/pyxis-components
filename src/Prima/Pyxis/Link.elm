@@ -145,20 +145,6 @@ type Icon
     | Phone
 
 
-{-| add an href to 'Link'.
--}
-withHref : String -> Link msg -> Link msg
-withHref href (Link linkConfig) =
-    Link { linkConfig | href = Just href }
-
-
-{-| add an label to 'Link'.
--}
-withLabel : String -> Link msg -> Link msg
-withLabel label (Link linkConfig) =
-    Link { linkConfig | label = label }
-
-
 {-| Creates a arrow-right icon.
 -}
 withIconArrowRight : Link msg -> Link msg
