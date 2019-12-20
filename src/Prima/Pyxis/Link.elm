@@ -290,28 +290,13 @@ import Prima.Pyxis.Link as Link
 -}
 render : Link msg -> Html msg
 render ((Link config) as linkModel) =
-    let
-        isOnClickConfigured : Bool
-        isOnClickConfigured =
-            computeOptions linkModel
-                |> .onClick
-                |> H.isJust
-
-        href_ : Html.Attribute msg
-        href_ =
-            if isOnClickConfigured then
-                Attrs.href "#"
-
-            else
-                Attrs.href (Maybe.withDefault "#" config.href)
-    in
     a
         ([ Attrs.classList
             [ ( "a-link", True )
             , ( "a-link--standalone", isStandalone config.type_ )
             , ( "a-link--with-icon", H.isJust config.icon )
             ]
-         , href_
+         , Attrs.href (Maybe.withDefault "#" config.href)
          ]
             ++ buildAttributes linkModel
         )
