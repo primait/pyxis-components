@@ -46,7 +46,7 @@ type Msg
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-    case Debug.log "handle onClick" msg of
+    case msg of
         LinkClicked ->
             ( model, Cmd.none )
 
