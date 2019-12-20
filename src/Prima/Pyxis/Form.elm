@@ -1,7 +1,7 @@
 module Prima.Pyxis.Form exposing
     ( Form, init, setAsPristine, setAsSubmitted, setAsTouched, isPristine, isTouched, isSubmitted
     , FormField, input, autocomplete, checkbox, date, flag, radio, radioButton, select, textArea
-    , withLabel, withFields
+    , withLabel, withAppendableHtml, withFields
     , render
     )
 
@@ -20,7 +20,7 @@ module Prima.Pyxis.Form exposing
 
 ## Manipulating Form and Fields
 
-@docs withLabel, withFields
+@docs withLabel, withAppendableHtml, withFields
 
 
 ## Rendering
@@ -45,7 +45,7 @@ import Prima.Pyxis.Form.TextArea as TextArea
 import Prima.Pyxis.Helpers as H
 
 
-{-| Represents the Form
+{-| Represents the `Form`.
 -}
 type Form model msg
     = Form (FormConfig model msg)
@@ -57,92 +57,71 @@ type alias FormConfig model msg =
     }
 
 
+{-| Creates an instance of a `Form`.
+-}
 init : Form model msg
 init =
     Form <| FormConfig Pristine []
 
 
+{-| Represents the `Form` state.
+-}
 type FormState
     = Pristine
     | Touched
     | Submitted
 
 
+{-| Checks if a `Form` is in the `Pristine` state.
+-}
 isPristine : Form model msg -> Bool
 isPristine (Form config) =
     config.state == Pristine
 
 
+{-| Checks if a `Form` is in the `Touched` state.
+-}
 isTouched : Form model msg -> Bool
 isTouched (Form config) =
     config.state == Touched
 
 
+{-| Checks if a `Form` is in the `Submitted` state.
+-}
 isSubmitted : Form model msg -> Bool
 isSubmitted (Form config) =
     config.state == Submitted
 
 
+{-| Sets the `Form` to `Pristine` state.
+-}
 setAsPristine : Form model msg -> Form model msg
 setAsPristine (Form config) =
     Form { config | state = Pristine }
 
 
+{-| Sets the `Form` to `Submitted` state.
+-}
 setAsSubmitted : Form model msg -> Form model msg
 setAsSubmitted (Form config) =
     Form { config | state = Submitted }
 
 
+{-| Sets the `Form` to `Touched` state.
+-}
 setAsTouched : Form model msg -> Form model msg
 setAsTouched (Form config) =
     Form { config | state = Touched }
 
 
+{-| Adds a list of field (which represents a row of the `Grid`) to the `Form`.
+-}
 withFields : List (FormField model msg) -> Form model msg -> Form model msg
 withFields fields (Form formConfig) =
     Form { formConfig | fields = formConfig.fields ++ [ fields ] }
 
 
-gridRow : model -> List (FormField model msg) -> Grid.Row msg
-gridRow model fields =
-    (case fields of
-        first :: second :: [] ->
-            case ( hasLabel first, hasLabel second ) of
-                ( _, True ) ->
-                    [ first
-                        |> renderLabel
-                    , first
-                        |> renderField model
-                    , second
-                        |> renderLabel
-                    , second
-                        |> renderField model
-                    ]
-
-                ( _, False ) ->
-                    [ first
-                        |> renderLabel
-                    , first
-                        |> renderField model
-                    , second
-                        |> renderField model
-                    ]
-
-        first :: [] ->
-            [ first
-                |> renderLabel
-            , first
-                |> renderField model
-            ]
-
-        _ ->
-            []
-    )
-        |> List.map Grid.col
-        |> H.flip Grid.addCols Grid.row
-
-
-{-| Represents the available fields which can be included into the Form.
+{-| Represents the fields admitted by the `Form`.
 -}
 type FormField model msg
     = InputField (InputFieldConfig model msg)
@@ -201,6 +180,7 @@ pickLabel formField =
 type alias InputFieldConfig model msg =
     { config : Input.Input model msg
     , label : Maybe (Label.Label msg)
+    , appendableHtml : List (Html msg)
     }
 
 
@@ -208,7 +188,7 @@ type alias InputFieldConfig model msg =
 -}
 input : Input.Input model msg -> FormField model msg
 input config =
-    InputField <| InputFieldConfig config Nothing
+    InputField <| InputFieldConfig config Nothing []
 
 
 {-| Internal. Represents the configuration of a `FormField` which holds an `Flag` component.
@@ -216,6 +196,7 @@ input config =
 type alias FlagFieldConfig model msg =
     { config : Flag.Flag model msg
     , label : Maybe (Label.Label msg)
+    , appendableHtml : List (Html msg)
     }
 
 
@@ -223,7 +204,7 @@ type alias FlagFieldConfig model msg =
 -}
 flag : Flag.Flag model msg -> FormField model msg
 flag config =
-    FlagField <| FlagFieldConfig config Nothing
+    FlagField <| FlagFieldConfig config Nothing []
 
 
 {-| Internal. Represents the configuration of a `FormField` which holds a `Radio` component.
@@ -231,6 +212,7 @@ flag config =
 type alias RadioFieldConfig model msg =
     { config : Radio.Radio model msg
     , label : Maybe (Label.Label msg)
+    , appendableHtml : List (Html msg)
     }
 
 
@@ -238,7 +220,7 @@ type alias RadioFieldConfig model msg =
 -}
 radio : Radio.Radio model msg -> FormField model msg
 radio config =
-    RadioField <| RadioFieldConfig config Nothing
+    RadioField <| RadioFieldConfig config Nothing []
 
 
 {-| Internal. Represents the configuration of a `FormField` which holds a `RadioButton` component.
@@ -246,6 +228,7 @@ radio config =
 type alias RadioButtonFieldConfig model msg =
     { config : RadioButton.RadioButton model msg
     , label : Maybe (Label.Label msg)
+    , appendableHtml : List (Html msg)
     }
 
 
@@ -253,7 +236,7 @@ type alias RadioButtonFieldConfig model msg =
 -}
 radioButton : RadioButton.RadioButton model msg -> FormField model msg
 radioButton config =
-    RadioButtonField <| RadioButtonFieldConfig config Nothing
+    RadioButtonField <| RadioButtonFieldConfig config Nothing []
 
 
 {-| Internal. Represents the configuration of a `FormField` which holds a `Select` component.
@@ -261,6 +244,7 @@ radioButton config =
 type alias SelectFieldConfig model msg =
     { config : Select.Select model msg
     , label : Maybe (Label.Label msg)
+    , appendableHtml : List (Html msg)
     }
 
 
@@ -268,7 +252,7 @@ type alias SelectFieldConfig model msg =
 -}
 select : Select.Select model msg -> FormField model msg
 select config =
-    SelectField <| SelectFieldConfig config Nothing
+    SelectField <| SelectFieldConfig config Nothing []
 
 
 {-| Internal. Represents the configuration of a `FormField` which holds an `Autocomplete` component.
@@ -276,6 +260,7 @@ select config =
 type alias AutocompleteFieldConfig model msg =
     { config : Autocomplete.Autocomplete model msg
     , label : Maybe (Label.Label msg)
+    , appendableHtml : List (Html msg)
     }
 
 
@@ -283,7 +268,7 @@ type alias AutocompleteFieldConfig model msg =
 -}
 autocomplete : Autocomplete.Autocomplete model msg -> FormField model msg
 autocomplete config =
-    AutocompleteField <| AutocompleteFieldConfig config Nothing
+    AutocompleteField <| AutocompleteFieldConfig config Nothing []
 
 
 {-| Internal. Represents the configuration of a `FormField` which holds a `Date` component.
@@ -291,6 +276,7 @@ autocomplete config =
 type alias DateFieldConfig model msg =
     { config : Date.Date model msg
     , label : Maybe (Label.Label msg)
+    , appendableHtml : List (Html msg)
     }
 
 
@@ -298,7 +284,7 @@ type alias DateFieldConfig model msg =
 -}
 date : Date.Date model msg -> FormField model msg
 date config =
-    DateField <| DateFieldConfig config Nothing
+    DateField <| DateFieldConfig config Nothing []
 
 
 {-| Internal. Represents the configuration of a `FormField` which holds a `Checkbox` component.
@@ -306,6 +292,7 @@ date config =
 type alias CheckboxFieldConfig model msg =
     { config : Checkbox.Checkbox model msg
     , label : Maybe (Label.Label msg)
+    , appendableHtml : List (Html msg)
     }
 
 
@@ -313,7 +300,7 @@ type alias CheckboxFieldConfig model msg =
 -}
 checkbox : Checkbox.Checkbox model msg -> FormField model msg
 checkbox config =
-    CheckboxField <| CheckboxFieldConfig config Nothing
+    CheckboxField <| CheckboxFieldConfig config Nothing []
 
 
 {-| Internal. Represents the configuration of a `FormField` which holds a `TextArea` component.
@@ -321,6 +308,7 @@ checkbox config =
 type alias TextAreaFieldConfig model msg =
     { config : TextArea.TextArea model msg
     , label : Maybe (Label.Label msg)
+    , appendableHtml : List (Html msg)
     }
 
 
@@ -328,7 +316,7 @@ type alias TextAreaFieldConfig model msg =
 -}
 textArea : TextArea.TextArea model msg -> FormField model msg
 textArea config =
-    TextAreaField <| TextAreaFieldConfig config Nothing
+    TextAreaField <| TextAreaFieldConfig config Nothing []
 
 
 {-| Adds a `Label` component into a `FormField`.
@@ -364,6 +352,39 @@ withLabel lbl formField =
             DateField { fieldConfig | label = Just lbl }
 
 
+{-| Adds a list of `Html` to a `FormField`. They will be printed after the component tag and it's wrapper.
+-}
+withAppendableHtml : List (Html msg) -> FormField model msg -> FormField model msg
+withAppendableHtml html formField =
+    case formField of
+        AutocompleteField fieldConfig ->
+            AutocompleteField { fieldConfig | appendableHtml = html }
+
+        FlagField fieldConfig ->
+            FlagField { fieldConfig | appendableHtml = html }
+
+        InputField fieldConfig ->
+            InputField { fieldConfig | appendableHtml = html }
+
+        SelectField fieldConfig ->
+            SelectField { fieldConfig | appendableHtml = html }
+
+        RadioField fieldConfig ->
+            RadioField { fieldConfig | appendableHtml = html }
+
+        CheckboxField fieldConfig ->
+            CheckboxField { fieldConfig | appendableHtml = html }
+
+        RadioButtonField fieldConfig ->
+            RadioButtonField { fieldConfig | appendableHtml = html }
+
+        TextAreaField fieldConfig ->
+            TextAreaField { fieldConfig | appendableHtml = html }
+
+        DateField fieldConfig ->
+            DateField { fieldConfig | appendableHtml = html }
+
+
 {-| Internal. Transforms a `FormField` label into Html.
 -}
 renderLabel : FormField model msg -> List (Html msg)
@@ -379,32 +400,32 @@ renderLabel formField =
 renderField : model -> FormField model msg -> List (Html msg)
 renderField model formField =
     case formField of
-        InputField { config } ->
-            Input.render model config
+        InputField { config, appendableHtml } ->
+            Input.render model config ++ appendableHtml
 
-        FlagField { config } ->
-            Flag.render model config
+        FlagField { config, appendableHtml } ->
+            Flag.render model config ++ appendableHtml
 
-        RadioField { config } ->
-            Radio.render model config
+        RadioField { config, appendableHtml } ->
+            Radio.render model config ++ appendableHtml
 
-        SelectField { config } ->
-            Select.render model config
+        SelectField { config, appendableHtml } ->
+            Select.render model config ++ appendableHtml
 
-        AutocompleteField { config } ->
-            Autocomplete.render model config
+        AutocompleteField { config, appendableHtml } ->
+            Autocomplete.render model config ++ appendableHtml
 
-        CheckboxField { config } ->
-            Checkbox.render model config
+        CheckboxField { config, appendableHtml } ->
+            Checkbox.render model config ++ appendableHtml
 
-        RadioButtonField { config } ->
-            RadioButton.render model config
+        RadioButtonField { config, appendableHtml } ->
+            RadioButton.render model config ++ appendableHtml
 
-        TextAreaField { config } ->
-            TextArea.render model config
+        TextAreaField { config, appendableHtml } ->
+            TextArea.render model config ++ appendableHtml
 
-        DateField { config } ->
-            Date.render model config
+        DateField { config, appendableHtml } ->
+            Date.render model config ++ appendableHtml
 
 
 {-| Renders the form with all his fields.
@@ -414,7 +435,48 @@ render model (Form formConfig) =
     Html.div
         [ class "m-form" ]
         (formConfig.fields
-            |> List.map (H.flip Grid.addRow Grid.create << gridRow model)
+            |> List.map (H.flip Grid.addRow Grid.create << buildGridRow model)
             |> List.map Grid.render
             |> List.concat
         )
+
+
+{-| Internal. Creates a `Grid` row.
+-}
+buildGridRow : model -> List (FormField model msg) -> Grid.Row msg
+buildGridRow model fields =
+    (case fields of
+        first :: second :: [] ->
+            case ( hasLabel first, hasLabel second ) of
+                ( _, True ) ->
+                    [ first
+                        |> renderLabel
+                    , first
+                        |> renderField model
+                    , second
+                        |> renderLabel
+                    , second
+                        |> renderField model
+                    ]
+
+                ( _, False ) ->
+                    [ first
+                        |> renderLabel
+                    , first
+                        |> renderField model
+                    , second
+                        |> renderField model
+                    ]
+
+        first :: [] ->
+            [ first
+                |> renderLabel
+            , first
+                |> renderField model
+            ]
+
+        _ ->
+            []
+    )
+        |> List.map Grid.col
+        |> H.flip Grid.addCols Grid.row
