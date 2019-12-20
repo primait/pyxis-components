@@ -87,8 +87,6 @@ input type_ reader tagger =
     Input <| InputConfig [] type_ reader tagger
 
 
-{-| Creates an `input[type="text"]`.
--}
 text : (model -> Maybe String) -> (String -> msg) -> Input model msg
 text reader tagger =
     input Text reader tagger

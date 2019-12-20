@@ -1,115 +1,137 @@
 module Prima.Pyxis.Link exposing
-    ( Config, Icon
-    , simple, standalone, withIcon
-    , iconChevronDown, iconDownload, iconEdit, iconEmail, iconPhone
+    ( Link, simple, standalone
+    , withIconChevronDown, withIconDownload, withIconEdit, withIconEmail, withIconPhone, withIconArrowRight, withOnClick, withTargetFrameName, withTargetTop, withTargetSelf, withTargetParent, withTargetBlank
     , render
     )
 
-{-| Allows to create a `Link` using predefined Html syntax.
+{-|
 
 
-# Configuration
+## Types and LinkConfig
 
-@docs Config, Icon
-
-
-# Configuration Helpers
-
-@docs simple, standalone, withIcon
+@docs Link, simple, standalone
 
 
-# Icons Configuratiion Helpers
+## Options
 
-@docs iconChevronDown, iconDownload, iconEdit, iconEmail, iconPhone
+@docs withIconChevronDown, withIconDownload, withIconEdit, withIconEmail, withIconPhone, withIconArrowRight, withOnClick, withTargetFrameName, withTargetTop, withTargetSelf, withTargetParent, withTargetBlank
 
 
-# Rendering
+## Events
+
+@docs withOnClick
+
+
+## Rendering
 
 @docs render
 
 -}
 
 import Html exposing (Html, a, i, text)
-import Html.Attributes exposing (class, classList, href)
-import Prima.Pyxis.Helpers as Helpers
+import Html.Attributes as Attrs
+import Html.Events as Events
+import Prima.Pyxis.Helpers as H
 
 
-{-| Represents the configuration of a `Link`.
+{-| Represents the opaque `Link` configuration.
 -}
-type Config
-    = Config Configuration
+type Link msg
+    = Link (LinkConfig msg)
 
 
-type alias Configuration =
+{-| Internal. Represents the `Link` configuration.
+-}
+type alias LinkConfig msg =
     { type_ : LinkType
     , label : String
-    , path : String
+    , href : Maybe String
     , icon : Maybe Icon
+    , options : List (LinkOption msg)
     }
 
 
+{-| Internal. Represents the `Link` type.
+-}
 type LinkType
     = Simple
     | Standalone
 
 
+{-| Internal. Represents the possible modifiers for an `Link`.
+-}
+type LinkOption msg
+    = Class String
+    | Id String
+    | OnClick msg
+    | Target String
+
+
+{-| Internal. Represents the list of customizations for the `Link` component.
+-}
+type alias Options msg =
+    { classes : List String
+    , id : Maybe String
+    , onClick : Maybe msg
+    , target : Maybe String
+    }
+
+
+{-| Internal. Represents the initial state of the list of customizations for the `Link` component.
+-}
+defaultOptions : Options msg
+defaultOptions =
+    { classes = []
+    , id = Nothing
+    , onClick = Nothing
+    , target = Nothing
+    }
+
+
+{-| Internal. Applies the customizations made by end user to the `Link` component.
+-}
+applyOption : LinkOption msg -> Options msg -> Options msg
+applyOption modifier options =
+    case modifier of
+        Class class ->
+            { options | classes = class :: options.classes }
+
+        Id id ->
+            { options | id = Just id }
+
+        OnClick onClick ->
+            { options | onClick = Just onClick }
+
+        Target target ->
+            { options | target = Just target }
+
+
+{-| Internal. Applies all the customizations and returns the internal `Options` type.
+-}
+computeOptions : Link msg -> Options msg
+computeOptions (Link config) =
+    List.foldl applyOption defaultOptions config.options
+
+
+{-| Internal. Check is standalone `Link`.
+-}
 isStandalone : LinkType -> Bool
 isStandalone =
     (==) Standalone
 
 
-{-| Creates a simple link. Used when the link itself is in a paragraph.
-
-    --
-
-    import Prima.Pyxis.Link as Link
-
-    ...
-
-    myLink : Link.Config
-    myLink =
-        Link.simple "Visit site" "https://www.prima.it"
-
+{-| Creates a simple link `a[href=""]`.
 -}
-simple : String -> String -> Config
-simple label path =
-    Config (Configuration Simple label path Nothing)
+simple : String -> String -> Link msg
+simple label href =
+    Link (LinkConfig Simple label (Just href) Nothing [])
 
 
-{-| Creates a standalone link. Used when the link itself stands alone.
-
-    --
-
-    import Prima.Pyxis.Link as Link
-
-    ...
-
-    myLink : Link.Config
-    myLink =
-        Link.standalone "Visit site" "https://www.prima.it"
-
+{-| Creates a standalone link `a[href=""]`.
 -}
-standalone : String -> String -> Config
-standalone label path =
-    Config (Configuration Standalone label path Nothing)
-
-
-{-| Creates a simple link which holds an icon. Used when the link itself stands alone.
-
-    --
-
-    import Prima.Pyxis.Link as Link
-
-    ...
-
-    myLink : Link.Config
-    myLink =
-        Link.withIcon "Visit site" "https://www.prima.it" Link.iconEdit
-
--}
-withIcon : String -> String -> Icon -> Config
-withIcon label path icon =
-    Config (Configuration Simple label path (Just icon))
+standalone : String -> String -> Link msg
+standalone label href =
+    Link (LinkConfig Standalone label (Just href) Nothing [])
 
 
 {-| Represents an icon from Pyxis Iconset.
@@ -123,64 +145,189 @@ type Icon
     | Phone
 
 
+{-| add an href to 'Link'.
+-}
+withHref : String -> Link msg -> Link msg
+withHref href (Link linkConfig) =
+    Link { linkConfig | href = Just href }
+
+
+{-| add an label to 'Link'.
+-}
+withLabel : String -> Link msg -> Link msg
+withLabel label (Link linkConfig) =
+    Link { linkConfig | label = label }
+
+
+{-| Creates a arrow-right icon.
+-}
+withIconArrowRight : Link msg -> Link msg
+withIconArrowRight (Link linkConfig) =
+    Link { linkConfig | icon = Just ArrowRight }
+
+
 {-| Creates a chevron-down icon.
 -}
-iconChevronDown : Icon
-iconChevronDown =
-    ChevronDown
+withIconChevronDown : Link msg -> Link msg
+withIconChevronDown (Link linkConfig) =
+    Link { linkConfig | icon = Just ChevronDown }
 
 
 {-| Creates a download icon.
 -}
-iconDownload : Icon
-iconDownload =
-    Download
+withIconDownload : Link msg -> Link msg
+withIconDownload (Link linkConfig) =
+    Link { linkConfig | icon = Just Download }
 
 
 {-| Creates an edit icon.
 -}
-iconEdit : Icon
-iconEdit =
-    Edit
+withIconEdit : Link msg -> Link msg
+withIconEdit (Link linkConfig) =
+    Link { linkConfig | icon = Just Edit }
 
 
 {-| Creates an email icon.
 -}
-iconEmail : Icon
-iconEmail =
-    Email
+withIconEmail : Link msg -> Link msg
+withIconEmail (Link linkConfig) =
+    Link { linkConfig | icon = Just Email }
 
 
 {-| Creates a phone icon.
 -}
-iconPhone : Icon
-iconPhone =
-    Phone
+withIconPhone : Link msg -> Link msg
+withIconPhone (Link linkConfig) =
+    Link { linkConfig | icon = Just Phone }
+
+
+{-| Attaches the `onClick` event to the `Link`.
+-}
+withOnClick : msg -> Link msg -> Link msg
+withOnClick tagger =
+    addOption (OnClick tagger)
+
+
+{-| add `a[target="frameName"]` attr to the `Link`.
+-}
+withTargetFrameName : String -> Link msg -> Link msg
+withTargetFrameName target =
+    addOption (Target target)
+
+
+{-| add `a[target="_top"]` attr to the `Link`.
+-}
+withTargetTop : Link msg -> Link msg
+withTargetTop =
+    addOption (Target "_top")
+
+
+{-| add `a[target="_self"]` attr to the `Link`.
+-}
+withTargetSelf : Link msg -> Link msg
+withTargetSelf =
+    addOption (Target "_self")
+
+
+{-| add `a[target="_parent"]` attr to the `Link`.
+-}
+withTargetParent : Link msg -> Link msg
+withTargetParent =
+    addOption (Target "_parent")
+
+
+{-| add `a[target="_blank"]` attr to the `Link`.
+-}
+withTargetBlank : Link msg -> Link msg
+withTargetBlank =
+    addOption (Target "_blank")
+
+
+{-| Internal. Adds a generic option to the `Link`.
+-}
+addOption : LinkOption msg -> Link msg -> Link msg
+addOption option (Link linkConfig) =
+    Link { linkConfig | options = linkConfig.options ++ [ option ] }
+
+
+{-| Internal. Transforms all the customizations into a list of valid Html.Attribute(s).
+-}
+buildAttributes : Link msg -> List (Html.Attribute msg)
+buildAttributes linkModel =
+    let
+        options =
+            computeOptions linkModel
+    in
+    [ options.id
+        |> Maybe.map Attrs.id
+    , options.target
+        |> Maybe.map Attrs.target
+    , options.onClick
+        |> Maybe.map Events.onClick
+    ]
+        |> List.filterMap identity
+        |> (::) (H.classesAttribute options.classes)
 
 
 {-| Renders a link by receiving it's configuration.
+import Prima.Pyxis.Link as Link
+
+    ...
+
+    myLink : Link.Link
+    myLink =
+        Link.simple "Visit site" "https://www.prima.it"
+            |> Link.withOnClick LinkClicked
+            |> Link.render
+
+    secondLink: Link.Link
+    secondLink = Link.standalone "Visit site" "https://www.prima.it"
+        secondLink
+            |> Link.withTargetBlank
+            |> Link.render
+
 -}
-render : Config -> Html msg
-render (Config config) =
+render : Link msg -> Html msg
+render ((Link config) as linkModel) =
+    let
+        isOnClickConfigured : Bool
+        isOnClickConfigured =
+            computeOptions linkModel
+                |> .onClick
+                |> H.isJust
+
+        href_ : Html.Attribute msg
+        href_ =
+            if isOnClickConfigured then
+                Attrs.href "#"
+
+            else
+                Attrs.href (Maybe.withDefault "#" config.href)
+    in
     a
-        [ classList
+        ([ Attrs.classList
             [ ( "a-link", True )
             , ( "a-link--standalone", isStandalone config.type_ )
-            , ( "a-link--with-icon", Helpers.isJust config.icon )
+            , ( "a-link--with-icon", H.isJust config.icon )
             ]
-        , href config.path
-        ]
+         , href_
+         ]
+            ++ buildAttributes linkModel
+        )
         [ Maybe.withDefault (text "") <| Maybe.map renderIcon <| config.icon
         , text config.label
         ]
 
 
+{-| Internal. Add icon class.
+-}
 renderIcon : Icon -> Html msg
 renderIcon icon =
     i
-        [ classList
+        [ Attrs.classList
             [ ( "a-icon", True )
             , ( "a-link__icon", True )
+            , ( "a-icon-arrow-right", icon == ArrowRight )
             , ( "a-icon-chevron-down", icon == ChevronDown )
             , ( "a-icon-download", icon == Download )
             , ( "a-icon-edit", icon == Edit )

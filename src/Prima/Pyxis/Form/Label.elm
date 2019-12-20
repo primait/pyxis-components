@@ -204,7 +204,7 @@ render ((Label config) as labelModel) =
 
 
 renderSubtitle : Label msg -> Html msg
-renderSubtitle ((Label config) as labelModel) =
+renderSubtitle labelModel =
     let
         options =
             computeOptions labelModel

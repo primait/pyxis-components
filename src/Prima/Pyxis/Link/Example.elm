@@ -41,12 +41,14 @@ initialModel =
 
 
 type Msg
-    = NoOp
+    = LinkClicked
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-    ( model, Cmd.none )
+    case Debug.log "handle onClick" msg of
+        LinkClicked ->
+            ( model, Cmd.none )
 
 
 view : Model -> Browser.Document Msg
@@ -57,13 +59,18 @@ view model =
 appBody : Model -> List (Html Msg)
 appBody model =
     [ Helpers.pyxisStyle
-    , [ Link.simple "Visit Google" "https://www.google.it"
-      , Link.withIcon "Call us" "https://www.google.it" Link.iconPhone
-      , Link.standalone "Visit Google" "https://www.google.it"
-      ]
-        |> List.map Link.render
-        |> List.intersperse Helpers.spacer
-        |> wrapper
+    , Link.simple
+        "Visit Google"
+        "https://www.google.it"
+        |> Link.withOnClick LinkClicked
+        |> Link.withTargetSelf
+        |> Link.render
+    , div [] []
+    , Link.standalone
+        "Visit Google standalone"
+        "https://www.google.it"
+        |> Link.withTargetBlank
+        |> Link.render
     ]
 
 
