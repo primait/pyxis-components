@@ -1,6 +1,6 @@
 module Prima.Pyxis.Link exposing
     ( Link, simple, standalone
-    , withIconChevronDown, withIconDownload, withIconEdit, withIconEmail, withIconPhone, withIconArrowRight, withOnClick, withTargetFrameName, withTargetTop, withTargetSelf, withTargetParent, withTargetBlank
+    , withId, withClass, withIconChevronDown, withIconDownload, withIconEdit, withIconEmail, withIconPhone, withIconArrowRight, withOnClick, withTargetFrameName, withTargetTop, withTargetSelf, withTargetParent, withTargetBlank
     , render
     )
 
@@ -14,7 +14,7 @@ module Prima.Pyxis.Link exposing
 
 ## Options
 
-@docs withIconChevronDown, withIconDownload, withIconEdit, withIconEmail, withIconPhone, withIconArrowRight, withOnClick, withTargetFrameName, withTargetTop, withTargetSelf, withTargetParent, withTargetBlank
+@docs withId, withClass, withIconChevronDown, withIconDownload, withIconEdit, withIconEmail, withIconPhone, withIconArrowRight, withOnClick, withTargetFrameName, withTargetTop, withTargetSelf, withTargetParent, withTargetBlank
 
 
 ## Events
@@ -206,6 +206,20 @@ withIconPhone (Link linkConfig) =
 withOnClick : msg -> Link msg -> Link msg
 withOnClick tagger =
     addOption (OnClick tagger)
+
+
+{-| Adds an `id` Html.Attribute to the `Link`.
+-}
+withId : String -> Link msg -> Link msg
+withId id =
+    addOption (Id id)
+
+
+{-| Adds a `class` to the `Link`.
+-}
+withClass : String -> Link msg -> Link msg
+withClass class_ =
+    addOption (Class class_)
 
 
 {-| add `a[target="frameName"]` attr to the `Link`.
