@@ -1,6 +1,6 @@
 module Prima.Pyxis.Link exposing
-    ( Link, simple, standalone
-    , withId, withClass, withIconChevronDown, withIconDownload, withIconEdit, withIconEmail, withIconPhone, withIconArrowRight, withOnClick, withTargetFrameName, withTargetTop, withTargetSelf, withTargetParent, withTargetBlank
+    ( Link, simple, standalone, simpleWithOnClick, standaloneWithOnClick
+    , withId, withClass, withIconChevronDown, withIconDownload, withIconEdit, withIconEmail, withIconPhone, withIconArrowRight, withTargetFrameName, withTargetTop, withTargetSelf, withTargetParent, withTargetBlank
     , render
     )
 
@@ -9,17 +9,12 @@ module Prima.Pyxis.Link exposing
 
 ## Types and LinkConfig
 
-@docs Link, simple, standalone
+@docs Link, simple, standalone, simpleWithOnClick, standaloneWithOnClick
 
 
 ## Options
 
-@docs withId, withClass, withIconChevronDown, withIconDownload, withIconEdit, withIconEmail, withIconPhone, withIconArrowRight, withOnClick, withTargetFrameName, withTargetTop, withTargetSelf, withTargetParent, withTargetBlank
-
-
-## Events
-
-@docs withOnClick
+@docs withId, withClass, withIconChevronDown, withIconDownload, withIconEdit, withIconEmail, withIconPhone, withIconArrowRight, withTargetFrameName, withTargetTop, withTargetSelf, withTargetParent, withTargetBlank
 
 
 ## Rendering
@@ -127,11 +122,25 @@ simple label href =
     Link (LinkConfig Simple label (Just href) Nothing [])
 
 
+{-| Creates a simple link `a[href=""] with onClick msg`.
+-}
+simpleWithOnClick : String -> msg -> Link msg
+simpleWithOnClick label msg =
+    Link (LinkConfig Simple label Nothing Nothing []) |> addOption (OnClick msg)
+
+
 {-| Creates a standalone link `a[href=""]`.
 -}
 standalone : String -> String -> Link msg
 standalone label href =
     Link (LinkConfig Standalone label (Just href) Nothing [])
+
+
+{-| Creates a standalone link `a[href=""] with onClick msg`.
+-}
+standaloneWithOnClick : String -> msg -> Link msg
+standaloneWithOnClick label msg =
+    Link (LinkConfig Standalone label Nothing Nothing []) |> addOption (OnClick msg)
 
 
 {-| Represents an icon from Pyxis Iconset.
@@ -185,13 +194,6 @@ withIconEmail (Link linkConfig) =
 withIconPhone : Link msg -> Link msg
 withIconPhone (Link linkConfig) =
     Link { linkConfig | icon = Just Phone }
-
-
-{-| Attaches the `onClick` event to the `Link`.
--}
-withOnClick : msg -> Link msg -> Link msg
-withOnClick tagger =
-    addOption (OnClick tagger)
 
 
 {-| Adds an `id` Html.Attribute to the `Link`.
@@ -277,11 +279,10 @@ import Prima.Pyxis.Link as Link
     myLink : Link.Link
     myLink =
         Link.simple "Visit site" "https://www.prima.it"
-            |> Link.withOnClick LinkClicked
             |> Link.render
 
     secondLink: Link.Link
-    secondLink = Link.standalone "Visit site" "https://www.prima.it"
+    secondLink = Link.standaloneWithOnClick "Visit site" Msg
         secondLink
             |> Link.withTargetBlank
             |> Link.render

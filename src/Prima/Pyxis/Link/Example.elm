@@ -52,25 +52,20 @@ update msg model =
 
 
 view : Model -> Browser.Document Msg
-view model =
-    Browser.Document "Link component" (appBody model)
+view _ =
+    Browser.Document "Link component" appBody
 
 
-appBody : Model -> List (Html Msg)
-appBody model =
+appBody : List (Html Msg)
+appBody =
     [ Helpers.pyxisStyle
-    , Link.simple
-        "Visit Google"
-        "https://www.google.it"
-        |> Link.withOnClick LinkClicked
-        |> Link.withTargetSelf
-        |> Link.render
-    , div [] []
-    , Link.standalone
-        "Visit Google standalone"
-        "https://www.google.it"
-        |> Link.withTargetBlank
-        |> Link.render
+    , [ Link.simpleWithOnClick "Visit Google" LinkClicked |> Link.withTargetSelf
+      , Link.standalone "Visit Google standalone" "https://www.google.it"
+      , Link.standaloneWithOnClick "Visit Google standalone" LinkClicked
+      ]
+        |> List.map Link.render
+        |> List.intersperse Helpers.spacer
+        |> wrapper
     ]
 
 
