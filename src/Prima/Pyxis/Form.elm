@@ -386,7 +386,7 @@ isFormPristine (Form { state }) =
 -}
 isFormTouched : Form model msg -> Bool
 isFormTouched (Form { state }) =
-    isFormStatePristine state
+    isFormStateTouched state
 
 
 {-| Checks if the Form state is Submitted.
