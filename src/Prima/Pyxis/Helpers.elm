@@ -1,5 +1,6 @@
 module Prima.Pyxis.Helpers exposing
-    ( classesAttribute
+    ( btnGroup
+    , classesAttribute
     , flip
     , isJust
     , isNothing
@@ -9,12 +10,15 @@ module Prima.Pyxis.Helpers exposing
     , renderListIf
     , renderMaybe
     , spacer
+    , stopEvt
     , withCmds
     , withoutCmds
     )
 
-import Html exposing (Html, br, text)
+import Html exposing (Html, br, div, text)
 import Html.Attributes exposing (class, href, rel)
+import Html.Events as Evt
+import Json.Decode as JD
 
 
 pyxisStyle : Html msg
@@ -56,6 +60,12 @@ renderIf condition html =
         text ""
 
 
+btnGroup : List (Html msg) -> Html msg
+btnGroup =
+    div
+        [ class "m-btnGroup" ]
+
+
 renderMaybe : Maybe (Html msg) -> Html msg
 renderMaybe theMaybe =
     case theMaybe of
@@ -95,3 +105,10 @@ withoutCmds =
 classesAttribute : List String -> Html.Attribute msg
 classesAttribute =
     class << String.join " "
+
+
+{-| Stop propagation for custom event and dispatch msg
+-}
+stopEvt : String -> msg -> Html.Attribute msg
+stopEvt eventType msg =
+    Evt.custom eventType (JD.succeed { message = msg, stopPropagation = True, preventDefault = True })

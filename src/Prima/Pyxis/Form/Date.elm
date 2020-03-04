@@ -57,13 +57,13 @@ import Prima.Pyxis.Form.Validation as Validation
 import Prima.Pyxis.Helpers as H
 
 
-{-| Represents the opaque `Date` configuration.
+{-| Represent the opaque `Date` configuration.
 -}
 type Date model msg
     = Date (DateConfig model msg)
 
 
-{-| Represents the `Date` configuration.
+{-| Represent the `Date` configuration.
 -}
 type alias DateConfig model msg =
     { options : List (DateOption model msg)
@@ -72,14 +72,14 @@ type alias DateConfig model msg =
     }
 
 
-{-| Creates an `input[type="date"]` with the default options.
+{-| Create an `input[type="date"]` with the default options.
 -}
 date : (model -> DatePicker.Date) -> (DatePicker.Date -> msg) -> Date model msg
 date reader tagger =
     Date <| DateConfig [] reader tagger
 
 
-{-| Represents the possibile modifiers of an `Date`.
+{-| Represent the possibile modifiers of an `Date`.
 -}
 type DateOption model msg
     = Attribute (Html.Attribute msg)
@@ -102,7 +102,7 @@ type Default
     | Value DatePicker.Date
 
 
-{-| Represents the `Date` size.
+{-| Represent the `Date` size.
 -}
 type DateSize
     = Small
@@ -287,18 +287,11 @@ renderAppendGroup dateModel =
 renderValidationMessages : model -> Date model msg -> List (Html msg)
 renderValidationMessages model dateModel =
     let
-        options =
-            computeOptions dateModel
-
         warnings =
-            options.validations
-                |> List.filterMap (H.flip identity model)
-                |> List.filter Validation.isWarning
+            warningValidations model (computeOptions dateModel)
 
         errors =
-            options.validations
-                |> List.filterMap (H.flip identity model)
-                |> List.filter Validation.isError
+            errorsValidations model (computeOptions dateModel)
     in
     case ( errors, warnings ) of
         ( [], _ ) ->
@@ -329,7 +322,7 @@ addOption option (Date inputConfig) =
     Date { inputConfig | options = inputConfig.options ++ [ option ] }
 
 
-{-| Represents the options a user can choose to modify
+{-| Represent the options a user can choose to modify
 the `Date` default behaviour.
 -}
 type alias Options model msg =
@@ -486,18 +479,11 @@ toIsoFormat str =
 validationAttribute : model -> Date model msg -> Html.Attribute msg
 validationAttribute model dateModel =
     let
-        options =
-            computeOptions dateModel
+        warnings =
+            warningValidations model (computeOptions dateModel)
 
         errors =
-            options.validations
-                |> List.filterMap (H.flip identity model)
-                |> List.filter Validation.isError
-
-        warnings =
-            options.validations
-                |> List.filterMap (H.flip identity model)
-                |> List.filter Validation.isWarning
+            errorsValidations model (computeOptions dateModel)
     in
     case ( errors, warnings ) of
         ( [], [] ) ->
@@ -562,3 +548,17 @@ buildAttributes model dateModel =
 computeOptions : Date model msg -> Options model msg
 computeOptions (Date config) =
     List.foldl applyOption defaultOptions config.options
+
+
+warningValidations : model -> Options model msg -> List Validation.Type
+warningValidations model options =
+    options.validations
+        |> List.filterMap (H.flip identity model)
+        |> List.filter Validation.isWarning
+
+
+errorsValidations : model -> Options model msg -> List Validation.Type
+errorsValidations model options =
+    options.validations
+        |> List.filterMap (H.flip identity model)
+        |> List.filter Validation.isError

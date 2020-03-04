@@ -5,7 +5,7 @@ module Prima.Pyxis.Accordion exposing
     , render, renderGroup
     )
 
-{-| Creates an Accordion component by using predefined Html syntax.
+{-| Create an `Accordion` by using predefined Html syntax.
 
 
 # Configuration
@@ -13,7 +13,7 @@ module Prima.Pyxis.Accordion exposing
 @docs Config, State
 
 
-# Configuration Helpers
+## Options
 
 @docs baseConfig, lightConfig, darkConfig, state
 
@@ -29,12 +29,12 @@ module Prima.Pyxis.Accordion exposing
 
 -}
 
-import Html exposing (..)
+import Html exposing (Html, div, i, span, text)
 import Html.Attributes exposing (class, classList, id)
 import Html.Events exposing (onClick)
 
 
-{-| Represents the static configuration of the component. Values
+{-| Represent the static configuration of the component. Values
 passed in are no more modified by the setter.
 -}
 type Config msg
@@ -48,7 +48,7 @@ type alias Configuration msg =
     }
 
 
-{-| Represents the state of the component. Values passed in are
+{-| Represent the state of the component. Values passed in are
 susceptible to change.
 -}
 type State msg
@@ -182,7 +182,7 @@ isDarkAccordion =
 
 -}
 render : State msg -> Config msg -> Html msg
-render ((State { isOpen, title, content }) as accordion) (Config { type_, tagger, slug }) =
+render (State { isOpen, title, content }) (Config { type_, tagger, slug }) =
     div
         [ id slug
         , classList

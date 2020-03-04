@@ -23,7 +23,7 @@ initialModel =
         isEditable =
             False
     in
-    Model [] <| (Tuple.first << AtrTable.init isEditable << List.map createAtr) (List.range 2012 2019)
+    Model [] <| (Tuple.first << (AtrTable.config isEditable [ ( "", True ) ] << List.map createAtr)) (List.range 2012 2019)
 
 
 createAtr : Int -> AtrTable.AtrDetail

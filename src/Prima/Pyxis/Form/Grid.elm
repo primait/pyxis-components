@@ -1,85 +1,70 @@
-module Prima.Pyxis.Form.Grid exposing (..)
+module Prima.Pyxis.Form.Grid exposing (Row, addCol, addCols, addRow, col, create, render, row)
 
-import Html exposing (Html, div, text)
+import Html exposing (Html, div)
 import Html.Attributes as Attrs
 
 
 type Grid msg
-    = Grid (GridConfig msg)
-
-
-type alias GridConfig msg =
-    { children : List (Row msg)
-    }
+    = Grid (List (Row msg))
 
 
 create : Grid msg
 create =
-    Grid <| GridConfig []
+    Grid []
 
 
 type Row msg
-    = Row (RowConfig msg)
-
-
-type alias RowConfig msg =
-    { children : List (Column msg)
-    }
+    = Row (List (Column msg))
 
 
 row : Row msg
 row =
-    Row <| RowConfig []
+    Row []
 
 
 addRow : Row msg -> Grid msg -> Grid msg
-addRow row_ (Grid gridConfig) =
-    Grid { gridConfig | children = gridConfig.children ++ [ row_ ] }
+addRow row_ (Grid grid) =
+    Grid (grid ++ [ row_ ])
 
 
 type Column msg
-    = Column (ColumnConfig msg)
-
-
-type alias ColumnConfig msg =
-    { children : List (Html msg)
-    }
+    = Column (List (Html msg))
 
 
 col : List (Html msg) -> Column msg
 col children =
-    Column <| ColumnConfig children
+    Column children
 
 
 addCol : Column msg -> Row msg -> Row msg
-addCol column (Row rowConfig) =
-    Row { rowConfig | children = rowConfig.children ++ [ column ] }
+addCol column (Row rows) =
+    Row (rows ++ [ column ])
 
 
 addCols : List (Column msg) -> Row msg -> Row msg
-addCols cols (Row rowConfig) =
-    Row { rowConfig | children = rowConfig.children ++ cols }
+addCols cols (Row rows) =
+    Row (rows ++ cols)
 
 
 render : Grid msg -> List (Html msg)
-render (Grid gridConfig) =
-    List.map renderRow gridConfig.children
+render (Grid grid) =
+    List.map renderRow grid
 
 
 renderRow : Row msg -> Html msg
-renderRow (Row rowConfig) =
+renderRow (Row rows) =
     div
         [ Attrs.class "a-form-field"
-        , rowConfig.children
+        , rows
             |> List.length
             |> String.fromInt
             |> Attrs.attribute "data-children-count"
         ]
-        (List.map renderCol rowConfig.children)
+        (List.map renderCol rows)
 
 
 renderCol : Column msg -> Html msg
-renderCol (Column colConfig) =
+renderCol (Column col_) =
     div
         [ Attrs.class "a-form-field__item" ]
-        colConfig.children
+        col_

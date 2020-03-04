@@ -5,7 +5,7 @@ module Prima.Pyxis.ListChooser exposing
     , render
     )
 
-{-| Creates a List of ChooserItems component.
+{-| Create a List of ChooserItems component.
 
 
 # Configuration
@@ -13,7 +13,7 @@ module Prima.Pyxis.ListChooser exposing
 @docs Config, State, Msg, ChooserItem, ViewMode
 
 
-# Configuration Helpers
+## Options
 
 @docs config, init, update
 
@@ -32,16 +32,17 @@ module Prima.Pyxis.ListChooser exposing
 import Html exposing (Html, a, div, li, text, ul)
 import Html.Attributes exposing (attribute, class, classList)
 import Html.Events exposing (onClick)
+import Prima.Pyxis.Helpers as H
 
 
-{-| Represents an internal Msg for the component.
+{-| Represent an internal Msg for the component.
 -}
 type Msg
     = Toggle Slug
     | ToggleViewMode
 
 
-{-| Represents the configuration of the component.
+{-| Represent the configuration of the component.
 -}
 type Config
     = Config Configuration
@@ -54,7 +55,7 @@ type alias Configuration =
     }
 
 
-{-| Creates the configuration of the ListChooser.
+{-| Create the configuration of the ListChooser.
 
     ...
 
@@ -110,7 +111,7 @@ viewMode mode (State internalState) =
     State { internalState | mode = mode }
 
 
-{-| Represents the component State.
+{-| Represent the component State.
 -}
 type State
     = State InternalState
@@ -122,7 +123,7 @@ type alias InternalState =
     }
 
 
-{-| Creates the first instance of a ListChooser.
+{-| Create the first instance of a ListChooser.
 -}
 init : ViewMode -> List ChooserItem -> ( State, Cmd Msg )
 init mode items =
@@ -163,7 +164,7 @@ updateChooserItems slug list =
         list
 
 
-{-| Represents a single item which can be selected via ListChooser's api.
+{-| Represent a single item which can be selected via ListChooser's api.
 -}
 type ChooserItem
     = ChooserItem ChooserItemConfiguration
@@ -176,7 +177,7 @@ type alias ChooserItemConfiguration =
     }
 
 
-{-| Creates a representation of a ChooserItem.
+{-| Create a representation of a ChooserItem.
 
     ...
 
@@ -209,7 +210,7 @@ type alias Slug =
 {-| Renders the component by receiving a State and a Config.
 -}
 render : State -> Config -> Html Msg
-render (State ({ mode, items } as internalState)) (Config conf) =
+render (State { mode, items }) (Config conf) =
     let
         itemList =
             case mode of
@@ -224,7 +225,7 @@ render (State ({ mode, items } as internalState)) (Config conf) =
         , attribute "data-max-items" <| String.fromInt conf.itemsPerView
         ]
         [ renderList itemList
-        , btnGroup [ toggleViewMode mode conf ]
+        , H.btnGroup [ toggleViewMode mode conf ]
         ]
 
 
@@ -236,33 +237,27 @@ renderList items =
 
 
 renderItem : ChooserItem -> Html Msg
-renderItem (ChooserItem configuration) =
+renderItem (ChooserItem { isSelected, content, slug }) =
     li
         [ classList
             [ ( "m-list-chooser__item", True )
-            , ( "is-selected", configuration.isSelected )
+            , ( "is-selected", isSelected )
             ]
-        , (onClick << Toggle) configuration.slug
+        , (onClick << Toggle) slug
         ]
-        [ text configuration.content ]
-
-
-btnGroup : List (Html Msg) -> Html Msg
-btnGroup =
-    div
-        [ class "m-btnGroup" ]
+        [ text content ]
 
 
 toggleViewMode : ViewMode -> Configuration -> Html Msg
-toggleViewMode mode conf =
+toggleViewMode mode { toggleViewPartialLabel, toggleViewAllLabel } =
     let
         label =
             case mode of
                 All ->
-                    conf.toggleViewPartialLabel
+                    toggleViewPartialLabel
 
                 Partial ->
-                    conf.toggleViewAllLabel
+                    toggleViewAllLabel
     in
     a
         [ onClick ToggleViewMode

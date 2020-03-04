@@ -1,13 +1,13 @@
 module Prima.Pyxis.Form.Autocomplete exposing
     ( Autocomplete, AutocompleteChoice, autocomplete, autocompleteChoice
-    , withAttribute, withClass, withDefaultValue, withDisabled, withId, withName, withPlaceholder, withThreshold
+    , withAttribute, withClass, withDefaultValue, withDisabled, withId, withName, withPlaceholder, withThreshold, withOverridingClass
     , withRegularSize, withSmallSize, withLargeSize
     , withOnBlur, withOnFocus
     , withValidation
     , render
     )
 
-{-|
+{-| Create a `Autocomplete` using predefined Html syntax.
 
 
 ## Types and Configuration
@@ -17,7 +17,7 @@ module Prima.Pyxis.Form.Autocomplete exposing
 
 ## Options
 
-@docs withAttribute, withClass, withDefaultValue, withDisabled, withId, withName, withPlaceholder, withThreshold
+@docs withAttribute, withClass, withDefaultValue, withDisabled, withId, withName, withPlaceholder, withThreshold, withOverridingClass
 
 
 ## Size
@@ -48,13 +48,13 @@ import Prima.Pyxis.Form.Validation as Validation
 import Prima.Pyxis.Helpers as H
 
 
-{-| Represents the opaque `Autocomplete` configuration.
+{-| Represent the opaque `Autocomplete` configuration.
 -}
 type Autocomplete model msg
     = Autocomplete (AutocompleteConfig model msg)
 
 
-{-| Internal. Represents the `Autocomplete` configuration.
+{-| Internal. Represent the `Autocomplete` configuration.
 -}
 type alias AutocompleteConfig model msg =
     { options : List (AutocompleteOption model msg)
@@ -67,14 +67,14 @@ type alias AutocompleteConfig model msg =
     }
 
 
-{-| Creates an autocomplete.
+{-| Create an autocomplete.
 -}
 autocomplete : (model -> Maybe String) -> (String -> msg) -> (model -> Maybe String) -> (String -> msg) -> (model -> Bool) -> List AutocompleteChoice -> Autocomplete model msg
 autocomplete reader tagger filterReader filterTagger openedReader =
     Autocomplete << AutocompleteConfig [] reader tagger filterReader filterTagger openedReader
 
 
-{-| Represents the `AutocompleteChoice` configuration.
+{-| Represent the `AutocompleteChoice` configuration.
 -}
 type alias AutocompleteChoice =
     { value : String
@@ -82,14 +82,14 @@ type alias AutocompleteChoice =
     }
 
 
-{-| Creates the AutocompleteChoice configuration.
+{-| Create the AutocompleteChoice configuration.
 -}
 autocompleteChoice : String -> String -> AutocompleteChoice
 autocompleteChoice value label =
     AutocompleteChoice value label
 
 
-{-| Internal. Represents the possible modifiers for an `Autocomplete`.
+{-| Internal. Represent the possible modifiers for an `Autocomplete`.
 -}
 type AutocompleteOption model msg
     = Attribute (Html.Attribute msg)
@@ -114,7 +114,7 @@ type DefaultValue
     | Value (Maybe String)
 
 
-{-| Represents the `Autocomplete` size.
+{-| Represent the `Autocomplete` size.
 -}
 type AutocompleteSize
     = Small
@@ -235,7 +235,7 @@ addOption option (Autocomplete autocompleteConfig) =
     Autocomplete { autocompleteConfig | options = autocompleteConfig.options ++ [ option ] }
 
 
-{-| Internal. Represents the list of customizations for the `Autocomplete` component.
+{-| Internal. Represent the list of customizations for the `Autocomplete` component.
 -}
 type alias Options model msg =
     { attributes : List (Html.Attribute msg)
@@ -253,7 +253,7 @@ type alias Options model msg =
     }
 
 
-{-| Internal. Represents the initial state of the list of customizations for the `Autocomplete` component.
+{-| Internal. Represent the initial state of the list of customizations for the `Autocomplete` component.
 -}
 defaultOptions : Options model msg
 defaultOptions =
@@ -322,18 +322,11 @@ applyOption modifier options =
 validationAttribute : model -> Autocomplete model msg -> Html.Attribute msg
 validationAttribute model autocompleteModel =
     let
-        options =
-            computeOptions autocompleteModel
+        warnings =
+            warningValidations model (computeOptions autocompleteModel)
 
         errors =
-            options.validations
-                |> List.filterMap (H.flip identity model)
-                |> List.filter Validation.isError
-
-        warnings =
-            options.validations
-                |> List.filterMap (H.flip identity model)
-                |> List.filter Validation.isWarning
+            errorsValidations model (computeOptions autocompleteModel)
     in
     case ( errors, warnings ) of
         ( [], [] ) ->
@@ -495,7 +488,7 @@ renderAutocompleteChoice model (Autocomplete config) choice =
 {-| Internal. Renders the `Autocomplete` with no results.
 -}
 renderAutocompleteNoResults : model -> Autocomplete model msg -> List (Html msg)
-renderAutocompleteNoResults model (Autocomplete config) =
+renderAutocompleteNoResults _ (Autocomplete _) =
     [ Html.li
         [ Attrs.class "a-form-field__autocomplete__list--no-results" ]
         [ Html.text "Nessun risultato." ]
@@ -507,18 +500,11 @@ renderAutocompleteNoResults model (Autocomplete config) =
 renderValidationMessages : model -> Autocomplete model msg -> List (Html msg)
 renderValidationMessages model autocompleteModel =
     let
-        options =
-            computeOptions autocompleteModel
-
         warnings =
-            options.validations
-                |> List.filterMap (H.flip identity model)
-                |> List.filter Validation.isWarning
+            warningValidations model (computeOptions autocompleteModel)
 
         errors =
-            options.validations
-                |> List.filterMap (H.flip identity model)
-                |> List.filter Validation.isError
+            errorsValidations model (computeOptions autocompleteModel)
     in
     case ( errors, warnings ) of
         ( [], _ ) ->
@@ -531,7 +517,7 @@ renderValidationMessages model autocompleteModel =
 {-| Internal. Transforms all the customizations into a list of valid Html.Attribute(s).
 -}
 buildAttributes : model -> Autocomplete model msg -> List (Html.Attribute msg)
-buildAttributes model ((Autocomplete config) as autocompleteModel) =
+buildAttributes model ((Autocomplete _) as autocompleteModel) =
     let
         options =
             computeOptions autocompleteModel
@@ -563,3 +549,17 @@ buildAttributes model ((Autocomplete config) as autocompleteModel) =
 computeOptions : Autocomplete model msg -> Options model msg
 computeOptions (Autocomplete config) =
     List.foldl applyOption defaultOptions config.options
+
+
+warningValidations : model -> Options model msg -> List Validation.Type
+warningValidations model options =
+    options.validations
+        |> List.filterMap (H.flip identity model)
+        |> List.filter Validation.isWarning
+
+
+errorsValidations : model -> Options model msg -> List Validation.Type
+errorsValidations model options =
+    options.validations
+        |> List.filterMap (H.flip identity model)
+        |> List.filter Validation.isError

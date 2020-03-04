@@ -1,13 +1,13 @@
 module Prima.Pyxis.Modal.Examples.Update exposing (update)
 
-import Prima.Pyxis.Modal.Examples.Model exposing (Model, Msg(..))
+import Prima.Pyxis.Modal.Examples.Model exposing (Msg(..))
 
 
-update : Msg -> Model -> ( Model, Cmd Msg )
-update msg model =
+update : Msg -> Bool -> ( Bool, Cmd Msg )
+update msg _ =
     case msg of
         Show ->
-            ( { model | isModalVisible = True }, Cmd.none )
+            ( True, Cmd.none )
 
         Hide ->
-            ( { model | isModalVisible = False }, Cmd.none )
+            ( False, Cmd.none )

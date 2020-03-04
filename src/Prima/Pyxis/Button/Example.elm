@@ -10,8 +10,8 @@ module Prima.Pyxis.Button.Example exposing
     )
 
 import Browser
-import Html exposing (Html, div, text)
-import Html.Attributes exposing (class, classList, style)
+import Html exposing (Html, div)
+import Html.Attributes exposing (classList)
 import Prima.Pyxis.Button as Button
 import Prima.Pyxis.Helpers as Helpers
 
@@ -57,7 +57,7 @@ type Msg
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
-update msg model =
+update _ model =
     ( model, Cmd.none )
 
 

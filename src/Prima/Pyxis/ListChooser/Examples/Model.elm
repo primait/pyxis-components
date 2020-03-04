@@ -1,12 +1,9 @@
 module Prima.Pyxis.ListChooser.Examples.Model exposing
-    ( Model
-    , Msg(..)
+    ( Msg(..)
     , initialModel
     )
 
-import Html exposing (..)
-import Prima.Pyxis.Helpers as Helpers
-import Prima.Pyxis.ListChooser as ListChooser exposing (ChooserItem)
+import Prima.Pyxis.ListChooser as ListChooser
 import Tuple
 
 
@@ -14,15 +11,9 @@ type Msg
     = ChoosedMsg ListChooser.Msg
 
 
-type alias Model =
-    { chooserItemState : ListChooser.State
-    }
-
-
-initialModel : Model
+initialModel : ListChooser.State
 initialModel =
-    Model
-        (Tuple.first <| ListChooser.init ListChooser.viewModePartial itemList)
+    Tuple.first <| ListChooser.init ListChooser.viewModePartial itemList
 
 
 itemList : List ListChooser.ChooserItem

@@ -1,20 +1,17 @@
 module Prima.Pyxis.ListChooser.Examples.Update exposing (update)
 
 import Prima.Pyxis.ListChooser as ListChooser
-import Prima.Pyxis.ListChooser.Examples.Model exposing (Model, Msg(..))
-import Tuple
+import Prima.Pyxis.ListChooser.Examples.Model exposing (Msg(..))
 
 
-update : Msg -> Model -> ( Model, Cmd Msg )
-update msg model =
+update : Msg -> ListChooser.State -> ( ListChooser.State, Cmd Msg )
+update msg chooserItemState =
     case msg of
         ChoosedMsg subMsg ->
             let
-                ( updatedState, cmd ) =
-                    ListChooser.update subMsg model.chooserItemState
+                ( updatedState, _ ) =
+                    ListChooser.update subMsg chooserItemState
             in
-            ( { model
-                | chooserItemState = updatedState
-              }
+            ( updatedState
             , Cmd.none
             )

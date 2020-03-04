@@ -1,14 +1,14 @@
 module Prima.Pyxis.Form.Validation exposing
-    ( Validation, Type(..)
+    ( Type(..)
     , isError, isWarning, render
     )
 
-{-| Allows to create Validation model for the form.
+{-| Create `Validation` model for the form.
 
 
 # Configuration
 
-@docs Validation, Type, error, warning
+@docs Type, error, warning
 
 -}
 
@@ -16,13 +16,7 @@ import Html exposing (Html)
 import Html.Attributes as Attrs
 
 
-{-| Represents a validation entry.
--}
-type Validation model
-    = Validation (model -> Type)
-
-
-{-| Represents a validation type.
+{-| Represent a validation type.
 -}
 type Type
     = Error

@@ -1,6 +1,6 @@
 module Prima.Pyxis.Form.Input exposing
     ( Input, text, password, date, number, email
-    , withAttribute, withClass, withDefaultValue, withDisabled, withId, withName, withPlaceholder
+    , withAttribute, withClass, withDefaultValue, withDisabled, withId, withName, withPlaceholder, withOverridingClass
     , withRegularSize, withSmallSize, withLargeSize
     , withPrependGroup, withAppendGroup, withGroupClass
     , withOnBlur, withOnFocus
@@ -18,7 +18,7 @@ module Prima.Pyxis.Form.Input exposing
 
 ## Options
 
-@docs withAttribute, withClass, withDefaultValue, withDisabled, withId, withName, withPlaceholder
+@docs withAttribute, withClass, withDefaultValue, withDisabled, withId, withName, withPlaceholder, withOverridingClass
 
 
 ## Size
@@ -54,13 +54,13 @@ import Prima.Pyxis.Form.Validation as Validation
 import Prima.Pyxis.Helpers as H
 
 
-{-| Represents the opaque `Input` configuration.
+{-| Represent the opaque `Input` configuration.
 -}
 type Input model msg
     = Input (InputConfig model msg)
 
 
-{-| Internal. Represents the `Input` configuration.
+{-| Internal. Represent the `Input` configuration.
 -}
 type alias InputConfig model msg =
     { options : List (InputOption model msg)
@@ -70,7 +70,7 @@ type alias InputConfig model msg =
     }
 
 
-{-| Internal. Represents the `Input` type.
+{-| Internal. Represent the `Input` type.
 -}
 type InputType
     = Text
@@ -80,49 +80,49 @@ type InputType
     | Email
 
 
-{-| Internal. Creates the configuration.
+{-| Internal. Create the configuration.
 -}
 input : InputType -> (model -> Maybe String) -> (String -> msg) -> Input model msg
 input type_ reader tagger =
     Input <| InputConfig [] type_ reader tagger
 
 
-{-| Creates an `input[type="text"]`.
+{-| Create an `input[type="text"]`.
 -}
 text : (model -> Maybe String) -> (String -> msg) -> Input model msg
 text reader tagger =
     input Text reader tagger
 
 
-{-| Creates an `input[type="password"]`.
+{-| Create an `input[type="password"]`.
 -}
 password : (model -> Maybe String) -> (String -> msg) -> Input model msg
 password reader tagger =
     input Password reader tagger
 
 
-{-| Creates an `input[type="date"]`.
+{-| Create an `input[type="date"]`.
 -}
 date : (model -> Maybe String) -> (String -> msg) -> Input model msg
 date reader tagger =
     input Date reader tagger
 
 
-{-| Creates an `input[type="number"]`.
+{-| Create an `input[type="number"]`.
 -}
 number : (model -> Maybe String) -> (String -> msg) -> Input model msg
 number reader tagger =
     input Number reader tagger
 
 
-{-| Creates an `input[type="email"]`.
+{-| Create an `input[type="email"]`.
 -}
 email : (model -> Maybe String) -> (String -> msg) -> Input model msg
 email reader tagger =
     input Email reader tagger
 
 
-{-| Internal. Represents the possible modifiers for an `Input`.
+{-| Internal. Represent the possible modifiers for an `Input`.
 -}
 type InputOption model msg
     = AppendGroup (List (Html msg))
@@ -147,7 +147,7 @@ type Default
     | Value (Maybe String)
 
 
-{-| Internal. Represents the `Input` size.
+{-| Internal. Represent the `Input` size.
 -}
 type InputSize
     = Small
@@ -282,7 +282,7 @@ addOption option (Input inputConfig) =
     Input { inputConfig | options = inputConfig.options ++ [ option ] }
 
 
-{-| Internal. Represents the list of customizations for the `Input` component.
+{-| Internal. Represent the list of customizations for the `Input` component.
 -}
 type alias Options model msg =
     { appendGroup : Maybe (List (Html msg))
@@ -302,7 +302,7 @@ type alias Options model msg =
     }
 
 
-{-| Internal. Represents the initial state of the list of customizations for the `Input` component.
+{-| Internal. Represent the initial state of the list of customizations for the `Input` component.
 -}
 defaultOptions : Options model msg
 defaultOptions =
@@ -433,18 +433,11 @@ taggerAttribute (Input config) =
 validationAttribute : model -> Input model msg -> Html.Attribute msg
 validationAttribute model inputModel =
     let
-        options =
-            computeOptions inputModel
+        warnings =
+            warningValidations model (computeOptions inputModel)
 
         errors =
-            options.validations
-                |> List.filterMap (H.flip identity model)
-                |> List.filter Validation.isError
-
-        warnings =
-            options.validations
-                |> List.filterMap (H.flip identity model)
-                |> List.filter Validation.isWarning
+            errorsValidations model (computeOptions inputModel)
     in
     case ( errors, warnings ) of
         ( [], [] ) ->
@@ -624,18 +617,11 @@ renderPrependGroup inputModel =
 renderValidationMessages : model -> Input model msg -> List (Html msg)
 renderValidationMessages model inputModel =
     let
-        options =
-            computeOptions inputModel
-
         warnings =
-            options.validations
-                |> List.filterMap (H.flip identity model)
-                |> List.filter Validation.isWarning
+            warningValidations model (computeOptions inputModel)
 
         errors =
-            options.validations
-                |> List.filterMap (H.flip identity model)
-                |> List.filter Validation.isError
+            errorsValidations model (computeOptions inputModel)
     in
     case ( errors, warnings ) of
         ( [], _ ) ->
@@ -643,3 +629,17 @@ renderValidationMessages model inputModel =
 
         ( _, _ ) ->
             List.map Validation.render errors
+
+
+warningValidations : model -> Options model msg -> List Validation.Type
+warningValidations model options =
+    options.validations
+        |> List.filterMap (H.flip identity model)
+        |> List.filter Validation.isWarning
+
+
+errorsValidations : model -> Options model msg -> List Validation.Type
+errorsValidations model options =
+    options.validations
+        |> List.filterMap (H.flip identity model)
+        |> List.filter Validation.isError

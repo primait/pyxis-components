@@ -2,13 +2,13 @@ module Prima.Pyxis.Form.Select exposing
     ( Select(..), select
     , withId, withAttribute, withDefaultValue, withDisabled
     , render
-    , Options, SelectChoice, SelectConfig, SelectOption(..), SelectSize(..), addOption, applyOption, buildAttributes, classAttribute, computeOptions, defaultOptions, renderCustomSelect, renderCustomSelectChoice, renderCustomSelectChoiceWrapper, renderCustomSelectStatus, renderSelect, renderSelectChoice, renderValidationMessages, selectChoice, sizeAttribute, taggerAttribute, validationAttribute, withLargeSize, withOnBlur, withOnFocus, withOverridingClass, withPlaceholder, withRegularSize, withSmallSize, withValidation
+    , Options, SelectChoice, SelectConfig, SelectOption(..), SelectSize(..), addOption, applyOption, buildAttributes, computeOptions, defaultOptions, renderCustomSelect, renderCustomSelectChoice, renderCustomSelectChoiceWrapper, renderCustomSelectStatus, renderSelect, renderSelectChoice, renderValidationMessages, selectChoice, sizeAttribute, taggerAttribute, validationAttribute, withLargeSize, withOnBlur, withOnFocus, withOverridingClass, withPlaceholder, withRegularSize, withSmallSize, withValidation
     )
 
 {-|
 
 
-## Types
+## Types and Configuration
 
 @docs Select, select
 
@@ -29,14 +29,14 @@ module Prima.Pyxis.Form.Select exposing
 
 -}
 
-import Html exposing (Attribute, Html, div, text)
-import Html.Attributes as Attrs exposing (checked, class, classList, id, name, selected, type_, value)
-import Html.Events as Events exposing (on)
+import Html exposing (Attribute, Html, text)
+import Html.Attributes as Attrs exposing (class, id, value)
+import Html.Events as Events
 import Prima.Pyxis.Form.Validation as Validation
 import Prima.Pyxis.Helpers as H
 
 
-{-| Represents the configuration of a Select type.
+{-| Represent the configuration of a Select type.
 -}
 type Select model msg
     = Select (SelectConfig model msg)
@@ -89,7 +89,7 @@ type Default
     | Value (Maybe String)
 
 
-{-| Represents the `Select` size.
+{-| Represent the `Select` size.
 -}
 type SelectSize
     = Small
@@ -255,13 +255,6 @@ applyOption modifier options =
             { options | validations = validation :: options.validations }
 
 
-{-| Transforms a `List` of `Class`(es) into a valid `Html.Attribute`.
--}
-classAttribute : List String -> Html.Attribute msg
-classAttribute =
-    Attrs.class << String.join " "
-
-
 {-| Transforms an `SelectSize` into a valid `Html.Attribute`.
 -}
 sizeAttribute : SelectSize -> Html.Attribute msg
@@ -287,18 +280,11 @@ taggerAttribute (Select config) =
 validationAttribute : model -> Select model msg -> Html.Attribute msg
 validationAttribute model selectModel =
     let
-        options =
-            computeOptions selectModel
+        warnings =
+            warningValidations model (computeOptions selectModel)
 
         errors =
-            options.validations
-                |> List.filterMap (H.flip identity model)
-                |> List.filter Validation.isError
-
-        warnings =
-            options.validations
-                |> List.filterMap (H.flip identity model)
-                |> List.filter Validation.isWarning
+            errorsValidations model (computeOptions selectModel)
     in
     case ( errors, warnings ) of
         ( [], [] ) ->
@@ -329,7 +315,7 @@ pristineAttribute model ((Select config) as selectModel) =
 {-| Composes all the modifiers into a set of `Html.Attribute`(s).
 -}
 buildAttributes : model -> Select model msg -> List (Html.Attribute msg)
-buildAttributes model ((Select config) as selectModel) =
+buildAttributes model selectModel =
     let
         options =
             computeOptions selectModel
@@ -345,7 +331,7 @@ buildAttributes model ((Select config) as selectModel) =
     ]
         |> List.filterMap identity
         |> (++) options.attributes
-        |> (::) (classAttribute options.class)
+        |> (::) (H.classesAttribute options.class)
         |> (::) (sizeAttribute options.size)
         |> (::) (taggerAttribute selectModel)
         |> (::) (validationAttribute model selectModel)
@@ -442,18 +428,11 @@ renderCustomSelectChoice model (Select config) choice =
 renderValidationMessages : model -> Select model msg -> List (Html msg)
 renderValidationMessages model selectModel =
     let
-        options =
-            computeOptions selectModel
-
         warnings =
-            options.validations
-                |> List.filterMap (H.flip identity model)
-                |> List.filter Validation.isWarning
+            warningValidations model (computeOptions selectModel)
 
         errors =
-            options.validations
-                |> List.filterMap (H.flip identity model)
-                |> List.filter Validation.isError
+            errorsValidations model (computeOptions selectModel)
     in
     case ( errors, warnings ) of
         ( [], _ ) ->
@@ -468,3 +447,17 @@ renderValidationMessages model selectModel =
 computeOptions : Select model msg -> Options model msg
 computeOptions (Select config) =
     List.foldl applyOption defaultOptions config.options
+
+
+warningValidations : model -> Options model msg -> List Validation.Type
+warningValidations model options =
+    options.validations
+        |> List.filterMap (H.flip identity model)
+        |> List.filter Validation.isWarning
+
+
+errorsValidations : model -> Options model msg -> List Validation.Type
+errorsValidations model options =
+    options.validations
+        |> List.filterMap (H.flip identity model)
+        |> List.filter Validation.isError

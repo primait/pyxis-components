@@ -1,6 +1,5 @@
 module Prima.Pyxis.Modal.Examples.Model exposing
-    ( Model
-    , Msg(..)
+    ( Msg(..)
     , initialModel
     )
 
@@ -10,11 +9,6 @@ type Msg
     | Hide
 
 
-type alias Model =
-    { isModalVisible : Bool
-    }
-
-
-initialModel : Model
+initialModel : Bool
 initialModel =
-    Model False
+    False

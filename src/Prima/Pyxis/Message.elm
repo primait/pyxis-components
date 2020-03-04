@@ -4,7 +4,7 @@ module Prima.Pyxis.Message exposing
     , render
     )
 
-{-| Creates a Message component by using predefined Html syntax.
+{-| Create a `Message` feedback by using predefined Html syntax.
 
 
 # Configuration
@@ -12,7 +12,7 @@ module Prima.Pyxis.Message exposing
 @docs Config
 
 
-# Configuration Helpers
+## Options
 
 @docs messageErrorConfig, messageInfoConfig, messageSuccessConfig
 
@@ -23,11 +23,11 @@ module Prima.Pyxis.Message exposing
 
 -}
 
-import Html exposing (..)
-import Html.Attributes exposing (..)
+import Html exposing (Html, div, i, span)
+import Html.Attributes exposing (class, classList)
 
 
-{-| Represents the config of a Message
+{-| Represent the configuration of a Message
 -}
 type Config msg
     = Config (Configuration msg)
@@ -81,30 +81,30 @@ isMessageError =
     (==) Error
 
 
-{-| Renders the Message by receiving it's Config.
+{-| Renders the Message by receiving it's configuration.
 -}
 render : Config msg -> Html msg
-render (Config config) =
+render (Config { type_, content }) =
     div
         [ classList
             [ ( "m-message", True )
-            , ( "m-message--success", isMessageSuccess config.type_ )
-            , ( "m-message--error", isMessageError config.type_ )
-            , ( "m-message--info", isMessageInfo config.type_ )
+            , ( "m-message--success", isMessageSuccess type_ )
+            , ( "m-message--error", isMessageError type_ )
+            , ( "m-message--info", isMessageInfo type_ )
             ]
         ]
         [ div
             [ class "m-message__icon" ]
             [ i
                 [ classList
-                    [ ( "a-icon a-icon-ok", isMessageSuccess config.type_ )
-                    , ( "a-icon a-icon-attention", isMessageError config.type_ )
-                    , ( "a-icon a-icon-info", isMessageInfo config.type_ )
+                    [ ( "a-icon a-icon-ok", isMessageSuccess type_ )
+                    , ( "a-icon a-icon-attention", isMessageError type_ )
+                    , ( "a-icon a-icon-info", isMessageInfo type_ )
                     ]
                 ]
                 []
             ]
         , span
             [ class "m-message__text" ]
-            config.content
+            content
         ]

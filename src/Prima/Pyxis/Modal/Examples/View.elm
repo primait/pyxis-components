@@ -4,26 +4,26 @@ module Prima.Pyxis.Modal.Examples.View exposing
     )
 
 import Browser
-import Html exposing (..)
+import Html exposing (Html, p, text)
 import Html.Attributes exposing (class)
 import Prima.Pyxis.Button as Button
 import Prima.Pyxis.Container as Container
 import Prima.Pyxis.Helpers as Helpers
 import Prima.Pyxis.Modal as Modal
-import Prima.Pyxis.Modal.Examples.Model exposing (Model, Msg(..))
+import Prima.Pyxis.Modal.Examples.Model exposing (Msg(..))
 
 
-view : Model -> Browser.Document Msg
-view model =
-    Browser.Document "Modal component" (appBody model)
+view : Bool -> Browser.Document Msg
+view isModalVisible =
+    Browser.Document "Modal component" (appBody isModalVisible)
 
 
-appBody : Model -> List (Html Msg)
-appBody model =
+appBody : Bool -> List (Html Msg)
+appBody isModalVisible =
     [ Helpers.pyxisStyle
     , Container.default
         [ Button.render True showModalBtn
-        , renderModal model.isModalVisible
+        , renderModal isModalVisible
         ]
     ]
 
@@ -36,7 +36,7 @@ renderModal isModalVisible =
         modalContent
         (Modal.withButtonsFooter [ Button.render True showModalBtn, Button.render True hideModalBtn ])
         Hide
-        |> Modal.view isModalVisible
+        |> Modal.render isModalVisible
 
 
 modalContent : List (Html Msg)

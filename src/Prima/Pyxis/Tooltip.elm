@@ -4,7 +4,7 @@ module Prima.Pyxis.Tooltip exposing
     , render
     )
 
-{-|
+{-| Create a `Tooltip` using predefined Html syntax.
 
 
 ## Types and Configuration
@@ -28,13 +28,13 @@ import Html.Attributes as Attrs
 import Prima.Pyxis.Helpers as H
 
 
-{-| Represents the opaque `Tooltip` configuration.
+{-| Represent the opaque `Tooltip` configuration.
 -}
 type Tooltip msg
     = Tooltip (TooltipConfig msg)
 
 
-{-| Internal. Represents the `Tooltip` configuration.
+{-| Internal. Represent the `Tooltip` configuration.
 -}
 type alias TooltipConfig msg =
     { type_ : TooltipType
@@ -43,7 +43,7 @@ type alias TooltipConfig msg =
     }
 
 
-{-| Internal. Represents the `Tooltip` type.
+{-| Internal. Represent the `Tooltip` type.
 -}
 type TooltipType
     = Up
@@ -80,7 +80,7 @@ rightConfig children =
     Tooltip (TooltipConfig Right [] children)
 
 
-{-| Internal. Represents the possible modifiers for an `Tooltip`.
+{-| Internal. Represent the possible modifiers for an `Tooltip`.
 -}
 type alias TooltipOptions =
     { classes : List String
@@ -88,7 +88,7 @@ type alias TooltipOptions =
     }
 
 
-{-| Internal. Represents the possible modifiers for an `Tooltip`.
+{-| Internal. Represent the possible modifiers for an `Tooltip`.
 -}
 type TooltipOption msg
     = Class String
@@ -152,8 +152,8 @@ applyOption modifier options =
 {-| Internal. Applies all the customizations and returns the internal `TooltipOptions` type.
 -}
 computeOptions : Tooltip msg -> TooltipOptions
-computeOptions (Tooltip config) =
-    List.foldl applyOption defaultOptions config.options
+computeOptions (Tooltip { options }) =
+    List.foldl applyOption defaultOptions options
 
 
 {-| Internal. Transforms all the customizations into a list of valid Html.Attribute(s).
@@ -161,15 +161,15 @@ computeOptions (Tooltip config) =
 buildAttributes : Tooltip msg -> List (Html.Attribute msg)
 buildAttributes tooltip =
     let
-        options =
+        { id, classes } =
             computeOptions tooltip
     in
-    [ Maybe.map Attrs.id options.id ]
+    [ Maybe.map Attrs.id id ]
         |> List.filterMap identity
-        |> (::) (H.classesAttribute options.classes)
+        |> (::) (H.classesAttribute classes)
 
 
-{-| Internal. Represents the initial state of the list of customizations for the `Tooltip` component.
+{-| Internal. Represent the initial state of the list of customizations for the `Tooltip` component.
 -}
 defaultOptions : TooltipOptions
 defaultOptions =
@@ -222,14 +222,15 @@ addOption option (Tooltip inputConfig) =
 render : Tooltip msg -> Html msg
 render ((Tooltip { children, type_ }) as tooltipModel) =
     Html.div
-        ([ Attrs.classList
-            [ ( "a-tooltip", True )
-            , ( "a-tooltip--up", isTooltipUp type_ )
-            , ( "a-tooltip--down", isTooltipDown type_ )
-            , ( "a-tooltip--left", isTooltipLeft type_ )
-            , ( "a-tooltip--right", isTooltipRight type_ )
+        (List.append
+            (buildAttributes tooltipModel)
+            [ Attrs.classList
+                [ ( "a-tooltip", True )
+                , ( "a-tooltip--up", isTooltipUp type_ )
+                , ( "a-tooltip--down", isTooltipDown type_ )
+                , ( "a-tooltip--left", isTooltipLeft type_ )
+                , ( "a-tooltip--right", isTooltipRight type_ )
+                ]
             ]
-         ]
-            ++ buildAttributes tooltipModel
         )
         children

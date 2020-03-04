@@ -5,7 +5,7 @@ module Prima.Pyxis.Loader exposing
     , render
     )
 
-{-| Creates a Loader with svg animation.
+{-| Create a `Loader` with svg animation.
 
 
 # Configuration
@@ -13,7 +13,7 @@ module Prima.Pyxis.Loader exposing
 @docs Config
 
 
-# Configuration Helpers
+## Options
 
 @docs spinner, vehicle
 
@@ -29,13 +29,13 @@ module Prima.Pyxis.Loader exposing
 
 -}
 
-import Html exposing (Html)
+import Html exposing (Html, div)
 import Html.Attributes as HA
-import Svg exposing (Svg)
+import Svg as Svg
 import Svg.Attributes as SA
 
 
-{-| Represents the configuration of the loader.
+{-| Represent the configuration of the loader.
 -}
 type Config
     = Config Configuration
@@ -48,7 +48,7 @@ type alias Configuration =
     }
 
 
-{-| Represents the configuration of the loader.
+{-| Represent the configuration of the loader.
 -}
 type LoaderSize
     = Small
@@ -84,7 +84,7 @@ type LoaderType
     | Vehicle
 
 
-{-| Represents the configuration of the Spinner loader.
+{-| Represent the configuration of the Spinner loader.
 
     import Prima.Pyxis.Loader as Loader
 
@@ -102,7 +102,7 @@ spinner size text =
     Config (Configuration Spinner size text)
 
 
-{-| Represents the configuration of the Vehicle loader.
+{-| Represent the configuration of the Vehicle loader.
 
     import Prima.Pyxis.Loader as Loader
 
@@ -133,10 +133,11 @@ vehicle text =
 -}
 render : Config -> Html msg
 render (Config { size, type_, text }) =
-    Html.div
+    div
         [ HA.classList
             [ ( "m-loader", True )
             , ( "m-loader--small", (Maybe.withDefault False << Maybe.map isLoaderSmall) size )
+            , ( "m-loader--medium", (Maybe.withDefault False << Maybe.map isLoaderMedium) size )
             ]
         ]
         [ case type_ of

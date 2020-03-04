@@ -43,13 +43,13 @@ import Prima.Pyxis.Form.Validation as Validation
 import Prima.Pyxis.Helpers as H
 
 
-{-| Represents the opaque `Checkbox` configuration.
+{-| Represent the opaque `Checkbox` configuration.
 -}
 type Checkbox model msg
     = Checkbox (CheckboxConfig model msg)
 
 
-{-| Internal. Represents the `Checkbox` configuration.
+{-| Internal. Represent the `Checkbox` configuration.
 -}
 type alias CheckboxConfig model msg =
     { options : List (CheckboxOption model msg)
@@ -59,14 +59,14 @@ type alias CheckboxConfig model msg =
     }
 
 
-{-| Creates a checkbox.
+{-| Create a checkbox.
 -}
 checkbox : (model -> List String) -> (String -> msg) -> List CheckboxChoice -> Checkbox model msg
 checkbox reader tagger =
     Checkbox << CheckboxConfig [] reader tagger
 
 
-{-| Internal. Represents the possible modifiers for an `Checkbox`.
+{-| Internal. Represent the possible modifiers for an `Checkbox`.
 -}
 type CheckboxOption model msg
     = Attribute (Html.Attribute msg)
@@ -79,7 +79,7 @@ type CheckboxOption model msg
     | Validation (model -> Maybe Validation.Type)
 
 
-{-| Represents the `CheckboxChoice` configuration.
+{-| Represent the `CheckboxChoice` configuration.
 -}
 type alias CheckboxChoice =
     { value : String
@@ -87,14 +87,14 @@ type alias CheckboxChoice =
     }
 
 
-{-| Creates the 'CheckboxChoice' configuration.
+{-| Create the 'CheckboxChoice' configuration.
 -}
 checkboxChoice : String -> String -> CheckboxChoice
 checkboxChoice value label =
     CheckboxChoice value label
 
 
-{-| Internal. Represents the list of customizations for the `Checkbox` component.
+{-| Internal. Represent the list of customizations for the `Checkbox` component.
 -}
 type alias Options model msg =
     { attributes : List (Html.Attribute msg)
@@ -108,7 +108,7 @@ type alias Options model msg =
     }
 
 
-{-| Internal. Represents the initial state of the list of customizations for the `Checkbox` component.
+{-| Internal. Represent the initial state of the list of customizations for the `Checkbox` component.
 -}
 defaultOptions : Options model msg
 defaultOptions =
@@ -216,13 +216,6 @@ applyOption modifier options =
             { options | validations = validation :: options.validations }
 
 
-{-| Internal. Transforms a `List` of `Class`(es) into a valid `Html.Attribute`.
--}
-classAttribute : List String -> Html.Attribute msg
-classAttribute =
-    Attrs.class << String.join " "
-
-
 {-| Internal. Transforms the `reader` function into a valid Html.Attribute.
 -}
 readerAttribute : model -> Checkbox model msg -> String -> Html.Attribute msg
@@ -247,18 +240,11 @@ taggerAttribute (Checkbox config) choice =
 validationAttribute : model -> Checkbox model msg -> Html.Attribute msg
 validationAttribute model checkboxModel =
     let
-        options =
-            computeOptions checkboxModel
+        warnings =
+            warningValidations model (computeOptions checkboxModel)
 
         errors =
-            options.validations
-                |> List.filterMap (H.flip identity model)
-                |> List.filter Validation.isError
-
-        warnings =
-            options.validations
-                |> List.filterMap (H.flip identity model)
-                |> List.filter Validation.isWarning
+            errorsValidations model (computeOptions checkboxModel)
     in
     case ( errors, warnings ) of
         ( [], [] ) ->
@@ -281,7 +267,7 @@ computeOptions (Checkbox config) =
 {-| Internal. Transforms all the customizations into a list of valid Html.Attribute(s).
 -}
 buildAttributes : model -> Checkbox model msg -> String -> List (Html.Attribute msg)
-buildAttributes model ((Checkbox config) as checkboxModel) choice =
+buildAttributes model ((Checkbox _) as checkboxModel) choice =
     let
         options =
             computeOptions checkboxModel
@@ -299,7 +285,7 @@ buildAttributes model ((Checkbox config) as checkboxModel) choice =
     ]
         |> List.filterMap identity
         |> (++) options.attributes
-        |> (::) (classAttribute options.class)
+        |> (::) (H.classesAttribute options.class)
         |> (::) (readerAttribute model checkboxModel choice)
         |> (::) (taggerAttribute checkboxModel choice)
         |> (::) (Attrs.type_ "checkbox")
@@ -371,3 +357,17 @@ renderCheckbox model ((Checkbox config) as checkboxModel) checkboxItem =
             |> Label.withOverridingClass "a-form-field__checkbox-options__item__label"
             |> Label.render
         ]
+
+
+warningValidations : model -> Options model msg -> List Validation.Type
+warningValidations model options =
+    options.validations
+        |> List.filterMap (H.flip identity model)
+        |> List.filter Validation.isWarning
+
+
+errorsValidations : model -> Options model msg -> List Validation.Type
+errorsValidations model options =
+    options.validations
+        |> List.filterMap (H.flip identity model)
+        |> List.filter Validation.isError

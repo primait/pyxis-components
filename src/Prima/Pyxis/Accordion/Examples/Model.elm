@@ -1,12 +1,11 @@
 module Prima.Pyxis.Accordion.Examples.Model exposing
     ( Accordion
     , AccordionType(..)
-    , Model
     , Msg(..)
     , initialModel
     )
 
-import Html exposing (..)
+import Html exposing (Html, text)
 import Prima.Pyxis.Accordion as Accordion
 import Prima.Pyxis.Helpers as Helpers
 
@@ -15,14 +14,9 @@ type Msg
     = ToggleAccordion String Bool
 
 
-type alias Model =
-    { accordionList : List Accordion
-    }
-
-
-initialModel : Model
+initialModel : List Accordion
 initialModel =
-    Model (List.map accordionBuilder [ Base, Light, Dark ])
+    List.map accordionBuilder [ Base, Light, Dark ]
 
 
 type alias Accordion =

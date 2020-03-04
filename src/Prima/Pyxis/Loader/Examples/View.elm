@@ -1,7 +1,7 @@
 module Prima.Pyxis.Loader.Examples.View exposing (view)
 
 import Browser
-import Html exposing (..)
+import Html exposing (Html)
 import Prima.Pyxis.Container as Container
 import Prima.Pyxis.Helpers as Helpers
 import Prima.Pyxis.Loader as Loader

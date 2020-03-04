@@ -19,7 +19,7 @@ import Prima.Pyxis.Form as Form
 import Prima.Pyxis.Form.Autocomplete as Autocomplete
 import Prima.Pyxis.Form.Checkbox as Checkbox
 import Prima.Pyxis.Form.Date as Date
-import Prima.Pyxis.Form.Example.Model exposing (Field(..), FormData, Model, Msg(..))
+import Prima.Pyxis.Form.Example.Model exposing (Field(..), FormData, Msg(..))
 import Prima.Pyxis.Form.Flag as Flag
 import Prima.Pyxis.Form.Input as Input
 import Prima.Pyxis.Form.Label as Label

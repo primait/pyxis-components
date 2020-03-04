@@ -1,48 +1,36 @@
 module Prima.Pyxis.Modal exposing
     ( Config, config
-    , ModalSize, small, medium, large
-    , ModalHeader, defaultHeader, customHeader
-    , ModalFooter, emptyFooter, withButtonsFooter, customFooter
-    , view
+    , small, medium, large, defaultHeader, customHeader, emptyFooter, withButtonsFooter, customFooter
+    , render
     )
 
-{-| Allows to create a Modal component using predefined Html syntax.
+{-| Create a `Modal` using predefined Html syntax.
 
 
-# Modal Configuration
+# Configuration
 
 @docs Config, config
 
 
-# Modal Size
+## Options
 
-@docs ModalSize, small, medium, large
-
-
-# Modal Header
-
-@docs ModalHeader, defaultHeader, customHeader
+@docs small, medium, large, defaultHeader, customHeader, emptyFooter, withButtonsFooter, customFooter
 
 
-# Modal Footer
+# Render
 
-@docs ModalFooter, emptyFooter, withButtonsFooter, customFooter
-
-
-# Rendering
-
-@docs view
+@docs render
 
 -}
 
-import Html exposing (..)
+import Html exposing (Html, div, h3, i, text)
 import Html.Attributes exposing (class, classList)
 import Html.Events exposing (onClick)
 import Json.Decode
-import Prima.Pyxis.Button as Button
+import Prima.Pyxis.Helpers as H
 
 
-{-| Represents the configuration of a Modal component.
+{-| Represent the configuration of a Modal component.
 The Modal will trigger a "closed" Msg when the overlay is clicked.
 Is up to you to intercept and manage this Msg.
 -}
@@ -59,7 +47,7 @@ type alias Configuration msg =
     }
 
 
-{-| Creates a Modal.Config.
+{-| Create a Modal.Config.
 
     --
     import Prima.Pyxis.Modal as Modal
@@ -87,7 +75,7 @@ type alias Configuration msg =
             modalContent =
                 p [] [ text "Lorem ipsum dolor sit amet."]
         in
-        Modal.config Modal.medium modalHeader  modalContent modalFooter ModalClosed
+        Modal.config Modal.medium modalHeader modalContent modalFooter ModalClosed
 
 -}
 config : ModalSize -> ModalHeader msg -> List (Html msg) -> ModalFooter msg -> msg -> Config msg
@@ -95,7 +83,7 @@ config size header content footer closeTagger =
     Config <| Configuration size header content footer closeTagger
 
 
-{-| Represents the Modal size.
+{-| Represent the Modal size.
 -}
 type ModalSize
     = SmallModalSize
@@ -103,21 +91,21 @@ type ModalSize
     | LargeModalSize
 
 
-{-| Creates a Small ModalSize
+{-| Create a Small ModalSize
 -}
 small : ModalSize
 small =
     SmallModalSize
 
 
-{-| Creates a Medium ModalSize
+{-| Create a Medium ModalSize
 -}
 medium : ModalSize
 medium =
     MediumModalSize
 
 
-{-| Creates a Large ModalSize
+{-| Create a Large ModalSize
 -}
 large : ModalSize
 large =
@@ -139,28 +127,28 @@ isLargeModalSize =
     (==) LargeModalSize
 
 
-{-| Represents the Header configuration of a Modal.
+{-| Represent the Header configuration of a Modal.
 -}
 type ModalHeader msg
     = ModalHeaderDefault String
     | ModalHeaderCustom (List (Html msg))
 
 
-{-| Creates a Header config with a simple title.
+{-| Create a Header config with a simple title.
 -}
 defaultHeader : String -> ModalHeader msg
 defaultHeader =
     ModalHeaderDefault
 
 
-{-| Creates a Header config with custom Html content.
+{-| Create a Header config with custom Html content.
 -}
 customHeader : List (Html msg) -> ModalHeader msg
 customHeader =
     ModalHeaderCustom
 
 
-{-| Represents the Footer configuration of a Modal.
+{-| Represent the Footer configuration of a Modal.
 -}
 type ModalFooter msg
     = ModalFooterEmpty
@@ -168,14 +156,14 @@ type ModalFooter msg
     | ModalFooterCustom (List (Html msg))
 
 
-{-| Represents a Footer without content.
+{-| Represent a Footer without content.
 -}
 emptyFooter : ModalFooter msg
 emptyFooter =
     ModalFooterEmpty
 
 
-{-| Represents a Footer with a list of Prima.Pyxis.Button instances.
+{-| Represent a Footer with a list of Prima.Pyxis.Button instances.
 All the buttons will be wrapper in a btnGroup, so no more than 4 buttons are allowed.
 -}
 withButtonsFooter : List (Html msg) -> ModalFooter msg
@@ -183,7 +171,7 @@ withButtonsFooter =
     ModalFooterButtons
 
 
-{-| Represents a Footer with custom Html content.
+{-| Represent a Footer with custom Html content.
 -}
 customFooter : List (Html msg) -> ModalFooter msg
 customFooter =
@@ -226,11 +214,11 @@ customFooter =
             isVisible =
                 True
         in
-        Modal.view isVisible myModalConfig
+        Modal.render isVisible myModalConfig
 
 -}
-view : Bool -> Config msg -> Html msg
-view isVisible (Config modalConfig) =
+render : Bool -> Config msg -> Html msg
+render isVisible (Config modalConfig) =
     if isVisible then
         div
             [ classList [ ( "a-overlay", True ) ]
@@ -243,7 +231,7 @@ view isVisible (Config modalConfig) =
         text ""
 
 
-{-| Private method. See:
+{-| Internal. See:
 <https://github.com/rundis/elm-bootstrap/blob/5.2.0/src/Bootstrap/Modal.elm>
 <https://github.com/rundis/elm-bootstrap/blob/5.2.0/src/Bootstrap/Utilities/DomHelper.elm>
 -}
@@ -254,7 +242,7 @@ overlayClickInterceptor action =
         |> Json.Decode.andThen (overlayClickInterceptorDecodeOrFail action)
 
 
-{-| Private method
+{-| Internal. Interceptor zone on click event
 -}
 overlayClickInterceptorDecodeOrFail : msg -> String -> Json.Decode.Decoder msg
 overlayClickInterceptorDecodeOrFail action className =
@@ -265,39 +253,39 @@ overlayClickInterceptorDecodeOrFail action className =
         Json.Decode.fail "ignoring"
 
 
-{-| Private method
+{-| Internal.
 -}
 decodeTarget : Json.Decode.Decoder any -> Json.Decode.Decoder any
 decodeTarget decoder =
     Json.Decode.field "target" decoder
 
 
-{-| Private method
+{-| Internal.
 -}
 decodeClassName : Json.Decode.Decoder String
 decodeClassName =
     Json.Decode.at [ "className" ] Json.Decode.string
 
 
-{-| Private method
+{-| Internal. Design modal from its configuration
 -}
 modal : Configuration msg -> Html msg
-modal modalConfig =
+modal { size, footer, content, header, closeTagger } =
     div
         [ classList
             [ ( "o-modal", True )
-            , ( "o-modal--small", isSmallModalSize modalConfig.size )
-            , ( "o-modal--medium", isMediumModalSize modalConfig.size )
-            , ( "o-modal--large", isLargeModalSize modalConfig.size )
+            , ( "o-modal--small", isSmallModalSize size )
+            , ( "o-modal--medium", isMediumModalSize size )
+            , ( "o-modal--large", isLargeModalSize size )
             ]
         ]
-        [ modalHeader modalConfig.header modalConfig.closeTagger
-        , modalContent modalConfig.content
-        , modalFooter modalConfig.footer
+        [ modalHeader header closeTagger
+        , modalContent content
+        , modalFooter footer
         ]
 
 
-{-| Private method
+{-| Internal. Building header
 -}
 modalHeader : ModalHeader msg -> msg -> Html msg
 modalHeader header action =
@@ -314,7 +302,7 @@ modalHeader header action =
         )
 
 
-{-| Private method
+{-| Internal. Building content
 -}
 modalContent : List (Html msg) -> Html msg
 modalContent =
@@ -322,7 +310,7 @@ modalContent =
         [ class "o-modal__content" ]
 
 
-{-| Private method
+{-| Internal. Building footer
 -}
 modalFooter : ModalFooter msg -> Html msg
 modalFooter footer =
@@ -333,14 +321,14 @@ modalFooter footer =
                 []
 
             ModalFooterButtons buttons ->
-                [ div [ class "m-btnGroup" ] buttons ]
+                [ H.btnGroup buttons ]
 
             ModalFooterCustom content ->
                 content
         )
 
 
-{-| Private method
+{-| Internal. Building title
 -}
 modalTitle : String -> Html msg
 modalTitle title =
@@ -349,7 +337,7 @@ modalTitle title =
         [ text title ]
 
 
-{-| Private method
+{-| Internal. Icon for closing modal
 -}
 modalClose : msg -> Html msg
 modalClose action =

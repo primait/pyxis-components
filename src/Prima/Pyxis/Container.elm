@@ -3,7 +3,7 @@ module Prima.Pyxis.Container exposing
     , Modifier(..), defaultWithModifiers, fluidWithModifiers, custom
     )
 
-{-| Creates a Container component by using predefined Html syntax.
+{-| Create a `Container` by using predefined Html syntax.
 
 
 # Ready to use
@@ -17,11 +17,11 @@ module Prima.Pyxis.Container exposing
 
 -}
 
-import Html exposing (..)
-import Html.Attributes exposing (class, classList)
+import Html exposing (Html, div)
+import Html.Attributes exposing (class)
 
 
-{-| Represents a list of modifiers which can be applied to the container itself.
+{-| Represent a list of modifiers which can be applied to the container itself.
 
 Use `RowDirection | ColumnDirection` to manage `flex-direction`.
 

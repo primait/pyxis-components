@@ -4,7 +4,7 @@ import Browser
 import Html exposing (Html)
 import Prima.Pyxis.Helpers as Helpers
 import Prima.Pyxis.Table as Table
-import Prima.Pyxis.Table.Examples.Model exposing (..)
+import Prima.Pyxis.Table.Examples.Model exposing (Model, Msg(..))
 
 
 view : Model -> Browser.Document Msg
@@ -34,7 +34,7 @@ createTableConfiguration model =
 
 
 createHeaders : List String -> List (Table.Header Msg)
-createHeaders headers =
+createHeaders _ =
     [ Table.header (String.toLower "Nazione") "Nazione" (Just SortBy)
     , Table.header (String.toLower "Paese") "Paese" (Just SortBy)
     ]
@@ -43,11 +43,6 @@ createHeaders headers =
 createFooters : List (Table.FooterRow Msg)
 createFooters =
     [ Table.footerRow (createFooterColumns [ "Nazione", "Paese" ]) ]
-
-
-createHeaderItem : String -> Table.Header Msg
-createHeaderItem content =
-    Table.header (String.toLower content) content (Just SortBy)
 
 
 createRows : List (List String) -> List (Table.Row Msg)

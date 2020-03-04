@@ -1,11 +1,11 @@
 module Prima.Pyxis.AtrTable exposing
     ( Config, AtrDetail, Msg
-    , init, atr, update
+    , config, atr, update
     , paritaria, paritariaMista, paritariaCose, paritariaPersone, principale, principaleMista, principaleCose, principalePersone
     , render
     )
 
-{-| Creates a specific kind of table, the ATR table component.
+{-| Create a specific kind of table, the ATR table component.
 Uses Prima.Pyxis.Table.Table under the hood.
 
 Warning. This documentation requires knownledge of Insurance domain.
@@ -16,9 +16,9 @@ Warning. This documentation requires knownledge of Insurance domain.
 @docs Config, AtrDetail, Msg
 
 
-# Configuration Helpers
+## Options
 
-@docs init, atr, update
+@docs config, atr, update
 
 
 # Helpers
@@ -33,7 +33,7 @@ Warning. This documentation requires knownledge of Insurance domain.
 -}
 
 import Html exposing (Html, option, select, text)
-import Html.Attributes exposing (class, classList, selected, value)
+import Html.Attributes exposing (selected, value)
 import Html.Events exposing (onInput)
 import Prima.Pyxis.Table as Table
 
@@ -55,12 +55,12 @@ type alias Configuration =
 {-| Returns a Tuple containing the Config and a possible batch of side effects to
 be managed by parent application. Requires a list of AtrDetail.
 -}
-init : Bool -> List ( String, Bool ) -> List AtrDetail -> ( Config, Cmd Msg )
-init isEditable tableClassList atrDetails =
+config : Bool -> List ( String, Bool ) -> List AtrDetail -> ( Config, Cmd Msg )
+config isEditable tableClassList atrDetails =
     ( Config (Configuration atrDetails True isEditable tableClassList), Cmd.none )
 
 
-{-| Represents a changing AtrDetail action
+{-| Represent a changing AtrDetail action
 -}
 type Msg
     = AtrDetailChanged AtrDetailType Year String
@@ -100,7 +100,7 @@ updateConfiguration atrType year value configuration =
 
 
 updateAtrDetail : AtrDetailType -> Year -> String -> AtrDetail -> AtrDetail
-updateAtrDetail atrType year value theAtrDetail =
+updateAtrDetail atrType _ value theAtrDetail =
     case atrType of
         Principale ->
             principale (Just value) theAtrDetail
@@ -127,7 +127,7 @@ updateAtrDetail atrType year value theAtrDetail =
             paritariaMista (Just value) theAtrDetail
 
 
-{-| Represents a detail for an ATR which contains information about
+{-| Represent a detail for an ATR which contains information about
 the number of accidents in a specific year.
 -}
 type AtrDetail
@@ -147,7 +147,7 @@ type alias AtrDetailConfiguration =
     }
 
 
-{-| Creates an empty AtrDetail. Each detail is identified by an year and representation of accidents occurred
+{-| Create an empty AtrDetail. Each detail is identified by an year and representation of accidents occurred
 during it. All setters methods are pipeable.
 -}
 atr : Int -> AtrDetail
@@ -295,7 +295,7 @@ type alias Year =
 {-| Renders the table by receiving a Configuration. The columns of this table are expressed by the length of the AtrDetail list.
 -}
 render : Config -> Html Msg
-render (Config ({ atrDetails, alternateRows, isEditable, tableClassList } as config)) =
+render (Config { atrDetails, alternateRows, isEditable, tableClassList }) =
     let
         destructureAtrDetail (AtrDetail atrConfiguration) =
             atrConfiguration

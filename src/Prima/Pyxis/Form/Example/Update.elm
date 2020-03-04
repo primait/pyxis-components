@@ -15,42 +15,36 @@ import Prima.Pyxis.Helpers as H
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-    case Debug.log "update" msg of
+    case msg of
         OnCheck Privacy value ->
             model
                 |> updatePrivacy value
-                |> printModel
                 |> H.withoutCmds
 
         OnInput Username value ->
             model
                 |> updateUsername (Just value)
-                |> printModel
                 |> H.withoutCmds
 
         OnInput Password value ->
             model
                 |> updatePassword (Just value)
-                |> printModel
                 |> H.withoutCmds
 
         OnInput GuideType value ->
             model
                 |> updateGuideType value
-                |> printModel
                 |> H.withoutCmds
 
         OnInput PowerSource value ->
             model
                 |> updatePowerSource value
                 |> closePowerSourceSelect
-                |> printModel
                 |> H.withoutCmds
 
         OnInput FiscalCode value ->
             model
                 |> updateFiscalCode (Just value)
-                |> printModel
                 |> H.withoutCmds
 
         OnInput Country value ->
@@ -58,13 +52,11 @@ update msg model =
                 |> updateCountry (Just value)
                 |> updateCountryFilter Nothing
                 |> closeCountryAutocomplete
-                |> printModel
                 |> H.withoutCmds
 
         OnDateInput BirthDate value ->
             model
                 |> updateBirthDate value
-                |> printModel
                 |> H.withoutCmds
 
         OnFilter Country value ->
@@ -72,7 +64,6 @@ update msg model =
                 |> updateCountryFilter (Just value)
                 |> updateCountry Nothing
                 |> openCountryAutocomplete
-                |> printModel
                 |> H.withoutCmds
 
         OnToggle PowerSource ->
@@ -83,53 +74,41 @@ update msg model =
         OnChange VisitedCountries value ->
             model
                 |> updateCountryVisited value
-                |> printModel
                 |> H.withoutCmds
 
         OnDatePickerUpdate BirthDate ((DatePicker.SelectDay _) as dpMsg) ->
             model
                 |> updateBirthDateDatePicker dpMsg
                 |> closeBirthDateDatePicker
-                |> printModel
                 |> H.withoutCmds
 
         OnDatePickerUpdate BirthDate dpMsg ->
             model
                 |> updateBirthDateDatePicker dpMsg
-                |> printModel
                 |> H.withoutCmds
 
         OnTodayDateReceived today ->
             { model | today = Just today }
                 |> updateFormData (\fd -> { fd | birthDateDatePicker = Just <| DatePicker.init today ( Date.add Date.Years -1 today, Date.add Date.Years 1 today ) })
-                |> printModel
                 |> H.withoutCmds
 
         OnFocus BirthDate ->
             model
                 |> openBirthDateDatePicker
-                |> printModel
                 |> H.withoutCmds
 
         OnChange InsurancePolicyType value ->
             model
                 |> updateInsurancePolicyType value
-                |> printModel
                 |> H.withoutCmds
 
         OnInput Note value ->
             model
                 |> updateNote (Just value)
-                |> printModel
                 |> H.withoutCmds
 
         _ ->
             H.withoutCmds model
-
-
-printModel : Model -> Model
-printModel =
-    Debug.log "updatedModel is"
 
 
 updateUsername : Maybe String -> Model -> Model

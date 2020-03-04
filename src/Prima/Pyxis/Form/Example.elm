@@ -1,4 +1,4 @@
-module Prima.Pyxis.Form.Example exposing (init)
+module Prima.Pyxis.Form.Example exposing (main)
 
 import Browser
 import Date

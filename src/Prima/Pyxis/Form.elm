@@ -45,7 +45,7 @@ import Prima.Pyxis.Form.TextArea as TextArea
 import Prima.Pyxis.Helpers as H
 
 
-{-| Represents the `Form`.
+{-| Represent the `Form`.
 -}
 type Form model msg
     = Form (FormConfig model msg)
@@ -57,14 +57,14 @@ type alias FormConfig model msg =
     }
 
 
-{-| Creates an instance of a `Form`.
+{-| Create an instance of a `Form`.
 -}
 init : Form model msg
 init =
     Form <| FormConfig Pristine []
 
 
-{-| Represents the `Form` state.
+{-| Represent the `Form` state.
 -}
 type FormState
     = Pristine
@@ -75,22 +75,22 @@ type FormState
 {-| Checks if a `Form` is in the `Pristine` state.
 -}
 isPristine : Form model msg -> Bool
-isPristine (Form config) =
-    config.state == Pristine
+isPristine (Form { state }) =
+    state == Pristine
 
 
 {-| Checks if a `Form` is in the `Touched` state.
 -}
 isTouched : Form model msg -> Bool
-isTouched (Form config) =
-    config.state == Touched
+isTouched (Form { state }) =
+    state == Touched
 
 
 {-| Checks if a `Form` is in the `Submitted` state.
 -}
 isSubmitted : Form model msg -> Bool
-isSubmitted (Form config) =
-    config.state == Submitted
+isSubmitted (Form { state }) =
+    state == Submitted
 
 
 {-| Sets the `Form` to `Pristine` state.
@@ -121,7 +121,7 @@ withFields fields (Form formConfig) =
     Form { formConfig | fields = formConfig.fields ++ [ fields ] }
 
 
-{-| Represents the fields admitted by the `Form`.
+{-| Represent the fields admitted by the `Form`.
 -}
 type FormField model msg
     = InputField (InputFieldConfig model msg)
@@ -175,7 +175,7 @@ pickLabel formField =
             label
 
 
-{-| Internal. Represents the configuration of a `FormField` which holds an `Input` component.
+{-| Internal. Represent the configuration of a `FormField` which holds an `Input` component.
 -}
 type alias InputFieldConfig model msg =
     { config : Input.Input model msg
@@ -191,7 +191,7 @@ input config =
     InputField <| InputFieldConfig config Nothing []
 
 
-{-| Internal. Represents the configuration of a `FormField` which holds an `Flag` component.
+{-| Internal. Represent the configuration of a `FormField` which holds an `Flag` component.
 -}
 type alias FlagFieldConfig model msg =
     { config : Flag.Flag model msg
@@ -207,7 +207,7 @@ flag config =
     FlagField <| FlagFieldConfig config Nothing []
 
 
-{-| Internal. Represents the configuration of a `FormField` which holds a `Radio` component.
+{-| Internal. Represent the configuration of a `FormField` which holds a `Radio` component.
 -}
 type alias RadioFieldConfig model msg =
     { config : Radio.Radio model msg
@@ -223,7 +223,7 @@ radio config =
     RadioField <| RadioFieldConfig config Nothing []
 
 
-{-| Internal. Represents the configuration of a `FormField` which holds a `RadioButton` component.
+{-| Internal. Represent the configuration of a `FormField` which holds a `RadioButton` component.
 -}
 type alias RadioButtonFieldConfig model msg =
     { config : RadioButton.RadioButton model msg
@@ -239,7 +239,7 @@ radioButton config =
     RadioButtonField <| RadioButtonFieldConfig config Nothing []
 
 
-{-| Internal. Represents the configuration of a `FormField` which holds a `Select` component.
+{-| Internal. Represent the configuration of a `FormField` which holds a `Select` component.
 -}
 type alias SelectFieldConfig model msg =
     { config : Select.Select model msg
@@ -255,7 +255,7 @@ select config =
     SelectField <| SelectFieldConfig config Nothing []
 
 
-{-| Internal. Represents the configuration of a `FormField` which holds an `Autocomplete` component.
+{-| Internal. Represent the configuration of a `FormField` which holds an `Autocomplete` component.
 -}
 type alias AutocompleteFieldConfig model msg =
     { config : Autocomplete.Autocomplete model msg
@@ -271,7 +271,7 @@ autocomplete config =
     AutocompleteField <| AutocompleteFieldConfig config Nothing []
 
 
-{-| Internal. Represents the configuration of a `FormField` which holds a `Date` component.
+{-| Internal. Represent the configuration of a `FormField` which holds a `Date` component.
 -}
 type alias DateFieldConfig model msg =
     { config : Date.Date model msg
@@ -287,7 +287,7 @@ date config =
     DateField <| DateFieldConfig config Nothing []
 
 
-{-| Internal. Represents the configuration of a `FormField` which holds a `Checkbox` component.
+{-| Internal. Represent the configuration of a `FormField` which holds a `Checkbox` component.
 -}
 type alias CheckboxFieldConfig model msg =
     { config : Checkbox.Checkbox model msg
@@ -303,7 +303,7 @@ checkbox config =
     CheckboxField <| CheckboxFieldConfig config Nothing []
 
 
-{-| Internal. Represents the configuration of a `FormField` which holds a `TextArea` component.
+{-| Internal. Represent the configuration of a `FormField` which holds a `TextArea` component.
 -}
 type alias TextAreaFieldConfig model msg =
     { config : TextArea.TextArea model msg
@@ -441,7 +441,7 @@ render model (Form formConfig) =
         )
 
 
-{-| Internal. Creates a `Grid` row.
+{-| Internal. Create a `Grid` row.
 -}
 buildGridRow : model -> List (FormField model msg) -> Grid.Row msg
 buildGridRow model fields =

@@ -8,7 +8,7 @@ module Prima.Pyxis.Form.DatePicker exposing
 {-|
 
 
-## Types
+## Types and Configuration
 
 @docs Model, Msg, Date
 

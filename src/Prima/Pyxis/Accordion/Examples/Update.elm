@@ -4,16 +4,15 @@ import Prima.Pyxis.Accordion as Accordion
 import Prima.Pyxis.Accordion.Examples.Model
     exposing
         ( Accordion
-        , Model
         , Msg(..)
         )
 
 
-update : Msg -> Model -> ( Model, Cmd Msg )
-update msg model =
+update : Msg -> List Accordion -> ( List Accordion, Cmd Msg )
+update msg accordionList =
     case msg of
         ToggleAccordion slug isOpen ->
-            ( { model | accordionList = List.map (updateAccordion slug isOpen) model.accordionList }, Cmd.none )
+            ( List.map (updateAccordion slug isOpen) accordionList, Cmd.none )
 
 
 updateAccordion : String -> Bool -> Accordion -> Accordion

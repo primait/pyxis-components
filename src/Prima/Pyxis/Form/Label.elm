@@ -30,13 +30,13 @@ import Html.Events as Events
 import Prima.Pyxis.Helpers as H
 
 
-{-| Represents the opaque `Label` configuration.
+{-| Represent the opaque `Label` configuration.
 -}
 type Label msg
     = Label (LabelConfig msg)
 
 
-{-| Represents the `Label` configuration.
+{-| Represent the `Label` configuration.
 -}
 type alias LabelConfig msg =
     { options : List (LabelOption msg)
@@ -44,21 +44,21 @@ type alias LabelConfig msg =
     }
 
 
-{-| Creates a label with string content.
+{-| Create a label with string content.
 -}
 label : String -> Label msg
 label str =
     Label <| LabelConfig [] [ text str ]
 
 
-{-| Creates a label with html content.
+{-| Create a label with html content.
 -}
 labelWithHtml : List (Html msg) -> Label msg
 labelWithHtml children =
     Label <| LabelConfig [] children
 
 
-{-| Represents the possibile modifiers of a `Label`.
+{-| Represent the possibile modifiers of a `Label`.
 -}
 type LabelOption msg
     = Attribute (Html.Attribute msg)
@@ -69,7 +69,7 @@ type LabelOption msg
     | Subtitle String
 
 
-{-| Represents the options a user can choose to modify
+{-| Represent the options a user can choose to modify
 the `Label` default behaviour.
 -}
 type alias Options msg =
@@ -169,7 +169,7 @@ applyOption modifier options =
 {-| Internal
 -}
 buildAttributes : Label msg -> List (Html.Attribute msg)
-buildAttributes ((Label config) as labelModel) =
+buildAttributes ((Label _) as labelModel) =
     let
         options =
             computeOptions labelModel
@@ -204,7 +204,7 @@ render ((Label config) as labelModel) =
 
 
 renderSubtitle : Label msg -> Html msg
-renderSubtitle ((Label config) as labelModel) =
+renderSubtitle ((Label _) as labelModel) =
     let
         options =
             computeOptions labelModel

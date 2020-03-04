@@ -9,7 +9,7 @@ module Prima.Pyxis.Form.RadioButton exposing
 {-|
 
 
-## Types
+## Types and Configuration
 
 @docs RadioButton, radioButton, radioButtonChoice, radioButtonChoiceWithSubtitle
 
@@ -42,13 +42,13 @@ import Prima.Pyxis.Form.Validation as Validation
 import Prima.Pyxis.Helpers as H
 
 
-{-| Represents the opaque `RadioButton` configuration.
+{-| Represent the opaque `RadioButton` configuration.
 -}
 type RadioButton model msg
     = RadioButton (RadioConfig model msg)
 
 
-{-| Internal. Represents the `RadioButton` configuration.
+{-| Internal. Represent the `RadioButton` configuration.
 -}
 type alias RadioConfig model msg =
     { options : List (RadioButtonOption model msg)
@@ -65,7 +65,7 @@ radioButton reader tagger =
     RadioButton << RadioConfig [] reader tagger
 
 
-{-| Represents the `RadioButtonChoice` configuration.
+{-| Represent the `RadioButtonChoice` configuration.
 -}
 type alias RadioButtonChoice =
     { value : String
@@ -74,21 +74,21 @@ type alias RadioButtonChoice =
     }
 
 
-{-| Creates the 'RadioButtonChoice' configuration.
+{-| Create the 'RadioButtonChoice' configuration.
 -}
 radioButtonChoice : String -> String -> RadioButtonChoice
 radioButtonChoice value title =
     RadioButtonChoice value title Nothing
 
 
-{-| Creates the 'radioButtonChoiceWithSubtitle' configuration.
+{-| Create the 'radioButtonChoiceWithSubtitle' configuration.
 -}
 radioButtonChoiceWithSubtitle : String -> String -> String -> RadioButtonChoice
 radioButtonChoiceWithSubtitle value title subtitle =
     RadioButtonChoice value title (Just subtitle)
 
 
-{-| Internal. Represents the possible modifiers for an `RadioButton`.
+{-| Internal. Represent the possible modifiers for an `RadioButton`.
 -}
 type RadioButtonOption model msg
     = Attribute (Html.Attribute msg)
@@ -99,7 +99,7 @@ type RadioButtonOption model msg
     | Validation (model -> Maybe Validation.Type)
 
 
-{-| Internal. Represents the list of customizations for the `RadioButton` component.
+{-| Internal. Represent the list of customizations for the `RadioButton` component.
 -}
 type alias Options model msg =
     { attributes : List (Html.Attribute msg)
@@ -111,7 +111,7 @@ type alias Options model msg =
     }
 
 
-{-| Internal. Represents the initial state of the list of customizations for the `RadioButton` component.
+{-| Internal. Represent the initial state of the list of customizations for the `RadioButton` component.
 -}
 defaultOptions : Options model msg
 defaultOptions =
@@ -190,13 +190,6 @@ applyOption modifier options =
             { options | validations = validation :: options.validations }
 
 
-{-| Transforms a `List` of `Class`(es) into a valid `Html.Attribute`.
--}
-classAttribute : List String -> Html.Attribute msg
-classAttribute =
-    Attrs.class << String.join " "
-
-
 {-| Internal. Transforms the `reader` function into a valid Html.Attribute.
 -}
 readerAttribute : model -> RadioButton model msg -> RadioButtonChoice -> Html.Attribute msg
@@ -242,20 +235,13 @@ withValidation validation =
 {-| Internal. Transforms the `Validation` status into an Html.Attribute `class`.
 -}
 validationAttribute : model -> RadioButton model msg -> Html.Attribute msg
-validationAttribute model ((RadioButton _) as inputModel) =
+validationAttribute model radioButtonModel =
     let
-        options =
-            computeOptions inputModel
-
         errors =
-            options.validations
-                |> List.filterMap (H.flip identity model)
-                |> List.filter Validation.isError
+            errorsValidations model (computeOptions radioButtonModel)
 
         warnings =
-            options.validations
-                |> List.filterMap (H.flip identity model)
-                |> List.filter Validation.isWarning
+            warningValidations model (computeOptions radioButtonModel)
     in
     case ( errors, warnings ) of
         ( [], [] ) ->
@@ -292,7 +278,7 @@ buildAttributes model radioButtonModel choice =
     ]
         |> List.filterMap identity
         |> (++) options.attributes
-        |> (::) (classAttribute options.class)
+        |> (::) (H.classesAttribute options.class)
         |> (::) (readerAttribute model radioButtonModel choice)
         |> (::) (taggerAttribute radioButtonModel choice)
         |> (::) (validationAttribute model radioButtonModel)
@@ -358,20 +344,13 @@ renderRadioButtonChoice model ((RadioButton _) as radioButtonModel) ({ title, su
 {-| Internal. Renders the list of errors if present. Renders the list of warnings if not.
 -}
 renderValidationMessages : model -> RadioButton model msg -> List (Html msg)
-renderValidationMessages model radioButtonModel =
+renderValidationMessages model ((RadioButton _) as inputModel) =
     let
-        options =
-            computeOptions radioButtonModel
+        errors =
+            errorsValidations model (computeOptions inputModel)
 
         warnings =
-            options.validations
-                |> List.filterMap (H.flip identity model)
-                |> List.filter Validation.isWarning
-
-        errors =
-            options.validations
-                |> List.filterMap (H.flip identity model)
-                |> List.filter Validation.isError
+            warningValidations model (computeOptions inputModel)
     in
     case ( errors, warnings ) of
         ( [], _ ) ->
@@ -397,3 +376,17 @@ renderSubtitle subtitle =
     Html.p
         [ Attrs.class "a-form-field__radio-button__subtitle" ]
         [ Html.text subtitle ]
+
+
+warningValidations : model -> Options model msg -> List Validation.Type
+warningValidations model options =
+    options.validations
+        |> List.filterMap (H.flip identity model)
+        |> List.filter Validation.isWarning
+
+
+errorsValidations : model -> Options model msg -> List Validation.Type
+errorsValidations model options =
+    options.validations
+        |> List.filterMap (H.flip identity model)
+        |> List.filter Validation.isError

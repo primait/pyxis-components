@@ -49,13 +49,13 @@ import Prima.Pyxis.Form.Validation as Validation
 import Prima.Pyxis.Helpers as H
 
 
-{-| Represents the opaque `TextArea` configuration.
+{-| Represent the opaque `TextArea` configuration.
 -}
 type TextArea model msg
     = TextArea (TextAreaConfig model msg)
 
 
-{-| Internal. Represents the `TextArea` configuration.
+{-| Internal. Represent the `TextArea` configuration.
 -}
 type alias TextAreaConfig model msg =
     { options : List (TextAreaOption model msg)
@@ -64,14 +64,14 @@ type alias TextAreaConfig model msg =
     }
 
 
-{-| Creates an `textarea`.
+{-| Create an `textarea`.
 -}
 textArea : (model -> Maybe String) -> (String -> msg) -> TextArea model msg
 textArea reader tagger =
     TextArea <| TextAreaConfig [] reader tagger
 
 
-{-| Internal. Represents the possible modifiers for an `TextArea`.
+{-| Internal. Represent the possible modifiers for an `TextArea`.
 -}
 type TextAreaOption model msg
     = Attribute (Html.Attribute msg)
@@ -93,7 +93,7 @@ type Default
     | Value (Maybe String)
 
 
-{-| Internal. Represents the `TextArea` size.
+{-| Internal. Represent the `TextArea` size.
 -}
 type TextAreaSize
     = Small
@@ -207,7 +207,7 @@ addOption option (TextArea textAreaConfig) =
     TextArea { textAreaConfig | options = textAreaConfig.options ++ [ option ] }
 
 
-{-| Internal. Represents the list of customizations for the `TextArea` component.
+{-| Internal. Represent the list of customizations for the `TextArea` component.
 -}
 type alias Options model msg =
     { attributes : List (Html.Attribute msg)
@@ -225,7 +225,7 @@ type alias Options model msg =
     }
 
 
-{-| Internal. Represents the initial state of the list of customizations for the `TextArea` component.
+{-| Internal. Represent the initial state of the list of customizations for the `TextArea` component.
 -}
 defaultOptions : Options model msg
 defaultOptions =
@@ -320,20 +320,13 @@ taggerAttribute (TextArea config) =
 {-| Internal. Transforms the `Validation` status into an Html.Attribute `class`.
 -}
 validationAttribute : model -> TextArea model msg -> Html.Attribute msg
-validationAttribute model ((TextArea config) as textAreaModel) =
+validationAttribute model textAreaModel =
     let
-        options =
-            computeOptions textAreaModel
+        warnings =
+            warningValidations model (computeOptions textAreaModel)
 
         errors =
-            options.validations
-                |> List.filterMap (H.flip identity model)
-                |> List.filter Validation.isError
-
-        warnings =
-            options.validations
-                |> List.filterMap (H.flip identity model)
-                |> List.filter Validation.isWarning
+            errorsValidations model (computeOptions textAreaModel)
     in
     case ( errors, warnings ) of
         ( [], [] ) ->
@@ -371,7 +364,7 @@ computeOptions (TextArea config) =
 {-| Internal. Transforms all the customizations into a list of valid Html.Attribute(s).
 -}
 buildAttributes : model -> TextArea model msg -> List (Html.Attribute msg)
-buildAttributes model textAreaModel =
+buildAttributes model ((TextArea _) as textAreaModel) =
     let
         options =
             computeOptions textAreaModel
@@ -392,6 +385,7 @@ buildAttributes model textAreaModel =
         |> List.filterMap identity
         |> (++) options.attributes
         |> (::) (H.classesAttribute options.classes)
+        |> (::) (pristineAttribute model textAreaModel)
         |> (::) (readerAttribute model textAreaModel)
         |> (::) (taggerAttribute textAreaModel)
         |> (::) (sizeAttribute options.size)
@@ -453,18 +447,11 @@ renderTextArea model textAreaModel =
 renderValidationMessages : model -> TextArea model msg -> List (Html msg)
 renderValidationMessages model textAreaModel =
     let
-        options =
-            computeOptions textAreaModel
-
         warnings =
-            options.validations
-                |> List.filterMap (H.flip identity model)
-                |> List.filter Validation.isWarning
+            warningValidations model (computeOptions textAreaModel)
 
         errors =
-            options.validations
-                |> List.filterMap (H.flip identity model)
-                |> List.filter Validation.isError
+            errorsValidations model (computeOptions textAreaModel)
     in
     case ( errors, warnings ) of
         ( [], _ ) ->
@@ -472,3 +459,17 @@ renderValidationMessages model textAreaModel =
 
         ( _, _ ) ->
             List.map Validation.render errors
+
+
+warningValidations : model -> Options model msg -> List Validation.Type
+warningValidations model options =
+    options.validations
+        |> List.filterMap (H.flip identity model)
+        |> List.filter Validation.isWarning
+
+
+errorsValidations : model -> Options model msg -> List Validation.Type
+errorsValidations model options =
+    options.validations
+        |> List.filterMap (H.flip identity model)
+        |> List.filter Validation.isError

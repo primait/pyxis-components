@@ -43,13 +43,13 @@ import Prima.Pyxis.Form.Validation as Validation
 import Prima.Pyxis.Helpers as H
 
 
-{-| Represents the opaque `Flag` configuration.
+{-| Represent the opaque `Flag` configuration.
 -}
 type Flag model msg
     = Flag (FlagConfig model msg)
 
 
-{-| Internal. Represents the `Flag` configuration.
+{-| Internal. Represent the `Flag` configuration.
 -}
 type alias FlagConfig model msg =
     { options : List (FlagOption model msg)
@@ -59,7 +59,7 @@ type alias FlagConfig model msg =
     }
 
 
-{-| Internal. Represents the possible modifiers for an `Flag`.
+{-| Internal. Represent the possible modifiers for an `Flag`.
 -}
 type FlagOption model msg
     = Attribute (Html.Attribute msg)
@@ -71,7 +71,7 @@ type FlagOption model msg
     | Validation (model -> Maybe Validation.Type)
 
 
-{-| Creates a `Flag`.
+{-| Create a `Flag`.
 -}
 flag : (model -> Maybe Bool) -> (Bool -> msg) -> String -> Flag model msg
 flag reader tagger id =
@@ -134,7 +134,7 @@ withValidation validation =
     addOption (Validation validation)
 
 
-{-| Internal. Represents the list of customizations for the `Flag` component.
+{-| Internal. Represent the list of customizations for the `Flag` component.
 -}
 type alias Options model msg =
     { attributes : List (Html.Attribute msg)
@@ -147,7 +147,7 @@ type alias Options model msg =
     }
 
 
-{-| Internal. Represents the initial state of the list of customizations for the `Flag` component.
+{-| Internal. Represent the initial state of the list of customizations for the `Flag` component.
 -}
 defaultOptions : Options model msg
 defaultOptions =
@@ -212,18 +212,11 @@ taggerAttribute model (Flag config) =
 validationAttribute : model -> Flag model msg -> Html.Attribute msg
 validationAttribute model flagModel =
     let
-        options =
-            computeOptions flagModel
+        warnings =
+            warningValidations model (computeOptions flagModel)
 
         errors =
-            options.validations
-                |> List.filterMap (H.flip identity model)
-                |> List.filter Validation.isError
-
-        warnings =
-            options.validations
-                |> List.filterMap (H.flip identity model)
-                |> List.filter Validation.isWarning
+            errorsValidations model (computeOptions flagModel)
     in
     case ( errors, warnings ) of
         ( [], [] ) ->
@@ -334,18 +327,11 @@ renderFlagChoice model ((Flag config) as flagModel) =
 renderValidationMessages : model -> Flag model msg -> List (Html msg)
 renderValidationMessages model flagModel =
     let
-        options =
-            computeOptions flagModel
-
         warnings =
-            options.validations
-                |> List.filterMap (H.flip identity model)
-                |> List.filter Validation.isWarning
+            warningValidations model (computeOptions flagModel)
 
         errors =
-            options.validations
-                |> List.filterMap (H.flip identity model)
-                |> List.filter Validation.isError
+            errorsValidations model (computeOptions flagModel)
     in
     case ( errors, warnings ) of
         ( [], _ ) ->
@@ -353,3 +339,17 @@ renderValidationMessages model flagModel =
 
         ( _, _ ) ->
             List.map Validation.render errors
+
+
+warningValidations : model -> Options model msg -> List Validation.Type
+warningValidations model options =
+    options.validations
+        |> List.filterMap (H.flip identity model)
+        |> List.filter Validation.isWarning
+
+
+errorsValidations : model -> Options model msg -> List Validation.Type
+errorsValidations model options =
+    options.validations
+        |> List.filterMap (H.flip identity model)
+        |> List.filter Validation.isError
