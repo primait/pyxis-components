@@ -6,28 +6,30 @@ module Prima.Pyxis.Accordion.Examples.View exposing
     )
 
 import Browser
-import Html exposing (Html)
+import Html exposing (..)
+import Html.Attributes exposing (class)
 import Prima.Pyxis.Accordion as Accordion
 import Prima.Pyxis.Accordion.Examples.Model
     exposing
         ( Accordion
         , AccordionType(..)
+        , Model
         , Msg(..)
         )
 import Prima.Pyxis.Container as Container
 import Prima.Pyxis.Helpers as Helpers
 
 
-view : List Accordion -> Browser.Document Msg
-view accordionList =
-    Browser.Document "Accordion component" (appBody accordionList)
+view : Model -> Browser.Document Msg
+view model =
+    Browser.Document "Accordion component" (appBody model)
 
 
-appBody : List Accordion -> List (Html Msg)
-appBody accordionList =
+appBody : Model -> List (Html Msg)
+appBody model =
     [ Helpers.pyxisStyle
     , Container.default
-        ((List.intersperse Helpers.spacer << List.map accordionRender) accordionList)
+        ((List.intersperse Helpers.spacer << List.map accordionRender) model.accordionList)
     ]
 
 
@@ -40,13 +42,13 @@ accordionConfig : Accordion -> Accordion.Config Msg
 accordionConfig accordion =
     (case accordion.accordionType of
         Light ->
-            Accordion.lightConfig
+            Accordion.light
 
         Dark ->
-            Accordion.darkConfig
+            Accordion.dark
 
         Base ->
-            Accordion.baseConfig
+            Accordion.base
     )
         accordion.slug
         ToggleAccordion
