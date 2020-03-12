@@ -2,6 +2,8 @@ module Prima.Pyxis.Accordion.Examples.Model exposing
     ( Accordion
     , AccordionType(..)
     , Msg(..)
+    , accordionContent
+    , accordionTypeToTitle
     , initialModel
     )
 
@@ -22,7 +24,7 @@ initialModel =
 type alias Accordion =
     { accordionType : AccordionType
     , slug : String
-    , state : Accordion.State Msg
+    , state : Accordion.State
     }
 
 
@@ -34,7 +36,7 @@ type AccordionType
 
 accordionBuilder : AccordionType -> Accordion
 accordionBuilder type_ =
-    Accordion type_ (accordionTypeToSlug type_) (Accordion.state False (accordionTypeToTitle type_) accordionContent)
+    Accordion type_ (accordionTypeToSlug type_) (Accordion.state False)
 
 
 accordionTypeToSlug : AccordionType -> String

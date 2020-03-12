@@ -1,6 +1,6 @@
 module Prima.Pyxis.Accordion exposing
     ( Config, State
-    , base, light, dark, state, withWrapperClass, withIconClass, withContentClass
+    , base, light, dark, state, withWrapperClass, withIconClass, withContentClass, withSimpleTitle, withHtmlTitle, withContent
     , open, close
     , render, renderGroup
     )
@@ -15,7 +15,7 @@ module Prima.Pyxis.Accordion exposing
 
 # Configuration Helpers
 
-@docs base, light, dark, state, withWrapperClass, withIconClass, withContentClass
+@docs base, light, dark, state, withWrapperClass, withIconClass, withContentClass, withSimpleTitle, withHtmlTitle, withContent
 
 
 # Helpers
@@ -38,13 +38,15 @@ import Html.Events exposing (onClick)
 passed in are no more modified by the setter.
 -}
 type Config msg
-    = Config (Configuration msg)
+    = Config (AccordionConfig msg)
 
 
-type alias Configuration msg =
+type alias AccordionConfig msg =
     { type_ : AccordionType
     , slug : String
     , tagger : String -> Bool -> msg
+    , title : Maybe (Html msg)
+    , content : List (Html msg)
     , options : List AccordionOption
     }
 
@@ -60,15 +62,8 @@ type AccordionType
 {-| Internal. Represents the state of the component. Values passed in are
 susceptible to change.
 -}
-type State msg
-    = State (InternalState msg)
-
-
-type alias InternalState msg =
-    { isOpen : Bool
-    , title : String
-    , content : List (Html msg)
-    }
+type State
+    = State Bool
 
 
 {-| Internal. Represents the list of available customizations.
@@ -155,21 +150,21 @@ addOption option (Config accordionConfig) =
 -}
 base : String -> (String -> Bool -> msg) -> Config msg
 base slug tagger =
-    Config <| Configuration Base slug tagger []
+    Config <| AccordionConfig Base slug tagger Nothing [] []
 
 
 {-| The same as base but with a Light skin.
 -}
 light : String -> (String -> Bool -> msg) -> Config msg
 light slug tagger =
-    Config <| Configuration Light slug tagger []
+    Config <| AccordionConfig Light slug tagger Nothing [] []
 
 
 {-| The same as base but with a Dark skin.
 -}
 dark : String -> (String -> Bool -> msg) -> Config msg
 dark slug tagger =
-    Config <| Configuration Dark slug tagger []
+    Config <| AccordionConfig Dark slug tagger Nothing [] []
 
 
 isBase : AccordionType -> Bool
@@ -208,9 +203,9 @@ isDark =
     ...
 
 -}
-state : Bool -> String -> List (Html msg) -> State msg
-state isOpen title content =
-    State <| InternalState isOpen title content
+state : Bool -> State
+state isOpen =
+    State isOpen
 
 
 {-| Opens the Accordion to reveal it's content.
@@ -219,9 +214,9 @@ state isOpen title content =
         Accordion.open myAccordionState
 
 -}
-open : State msg -> State msg
-open (State internalState) =
-    State { internalState | isOpen = True }
+open : State
+open =
+    State True
 
 
 {-| Closes the Accordion to hide it's content.
@@ -230,9 +225,9 @@ open (State internalState) =
         Accordion.close myAccordionState
 
 -}
-close : State msg -> State msg
-close (State internalState) =
-    State { internalState | isOpen = False }
+close : State
+close =
+    State False
 
 
 {-| Adds a class for the wrapper to the `Config`.
@@ -256,13 +251,34 @@ withContentClass class_ =
     addOption (ContentClass class_)
 
 
+{-| Adds a string title to the Accordion
+-}
+withSimpleTitle : String -> Config msg -> Config msg
+withSimpleTitle title (Config accordionConfig) =
+    Config { accordionConfig | title = Just (text title) }
+
+
+{-| Adds an Html title to the Accordion
+-}
+withHtmlTitle : Html msg -> Config msg -> Config msg
+withHtmlTitle title (Config accordionConfig) =
+    Config { accordionConfig | title = Just title }
+
+
+{-| Adds content to the Accordion
+-}
+withContent : List (Html msg) -> Config msg -> Config msg
+withContent content (Config accordionConfig) =
+    Config { accordionConfig | content = content }
+
+
 {-| Renders the Accordion component by receiving is State and Config.
 
     Accordion.render myAccordionState myAccordionConfiguration
 
 -}
-render : State msg -> Config msg -> Html msg
-render (State { isOpen, title, content }) ((Config { type_, tagger, slug }) as config) =
+render : State -> Config msg -> Html msg
+render (State isOpen) ((Config { type_, tagger, slug, title, content }) as config) =
     div
         [ id slug
         , [ ( "a-accordion", True )
@@ -273,11 +289,11 @@ render (State { isOpen, title, content }) ((Config { type_, tagger, slug }) as c
           ]
             |> buildWrapperClass config
         ]
-        [ span
+        [ div
             [ class "a-accordion__toggle fs-xsmall fw-heavy a-link--alt"
             , onClick (tagger slug isOpen)
             ]
-            [ text title
+            [ Maybe.withDefault (text "") title
             , i
                 [ buildIconClass config ]
                 []
@@ -298,7 +314,7 @@ render (State { isOpen, title, content }) ((Config { type_, tagger, slug }) as c
         ]
 
 -}
-renderGroup : List ( State msg, Config msg ) -> Html msg
+renderGroup : List ( State, Config msg ) -> Html msg
 renderGroup dataSet =
     div
         [ class "m-accordion-group" ]
