@@ -293,7 +293,8 @@ render (State isOpen) ((Config { type_, tagger, slug, title, content }) as confi
             [ class "a-accordion__toggle fs-xsmall fw-heavy a-link--alt"
             , onClick (tagger slug isOpen)
             ]
-            [ Maybe.withDefault (text "") title
+            [ title
+                |> Maybe.withDefault (text "")
             , i
                 [ buildIconClass config ]
                 []
