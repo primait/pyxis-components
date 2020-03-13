@@ -3,11 +3,13 @@ module Prima.Pyxis.Accordion.Examples.Model exposing
     , AccordionType(..)
     , Msg(..)
     , accordionContent
-    , accordionTypeToTitle
+    , accordionTypeToHtmlTitle
+    , accordionTypeToSimpleTitle
     , initialModel
     )
 
 import Html exposing (Html, text)
+import Html.Attributes as Attrs
 import Prima.Pyxis.Accordion as Accordion
 import Prima.Pyxis.Helpers as Helpers
 
@@ -52,8 +54,8 @@ accordionTypeToSlug type_ =
             "slug-accordion-dark"
 
 
-accordionTypeToTitle : AccordionType -> String
-accordionTypeToTitle type_ =
+accordionTypeToSimpleTitle : AccordionType -> String
+accordionTypeToSimpleTitle type_ =
     case type_ of
         Base ->
             "I am a base accordion"
@@ -63,6 +65,28 @@ accordionTypeToTitle type_ =
 
         Dark ->
             "I am a dark accordion"
+
+
+accordionTypeToHtmlTitle : AccordionType -> Html msg
+accordionTypeToHtmlTitle type_ =
+    case type_ of
+        Base ->
+            Html.span []
+                [ text "I am a "
+                , Html.strong [ Attrs.class "cBrandBase" ] [ text "base accordion" ]
+                ]
+
+        Light ->
+            Html.span []
+                [ text "I am a "
+                , Html.strong [ Attrs.class "cBrandBase" ] [ text "light accordion" ]
+                ]
+
+        Dark ->
+            Html.span []
+                [ text "I am a "
+                , Html.strong [ Attrs.class "cBrandBase" ] [ text "dark accordion" ]
+                ]
 
 
 accordionContent : List (Html Msg)

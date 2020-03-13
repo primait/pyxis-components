@@ -14,7 +14,8 @@ import Prima.Pyxis.Accordion.Examples.Model
         , AccordionType(..)
         , Msg(..)
         , accordionContent
-        , accordionTypeToTitle
+        , accordionTypeToHtmlTitle
+        , accordionTypeToSimpleTitle
         )
 import Prima.Pyxis.Container as Container
 import Prima.Pyxis.Helpers as Helpers
@@ -40,17 +41,18 @@ accordionRender accordion =
 
 accordionConfig : Accordion -> Accordion.Config Msg
 accordionConfig accordion =
-    (case accordion.accordionType of
+    case accordion.accordionType of
         Light ->
-            Accordion.light
+            Accordion.light accordion.slug ToggleAccordion
+                |> Accordion.withSimpleTitle (accordionTypeToSimpleTitle accordion.accordionType)
+                |> Accordion.withContent accordionContent
 
         Dark ->
-            Accordion.dark
+            Accordion.dark accordion.slug ToggleAccordion
+                |> Accordion.withHtmlTitle (accordionTypeToHtmlTitle accordion.accordionType)
+                |> Accordion.withContent accordionContent
 
         Base ->
-            Accordion.base
-    )
-        accordion.slug
-        ToggleAccordion
-        |> Accordion.withSimpleTitle (accordionTypeToTitle accordion.accordionType)
-        |> Accordion.withContent accordionContent
+            Accordion.base accordion.slug ToggleAccordion
+                |> Accordion.withSimpleTitle (accordionTypeToSimpleTitle accordion.accordionType)
+                |> Accordion.withContent accordionContent
