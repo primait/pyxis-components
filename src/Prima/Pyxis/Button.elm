@@ -147,7 +147,7 @@ computeOptions (Config config) =
     List.foldl applyOption defaultOptions config.options
 
 
-{-| Internal. Adds a generic option to the `Link`.
+{-| Internal. Adds a generic option to the `Button`.
 -}
 addOption : ButtonOption msg -> Config msg -> Config msg
 addOption option (Config buttonConfig) =
@@ -161,6 +161,8 @@ type ColorScheme
     | BrandDark
 
 
+{-| Internal. Checks if button is dark themed
+-}
 isDark : ColorScheme -> Bool
 isDark =
     (==) BrandDark
@@ -171,11 +173,15 @@ type Size
     | Small
 
 
+{-| Internal. Checks if button is `Normal` sized
+-}
 isNormal : Size -> Bool
 isNormal =
     (==) Normal
 
 
+{-| Internal. Checks if button is `Small` sized
+-}
 isSmall : Size -> Bool
 isSmall =
     (==) Small
@@ -293,36 +299,50 @@ withTitle title =
     addOption (Title title)
 
 
+{-| Adds an `onClick` Html.Event to the `Button`.
+-}
 withClick : msg -> Config msg -> Config msg
 withClick tagger =
     addOption (Event (Events.onClick tagger))
 
 
+{-| Adds an `onMouseDown` Html.Event to the `Button`.
+-}
 withMouseDown : msg -> Config msg -> Config msg
 withMouseDown tagger =
     addOption (Event (Events.onMouseDown tagger))
 
 
+{-| Adds an `onMouseUp` Html.Event to the `Button`.
+-}
 withMouseUp : msg -> Config msg -> Config msg
 withMouseUp tagger =
     addOption (Event (Events.onMouseUp tagger))
 
 
+{-| Adds an `onMouseEnter` Html.Event to the `Button`.
+-}
 withMouseEnter : msg -> Config msg -> Config msg
 withMouseEnter tagger =
     addOption (Event (Events.onMouseEnter tagger))
 
 
+{-| Adds an `onMouseLeave` Html.Event to the `Button`.
+-}
 withMouseLeave : msg -> Config msg -> Config msg
 withMouseLeave tagger =
     addOption (Event (Events.onMouseLeave tagger))
 
 
+{-| Adds an `onMouseOver` Html.Event to the `Button`.
+-}
 withMouseOver : msg -> Config msg -> Config msg
 withMouseOver tagger =
     addOption (Event (Events.onMouseOver tagger))
 
 
+{-| Adds an `onMouseOut` Html.Event to the `Button`.
+-}
 withMouseOut : msg -> Config msg -> Config msg
 withMouseOut tagger =
     addOption (Event (Events.onMouseOut tagger))
@@ -400,7 +420,7 @@ render ((Config { label }) as config) =
 -}
 group : List (Config msg) -> Html msg
 group buttonsConfig =
-    H.btnGroup (List.map (\button -> render button) buttonsConfig)
+    H.btnGroup (List.map render buttonsConfig)
 
 
 {-| Create a button wrapper which can hold a set of fluid `Button`s.
@@ -409,7 +429,7 @@ groupFluid : List (Config msg) -> Html msg
 groupFluid buttonsConfig =
     div
         [ Attrs.class "m-btnGroup m-btnGroup--coverFluid" ]
-        (List.map (\button -> render button) buttonsConfig)
+        (List.map render buttonsConfig)
 
 
 {-| Internal. Transforms all the customizations into a list of valid Html.Attribute(s).
