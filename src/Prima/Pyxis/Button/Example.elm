@@ -34,31 +34,49 @@ init _ =
 type alias Model =
     { buttons : List (Button.Config Msg)
     , darkButtons : List (Button.Config Msg)
+    , clicked : Maybe String
     }
 
 
 initialModel : Model
 initialModel =
     Model
-        [ Button.callOut Button.Brand "CallOut" NoOp
-        , Button.primary Button.Brand "Primary" NoOp
-        , Button.secondary Button.Brand "Secondary" NoOp
-        , Button.tertiary Button.Brand "Tertiary" NoOp
+        [ Button.callOut "CallOut"
+        , Button.primary "Primary"
+        , Button.secondary "Secondary"
+        , Button.tertiary "Tertiary"
         ]
-        [ Button.callOut Button.BrandDark "CallOut dark" NoOp
-        , Button.primary Button.BrandDark "Primary dark" NoOp
-        , Button.secondary Button.BrandDark "Secondary dark" NoOp
-        , Button.tertiary Button.BrandDark "Tertiary dark" NoOp
+        [ Button.callOut "CallOut dark"
+            |> Button.withColorScheme Button.BrandDark
+            |> Button.withClick (HandleEvent "Click 1")
+            |> Button.withTabIndex 1
+        , Button.primary "Primary dark"
+            |> Button.withColorScheme Button.BrandDark
+            |> Button.withClick (HandleEvent "Click 2")
+            |> Button.withTabIndex 0
+        , Button.secondary "Secondary dark"
+            |> Button.withColorScheme Button.BrandDark
+            |> Button.withMouseEnter (HandleEvent "Hover 3")
+            |> Button.withClick (HandleEvent "Click 3")
+        , Button.tertiary "Tertiary dark"
+            |> Button.withColorScheme Button.BrandDark
         ]
+        Nothing
 
 
 type Msg
-    = NoOp
+    = HandleEvent String
+    | NoOp
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
-update _ model =
-    ( model, Cmd.none )
+update msg model =
+    case msg of
+        HandleEvent label ->
+            ( { model | clicked = Just label }, Cmd.none )
+
+        _ ->
+            ( model, Cmd.none )
 
 
 view : Model -> Browser.Document Msg
@@ -70,15 +88,16 @@ appBody : Model -> List (Html Msg)
 appBody model =
     [ Helpers.pyxisStyle
     , model.buttons
-        |> List.map (\btn -> ( True, btn ))
         |> Button.group
         |> List.singleton
         |> wrapper False
     , model.darkButtons
-        |> List.map (\btn -> ( True, btn ))
         |> Button.group
         |> List.singleton
         |> wrapper True
+    , model.clicked
+        |> Maybe.withDefault "No button clicked"
+        |> Html.text
     ]
 
 

@@ -1,7 +1,9 @@
 module Prima.Pyxis.Button exposing
-    ( Config, Emphasis, Scheme(..)
-    , callOut, callOutSmall, primary, primarySmall, secondary, secondarySmall, tertiary, tertiarySmall
+    ( Config, Emphasis
+    , callOut, callOutSmall, primary, primarySmall, secondary, secondarySmall, tertiary, tertiarySmall, withClass, withColorScheme, withDisabled, withId, withTabIndex, withTitle
+    , withClick, withMouseDown, withMouseUp, withMouseEnter, withMouseLeave, withMouseOver, withMouseOut
     , render, group, groupFluid
+    , ColorScheme(..)
     )
 
 {-| Create a `Button` using predefined Html syntax.
@@ -14,7 +16,12 @@ module Prima.Pyxis.Button exposing
 
 ## Options
 
-@docs callOut, callOutSmall, primary, primarySmall, secondary, secondarySmall, tertiary, tertiarySmall
+@docs callOut, callOutSmall, primary, primarySmall, secondary, secondarySmall, tertiary, tertiarySmall, withClass, withColorScheme, withDisabled, withId, withTabIndex, withTitle
+
+
+## Events
+
+@docs withClick, withMouseDown, withMouseUp, withMouseEnter, withMouseLeave, withMouseOver, withMouseOut
 
 
 # Render
@@ -24,23 +31,23 @@ module Prima.Pyxis.Button exposing
 -}
 
 import Html exposing (Html, button, div, span, text)
-import Html.Attributes exposing (class, classList, disabled)
-import Html.Events exposing (onClick)
+import Html.Attributes as Attrs
+import Html.Events as Events
 import Prima.Pyxis.Helpers as H
 
 
 {-| Represent the configuration of the button.
 -}
 type Config msg
-    = Config (Configuration msg)
+    = Config (ButtonConfig msg)
 
 
-type alias Configuration msg =
+type alias ButtonConfig msg =
     { emphasis : Emphasis
+    , color : ColorScheme
     , size : Size
-    , scheme : Scheme
     , label : String
-    , action : msg
+    , options : List (ButtonOption msg)
     }
 
 
@@ -73,14 +80,88 @@ isTertiary =
     (==) Tertiary
 
 
+{-| Internal. Represents the list of customizations for the `Button` component.
+-}
+type alias Options msg =
+    { classes : List String
+    , events : List (Html.Attribute msg)
+    , disabled : Maybe Bool
+    , id : Maybe String
+    , tabIndex : Maybe Int
+    , title : Maybe String
+    }
+
+
+{-| Internal. Represents the possible modifiers for a `Button`.
+-}
+type ButtonOption msg
+    = Class String
+    | Event (Html.Attribute msg)
+    | Disabled Bool
+    | Id String
+    | TabIndex Int
+    | Title String
+
+
+{-| Internal. Represents the initial state of the list of customizations for the `Button` component.
+-}
+defaultOptions : Options msg
+defaultOptions =
+    { classes = []
+    , events = []
+    , disabled = Nothing
+    , id = Nothing
+    , tabIndex = Nothing
+    , title = Nothing
+    }
+
+
+{-| Internal. Applies the customizations made by end user to the `Button` component.
+-}
+applyOption : ButtonOption msg -> Options msg -> Options msg
+applyOption modifier options =
+    case modifier of
+        Class class ->
+            { options | classes = class :: options.classes }
+
+        Event action ->
+            { options | events = action :: options.events }
+
+        Disabled disabled ->
+            { options | disabled = Just disabled }
+
+        Id id ->
+            { options | id = Just id }
+
+        TabIndex index ->
+            { options | tabIndex = Just index }
+
+        Title title ->
+            { options | title = Just title }
+
+
+{-| Internal. Applies all the customizations and returns the internal `Options` type.
+-}
+computeOptions : Config msg -> Options msg
+computeOptions (Config config) =
+    List.foldl applyOption defaultOptions config.options
+
+
+{-| Internal. Adds a generic option to the `Link`.
+-}
+addOption : ButtonOption msg -> Config msg -> Config msg
+addOption option (Config buttonConfig) =
+    Config { buttonConfig | options = buttonConfig.options ++ [ option ] }
+
+
 {-| Represent the color scheme used to render the button.
 -}
-type Scheme
+type ColorScheme
     = Brand
     | BrandDark
 
 
-isDark : Scheme -> Bool
+isDark : ColorScheme -> Bool
 isDark =
     (==) BrandDark
 
@@ -116,58 +197,135 @@ isSmall =
         Button.callOut Button.Brand "Click me!" Clicked
 
 -}
-callOut : Scheme -> String -> msg -> Config msg
-callOut scheme label action =
-    Config (Configuration CallOut Normal scheme label action)
+callOut : String -> Config msg
+callOut label =
+    Config (ButtonConfig CallOut Brand Normal label [])
 
 
 {-| Create a button with a `CallOut` visual weight and a `small size`.
 -}
-callOutSmall : Scheme -> String -> msg -> Config msg
-callOutSmall scheme label action =
-    Config (Configuration CallOut Small scheme label action)
+callOutSmall : String -> Config msg
+callOutSmall label =
+    Config (ButtonConfig CallOut Brand Small label [])
 
 
 {-| Create a button with a `Primary` visual weight and a `default size`.
 -}
-primary : Scheme -> String -> msg -> Config msg
-primary scheme label action =
-    Config (Configuration Primary Normal scheme label action)
+primary : String -> Config msg
+primary label =
+    Config (ButtonConfig Primary Brand Normal label [])
 
 
 {-| Create a button with a `Primary` visual weight and a `small size`.
 -}
-primarySmall : Scheme -> String -> msg -> Config msg
-primarySmall scheme label action =
-    Config (Configuration Primary Small scheme label action)
+primarySmall : String -> Config msg
+primarySmall label =
+    Config (ButtonConfig Primary Brand Small label [])
 
 
 {-| Create a button with a `Secondary` visual weight and a `default size`.
 -}
-secondary : Scheme -> String -> msg -> Config msg
-secondary scheme label action =
-    Config (Configuration Secondary Normal scheme label action)
+secondary : String -> Config msg
+secondary label =
+    Config (ButtonConfig Secondary Brand Normal label [])
 
 
 {-| Create a button with a `Secondary` visual weight and a `small size`.
 -}
-secondarySmall : Scheme -> String -> msg -> Config msg
-secondarySmall scheme label action =
-    Config (Configuration Secondary Small scheme label action)
+secondarySmall : String -> Config msg
+secondarySmall label =
+    Config (ButtonConfig Secondary Brand Small label [])
 
 
 {-| Create a button with a `Tertiary` visual weight and a `default size`.
 -}
-tertiary : Scheme -> String -> msg -> Config msg
-tertiary scheme label action =
-    Config (Configuration Tertiary Normal scheme label action)
+tertiary : String -> Config msg
+tertiary label =
+    Config (ButtonConfig Tertiary Brand Normal label [])
 
 
 {-| Create a button with a `Tertiary` visual weight and a `small size`.
 -}
-tertiarySmall : Scheme -> String -> msg -> Config msg
-tertiarySmall scheme label action =
-    Config (Configuration Tertiary Small scheme label action)
+tertiarySmall : String -> Config msg
+tertiarySmall label =
+    Config (ButtonConfig Tertiary Brand Small label [])
+
+
+{-| Changes the color scheme of the `Button`.
+-}
+withColorScheme : ColorScheme -> Config msg -> Config msg
+withColorScheme color (Config buttonConfig) =
+    Config { buttonConfig | color = color }
+
+
+{-| Adds a `class` to the `Button`.
+-}
+withClass : String -> Config msg -> Config msg
+withClass class_ =
+    addOption (Class class_)
+
+
+{-| Adds a `disabled` Html.Attribute to the `Button`.
+-}
+withDisabled : Config msg -> Config msg
+withDisabled =
+    addOption (Disabled True)
+
+
+{-| Adds an `id` Html.Attribute to the `Button`.
+-}
+withId : String -> Config msg -> Config msg
+withId id =
+    addOption (Id id)
+
+
+{-| Adds a `tabIndex` Html.Attribute to the `Button`.
+-}
+withTabIndex : Int -> Config msg -> Config msg
+withTabIndex index =
+    addOption (TabIndex index)
+
+
+{-| Adds a `title` Html.Attribute to the `Button`.
+-}
+withTitle : String -> Config msg -> Config msg
+withTitle title =
+    addOption (Title title)
+
+
+withClick : msg -> Config msg -> Config msg
+withClick tagger =
+    addOption (Event (Events.onClick tagger))
+
+
+withMouseDown : msg -> Config msg -> Config msg
+withMouseDown tagger =
+    addOption (Event (Events.onMouseDown tagger))
+
+
+withMouseUp : msg -> Config msg -> Config msg
+withMouseUp tagger =
+    addOption (Event (Events.onMouseUp tagger))
+
+
+withMouseEnter : msg -> Config msg -> Config msg
+withMouseEnter tagger =
+    addOption (Event (Events.onMouseEnter tagger))
+
+
+withMouseLeave : msg -> Config msg -> Config msg
+withMouseLeave tagger =
+    addOption (Event (Events.onMouseLeave tagger))
+
+
+withMouseOver : msg -> Config msg -> Config msg
+withMouseOver tagger =
+    addOption (Event (Events.onMouseOver tagger))
+
+
+withMouseOut : msg -> Config msg -> Config msg
+withMouseOut tagger =
+    addOption (Event (Events.onMouseOut tagger))
 
 
 {-| Renders the button by receiving it's configuration.
@@ -196,22 +354,10 @@ tertiarySmall scheme label action =
         Button.render isEnabled myBtn
 
 -}
-render : Bool -> Config msg -> Html msg
-render isEnabled (Config { emphasis, action, label, scheme, size }) =
+render : Config msg -> Html msg
+render ((Config { label }) as config) =
     button
-        [ classList
-            [ ( "a-btn", True )
-            , ( "a-btn--callout", isCallOut emphasis )
-            , ( "a-btn--primary", isPrimary emphasis )
-            , ( "a-btn--secondary", isSecondary emphasis )
-            , ( "a-btn--tertiary", isTertiary emphasis )
-            , ( "a-btn--small", isSmall size )
-            , ( "a-btn--normal", isNormal size )
-            , ( "a-btn--dark", isDark scheme )
-            ]
-        , disabled (not isEnabled)
-        , onClick action
-        ]
+        (buildAttributes config)
         [ span
             []
             [ text label ]
@@ -252,15 +398,52 @@ render isEnabled (Config { emphasis, action, label, scheme, size }) =
         Button.group [(isCtaBtnEnabled, ctaBtn), (isPrimaryBtnEnabled, primaryBtn)]
 
 -}
-group : List ( Bool, Config msg ) -> Html msg
+group : List (Config msg) -> Html msg
 group buttonsConfig =
-    H.btnGroup (List.map (\( isEnabled, button ) -> render isEnabled button) buttonsConfig)
+    H.btnGroup (List.map (\button -> render button) buttonsConfig)
 
 
 {-| Create a button wrapper which can hold a set of fluid `Button`s.
 -}
-groupFluid : List ( Bool, Config msg ) -> Html msg
+groupFluid : List (Config msg) -> Html msg
 groupFluid buttonsConfig =
     div
-        [ class "m-btnGroup m-btnGroup--coverFluid" ]
-        (List.map (\( isEnabled, button ) -> render isEnabled button) buttonsConfig)
+        [ Attrs.class "m-btnGroup m-btnGroup--coverFluid" ]
+        (List.map (\button -> render button) buttonsConfig)
+
+
+{-| Internal. Transforms all the customizations into a list of valid Html.Attribute(s).
+-}
+buildAttributes : Config msg -> List (Html.Attribute msg)
+buildAttributes buttonConfig =
+    let
+        options =
+            computeOptions buttonConfig
+    in
+    [ options.id
+        |> Maybe.map Attrs.id
+    , options.tabIndex
+        |> Maybe.map Attrs.tabindex
+    , options.disabled
+        |> Maybe.map Attrs.disabled
+    ]
+        |> List.filterMap identity
+        |> (::) (buildClassList buttonConfig options)
+        |> List.append options.events
+
+
+{-| Internal. Merges the component configuration and options to a classList attribute.
+-}
+buildClassList : Config msg -> Options msg -> Html.Attribute msg
+buildClassList (Config { emphasis, size, color }) options =
+    [ ( "a-btn", True )
+    , ( "a-btn--callout", isCallOut emphasis )
+    , ( "a-btn--primary", isPrimary emphasis )
+    , ( "a-btn--secondary", isSecondary emphasis )
+    , ( "a-btn--tertiary", isTertiary emphasis )
+    , ( "a-btn--small", isSmall size )
+    , ( "a-btn--normal", isNormal size )
+    , ( "a-btn--dark", isDark color )
+    ]
+        |> List.append (List.map (\c -> ( c, True )) options.classes)
+        |> Attrs.classList
