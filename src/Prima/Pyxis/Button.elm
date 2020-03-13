@@ -1,6 +1,6 @@
 module Prima.Pyxis.Button exposing
     ( Config, Emphasis
-    , callOut, callOutSmall, primary, primarySmall, secondary, secondarySmall, tertiary, tertiarySmall, withClass, withColorScheme, withDisabled, withId, withTabIndex, withTitle
+    , callOut, primary, secondary, tertiary, withClass, withColorScheme, withDisabled, withIcon, withId, withSize, withTabIndex, withTitle
     , withClick, withMouseDown, withMouseUp, withMouseEnter, withMouseLeave, withMouseOver, withMouseOut
     , render, group, groupFluid
     , ColorScheme(..)
@@ -16,7 +16,7 @@ module Prima.Pyxis.Button exposing
 
 ## Options
 
-@docs callOut, callOutSmall, primary, primarySmall, secondary, secondarySmall, tertiary, tertiarySmall, withClass, withColorScheme, withDisabled, withId, withTabIndex, withTitle
+@docs callOut, primary, secondary, tertiary, withClass, withColorScheme, withDisabled, withIcon, withId, withSize, withTabIndex, withTitle
 
 
 ## Events
@@ -47,6 +47,7 @@ type alias ButtonConfig msg =
     , color : ColorScheme
     , size : Size
     , label : String
+    , icon : Maybe String
     , options : List (ButtonOption msg)
     }
 
@@ -187,7 +188,7 @@ isSmall =
     (==) Small
 
 
-{-| Create a button with a `Primary` visual weight and a `default size`.
+{-| Create a button with a `callOut` visual weight and a `default size`.
 
     --
 
@@ -200,61 +201,41 @@ isSmall =
 
     myBtn : Button.Config Msg
     myBtn =
-        Button.callOut Button.Brand "Click me!" Clicked
+        Button.primary "Click me!"
+            |> Button.withClick Clicked
 
 -}
 callOut : String -> Config msg
 callOut label =
-    Config (ButtonConfig CallOut Brand Normal label [])
-
-
-{-| Create a button with a `CallOut` visual weight and a `small size`.
--}
-callOutSmall : String -> Config msg
-callOutSmall label =
-    Config (ButtonConfig CallOut Brand Small label [])
+    Config (ButtonConfig CallOut Brand Normal label Nothing [])
 
 
 {-| Create a button with a `Primary` visual weight and a `default size`.
 -}
 primary : String -> Config msg
 primary label =
-    Config (ButtonConfig Primary Brand Normal label [])
-
-
-{-| Create a button with a `Primary` visual weight and a `small size`.
--}
-primarySmall : String -> Config msg
-primarySmall label =
-    Config (ButtonConfig Primary Brand Small label [])
+    Config (ButtonConfig Primary Brand Normal label Nothing [])
 
 
 {-| Create a button with a `Secondary` visual weight and a `default size`.
 -}
 secondary : String -> Config msg
 secondary label =
-    Config (ButtonConfig Secondary Brand Normal label [])
-
-
-{-| Create a button with a `Secondary` visual weight and a `small size`.
--}
-secondarySmall : String -> Config msg
-secondarySmall label =
-    Config (ButtonConfig Secondary Brand Small label [])
+    Config (ButtonConfig Secondary Brand Normal label Nothing [])
 
 
 {-| Create a button with a `Tertiary` visual weight and a `default size`.
 -}
 tertiary : String -> Config msg
 tertiary label =
-    Config (ButtonConfig Tertiary Brand Normal label [])
+    Config (ButtonConfig Tertiary Brand Normal label Nothing [])
 
 
-{-| Create a button with a `Tertiary` visual weight and a `small size`.
+{-| Changes the size of the `Button`.
 -}
-tertiarySmall : String -> Config msg
-tertiarySmall label =
-    Config (ButtonConfig Tertiary Brand Small label [])
+withSize : Size -> Config msg -> Config msg
+withSize size (Config buttonConfig) =
+    Config { buttonConfig | size = size }
 
 
 {-| Changes the color scheme of the `Button`.
@@ -262,6 +243,13 @@ tertiarySmall label =
 withColorScheme : ColorScheme -> Config msg -> Config msg
 withColorScheme color (Config buttonConfig) =
     Config { buttonConfig | color = color }
+
+
+{-| Adds an `icon` to the `Button`.
+-}
+withIcon : String -> Config msg -> Config msg
+withIcon icon (Config buttonConfig) =
+    Config { buttonConfig | icon = Just icon }
 
 
 {-| Adds a `class` to the `Button`.
@@ -273,9 +261,9 @@ withClass class_ =
 
 {-| Adds a `disabled` Html.Attribute to the `Button`.
 -}
-withDisabled : Config msg -> Config msg
-withDisabled =
-    addOption (Disabled True)
+withDisabled : Bool -> Config msg -> Config msg
+withDisabled isDisabled =
+    addOption (Disabled isDisabled)
 
 
 {-| Adds an `id` Html.Attribute to the `Button`.
@@ -361,27 +349,39 @@ withMouseOut tagger =
 
     myBtn : Button.Config Msg
     myBtn =
-        Button.callOut Button.Brand "Click me!" Clicked
+        Button.callOut "Click me!"
+            |> Button.withDisabled False
+            |> Button.withClick Clicked
 
     ...
 
     view : Html Msg
     view =
-        let
-            isEnabled =
-                True
-        in
-        Button.render isEnabled myBtn
+        Button.render myBtn
 
 -}
 render : Config msg -> Html msg
-render ((Config { label }) as config) =
+render ((Config { label, icon }) as config) =
     button
         (buildAttributes config)
-        [ span
-            []
-            [ text label ]
+        [ span [] [ text label ]
+        , icon
+            |> Maybe.map renderIcon
+            |> Maybe.withDefault (text "")
         ]
+
+
+{-| Internal. Renders the icon
+-}
+renderIcon : String -> Html msg
+renderIcon icon =
+    Html.i
+        [ Attrs.classList
+            [ ( "a-icon", True )
+            , ( "a-icon-" ++ icon, True )
+            ]
+        ]
+        []
 
 
 {-| Create a button wrapper which can hold a set of `Button`s.
@@ -397,25 +397,21 @@ render ((Config { label }) as config) =
 
     ctaBtn : Button.Config Msg
     ctaBtn =
-        Button.callOut Button.brand "Click me!" Clicked
+        Button.callOut "Click me!"
+            |> Button.withClick Clicked
+            |> Button.withDisabled True
 
 
     primaryBtn : Button.Config Msg
     primaryBtn =
-        Button.primary Button.brand "Click me!" Clicked
+        Button.primary "Click me!"
+            |> Button.withClick Clicked
 
     ...
 
     view : Html Msg
     view =
-        let
-            isCtaBtnEnabled =
-                True
-
-            isPrimaryBtnEnabled =
-                True
-        in
-        Button.group [(isCtaBtnEnabled, ctaBtn), (isPrimaryBtnEnabled, primaryBtn)]
+        Button.group [ctaBtn, primaryBtn]
 
 -}
 group : List (Config msg) -> Html msg
@@ -465,5 +461,5 @@ buildClassList (Config { emphasis, size, color }) options =
     , ( "a-btn--normal", isNormal size )
     , ( "a-btn--dark", isDark color )
     ]
-        |> List.append (List.map (\c -> ( c, True )) options.classes)
+        |> List.append (List.map (H.flip Tuple.pair True) options.classes)
         |> Attrs.classList

@@ -51,6 +51,7 @@ initialModel =
             |> Button.withClick (HandleEvent "Click 1")
             |> Button.withTabIndex 1
         , Button.primary "Primary dark"
+            |> Button.withIcon "editing"
             |> Button.withColorScheme Button.BrandDark
             |> Button.withClick (HandleEvent "Click 2")
             |> Button.withTabIndex 0
