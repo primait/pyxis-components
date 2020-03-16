@@ -62,7 +62,7 @@ appBody =
     , [ Link.simple "Visit Google" "https://www.google.it"
             |> Link.withId "my-link"
       , Link.simple "Visit Google" "https://www.google.it"
-            |> Link.withIconPhone
+            |> Link.withIcon "phone"
       , Link.standalone "Visit Google in another tab" "https://www.google.it"
             |> Link.withTargetBlank
       , Link.simple "Visit Google with click prevented" "https://www.google.it"
