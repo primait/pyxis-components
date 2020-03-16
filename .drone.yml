@@ -31,7 +31,7 @@ steps:
     commands:
       - yarn
     depends_on:
-      - build-image
+      - cache-restore
 
   - name: test
     image: node:10
