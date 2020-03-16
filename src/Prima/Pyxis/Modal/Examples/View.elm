@@ -21,10 +21,11 @@ view isModalVisible =
 appBody : Bool -> List (Html Msg)
 appBody isModalVisible =
     [ Helpers.pyxisStyle
-    , Container.default
-        [ Button.render True showModalBtn
-        , renderModal isModalVisible
-        ]
+    , Container.row
+        |> Container.withContent
+            [ Button.render True showModalBtn
+            , renderModal isModalVisible
+            ]
     ]
 
 
