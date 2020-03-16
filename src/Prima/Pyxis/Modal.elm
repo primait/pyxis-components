@@ -98,7 +98,7 @@ small =
     SmallModalSize
 
 
-{-| Create a Medium ModalSize
+{-| Create a Medium ModalSiz
 -}
 medium : ModalSize
 medium =
