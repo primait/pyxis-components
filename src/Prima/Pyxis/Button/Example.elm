@@ -13,6 +13,7 @@ import Browser
 import Html exposing (Html, div)
 import Html.Attributes exposing (classList)
 import Prima.Pyxis.Button as Button
+import Prima.Pyxis.ButtonGroup as ButtonGroup
 import Prima.Pyxis.Helpers as Helpers
 
 
@@ -92,11 +93,13 @@ appBody : Model -> List (Html Msg)
 appBody model =
     [ Helpers.pyxisStyle
     , model.buttons
-        |> Button.group
+        |> ButtonGroup.centered
+        |> ButtonGroup.render
         |> List.singleton
         |> wrapper False
     , model.darkButtons
-        |> Button.group
+        |> ButtonGroup.coverFluid
+        |> ButtonGroup.render
         |> List.singleton
         |> wrapper True
     , model.clicked

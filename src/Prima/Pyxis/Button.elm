@@ -1,22 +1,27 @@
 module Prima.Pyxis.Button exposing
-    ( Config, Emphasis
-    , callOut, primary, secondary, tertiary, withAttribute, withClass, withClassList, withColorScheme, withDisabled, withIcon, withId, withSize, withTabIndex, withTitle
+    ( Config, Emphasis, ColorScheme(..), callOut, primary, secondary, tertiary
+    , withColorScheme, withSize
+    , withAttribute, withClass, withClassList, withDisabled, withIcon, withId, withTabIndex, withTitle
     , withOnClick, withOnMouseDown, withOnMouseUp, withOnMouseEnter, withOnMouseLeave, withOnMouseOver, withOnMouseOut
-    , render, group, groupFluid
-    , ColorScheme(..)
+    , render
     )
 
 {-| Create a `Button` using predefined Html syntax.
 
 
-# Configuration
+## Configuration
 
-@docs Config, Emphasis, Scheme
+@docs Config, Emphasis, ColorScheme, callOut, primary, secondary, tertiary
+
+
+## Size and ColorScheme
+
+@docs withColorScheme, withSize
 
 
 ## Options
 
-@docs callOut, primary, secondary, tertiary, withAttribute, withClass, withClassList, withColorScheme, withDisabled, withIcon, withId, withSize, withTabIndex, withTitle
+@docs withAttribute, withClass, withClassList, withDisabled, withIcon, withId, withTabIndex, withTitle
 
 
 ## Events
@@ -26,11 +31,11 @@ module Prima.Pyxis.Button exposing
 
 # Render
 
-@docs render, group, groupFluid
+@docs render
 
 -}
 
-import Html exposing (Html, button, div, span, text)
+import Html exposing (Html, button, span, text)
 import Html.Attributes as Attrs
 import Html.Events as Events
 import Prima.Pyxis.Helpers as H
@@ -271,7 +276,7 @@ withClass class_ =
     addOption (Class class_)
 
 
-{-| Adds classes to the 'classList`of the`Button\`.
+{-| Adds classes to the `classList` of the `Button`.
 -}
 withClassList : List ( String, Bool ) -> Config msg -> Config msg
 withClassList classList =
@@ -408,50 +413,6 @@ renderIcon icon =
             ]
         ]
         []
-
-
-{-| Create a button wrapper which can hold a set of `Button`s.
-
-    --
-
-    import Prima.Pyxis.Button as Button
-
-    type Msg =
-        Clicked
-
-    ...
-
-    ctaBtn : Button.Config Msg
-    ctaBtn =
-        Button.callOut "Click me!"
-            |> Button.withOnClick Clicked
-            |> Button.withDisabled True
-
-
-    primaryBtn : Button.Config Msg
-    primaryBtn =
-        Button.primary "Click me!"
-            |> Button.withOnClick Clicked
-
-    ...
-
-    view : Html Msg
-    view =
-        Button.group [ctaBtn, primaryBtn]
-
--}
-group : List (Config msg) -> Html msg
-group buttonsConfig =
-    H.btnGroup (List.map render buttonsConfig)
-
-
-{-| Create a button wrapper which can hold a set of fluid `Button`s.
--}
-groupFluid : List (Config msg) -> Html msg
-groupFluid buttonsConfig =
-    div
-        [ Attrs.class "m-btnGroup m-btnGroup--coverFluid" ]
-        (List.map render buttonsConfig)
 
 
 {-| Internal. Transforms all the customizations into a list of valid Html.Attribute(s).
