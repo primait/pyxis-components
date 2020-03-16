@@ -29,9 +29,10 @@ view accordionList =
 appBody : List Accordion -> List (Html Msg)
 appBody accordionList =
     [ Helpers.pyxisStyle
-    , Container.row
+    , Container.column
         |> Container.withContent
             ((List.intersperse Helpers.spacer << List.map accordionRender) accordionList)
+        |> Container.render
     ]
 
 

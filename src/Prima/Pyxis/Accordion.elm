@@ -1,6 +1,6 @@
 module Prima.Pyxis.Accordion exposing
-    ( Config, State
-    , base, light, dark, state, withWrapperClass, withIconClass, withContentClass, withSimpleTitle, withHtmlTitle, withContent
+    ( Config, State, base, light, dark, state
+    , withWrapperClass, withIconClass, withContentClass, withSimpleTitle, withHtmlTitle, withContent
     , open, close
     , render, renderGroup
     )
@@ -8,22 +8,22 @@ module Prima.Pyxis.Accordion exposing
 {-| Creates an Accordion component by using predefined Html syntax.
 
 
-# Configuration
+## Types and Configuration
 
-@docs Config, State
-
-
-# Configuration Helpers
-
-@docs base, light, dark, state, withWrapperClass, withIconClass, withContentClass, withSimpleTitle, withHtmlTitle, withContent
+@docs Config, State, base, light, dark, state
 
 
-# Helpers
+## Options
+
+@docs withWrapperClass, withIconClass, withContentClass, withSimpleTitle, withHtmlTitle, withContent
+
+
+## Helpers
 
 @docs open, close
 
 
-# Render
+## Render
 
 @docs render, renderGroup
 
@@ -361,7 +361,3 @@ buildWrapperClass config classes =
     options.wrapperClasses
         |> List.append classes
         |> classList
-
-
-
--- TODO verify implementation of AccordionGroup for exclusive opening
