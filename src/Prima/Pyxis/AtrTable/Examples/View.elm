@@ -20,7 +20,8 @@ view model =
 appBody : Model -> List (Html Msg)
 appBody model =
     [ Helpers.pyxisStyle
-    , Container.default
-        [ Html.map AtrTableMsg <| AtrTable.render model.atrTable
-        ]
+    , Container.row
+        |> Container.withContent
+            [ Html.map AtrTableMsg <| AtrTable.render model.atrTable
+            ]
     ]

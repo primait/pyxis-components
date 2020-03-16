@@ -5,6 +5,7 @@ module Prima.Pyxis.Helpers exposing
     , isJust
     , isNothing
     , loremIpsum
+    , maybeSingleton
     , pyxisStyle
     , renderIf
     , renderListIf
@@ -112,3 +113,10 @@ classesAttribute =
 stopEvt : String -> msg -> Html.Attribute msg
 stopEvt eventType msg =
     Evt.custom eventType (JD.succeed { message = msg, stopPropagation = True, preventDefault = True })
+
+
+{-| A List.singleton implementation that accepts also maybe
+-}
+maybeSingleton : Maybe a -> List a
+maybeSingleton =
+    Maybe.withDefault [] << Maybe.map List.singleton

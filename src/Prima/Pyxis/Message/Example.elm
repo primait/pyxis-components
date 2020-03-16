@@ -55,14 +55,15 @@ view model =
 appBody : Model -> List (Html Msg)
 appBody _ =
     [ Helpers.pyxisStyle
-    , Container.default
-        ([ Message.messageInfoConfig
-         , Message.messageSuccessConfig
-         , Message.messageErrorConfig
-         ]
-            |> List.map messageBuilder
-            |> List.intersperse Helpers.spacer
-        )
+    , Container.row
+        |> Container.withContent
+            ([ Message.messageInfoConfig
+             , Message.messageSuccessConfig
+             , Message.messageErrorConfig
+             ]
+                |> List.map messageBuilder
+                |> List.intersperse Helpers.spacer
+            )
     ]
 
 

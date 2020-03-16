@@ -6,6 +6,6 @@
     "global": "^4.4.0"
   },
   "scripts": {
-    "analyse": "node_modules/elm-analyse/dist/app/bin/index.js  src/*"
+    "analyse": "node_modules/.bin/elm-analyse  src/*"
   }
 }
