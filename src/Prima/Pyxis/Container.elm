@@ -320,57 +320,51 @@ breakPointToClassSuffix breakPoint =
 {-| Internal.
 Helper function to update OptionsRecord of a Container Config
 -}
-updateOptionsRecord : ContainerOptions msg -> Config msg -> Config msg
-updateOptionsRecord containerOptions config =
+updateOptionsRecord : (ContainerOptions msg -> ContainerOptions msg) -> Config msg -> Config msg
+updateOptionsRecord containerOptionsMapper config =
     let
         containerConfig =
             deObfuscateContainerConfig config
     in
-    Config { containerConfig | options = Options containerOptions }
+    Config { containerConfig | options = Options (containerOptionsMapper <| pickContainerOptions config) }
 
 
 {-| Configuration modifier. Adds withAccessKey attribute on the container
 -}
 withAccessKey : Char -> Config msg -> Config msg
 withAccessKey key config =
-    let
-        containerConfig =
-            pickContainerOptions config
-    in
     updateOptionsRecord
-        { containerConfig
-            | accessKey = Just <| HtmlAttributes.accesskey key
-        }
+        (\containerOptions ->
+            { containerOptions
+                | accessKey = Just <| HtmlAttributes.accesskey key
+            }
+        )
         config
 
 
 {-| Configuration modifier. Adds class attribute on the container
 -}
-withClass : String -> Config (Options msg) -> Config (Options msg)
+withClass : String -> Config msg -> Config msg
 withClass class config =
-    let
-        containerConfig =
-            pickContainerOptions config
-    in
     updateOptionsRecord
-        { containerConfig
-            | class = Just <| HtmlAttributes.class class
-        }
+        (\containerOptions ->
+            { containerOptions
+                | class = Just <| HtmlAttributes.class class
+            }
+        )
         config
 
 
 {-| Configuration modifier. Adds classList attribute on the container
 -}
-withClassList : List ( String, Bool ) -> Config (Options msg) -> Config (Options msg)
+withClassList : List ( String, Bool ) -> Config msg -> Config msg
 withClassList classList config =
-    let
-        containerOptions =
-            pickContainerOptions config
-    in
     updateOptionsRecord
-        { containerOptions
-            | classList = Just <| HtmlAttributes.classList classList
-        }
+        (\containerOptions ->
+            { containerOptions
+                | classList = Just <| HtmlAttributes.classList classList
+            }
+        )
         config
 
 
@@ -392,14 +386,12 @@ withClassList classList config =
 -}
 withContent : List (Html msg) -> Config msg -> Config msg
 withContent content config =
-    let
-        containerOptions =
-            pickContainerOptions config
-    in
     updateOptionsRecord
-        { containerOptions
-            | content = content
-        }
+        (\containerOptions ->
+            { containerOptions
+                | content = content
+            }
+        )
         config
 
 
@@ -407,14 +399,12 @@ withContent content config =
 -}
 withContentEditable : Bool -> Config msg -> Config msg
 withContentEditable isEditable config =
-    let
-        containerOptions =
-            pickContainerOptions config
-    in
     updateOptionsRecord
-        { containerOptions
-            | contentEditable = Just <| HtmlAttributes.contenteditable isEditable
-        }
+        (\containerOptions ->
+            { containerOptions
+                | contentEditable = Just <| HtmlAttributes.contenteditable isEditable
+            }
+        )
         config
 
 
@@ -422,14 +412,12 @@ withContentEditable isEditable config =
 -}
 withHidden : Bool -> Config msg -> Config msg
 withHidden isHidden config =
-    let
-        containerOptions =
-            pickContainerOptions config
-    in
     updateOptionsRecord
-        { containerOptions
-            | hidden = Just <| HtmlAttributes.hidden isHidden
-        }
+        (\containerOptions ->
+            { containerOptions
+                | hidden = Just <| HtmlAttributes.hidden isHidden
+            }
+        )
         config
 
 
@@ -437,14 +425,12 @@ withHidden isHidden config =
 -}
 withId : String -> Config msg -> Config msg
 withId id config =
-    let
-        containerOptions =
-            pickContainerOptions config
-    in
     updateOptionsRecord
-        { containerOptions
-            | id = Just <| HtmlAttributes.id id
-        }
+        (\containerOptions ->
+            { containerOptions
+                | id = Just <| HtmlAttributes.id id
+            }
+        )
         config
 
 
@@ -452,14 +438,12 @@ withId id config =
 -}
 withTabIndex : Int -> Config msg -> Config msg
 withTabIndex index config =
-    let
-        containerOptions =
-            pickContainerOptions config
-    in
     updateOptionsRecord
-        { containerOptions
-            | tabIndex = Just <| HtmlAttributes.tabindex index
-        }
+        (\containerOptions ->
+            { containerOptions
+                | tabIndex = Just <| HtmlAttributes.tabindex index
+            }
+        )
         config
 
 
@@ -467,14 +451,12 @@ withTabIndex index config =
 -}
 withTitle : String -> Config msg -> Config msg
 withTitle title config =
-    let
-        containerOptions =
-            pickContainerOptions config
-    in
     updateOptionsRecord
-        { containerOptions
-            | title = Just <| HtmlAttributes.title title
-        }
+        (\containerOptions ->
+            { containerOptions
+                | title = Just <| HtmlAttributes.title title
+            }
+        )
         config
 
 
@@ -482,14 +464,12 @@ withTitle title config =
 -}
 withDraggable : String -> Config msg -> Config msg
 withDraggable draggable config =
-    let
-        containerOptions =
-            pickContainerOptions config
-    in
     updateOptionsRecord
-        { containerOptions
-            | draggable = Just <| HtmlAttributes.draggable draggable
-        }
+        (\containerOptions ->
+            { containerOptions
+                | draggable = Just <| HtmlAttributes.draggable draggable
+            }
+        )
         config
 
 
@@ -498,14 +478,12 @@ You shouldn't use this if is not strictly necessary
 -}
 withAttribute : Html.Attribute msg -> Config msg -> Config msg
 withAttribute customAttribute config =
-    let
-        containerOptions =
-            pickContainerOptions config
-    in
     updateOptionsRecord
-        { containerOptions
-            | attributes = List.append containerOptions.attributes [ customAttribute ]
-        }
+        (\containerOptions ->
+            { containerOptions
+                | attributes = List.append containerOptions.attributes [ customAttribute ]
+            }
+        )
         config
 
 
@@ -513,14 +491,12 @@ withAttribute customAttribute config =
 -}
 withDropZone : String -> Config msg -> Config msg
 withDropZone dropZone config =
-    let
-        containerOptions =
-            pickContainerOptions config
-    in
     updateOptionsRecord
-        { containerOptions
-            | dropZone = Just <| HtmlAttributes.dropzone dropZone
-        }
+        (\containerOptions ->
+            { containerOptions
+                | dropZone = Just <| HtmlAttributes.dropzone dropZone
+            }
+        )
         config
 
 
@@ -528,14 +504,12 @@ withDropZone dropZone config =
 -}
 addStyle : String -> String -> Config msg -> Config msg
 addStyle prop value config =
-    let
-        containerOptions =
-            pickContainerOptions config
-    in
     updateOptionsRecord
-        { containerOptions
-            | styles = List.append containerOptions.styles [ HtmlAttributes.style prop value ]
-        }
+        (\containerOptions ->
+            { containerOptions
+                | styles = List.append containerOptions.styles [ HtmlAttributes.style prop value ]
+            }
+        )
         config
 
 
@@ -572,11 +546,7 @@ Generic core function for `changeSizeOn<Breakpoint>` modifiers
 -}
 changeSizeOnBreakPoint : BreakPoint -> Config msg -> Config msg
 changeSizeOnBreakPoint breakPoint config =
-    let
-        containerConfig =
-            deObfuscateContainerConfig config
-    in
-    case containerConfig.size of
+    case deObfuscateContainerConfig config |> .size of
         Regular ->
             addSizeModifier (FluidOn breakPoint) config
 
@@ -589,14 +559,12 @@ Generic core function for `changeSizeOnBreakPoint` that adds computed SizeModifi
 -}
 addSizeModifier : SizeModifier -> Config msg -> Config msg
 addSizeModifier modifier config =
-    let
-        containerConfig =
-            pickContainerOptions config
-    in
     updateOptionsRecord
-        { containerConfig
-            | sizeModifiers = containerConfig.sizeModifiers ++ [ modifier ]
-        }
+        (\containerOptions ->
+            { containerOptions
+                | sizeModifiers = containerOptions.sizeModifiers ++ [ modifier ]
+            }
+        )
         config
 
 
@@ -661,12 +629,10 @@ Core function for `on<Event>` that adds the event to config events list
 -}
 addOptionalEvent : Html.Attribute msg -> Config msg -> Config msg
 addOptionalEvent event config =
-    let
-        containerConfig =
-            pickContainerOptions config
-    in
     updateOptionsRecord
-        { containerConfig
-            | events = containerConfig.events ++ [ event ]
-        }
+        (\containerOptions ->
+            { containerOptions
+                | events = containerOptions.events ++ [ event ]
+            }
+        )
         config
