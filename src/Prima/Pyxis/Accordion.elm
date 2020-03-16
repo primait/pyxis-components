@@ -29,7 +29,7 @@ module Prima.Pyxis.Accordion exposing
 
 -}
 
-import Html exposing (Html, div, i, span, text)
+import Html exposing (Html, div, i, text)
 import Html.Attributes exposing (class, classList, id)
 import Html.Events exposing (onClick)
 
