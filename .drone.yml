@@ -1,0 +1,85 @@
+kind: pipeline
+name: default
+
+volumes:
+  - name: docker
+    host:
+      path: /var/run/docker.sock
+  - name: ecs
+    host:
+      path: /etc/profile.d/ecs-credentials-endpoint
+
+clone:
+  depth: 1
+
+steps:
+  - name: cache-restore
+    image: prima/drone-tools:1.15.0
+    volumes:
+      - name: ecs
+        path: /etc/profile.d/ecs-credentials-endpoint
+      - name: docker
+        path: /var/run/docker.sock
+    commands:
+      - . /etc/profile.d/ecs-credentials-endpoint
+      - cache-restore
+
+  - name: init
+    image: node:10
+    environment:
+      YARN_CACHE_FOLDER: /drone/src/.cache
+    commands:
+      - yarn
+    depends_on:
+      - cache-restore
+
+  - name: test
+    image: node:10
+    environment:
+      YARN_CACHE_FOLDER: /drone/src/.cache
+    commands:
+      - ./node_modules/.bin/elm-analyse
+    depends_on:
+      - init
+
+  - name: cache-save
+    image: prima/drone-tools:1.15.0
+    volumes:
+      - name: ecs
+        path: /etc/profile.d/ecs-credentials-endpoint
+      - name: docker
+        path: /var/run/docker.sock
+    commands:
+      - . /etc/profile.d/ecs-credentials-endpoint
+      - cache-save .cache node_modules
+    depends_on:
+      - test
+    when:
+      branch:
+        - master
+
+---
+kind: pipeline
+name: notify
+
+clone:
+  disable: true
+
+steps:
+  - name: notify_email
+    image: drillster/drone-email
+    environment:
+      PLUGIN_USERNAME:
+        from_secret: email_username
+      PLUGIN_PASSWORD:
+        from_secret: email_password
+    settings:
+      host: email-smtp.eu-west-1.amazonaws.com
+      from: noreply@prima.it
+
+trigger:
+  status:
+    - failure
+
+depends_on:
+  - default

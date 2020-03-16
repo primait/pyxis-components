@@ -17,9 +17,10 @@ view model =
 appBody : Model -> List (Html Msg)
 appBody model =
     [ Helpers.pyxisStyle
-    , Container.default
-        [ Form.render model.formData <| formConfig model
-        ]
+    , Container.row
+        |> Container.withContent
+            [ Form.render model.formData <| formConfig model
+            ]
     ]
 
 
