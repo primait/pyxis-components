@@ -1,7 +1,7 @@
 module Prima.Pyxis.Button exposing
     ( Config, Emphasis
-    , callOut, primary, secondary, tertiary, withClass, withColorScheme, withDisabled, withIcon, withId, withSize, withTabIndex, withTitle
-    , withClick, withMouseDown, withMouseUp, withMouseEnter, withMouseLeave, withMouseOver, withMouseOut
+    , callOut, primary, secondary, tertiary, withAttribute, withClass, withClassList, withColorScheme, withDisabled, withIcon, withId, withSize, withTabIndex, withTitle
+    , withOnClick, withOnMouseDown, withOnMouseUp, withOnMouseEnter, withOnMouseLeave, withOnMouseOver, withOnMouseOut
     , render, group, groupFluid
     , ColorScheme(..)
     )
@@ -16,12 +16,12 @@ module Prima.Pyxis.Button exposing
 
 ## Options
 
-@docs callOut, primary, secondary, tertiary, withClass, withColorScheme, withDisabled, withIcon, withId, withSize, withTabIndex, withTitle
+@docs callOut, primary, secondary, tertiary, withAttribute, withClass, withClassList, withColorScheme, withDisabled, withIcon, withId, withSize, withTabIndex, withTitle
 
 
 ## Events
 
-@docs withClick, withMouseDown, withMouseUp, withMouseEnter, withMouseLeave, withMouseOver, withMouseOut
+@docs withOnClick, withOnMouseDown, withOnMouseUp, withOnMouseEnter, withOnMouseLeave, withOnMouseOver, withOnMouseOut
 
 
 # Render
@@ -85,7 +85,9 @@ isTertiary =
 -}
 type alias Options msg =
     { classes : List String
+    , classList : List ( String, Bool )
     , events : List (Html.Attribute msg)
+    , attributes : List (Html.Attribute msg)
     , disabled : Maybe Bool
     , id : Maybe String
     , tabIndex : Maybe Int
@@ -97,11 +99,13 @@ type alias Options msg =
 -}
 type ButtonOption msg
     = Class String
+    | ClassList (List ( String, Bool ))
     | Event (Html.Attribute msg)
     | Disabled Bool
     | Id String
     | TabIndex Int
     | Title String
+    | Attribute (Html.Attribute msg)
 
 
 {-| Internal. Represents the initial state of the list of customizations for the `Button` component.
@@ -109,11 +113,13 @@ type ButtonOption msg
 defaultOptions : Options msg
 defaultOptions =
     { classes = []
+    , classList = []
     , events = []
     , disabled = Nothing
     , id = Nothing
     , tabIndex = Nothing
     , title = Nothing
+    , attributes = []
     }
 
 
@@ -124,6 +130,9 @@ applyOption modifier options =
     case modifier of
         Class class ->
             { options | classes = class :: options.classes }
+
+        ClassList list ->
+            { options | classList = List.append list options.classList }
 
         Event action ->
             { options | events = action :: options.events }
@@ -139,6 +148,9 @@ applyOption modifier options =
 
         Title title ->
             { options | title = Just title }
+
+        Attribute attr ->
+            { options | attributes = attr :: options.attributes }
 
 
 {-| Internal. Applies all the customizations and returns the internal `Options` type.
@@ -202,7 +214,7 @@ isSmall =
     myBtn : Button.Config Msg
     myBtn =
         Button.primary "Click me!"
-            |> Button.withClick Clicked
+            |> Button.withOnClick Clicked
 
 -}
 callOut : String -> Config msg
@@ -259,6 +271,13 @@ withClass class_ =
     addOption (Class class_)
 
 
+{-| Adds classes to the 'classList`of the`Button\`.
+-}
+withClassList : List ( String, Bool ) -> Config msg -> Config msg
+withClassList classList =
+    addOption (ClassList classList)
+
+
 {-| Adds a `disabled` Html.Attribute to the `Button`.
 -}
 withDisabled : Bool -> Config msg -> Config msg
@@ -289,51 +308,58 @@ withTitle title =
 
 {-| Adds an `onClick` Html.Event to the `Button`.
 -}
-withClick : msg -> Config msg -> Config msg
-withClick tagger =
+withOnClick : msg -> Config msg -> Config msg
+withOnClick tagger =
     addOption (Event (Events.onClick tagger))
 
 
 {-| Adds an `onMouseDown` Html.Event to the `Button`.
 -}
-withMouseDown : msg -> Config msg -> Config msg
-withMouseDown tagger =
+withOnMouseDown : msg -> Config msg -> Config msg
+withOnMouseDown tagger =
     addOption (Event (Events.onMouseDown tagger))
 
 
 {-| Adds an `onMouseUp` Html.Event to the `Button`.
 -}
-withMouseUp : msg -> Config msg -> Config msg
-withMouseUp tagger =
+withOnMouseUp : msg -> Config msg -> Config msg
+withOnMouseUp tagger =
     addOption (Event (Events.onMouseUp tagger))
 
 
 {-| Adds an `onMouseEnter` Html.Event to the `Button`.
 -}
-withMouseEnter : msg -> Config msg -> Config msg
-withMouseEnter tagger =
+withOnMouseEnter : msg -> Config msg -> Config msg
+withOnMouseEnter tagger =
     addOption (Event (Events.onMouseEnter tagger))
 
 
 {-| Adds an `onMouseLeave` Html.Event to the `Button`.
 -}
-withMouseLeave : msg -> Config msg -> Config msg
-withMouseLeave tagger =
+withOnMouseLeave : msg -> Config msg -> Config msg
+withOnMouseLeave tagger =
     addOption (Event (Events.onMouseLeave tagger))
 
 
 {-| Adds an `onMouseOver` Html.Event to the `Button`.
 -}
-withMouseOver : msg -> Config msg -> Config msg
-withMouseOver tagger =
+withOnMouseOver : msg -> Config msg -> Config msg
+withOnMouseOver tagger =
     addOption (Event (Events.onMouseOver tagger))
 
 
 {-| Adds an `onMouseOut` Html.Event to the `Button`.
 -}
-withMouseOut : msg -> Config msg -> Config msg
-withMouseOut tagger =
+withOnMouseOut : msg -> Config msg -> Config msg
+withOnMouseOut tagger =
     addOption (Event (Events.onMouseOut tagger))
+
+
+{-| Adds a generic attribute to the Button.
+-}
+withAttribute : Html.Attribute msg -> Config msg -> Config msg
+withAttribute attr =
+    addOption (Attribute attr)
 
 
 {-| Renders the button by receiving it's configuration.
@@ -351,7 +377,7 @@ withMouseOut tagger =
     myBtn =
         Button.callOut "Click me!"
             |> Button.withDisabled False
-            |> Button.withClick Clicked
+            |> Button.withOnClick Clicked
 
     ...
 
@@ -398,14 +424,14 @@ renderIcon icon =
     ctaBtn : Button.Config Msg
     ctaBtn =
         Button.callOut "Click me!"
-            |> Button.withClick Clicked
+            |> Button.withOnClick Clicked
             |> Button.withDisabled True
 
 
     primaryBtn : Button.Config Msg
     primaryBtn =
         Button.primary "Click me!"
-            |> Button.withClick Clicked
+            |> Button.withOnClick Clicked
 
     ...
 
@@ -445,6 +471,7 @@ buildAttributes buttonConfig =
     ]
         |> List.filterMap identity
         |> (::) (buildClassList buttonConfig options)
+        |> List.append options.attributes
         |> List.append options.events
 
 
@@ -461,5 +488,6 @@ buildClassList (Config { emphasis, size, color }) options =
     , ( "a-btn--normal", isNormal size )
     , ( "a-btn--dark", isDark color )
     ]
+        |> List.append options.classList
         |> List.append (List.map (H.flip Tuple.pair True) options.classes)
         |> Attrs.classList

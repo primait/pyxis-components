@@ -48,19 +48,22 @@ initialModel =
         ]
         [ Button.callOut "CallOut dark"
             |> Button.withColorScheme Button.BrandDark
-            |> Button.withClick (HandleEvent "Click 1")
+            |> Button.withOnClick (HandleEvent "Click 1")
+            |> Button.withClassList [ ( "test", True ), ( "never-applied", False ) ]
             |> Button.withTabIndex 1
         , Button.primary "Primary dark"
             |> Button.withIcon "editing"
             |> Button.withColorScheme Button.BrandDark
-            |> Button.withClick (HandleEvent "Click 2")
+            |> Button.withOnClick (HandleEvent "Click 2")
             |> Button.withTabIndex 0
         , Button.secondary "Secondary dark"
             |> Button.withColorScheme Button.BrandDark
-            |> Button.withMouseEnter (HandleEvent "Hover 3")
-            |> Button.withClick (HandleEvent "Click 3")
+            |> Button.withOnMouseEnter (HandleEvent "Hover 3")
+            |> Button.withOnClick (HandleEvent "Click 3")
+            |> Button.withTabIndex 2
         , Button.tertiary "Tertiary dark"
             |> Button.withColorScheme Button.BrandDark
+            |> Button.withTabIndex 3
         ]
         Nothing
 
