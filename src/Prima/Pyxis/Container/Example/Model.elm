@@ -19,12 +19,13 @@ type Msg
 
 type alias Model =
     { eventMessage : String
+    , somethingElse : String
     }
 
 
 initialModel : Model
 initialModel =
-    { eventMessage = "" }
+    { eventMessage = "", somethingElse = "" }
 
 
 updateMessage : String -> Model -> Model
