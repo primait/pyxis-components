@@ -24,19 +24,8 @@ steps:
       - . /etc/profile.d/ecs-credentials-endpoint
       - cache-restore
 
-  - name: build-image
-    image: prima/drone-tools:1.15.0
-    volumes:
-      - name: docker
-        path: /var/run/docker.sock
-    commands:
-      - sed -i 's/USER node/USER root/g' Dockerfile
-      - docker build -t prima/pyxis-components-ci:1 .
-    depends_on:
-      - cache-restore
-
   - name: init
-    image: prima/pyxis-components-ci:1
+    image: node:10
     environment:
       YARN_CACHE_FOLDER: /drone/src/.cache
     commands:
@@ -45,7 +34,7 @@ steps:
       - build-image
 
   - name: test
-    image: prima/pyxis-components-ci:1
+    image: node:10
     environment:
       YARN_CACHE_FOLDER: /drone/src/.cache
     commands:
