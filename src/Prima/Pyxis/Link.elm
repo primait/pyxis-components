@@ -1,7 +1,6 @@
 module Prima.Pyxis.Link exposing
-    ( Config, Icon, simple, standalone
-    , withId, withClass, withTargetBlank, withTargetParent, withTargetSelf, withTargetTop
-    , withIconArrowRight, withIconChevronDown, withIconDownload, withIconEdit, withIconEmail, withIconPhone
+    ( Config, simple, standalone
+    , withId, withClass, withTargetBlank, withTargetParent, withTargetSelf, withTargetTop, withIcon
     , withOnClick, withOnMouseDown, withOnMouseUp, withOnMouseEnter, withOnMouseLeave, withOnMouseOver, withOnMouseOut
     , render
     , withAttribute, withClassList
@@ -12,17 +11,12 @@ module Prima.Pyxis.Link exposing
 
 ## Types and Configuration
 
-@docs Config, Icon, simple, standalone
+@docs Config, simple, standalone
 
 
 ## Options
 
-@docs withId, withClass, withTargetBlank, withTargetParent, withTargetSelf, withTargetTop
-
-
-## Icon Helpers
-
-@docs withIconArrowRight, withIconChevronDown, withIconDownload, withIconEdit, withIconEmail, withIconPhone
+@docs withId, withClass, withTargetBlank, withTargetParent, withTargetSelf, withTargetTop, withIcon
 
 
 ## Events
@@ -33,11 +27,6 @@ module Prima.Pyxis.Link exposing
 ## Targets
 
 @docs targetBlank, targetParent, targetSelf, targetTop
-
-
-## Icons
-
-@docs iconArrowRight, iconChevronDown, iconDownload, iconEdit, iconEmail, iconPhone
 
 
 ## Render
@@ -62,7 +51,7 @@ type alias Configuration msg =
     { type_ : LinkType
     , label : String
     , href : Maybe String
-    , icon : Maybe Icon
+    , icon : Maybe String
     , options : List (LinkOption msg)
     }
 
@@ -344,57 +333,11 @@ withOnMouseOut tagger =
     addOption (Event (Events.onMouseOut tagger))
 
 
-{-| Represent an icon from Pyxis Iconset.
--}
-type Icon
-    = ArrowRight
-    | ChevronDown
-    | Download
-    | Edit
-    | Email
-    | Phone
-
-
 {-| Creates a arrow-right icon.
 -}
-withIconArrowRight : Config msg -> Config msg
-withIconArrowRight (Config linkConfig) =
-    Config { linkConfig | icon = Just ArrowRight }
-
-
-{-| Creates a chevron-down icon.
--}
-withIconChevronDown : Config msg -> Config msg
-withIconChevronDown (Config linkConfig) =
-    Config { linkConfig | icon = Just ChevronDown }
-
-
-{-| Creates a download icon.
--}
-withIconDownload : Config msg -> Config msg
-withIconDownload (Config linkConfig) =
-    Config { linkConfig | icon = Just Download }
-
-
-{-| Creates an edit icon.
--}
-withIconEdit : Config msg -> Config msg
-withIconEdit (Config linkConfig) =
-    Config { linkConfig | icon = Just Edit }
-
-
-{-| Creates an email icon.
--}
-withIconEmail : Config msg -> Config msg
-withIconEmail (Config linkConfig) =
-    Config { linkConfig | icon = Just Email }
-
-
-{-| Creates a phone icon.
--}
-withIconPhone : Config msg -> Config msg
-withIconPhone (Config linkConfig) =
-    Config { linkConfig | icon = Just Phone }
+withIcon : String -> Config msg -> Config msg
+withIcon icon (Config linkConfig) =
+    Config { linkConfig | icon = Just icon }
 
 
 {-| Renders a link by receiving it's configuration.
@@ -413,23 +356,22 @@ render ((Config { label, icon, href }) as config) =
         (maybeHref
             |> List.append (buildAttributes config)
         )
-        [ Maybe.withDefault (text "") <| Maybe.map renderIcon <| icon
+        [ icon
+            |> Maybe.map renderIcon
+            |> Maybe.withDefault (text "")
         , text label
         ]
 
 
-renderIcon : Icon -> Html msg
+{-| Internal. Renders the icon
+-}
+renderIcon : String -> Html msg
 renderIcon icon =
-    i
+    Html.i
         [ Attrs.classList
             [ ( "a-icon", True )
             , ( "a-link__icon", True )
-            , ( "a-icon-arrow-right", icon == ArrowRight )
-            , ( "a-icon-chevron-down", icon == ChevronDown )
-            , ( "a-icon-download", icon == Download )
-            , ( "a-icon-edit", icon == Edit )
-            , ( "a-icon-email", icon == Email )
-            , ( "a-icon-phone", icon == Phone )
+            , ( "a-icon-" ++ icon, True )
             ]
         ]
         []
