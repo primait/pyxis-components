@@ -7,7 +7,7 @@ import Prima.Pyxis.ListChooser.Examples.Model exposing (Msg(..))
 update : Msg -> ListChooser.State -> ( ListChooser.State, Cmd Msg )
 update msg chooserItemState =
     case msg of
-        ChoosedMsg subMsg ->
+        ChosenMsg subMsg ->
             let
                 ( updatedState, _ ) =
                     ListChooser.update subMsg chooserItemState

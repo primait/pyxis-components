@@ -8,7 +8,7 @@ import Tuple
 
 
 type Msg
-    = ChoosedMsg ListChooser.Msg
+    = ChosenMsg ListChooser.Msg
 
 
 initialModel : ListChooser.State

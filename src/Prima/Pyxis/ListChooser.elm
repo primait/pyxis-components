@@ -221,7 +221,7 @@ render (State { mode, items }) (Config conf) =
                     List.take conf.itemsPerView items
     in
     div
-        [ class "m-list-chooser directionColumn"
+        [ class "m-list-chooser direction-column"
         , attribute "data-max-items" <| String.fromInt conf.itemsPerView
         ]
         [ renderList itemList
@@ -232,7 +232,7 @@ render (State { mode, items }) (Config conf) =
 renderList : List ChooserItem -> Html Msg
 renderList items =
     ul
-        [ class "m-list-chooser__list noListStyle noMargin noPadding" ]
+        [ class "m-list-chooser__list no-list-style no-margin no-padding" ]
         (List.map renderItem items)
 
 
@@ -261,6 +261,6 @@ toggleViewMode mode { toggleViewPartialLabel, toggleViewAllLabel } =
     in
     a
         [ onClick ToggleViewMode
-        , class "a-link fwHeavy fsSmall"
+        , class "a-link fw-heavy fs-small"
         ]
         [ text label ]
