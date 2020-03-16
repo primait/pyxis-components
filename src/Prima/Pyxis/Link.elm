@@ -1,30 +1,41 @@
 module Prima.Pyxis.Link exposing
-    ( Config, Icon
-    , simple, standalone, simpleWithOnClick, withTargetBlank, withTargetParent, withTargetSelf, withTargetTop
-    , withId, withClass, withIconArrowRight, withIconChevronDown, withIconDownload, withIconEdit, withIconEmail, withIconPhone
+    ( Config, Icon, simple, standalone
+    , withId, withClass, withTargetBlank, withTargetParent, withTargetSelf, withTargetTop
+    , withIconArrowRight, withIconChevronDown, withIconDownload, withIconEdit, withIconEmail, withIconPhone
+    , withOnClick, withOnMouseDown, withOnMouseUp, withOnMouseEnter, withOnMouseLeave, withOnMouseOver, withOnMouseOut
     , render
+    , withAttribute, withClassList
     )
 
-{-| Create a `Link` using predefined Html syntax.
+{-|
 
 
 ## Types and Configuration
 
-@docs Config, Icon
+@docs Config, Icon, simple, standalone
 
 
 ## Options
 
-@docs simple, standalone, simpleWithOnClick, withTargetBlank, withTargetParent, withTargetSelf, withTargetTop
-@docs withId, withClass, withIconArrowRight, withIconChevronDown, withIconDownload, withIconEdit, withIconEmail, withIconPhone
+@docs withId, withClass, withTargetBlank, withTargetParent, withTargetSelf, withTargetTop
 
 
-## Targets Configuration Helpers
+## Icon Helpers
+
+@docs withIconArrowRight, withIconChevronDown, withIconDownload, withIconEdit, withIconEmail, withIconPhone
+
+
+## Events
+
+@docs withOnClick, withOnMouseDown, withOnMouseUp, withOnMouseEnter, withOnMouseLeave, withOnMouseOver, withOnMouseOut
+
+
+## Targets
 
 @docs targetBlank, targetParent, targetSelf, targetTop
 
 
-## Icons Configuration Helpers
+## Icons
 
 @docs iconArrowRight, iconChevronDown, iconDownload, iconEdit, iconEmail, iconPhone
 
@@ -37,6 +48,7 @@ module Prima.Pyxis.Link exposing
 
 import Html exposing (Html, a, i, text)
 import Html.Attributes as Attrs
+import Html.Events as Events
 import Prima.Pyxis.Helpers as H
 
 
@@ -58,9 +70,11 @@ type alias Configuration msg =
 {-| Internal. Represents the list of customizations for the `Link` component.
 -}
 type alias Options msg =
-    { classes : List String
-    , id : Maybe String
-    , onClick : Maybe msg
+    { id : Maybe String
+    , classes : List String
+    , classList : List ( String, Bool )
+    , events : List (Html.Attribute msg)
+    , attributes : List (Html.Attribute msg)
     , target : Maybe String
     }
 
@@ -68,9 +82,11 @@ type alias Options msg =
 {-| Internal. Represents the possible modifiers for an `Link`.
 -}
 type LinkOption msg
-    = Class String
-    | Id String
-    | OnClick msg
+    = Id String
+    | Class String
+    | ClassList (List ( String, Bool ))
+    | Event (Html.Attribute msg)
+    | Attribute (Html.Attribute msg)
     | Target String
 
 
@@ -78,9 +94,11 @@ type LinkOption msg
 -}
 defaultOptions : Options msg
 defaultOptions =
-    { classes = []
-    , id = Nothing
-    , onClick = Nothing
+    { id = Nothing
+    , classes = []
+    , classList = []
+    , events = []
+    , attributes = []
     , target = Nothing
     }
 
@@ -90,14 +108,20 @@ defaultOptions =
 applyOption : LinkOption msg -> Options msg -> Options msg
 applyOption modifier options =
     case modifier of
-        Class class ->
-            { options | classes = class :: options.classes }
-
         Id id ->
             { options | id = Just id }
 
-        OnClick onClick ->
-            { options | onClick = Just onClick }
+        Class class ->
+            { options | classes = class :: options.classes }
+
+        ClassList list ->
+            { options | classList = List.append list options.classList }
+
+        Event action ->
+            { options | events = action :: options.events }
+
+        Attribute attr ->
+            { options | attributes = attr :: options.attributes }
 
         Target target ->
             { options | target = Just target }
@@ -143,24 +167,6 @@ isStandalone =
 simple : String -> String -> Config msg
 simple label href =
     Config (Configuration Simple label (Just href) Nothing [])
-
-
-{-| Creates a simple link `a[href=""] with onClick msg`.
-
-    --
-
-    import Prima.Pyxis.Link as Link
-
-    ...
-
-    myLink : Link.Config
-    myLink =
-        Link.simpleWithOnClick "Visit site" OnClick
-
--}
-simpleWithOnClick : String -> msg -> Config msg
-simpleWithOnClick label msg =
-    Config (Configuration Simple label Nothing Nothing []) |> addOption (OnClick msg)
 
 
 {-| Create a standalone link. Used when the link itself stands alone.
@@ -275,6 +281,69 @@ withClass class_ =
     addOption (Class class_)
 
 
+{-| Adds classes to the `classList` of the `Link`.
+-}
+withClassList : List ( String, Bool ) -> Config msg -> Config msg
+withClassList classList =
+    addOption (ClassList classList)
+
+
+{-| Adds a generic attribute to the Link.
+-}
+withAttribute : Html.Attribute msg -> Config msg -> Config msg
+withAttribute attr =
+    addOption (Attribute attr)
+
+
+{-| Adds an `onClick` Html.Event to the `Link`.
+-}
+withOnClick : msg -> Config msg -> Config msg
+withOnClick tagger =
+    addOption (Event (H.stopEvt "click" tagger))
+
+
+{-| Adds an `onMouseDown` Html.Event to the `Link`.
+-}
+withOnMouseDown : msg -> Config msg -> Config msg
+withOnMouseDown tagger =
+    addOption (Event (Events.onMouseDown tagger))
+
+
+{-| Adds an `onMouseUp` Html.Event to the `Link`.
+-}
+withOnMouseUp : msg -> Config msg -> Config msg
+withOnMouseUp tagger =
+    addOption (Event (Events.onMouseUp tagger))
+
+
+{-| Adds an `onMouseEnter` Html.Event to the `Link`.
+-}
+withOnMouseEnter : msg -> Config msg -> Config msg
+withOnMouseEnter tagger =
+    addOption (Event (Events.onMouseEnter tagger))
+
+
+{-| Adds an `onMouseLeave` Html.Event to the `Link`.
+-}
+withOnMouseLeave : msg -> Config msg -> Config msg
+withOnMouseLeave tagger =
+    addOption (Event (Events.onMouseLeave tagger))
+
+
+{-| Adds an `onMouseOver` Html.Event to the `Link`.
+-}
+withOnMouseOver : msg -> Config msg -> Config msg
+withOnMouseOver tagger =
+    addOption (Event (Events.onMouseOver tagger))
+
+
+{-| Adds an `onMouseOut` Html.Event to the `Link`.
+-}
+withOnMouseOut : msg -> Config msg -> Config msg
+withOnMouseOut tagger =
+    addOption (Event (Events.onMouseOut tagger))
+
+
 {-| Represent an icon from Pyxis Iconset.
 -}
 type Icon
@@ -331,7 +400,7 @@ withIconPhone (Config linkConfig) =
 {-| Renders a link by receiving it's configuration.
 -}
 render : Config msg -> Html msg
-render ((Config { label, icon, type_, href }) as config) =
+render ((Config { label, icon, href }) as config) =
     let
         maybeHref : List (Html.Attribute msg)
         maybeHref =
@@ -342,13 +411,6 @@ render ((Config { label, icon, type_, href }) as config) =
     in
     a
         (maybeHref
-            |> List.append
-                [ Attrs.classList
-                    [ ( "a-link", True )
-                    , ( "a-link--standalone", isStandalone type_ )
-                    , ( "a-link--with-icon", H.isJust icon )
-                    ]
-                ]
             |> List.append (buildAttributes config)
         )
         [ Maybe.withDefault (text "") <| Maybe.map renderIcon <| icon
@@ -385,8 +447,22 @@ buildAttributes linkModel =
         |> Maybe.map Attrs.id
     , options.target
         |> Maybe.map Attrs.target
-    , options.onClick
-        |> Maybe.map (H.stopEvt "click")
     ]
         |> List.filterMap identity
+        |> List.append options.events
+        |> List.append options.attributes
         |> (::) (H.classesAttribute options.classes)
+        |> (::) (buildClassList linkModel options)
+
+
+{-| Internal. Merges the component configuration and options to a classList attribute.
+-}
+buildClassList : Config msg -> Options msg -> Html.Attribute msg
+buildClassList (Config { type_, icon }) options =
+    [ ( "a-link", True )
+    , ( "a-link--standalone", isStandalone type_ )
+    , ( "a-link--with-icon", H.isJust icon )
+    ]
+        |> List.append options.classList
+        |> List.append (List.map (H.flip Tuple.pair True) options.classes)
+        |> Attrs.classList

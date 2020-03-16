@@ -59,10 +59,15 @@ view _ =
 appBody : List (Html Msg)
 appBody =
     [ Helpers.pyxisStyle
-    , [ Link.simple "Visit Google" "https://www.google.it" |> Link.withId "my-link"
-      , Link.simple "Visit Google" "https://www.google.it" |> Link.withIconPhone
-      , Link.standalone "Visit Google" "https://www.google.it"
-      , Link.simpleWithOnClick "Visit Google with self target (handle click)" LinkClicked |> Link.withTargetSelf
+    , [ Link.simple "Visit Google" "https://www.google.it"
+            |> Link.withId "my-link"
+      , Link.simple "Visit Google" "https://www.google.it"
+            |> Link.withIconPhone
+      , Link.standalone "Visit Google in another tab" "https://www.google.it"
+            |> Link.withTargetBlank
+      , Link.simple "Visit Google with click prevented" "https://www.google.it"
+            |> Link.withOnClick LinkClicked
+            |> Link.withClassList [ ( "fsSmall", True ) ]
       ]
         |> List.map Link.render
         |> List.intersperse Helpers.spacer
