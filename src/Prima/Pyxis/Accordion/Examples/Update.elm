@@ -25,6 +25,6 @@ updateAccordion slug isOpen accordion =
             updateAccordionState Accordion.close accordion
 
 
-updateAccordionState : (Accordion.State Msg -> Accordion.State Msg) -> Accordion -> Accordion
+updateAccordionState : Accordion.State -> Accordion -> Accordion
 updateAccordionState mapper accordion =
-    { accordion | state = mapper accordion.state }
+    { accordion | state = mapper }
