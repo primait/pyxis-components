@@ -1,7 +1,7 @@
 module Prima.Pyxis.Button exposing
-    ( Config, Emphasis, ColorScheme(..), callOut, primary, secondary, tertiary
+    ( Config, Emphasis, ColorScheme(..), Target(..), Type_(..), callOut, primary, secondary, tertiary
     , withColorScheme, withSize
-    , withAttribute, withClass, withClassList, withDisabled, withIcon, withId, withTabIndex, withTitle
+    , withAttribute, withClass, withClassList, withDisabled, withIcon, withId, withTabIndex, withTitle, withType, withTarget
     , withOnClick, withOnMouseDown, withOnMouseUp, withOnMouseEnter, withOnMouseLeave, withOnMouseOver, withOnMouseOut
     , render
     )
@@ -11,7 +11,7 @@ module Prima.Pyxis.Button exposing
 
 ## Configuration
 
-@docs Config, Emphasis, ColorScheme, callOut, primary, secondary, tertiary
+@docs Config, Emphasis, ColorScheme, Target, Type_, callOut, primary, secondary, tertiary
 
 
 ## Size and ColorScheme
@@ -21,7 +21,7 @@ module Prima.Pyxis.Button exposing
 
 ## Options
 
-@docs withAttribute, withClass, withClassList, withDisabled, withIcon, withId, withTabIndex, withTitle
+@docs withAttribute, withClass, withClassList, withDisabled, withIcon, withId, withTabIndex, withTitle, withType, withTarget
 
 
 ## Events
@@ -86,6 +86,19 @@ isTertiary =
     (==) Tertiary
 
 
+type Type_
+    = Button
+    | Submit
+    | Reset
+
+
+type Target
+    = Blank
+    | Self
+    | Parent
+    | Top
+
+
 {-| Internal. Represents the list of customizations for the `Button` component.
 -}
 type alias Options msg =
@@ -97,6 +110,8 @@ type alias Options msg =
     , id : Maybe String
     , tabIndex : Maybe Int
     , title : Maybe String
+    , type_ : Type_
+    , formTarget : Target
     }
 
 
@@ -111,6 +126,8 @@ type ButtonOption msg
     | TabIndex Int
     | Title String
     | Attribute (Html.Attribute msg)
+    | Type_ Type_
+    | FormTarget Target
 
 
 {-| Internal. Represents the initial state of the list of customizations for the `Button` component.
@@ -125,6 +142,8 @@ defaultOptions =
     , tabIndex = Nothing
     , title = Nothing
     , attributes = []
+    , type_ = Button
+    , formTarget = Self
     }
 
 
@@ -156,6 +175,12 @@ applyOption modifier options =
 
         Attribute attr ->
             { options | attributes = attr :: options.attributes }
+
+        Type_ type_ ->
+            { options | type_ = type_ }
+
+        FormTarget target ->
+            { options | formTarget = target }
 
 
 {-| Internal. Applies all the customizations and returns the internal `Options` type.
@@ -311,6 +336,20 @@ withTitle title =
     addOption (Title title)
 
 
+{-| Adds a `type` Html.Attribute to the `Button`.
+-}
+withType : Type_ -> Config msg -> Config msg
+withType type_ =
+    addOption (Type_ type_)
+
+
+{-| Adds a `formtarget` Html.Attribute to the `Button`.
+-}
+withTarget : Target -> Config msg -> Config msg
+withTarget target =
+    addOption (FormTarget target)
+
+
 {-| Adds an `onClick` Html.Event to the `Button`.
 -}
 withOnClick : msg -> Config msg -> Config msg
@@ -431,9 +470,44 @@ buildAttributes buttonConfig =
         |> Maybe.map Attrs.disabled
     ]
         |> List.filterMap identity
+        |> (::) (buildType options)
+        |> (::) (buildFormTarget options)
         |> (::) (buildClassList buttonConfig options)
         |> List.append options.attributes
         |> List.append options.events
+
+
+{-| Internal. Constructs the `type` attribute from the `Button` options.
+-}
+buildType : Options msg -> Html.Attribute msg
+buildType options =
+    case options.type_ of
+        Button ->
+            Attrs.type_ "button"
+
+        Submit ->
+            Attrs.type_ "submit"
+
+        Reset ->
+            Attrs.type_ "reset"
+
+
+{-| Internal. Constructs the `formtarget` attribute from the `Button` options.
+-}
+buildFormTarget : Options msg -> Html.Attribute msg
+buildFormTarget options =
+    case options.formTarget of
+        Self ->
+            Attrs.attribute "formtarget" "_self"
+
+        Blank ->
+            Attrs.attribute "formtarget" "_blank"
+
+        Parent ->
+            Attrs.attribute "formtarget" "_parent"
+
+        Top ->
+            Attrs.attribute "formtarget" "_top"
 
 
 {-| Internal. Merges the component configuration and options to a classList attribute.

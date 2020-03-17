@@ -63,6 +63,7 @@ initialModel =
             |> Button.withOnClick (HandleEvent "Click 3")
             |> Button.withTabIndex 2
         , Button.tertiary "Tertiary dark"
+            |> Button.withType Button.Submit
             |> Button.withColorScheme Button.BrandDark
             |> Button.withTabIndex 3
         ]
