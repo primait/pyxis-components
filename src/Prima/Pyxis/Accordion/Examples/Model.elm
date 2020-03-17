@@ -2,10 +2,14 @@ module Prima.Pyxis.Accordion.Examples.Model exposing
     ( Accordion
     , AccordionType(..)
     , Msg(..)
+    , accordionContent
+    , accordionTypeToHtmlTitle
+    , accordionTypeToSimpleTitle
     , initialModel
     )
 
 import Html exposing (Html, text)
+import Html.Attributes as Attrs
 import Prima.Pyxis.Accordion as Accordion
 import Prima.Pyxis.Helpers as Helpers
 
@@ -22,7 +26,7 @@ initialModel =
 type alias Accordion =
     { accordionType : AccordionType
     , slug : String
-    , state : Accordion.State Msg
+    , state : Accordion.State
     }
 
 
@@ -34,7 +38,7 @@ type AccordionType
 
 accordionBuilder : AccordionType -> Accordion
 accordionBuilder type_ =
-    Accordion type_ (accordionTypeToSlug type_) (Accordion.state False (accordionTypeToTitle type_) accordionContent)
+    Accordion type_ (accordionTypeToSlug type_) (Accordion.state False)
 
 
 accordionTypeToSlug : AccordionType -> String
@@ -50,8 +54,8 @@ accordionTypeToSlug type_ =
             "slug-accordion-dark"
 
 
-accordionTypeToTitle : AccordionType -> String
-accordionTypeToTitle type_ =
+accordionTypeToSimpleTitle : AccordionType -> String
+accordionTypeToSimpleTitle type_ =
     case type_ of
         Base ->
             "I am a base accordion"
@@ -61,6 +65,28 @@ accordionTypeToTitle type_ =
 
         Dark ->
             "I am a dark accordion"
+
+
+accordionTypeToHtmlTitle : AccordionType -> Html msg
+accordionTypeToHtmlTitle type_ =
+    case type_ of
+        Base ->
+            Html.span []
+                [ text "I am a "
+                , Html.strong [ Attrs.class "cBrandBase" ] [ text "base accordion" ]
+                ]
+
+        Light ->
+            Html.span []
+                [ text "I am a "
+                , Html.strong [ Attrs.class "cBrandBase" ] [ text "light accordion" ]
+                ]
+
+        Dark ->
+            Html.span []
+                [ text "I am a "
+                , Html.strong [ Attrs.class "cBrandBase" ] [ text "dark accordion" ]
+                ]
 
 
 accordionContent : List (Html Msg)
