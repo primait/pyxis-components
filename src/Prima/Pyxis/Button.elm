@@ -1,7 +1,7 @@
 module Prima.Pyxis.Button exposing
     ( Config, Emphasis, ColorScheme(..), Target(..), Type_(..), callOut, primary, secondary, tertiary
     , withColorScheme, withSize
-    , withAttribute, withClass, withClassList, withDisabled, withIcon, withId, withTabIndex, withTitle, withType, withTarget
+    , withAttribute, withClassList, withDisabled, withIcon, withId, withTabIndex, withTitle, withType, withTarget
     , withOnClick, withOnMouseDown, withOnMouseUp, withOnMouseEnter, withOnMouseLeave, withOnMouseOver, withOnMouseOut
     , render
     )
@@ -21,7 +21,7 @@ module Prima.Pyxis.Button exposing
 
 ## Options
 
-@docs withAttribute, withClass, withClassList, withDisabled, withIcon, withId, withTabIndex, withTitle, withType, withTarget
+@docs withAttribute, withClassList, withDisabled, withIcon, withId, withTabIndex, withTitle, withType, withTarget
 
 
 ## Events
@@ -38,7 +38,6 @@ module Prima.Pyxis.Button exposing
 import Html exposing (Html, button, span, text)
 import Html.Attributes as Attrs
 import Html.Events as Events
-import Prima.Pyxis.Helpers as H
 
 
 {-| Represent the configuration of the button.
@@ -102,8 +101,7 @@ type Target
 {-| Internal. Represents the list of customizations for the `Button` component.
 -}
 type alias Options msg =
-    { classes : List String
-    , classList : List ( String, Bool )
+    { classList : List ( String, Bool )
     , events : List (Html.Attribute msg)
     , attributes : List (Html.Attribute msg)
     , disabled : Maybe Bool
@@ -118,8 +116,7 @@ type alias Options msg =
 {-| Internal. Represents the possible modifiers for a `Button`.
 -}
 type ButtonOption msg
-    = Class String
-    | ClassList (List ( String, Bool ))
+    = ClassList (List ( String, Bool ))
     | Event (Html.Attribute msg)
     | Disabled Bool
     | Id String
@@ -134,8 +131,7 @@ type ButtonOption msg
 -}
 defaultOptions : Options msg
 defaultOptions =
-    { classes = []
-    , classList = []
+    { classList = []
     , events = []
     , disabled = Nothing
     , id = Nothing
@@ -152,9 +148,6 @@ defaultOptions =
 applyOption : ButtonOption msg -> Options msg -> Options msg
 applyOption modifier options =
     case modifier of
-        Class class ->
-            { options | classes = class :: options.classes }
-
         ClassList list ->
             { options | classList = List.append list options.classList }
 
@@ -292,13 +285,6 @@ withColorScheme color (Config buttonConfig) =
 withIcon : String -> Config msg -> Config msg
 withIcon icon (Config buttonConfig) =
     Config { buttonConfig | icon = Just icon }
-
-
-{-| Adds a `class` to the `Button`.
--}
-withClass : String -> Config msg -> Config msg
-withClass class_ =
-    addOption (Class class_)
 
 
 {-| Adds classes to the `classList` of the `Button`.
@@ -524,5 +510,4 @@ buildClassList (Config { emphasis, size, color }) options =
     , ( "a-btn--dark", isDark color )
     ]
         |> List.append options.classList
-        |> List.append (List.map (H.flip Tuple.pair True) options.classes)
         |> Attrs.classList

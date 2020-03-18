@@ -1,6 +1,6 @@
 module Prima.Pyxis.ButtonGroup exposing
-    ( Config, spaceBetween, spaceEvenly, spaceAround, centered, contentStart, contentEnd, coverFluid
-    , withAttribute, withClass, withClassList, withId
+    ( Config, Alignment(..), create
+    , withAttribute, withAlignment, withClassList, withId
     , render
     )
 
@@ -9,12 +9,12 @@ module Prima.Pyxis.ButtonGroup exposing
 
 # Types and Configuration
 
-@docs Config, spaceBetween, spaceEvenly, spaceAround, centered, contentStart, contentEnd, coverFluid
+@docs Config, Alignment, create
 
 
 ## Options
 
-@docs withAttribute, withClass, withClassList, withFluid, withId
+@docs withAttribute, withAlignment, withClassList, withFluid, withId
 
 
 # Render
@@ -26,7 +26,6 @@ module Prima.Pyxis.ButtonGroup exposing
 import Html exposing (Html)
 import Html.Attributes as Attrs
 import Prima.Pyxis.Button as B
-import Prima.Pyxis.Helpers as H
 
 
 {-| Represent the configuration of the buttonGroup.
@@ -37,7 +36,6 @@ type Config msg
 
 type alias ButtonGroupConfig msg =
     { buttons : List (B.Config msg)
-    , alignment : Alignment
     , options : List (ButtonGroupOption msg)
     }
 
@@ -57,26 +55,26 @@ type Alignment
 {-| Internal. Represents the list of customizations for the `ButtonGroup` component.
 -}
 type alias Options msg =
-    { classes : List String
-    , classList : List ( String, Bool )
+    { classList : List ( String, Bool )
     , attributes : List (Html.Attribute msg)
     , id : Maybe String
+    , alignment : Maybe Alignment
     }
 
 
 type ButtonGroupOption msg
-    = Class String
-    | ClassList (List ( String, Bool ))
+    = ClassList (List ( String, Bool ))
     | Attribute (Html.Attribute msg)
     | Id String
+    | Alignment Alignment
 
 
 defaultOptions : Options msg
 defaultOptions =
-    { classes = []
-    , classList = []
+    { classList = []
     , attributes = []
     , id = Nothing
+    , alignment = Nothing
     }
 
 
@@ -85,9 +83,6 @@ defaultOptions =
 applyOption : ButtonGroupOption msg -> Options msg -> Options msg
 applyOption modifier options =
     case modifier of
-        Class class ->
-            { options | classes = class :: options.classes }
-
         ClassList list ->
             { options | classList = List.append list options.classList }
 
@@ -96,6 +91,9 @@ applyOption modifier options =
 
         Id id ->
             { options | id = Just id }
+
+        Alignment align ->
+            { options | alignment = Just align }
 
 
 {-| Internal. Applies all the customizations and returns the internal `Options` type.
@@ -112,7 +110,7 @@ addOption option (Config buttonGroupConfig) =
     Config { buttonGroupConfig | options = buttonGroupConfig.options ++ [ option ] }
 
 
-{-| Create a button group with a `SpaceBetween` alignment.
+{-| Create a button group.
 
     --
 
@@ -121,61 +119,19 @@ addOption option (Config buttonGroupConfig) =
 
     myBtnGroup : ButtonGroup.Config Msg
     myBtnGroup =
-        ButtonGroup.spaceBetween myButtons
+        ButtonGroup.configure myButtons
 
 -}
-spaceBetween : List (B.Config msg) -> Config msg
-spaceBetween buttons =
-    Config (ButtonGroupConfig buttons SpaceBetween [])
+create : List (B.Config msg) -> Config msg
+create buttons =
+    Config (ButtonGroupConfig buttons [])
 
 
-{-| Create a button group with a `SpaceEvenly` alignment.
+{-| Adds classes to the `classList` of the `ButtonGroup`.
 -}
-spaceEvenly : List (B.Config msg) -> Config msg
-spaceEvenly buttons =
-    Config (ButtonGroupConfig buttons SpaceEvenly [])
-
-
-{-| Create a button group with a `SpaceAround` alignment.
--}
-spaceAround : List (B.Config msg) -> Config msg
-spaceAround buttons =
-    Config (ButtonGroupConfig buttons SpaceAround [])
-
-
-{-| Create a button group with a `Centered` alignment.
--}
-centered : List (B.Config msg) -> Config msg
-centered buttons =
-    Config (ButtonGroupConfig buttons Centered [])
-
-
-{-| Create a button group with a `ContentStart` alignment.
--}
-contentStart : List (B.Config msg) -> Config msg
-contentStart buttons =
-    Config (ButtonGroupConfig buttons ContentStart [])
-
-
-{-| Create a button group with a `ContentEnd` alignment.
--}
-contentEnd : List (B.Config msg) -> Config msg
-contentEnd buttons =
-    Config (ButtonGroupConfig buttons ContentEnd [])
-
-
-{-| Create a button group with a `CoverFluid` alignment.
--}
-coverFluid : List (B.Config msg) -> Config msg
-coverFluid buttons =
-    Config (ButtonGroupConfig buttons CoverFluid [])
-
-
-{-| Adds a `class` to the `ButtonGroup`.
--}
-withClass : String -> Config msg -> Config msg
-withClass class_ =
-    addOption (Class class_)
+withAlignment : Alignment -> Config msg -> Config msg
+withAlignment align =
+    addOption (Alignment align)
 
 
 {-| Adds classes to the `classList` of the `ButtonGroup`.
@@ -246,40 +202,42 @@ render ((Config { buttons }) as config) =
 
 {-| Internal. Transforms the alignment into the appropriate class.
 -}
-buildAlignmentClass : Alignment -> String
+buildAlignmentClass : Maybe Alignment -> ( String, Bool )
 buildAlignmentClass alignment =
     case alignment of
-        SpaceBetween ->
-            "justify-content-between"
+        Just SpaceBetween ->
+            ( "justify-content-between", True )
 
-        SpaceEvenly ->
-            "justify-content-evenly"
+        Just SpaceEvenly ->
+            ( "justify-content-evenly", True )
 
-        SpaceAround ->
-            "justify-content-around"
+        Just SpaceAround ->
+            ( "justify-content-around", True )
 
-        Centered ->
-            "justify-content-center"
+        Just Centered ->
+            ( "justify-content-center", True )
 
-        ContentStart ->
-            "justify-content-start"
+        Just ContentStart ->
+            ( "justify-content-start", True )
 
-        ContentEnd ->
-            "justify-content-end"
+        Just ContentEnd ->
+            ( "justify-content-end", True )
 
-        CoverFluid ->
-            "m-btnGroup--coverFluid"
+        Just CoverFluid ->
+            ( "m-btnGroup--coverFluid", True )
+
+        Nothing ->
+            ( "", False )
 
 
 {-| Internal. Merges the component configuration and options to a classList attribute.
 -}
-buildClassList : Options msg -> Config msg -> Html.Attribute msg
-buildClassList options (Config { alignment }) =
+buildClassList : Options msg -> Html.Attribute msg
+buildClassList options =
     [ ( "m-btnGroup", True )
-    , ( buildAlignmentClass alignment, True )
+    , buildAlignmentClass options.alignment
     ]
         |> List.append options.classList
-        |> List.append (List.map (H.flip Tuple.pair True) options.classes)
         |> Attrs.classList
 
 
@@ -295,5 +253,5 @@ buildAttributes buttonConfig =
         |> Maybe.map Attrs.id
     ]
         |> List.filterMap identity
-        |> (::) (buildClassList options buttonConfig)
+        |> (::) (buildClassList options)
         |> List.append options.attributes

@@ -94,12 +94,13 @@ appBody : Model -> List (Html Msg)
 appBody model =
     [ Helpers.pyxisStyle
     , model.buttons
-        |> ButtonGroup.centered
+        |> ButtonGroup.create
         |> ButtonGroup.render
         |> List.singleton
         |> wrapper False
     , model.darkButtons
-        |> ButtonGroup.coverFluid
+        |> ButtonGroup.create
+        |> ButtonGroup.withAlignment ButtonGroup.CoverFluid
         |> ButtonGroup.render
         |> List.singleton
         |> wrapper True
