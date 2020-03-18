@@ -1,32 +1,46 @@
 module Prima.Pyxis.ListChooser.Examples.Model exposing
-    ( Msg(..)
+    ( Model
+    , Msg(..)
     , initialModel
     )
 
 import Prima.Pyxis.ListChooser as ListChooser
-import Tuple
 
 
 type Msg
     = ChosenMsg ListChooser.Msg
 
 
-initialModel : ListChooser.State
+type alias Model =
+    { config : ListChooser.Config
+    , state : ListChooser.State
+    }
+
+
+initialModel : Model
 initialModel =
-    Tuple.first <| ListChooser.init ListChooser.viewModePartial itemList
+    { config = createinitialConfig
+    , state = createInitialState
+    }
 
 
-itemList : List ListChooser.ChooserItem
-itemList =
-    List.map (\( slug, content ) -> ListChooser.createItem slug content False) finitureList
+createinitialConfig : ListChooser.Config
+createinitialConfig =
+    ListChooser.config 3 "Mostra tutto" "Mostra i primi 3"
 
 
-finitureList : List ( String, String )
+createInitialState : ListChooser.State
+createInitialState =
+    ListChooser.createState ListChooser.Partial
+        |> ListChooser.withItems finitureList
+
+
+finitureList : List ( String, String, Bool )
 finitureList =
-    [ ( "finiture_1", "VOLKSWAGEN Golf 1.6 TDI 90 CV 5p. Tech&Sound BlueMo" )
-    , ( "finiture_2", "VOLKSWAGEN Golf 1.6 TDI 110 CV 5p. " )
-    , ( "finiture_3", "VOLKSWAGEN Golf 2.0 TDI 140 CV 5p. Trendline " )
-    , ( "finiture_4", "Mercedes Golf 1.6 TDI 90 CV 5p. Tech&Sound BlueMo" )
-    , ( "finiture_5", "Audi Golf 1.6 TDI 110 CV 5p. " )
-    , ( "finiture_6", "Tesla Golf 2.0 TDI 140 CV 5p. Trendline " )
+    [ ( "finiture_1", "VOLKSWAGEN Golf 1.6 TDI 90 CV 5p. Tech&Sound BlueMo", False )
+    , ( "finiture_2", "VOLKSWAGEN Golf 1.6 TDI 110 CV 5p. ", False )
+    , ( "finiture_3", "VOLKSWAGEN Golf 2.0 TDI 140 CV 5p. Trendline ", False )
+    , ( "finiture_4", "Mercedes Golf 1.6 TDI 90 CV 5p. Tech&Sound BlueMo", False )
+    , ( "finiture_5", "Audi Golf 1.6 TDI 110 CV 5p. ", False )
+    , ( "finiture_6", "Tesla Golf 2.0 TDI 140 CV 5p. Trendline ", False )
     ]
