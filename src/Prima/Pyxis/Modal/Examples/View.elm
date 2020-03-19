@@ -26,18 +26,18 @@ appBody isModalVisible =
             [ Button.render True showModalBtn
             , renderModal isModalVisible
             ]
+        |> Container.render
     ]
 
 
 renderModal : Bool -> Html Msg
 renderModal isModalVisible =
-    Modal.config
-        Modal.medium
-        (Modal.defaultHeader "Hello! I'm a modal")
-        modalContent
-        (Modal.withButtonsFooter [ Button.render True showModalBtn, Button.render True hideModalBtn ])
-        Hide
-        |> Modal.render isModalVisible
+    Modal.medium isModalVisible Hide
+        |> Modal.withHeaderTitle "Hello! I'm a modal"
+        |> Modal.withCloseOnOverlayClick
+        |> Modal.withBodyContent modalContent
+        |> Modal.withFooterContent [ Button.render True showModalBtn, Button.render True hideModalBtn ]
+        |> Modal.render
 
 
 modalContent : List (Html Msg)
