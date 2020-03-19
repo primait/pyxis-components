@@ -31,11 +31,11 @@ linkContainerStyles =
 
 
 appBody : Model -> List (Html Msg)
-appBody ({ isModalVisible, messageToPrint, smallModalConfig } as model) =
+appBody ({ messageToPrint } as model) =
     [ Helpers.pyxisStyle
     , Container.column
         |> Container.withContent
-            ([ div ([] ++ linkContainerStyles)
+            ([ div ([] :: linkContainerStyles)
                 [ h3 [ style "margin-bottom" "200px" ]
                     [ "Message from modal:"
                         ++ messageToPrint
@@ -49,7 +49,7 @@ appBody ({ isModalVisible, messageToPrint, smallModalConfig } as model) =
                     |> Link.render
                 ]
              ]
-                ++ renderModals model
+                :: renderModals model
             )
         |> Container.render
     ]
