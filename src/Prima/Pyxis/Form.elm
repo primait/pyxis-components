@@ -1,5 +1,5 @@
 module Prima.Pyxis.Form exposing
-    ( Form, init, setAsPristine, setAsSubmitted, setAsTouched, isPristine, isTouched, isSubmitted
+    ( Config, init, setAsPristine, setAsSubmitted, setAsTouched, isPristine, isTouched, isSubmitted
     , FormField, input, autocomplete, checkbox, date, flag, radio, radioButton, select, textArea
     , withLabel, withAppendableHtml, withFields
     , render
@@ -10,7 +10,7 @@ module Prima.Pyxis.Form exposing
 
 ## Types and Configuration
 
-@docs Form, init, setAsPristine, setAsSubmitted, setAsTouched, isPristine, isTouched, isSubmitted
+@docs Config, init, setAsPristine, setAsSubmitted, setAsTouched, isPristine, isTouched, isSubmitted
 
 
 ## Fields
@@ -47,8 +47,8 @@ import Prima.Pyxis.Helpers as H
 
 {-| Represent the `Form`.
 -}
-type Form model msg
-    = Form (FormConfig model msg)
+type Config model msg
+    = Config (FormConfig model msg)
 
 
 type alias FormConfig model msg =
@@ -59,9 +59,9 @@ type alias FormConfig model msg =
 
 {-| Create an instance of a `Form`.
 -}
-init : Form model msg
+init : Config model msg
 init =
-    Form <| FormConfig Pristine []
+    Config <| FormConfig Pristine []
 
 
 {-| Represent the `Form` state.
@@ -74,51 +74,51 @@ type FormState
 
 {-| Checks if a `Form` is in the `Pristine` state.
 -}
-isPristine : Form model msg -> Bool
-isPristine (Form { state }) =
+isPristine : Config model msg -> Bool
+isPristine (Config { state }) =
     state == Pristine
 
 
 {-| Checks if a `Form` is in the `Touched` state.
 -}
-isTouched : Form model msg -> Bool
-isTouched (Form { state }) =
+isTouched : Config model msg -> Bool
+isTouched (Config { state }) =
     state == Touched
 
 
 {-| Checks if a `Form` is in the `Submitted` state.
 -}
-isSubmitted : Form model msg -> Bool
-isSubmitted (Form { state }) =
+isSubmitted : Config model msg -> Bool
+isSubmitted (Config { state }) =
     state == Submitted
 
 
 {-| Sets the `Form` to `Pristine` state.
 -}
-setAsPristine : Form model msg -> Form model msg
-setAsPristine (Form config) =
-    Form { config | state = Pristine }
+setAsPristine : Config model msg -> Config model msg
+setAsPristine (Config config) =
+    Config { config | state = Pristine }
 
 
 {-| Sets the `Form` to `Submitted` state.
 -}
-setAsSubmitted : Form model msg -> Form model msg
-setAsSubmitted (Form config) =
-    Form { config | state = Submitted }
+setAsSubmitted : Config model msg -> Config model msg
+setAsSubmitted (Config config) =
+    Config { config | state = Submitted }
 
 
 {-| Sets the `Form` to `Touched` state.
 -}
-setAsTouched : Form model msg -> Form model msg
-setAsTouched (Form config) =
-    Form { config | state = Touched }
+setAsTouched : Config model msg -> Config model msg
+setAsTouched (Config config) =
+    Config { config | state = Touched }
 
 
 {-| Adds a list of field (which represents a row of the `Grid`) to the `Form`.
 -}
-withFields : List (FormField model msg) -> Form model msg -> Form model msg
-withFields fields (Form formConfig) =
-    Form { formConfig | fields = formConfig.fields ++ [ fields ] }
+withFields : List (FormField model msg) -> Config model msg -> Config model msg
+withFields fields (Config formConfig) =
+    Config { formConfig | fields = formConfig.fields ++ [ fields ] }
 
 
 {-| Represent the fields admitted by the `Form`.
@@ -144,7 +144,7 @@ hasLabel =
 
 {-| Internal. Retrieves the label from a FormField.
 -}
-pickLabel : FormField model msg -> Maybe (Label.Label msg)
+pickLabel : FormField model msg -> Maybe (Label.Config msg)
 pickLabel formField =
     case formField of
         AutocompleteField { label } ->
@@ -178,15 +178,15 @@ pickLabel formField =
 {-| Internal. Represent the configuration of a `FormField` which holds an `Input` component.
 -}
 type alias InputFieldConfig model msg =
-    { config : Input.Input model msg
-    , label : Maybe (Label.Label msg)
+    { config : Input.Config model msg
+    , label : Maybe (Label.Config msg)
     , appendableHtml : List (Html msg)
     }
 
 
 {-| Transforms an `Input` component into a `FormField`.
 -}
-input : Input.Input model msg -> FormField model msg
+input : Input.Config model msg -> FormField model msg
 input config =
     InputField <| InputFieldConfig config Nothing []
 
@@ -194,15 +194,15 @@ input config =
 {-| Internal. Represent the configuration of a `FormField` which holds an `Flag` component.
 -}
 type alias FlagFieldConfig model msg =
-    { config : Flag.Flag model msg
-    , label : Maybe (Label.Label msg)
+    { config : Flag.Config model msg
+    , label : Maybe (Label.Config msg)
     , appendableHtml : List (Html msg)
     }
 
 
 {-| Transforms a `Flag` component into a `FormField`.
 -}
-flag : Flag.Flag model msg -> FormField model msg
+flag : Flag.Config model msg -> FormField model msg
 flag config =
     FlagField <| FlagFieldConfig config Nothing []
 
@@ -210,15 +210,15 @@ flag config =
 {-| Internal. Represent the configuration of a `FormField` which holds a `Radio` component.
 -}
 type alias RadioFieldConfig model msg =
-    { config : Radio.Radio model msg
-    , label : Maybe (Label.Label msg)
+    { config : Radio.Config model msg
+    , label : Maybe (Label.Config msg)
     , appendableHtml : List (Html msg)
     }
 
 
 {-| Transforms a `Radio` component into a `FormField`.
 -}
-radio : Radio.Radio model msg -> FormField model msg
+radio : Radio.Config model msg -> FormField model msg
 radio config =
     RadioField <| RadioFieldConfig config Nothing []
 
@@ -226,15 +226,15 @@ radio config =
 {-| Internal. Represent the configuration of a `FormField` which holds a `RadioButton` component.
 -}
 type alias RadioButtonFieldConfig model msg =
-    { config : RadioButton.RadioButton model msg
-    , label : Maybe (Label.Label msg)
+    { config : RadioButton.Config model msg
+    , label : Maybe (Label.Config msg)
     , appendableHtml : List (Html msg)
     }
 
 
 {-| Transforms a `RadioButton` component into a `FormField`.
 -}
-radioButton : RadioButton.RadioButton model msg -> FormField model msg
+radioButton : RadioButton.Config model msg -> FormField model msg
 radioButton config =
     RadioButtonField <| RadioButtonFieldConfig config Nothing []
 
@@ -242,15 +242,15 @@ radioButton config =
 {-| Internal. Represent the configuration of a `FormField` which holds a `Select` component.
 -}
 type alias SelectFieldConfig model msg =
-    { config : Select.Select model msg
-    , label : Maybe (Label.Label msg)
+    { config : Select.Config model msg
+    , label : Maybe (Label.Config msg)
     , appendableHtml : List (Html msg)
     }
 
 
 {-| Transforms a `Select` component into a `FormField`.
 -}
-select : Select.Select model msg -> FormField model msg
+select : Select.Config model msg -> FormField model msg
 select config =
     SelectField <| SelectFieldConfig config Nothing []
 
@@ -258,15 +258,15 @@ select config =
 {-| Internal. Represent the configuration of a `FormField` which holds an `Autocomplete` component.
 -}
 type alias AutocompleteFieldConfig model msg =
-    { config : Autocomplete.Autocomplete model msg
-    , label : Maybe (Label.Label msg)
+    { config : Autocomplete.Config model msg
+    , label : Maybe (Label.Config msg)
     , appendableHtml : List (Html msg)
     }
 
 
 {-| Transforms an `Autocomplete` component into a `FormField`.
 -}
-autocomplete : Autocomplete.Autocomplete model msg -> FormField model msg
+autocomplete : Autocomplete.Config model msg -> FormField model msg
 autocomplete config =
     AutocompleteField <| AutocompleteFieldConfig config Nothing []
 
@@ -274,15 +274,15 @@ autocomplete config =
 {-| Internal. Represent the configuration of a `FormField` which holds a `Date` component.
 -}
 type alias DateFieldConfig model msg =
-    { config : Date.Date model msg
-    , label : Maybe (Label.Label msg)
+    { config : Date.Config model msg
+    , label : Maybe (Label.Config msg)
     , appendableHtml : List (Html msg)
     }
 
 
 {-| Transforms a `Date` component into a `FormField`.
 -}
-date : Date.Date model msg -> FormField model msg
+date : Date.Config model msg -> FormField model msg
 date config =
     DateField <| DateFieldConfig config Nothing []
 
@@ -290,15 +290,15 @@ date config =
 {-| Internal. Represent the configuration of a `FormField` which holds a `Checkbox` component.
 -}
 type alias CheckboxFieldConfig model msg =
-    { config : Checkbox.Checkbox model msg
-    , label : Maybe (Label.Label msg)
+    { config : Checkbox.Config model msg
+    , label : Maybe (Label.Config msg)
     , appendableHtml : List (Html msg)
     }
 
 
 {-| Transforms a `Checkbox` component into a `FormField`.
 -}
-checkbox : Checkbox.Checkbox model msg -> FormField model msg
+checkbox : Checkbox.Config model msg -> FormField model msg
 checkbox config =
     CheckboxField <| CheckboxFieldConfig config Nothing []
 
@@ -306,22 +306,22 @@ checkbox config =
 {-| Internal. Represent the configuration of a `FormField` which holds a `TextArea` component.
 -}
 type alias TextAreaFieldConfig model msg =
-    { config : TextArea.TextArea model msg
-    , label : Maybe (Label.Label msg)
+    { config : TextArea.Config model msg
+    , label : Maybe (Label.Config msg)
     , appendableHtml : List (Html msg)
     }
 
 
 {-| Transforms a `TextArea` component into a `FormField`.
 -}
-textArea : TextArea.TextArea model msg -> FormField model msg
+textArea : TextArea.Config model msg -> FormField model msg
 textArea config =
     TextAreaField <| TextAreaFieldConfig config Nothing []
 
 
 {-| Adds a `Label` component into a `FormField`.
 -}
-withLabel : Label.Label msg -> FormField model msg -> FormField model msg
+withLabel : Label.Config msg -> FormField model msg -> FormField model msg
 withLabel lbl formField =
     case formField of
         AutocompleteField fieldConfig ->
@@ -430,8 +430,8 @@ renderField model formField =
 
 {-| Renders the form with all his fields.
 -}
-render : model -> Form model msg -> Html msg
-render model (Form formConfig) =
+render : model -> Config model msg -> Html msg
+render model (Config formConfig) =
     Html.div
         [ class "m-form" ]
         (formConfig.fields

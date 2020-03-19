@@ -25,7 +25,7 @@ type Msg
 
 
 type alias Model =
-    { form : Form.Form FormData Msg
+    { form : Form.Config FormData Msg
     , formData : FormData
     , today : Maybe Date.Date
     }

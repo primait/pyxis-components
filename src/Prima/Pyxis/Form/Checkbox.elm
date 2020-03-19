@@ -1,5 +1,5 @@
 module Prima.Pyxis.Form.Checkbox exposing
-    ( Checkbox, checkbox, checkboxChoice
+    ( Config, checkbox, checkboxChoice
     , withId, withName, withAttribute, withDisabled, withClass
     , withOnFocus, withOnBlur
     , withValidation
@@ -11,7 +11,7 @@ module Prima.Pyxis.Form.Checkbox exposing
 
 ## Types and Configuration
 
-@docs Checkbox, CheckboxChoice, checkbox, checkboxChoice
+@docs Config, CheckboxChoice, checkbox, checkboxChoice
 
 
 ## Options
@@ -45,8 +45,8 @@ import Prima.Pyxis.Helpers as H
 
 {-| Represent the opaque `Checkbox` configuration.
 -}
-type Checkbox model msg
-    = Checkbox (CheckboxConfig model msg)
+type Config model msg
+    = Config (CheckboxConfig model msg)
 
 
 {-| Internal. Represent the `Checkbox` configuration.
@@ -61,9 +61,9 @@ type alias CheckboxConfig model msg =
 
 {-| Create a checkbox.
 -}
-checkbox : (model -> List String) -> (String -> msg) -> List CheckboxChoice -> Checkbox model msg
+checkbox : (model -> List String) -> (String -> msg) -> List CheckboxChoice -> Config model msg
 checkbox reader tagger =
-    Checkbox << CheckboxConfig [] reader tagger
+    Config << CheckboxConfig [] reader tagger
 
 
 {-| Internal. Represent the possible modifiers for an `Checkbox`.
@@ -125,63 +125,63 @@ defaultOptions =
 
 {-| Internal. Adds a generic option to the `Checkbox`.
 -}
-addOption : CheckboxOption model msg -> Checkbox model msg -> Checkbox model msg
-addOption option (Checkbox checkboxConfig) =
-    Checkbox { checkboxConfig | options = checkboxConfig.options ++ [ option ] }
+addOption : CheckboxOption model msg -> Config model msg -> Config model msg
+addOption option (Config checkboxConfig) =
+    Config { checkboxConfig | options = checkboxConfig.options ++ [ option ] }
 
 
 {-| Adds a generic Html.Attribute to the `Checkbox`.
 -}
-withAttribute : Html.Attribute msg -> Checkbox model msg -> Checkbox model msg
+withAttribute : Html.Attribute msg -> Config model msg -> Config model msg
 withAttribute attribute =
     addOption (Attribute attribute)
 
 
 {-| Adds a `disabled` Html.Attribute to the `Checkbox`.
 -}
-withDisabled : Bool -> Checkbox model msg -> Checkbox model msg
+withDisabled : Bool -> Config model msg -> Config model msg
 withDisabled disabled =
     addOption (Disabled disabled)
 
 
 {-| Adds a `class` to the `Checkbox`.
 -}
-withClass : String -> Checkbox model msg -> Checkbox model msg
+withClass : String -> Config model msg -> Config model msg
 withClass class_ =
     addOption (Class class_)
 
 
 {-| Adds an `id` Html.Attribute to the `Checkbox`.
 -}
-withId : String -> Checkbox model msg -> Checkbox model msg
+withId : String -> Config model msg -> Config model msg
 withId id =
     addOption (Id id)
 
 
 {-| Adds a `name` Html.Attribute to the `Checkbox`.
 -}
-withName : String -> Checkbox model msg -> Checkbox model msg
+withName : String -> Config model msg -> Config model msg
 withName name =
     addOption (Name name)
 
 
 {-| Attaches the `onBlur` event to the `Checkbox`.
 -}
-withOnBlur : msg -> Checkbox model msg -> Checkbox model msg
+withOnBlur : msg -> Config model msg -> Config model msg
 withOnBlur tagger =
     addOption (OnBlur tagger)
 
 
 {-| Attaches the `onFocus` event to the `Checkbox`.
 -}
-withOnFocus : msg -> Checkbox model msg -> Checkbox model msg
+withOnFocus : msg -> Config model msg -> Config model msg
 withOnFocus tagger =
     addOption (OnFocus tagger)
 
 
 {-| Adds a `Validation` rule to the `Checkbox`.
 -}
-withValidation : (model -> Maybe Validation.Type) -> Checkbox model msg -> Checkbox model msg
+withValidation : (model -> Maybe Validation.Type) -> Config model msg -> Config model msg
 withValidation validation =
     addOption (Validation validation)
 
@@ -218,8 +218,8 @@ applyOption modifier options =
 
 {-| Internal. Transforms the `reader` function into a valid Html.Attribute.
 -}
-readerAttribute : model -> Checkbox model msg -> String -> Html.Attribute msg
-readerAttribute model (Checkbox config) choice =
+readerAttribute : model -> Config model msg -> String -> Html.Attribute msg
+readerAttribute model (Config config) choice =
     model
         |> config.reader
         |> List.member choice
@@ -228,8 +228,8 @@ readerAttribute model (Checkbox config) choice =
 
 {-| Internal. Transforms the `tagger` function into a valid Html.Attribute.
 -}
-taggerAttribute : Checkbox model msg -> String -> Html.Attribute msg
-taggerAttribute (Checkbox config) choice =
+taggerAttribute : Config model msg -> String -> Html.Attribute msg
+taggerAttribute (Config config) choice =
     choice
         |> config.tagger
         |> Events.onClick
@@ -237,7 +237,7 @@ taggerAttribute (Checkbox config) choice =
 
 {-| Internal. Transforms all the customizations into a list of valid Html.Attribute(s).
 -}
-validationAttribute : model -> Checkbox model msg -> Html.Attribute msg
+validationAttribute : model -> Config model msg -> Html.Attribute msg
 validationAttribute model checkboxModel =
     let
         warnings =
@@ -259,15 +259,15 @@ validationAttribute model checkboxModel =
 
 {-| Internal. Applies all the customizations and returns the internal `Options` type.
 -}
-computeOptions : Checkbox model msg -> Options model msg
-computeOptions (Checkbox config) =
+computeOptions : Config model msg -> Options model msg
+computeOptions (Config config) =
     List.foldl applyOption defaultOptions config.options
 
 
 {-| Internal. Transforms all the customizations into a list of valid Html.Attribute(s).
 -}
-buildAttributes : model -> Checkbox model msg -> String -> List (Html.Attribute msg)
-buildAttributes model ((Checkbox _) as checkboxModel) choice =
+buildAttributes : model -> Config model msg -> String -> List (Html.Attribute msg)
+buildAttributes model ((Config _) as checkboxModel) choice =
     let
         options =
             computeOptions checkboxModel
@@ -329,8 +329,8 @@ buildAttributes model ((Checkbox _) as checkboxModel) choice =
             Nothing
 
 -}
-render : model -> Checkbox model msg -> List (Html msg)
-render model ((Checkbox config) as checkboxModel) =
+render : model -> Config model msg -> List (Html msg)
+render model ((Config config) as checkboxModel) =
     [ Html.div
         [ Attrs.classList
             [ ( "a-form-field__checkbox-options", True )
@@ -343,8 +343,8 @@ render model ((Checkbox config) as checkboxModel) =
 
 {-| Internal. Renders the `Checkbox` alone.
 -}
-renderCheckbox : model -> Checkbox model msg -> CheckboxChoice -> Html msg
-renderCheckbox model ((Checkbox config) as checkboxModel) checkboxItem =
+renderCheckbox : model -> Config model msg -> CheckboxChoice -> Html msg
+renderCheckbox model ((Config config) as checkboxModel) checkboxItem =
     Html.div
         [ Attrs.class "a-form-field__checkbox-options__item" ]
         [ Html.input
