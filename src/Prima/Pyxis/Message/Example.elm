@@ -58,12 +58,12 @@ appBody _ =
     , Container.column
         |> Container.withContent
             ([ [ text "Info: Lorem ipsum dolor sit amet." ]
-                |> Message.messageInfoConfig
+                |> Message.info
                 |> Message.withClass "fs-small"
              , [ text "Success: Lorem ipsum dolor sit amet." ]
-                |> Message.messageSuccessConfig
+                |> Message.success
              , [ text "Error: Lorem ipsum dolor sit amet." ]
-                |> Message.messageErrorConfig
+                |> Message.error
              ]
                 |> List.map Message.render
                 |> List.intersperse Helpers.spacer

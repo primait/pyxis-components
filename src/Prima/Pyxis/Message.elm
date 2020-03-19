@@ -1,9 +1,8 @@
 module Prima.Pyxis.Message exposing
-    ( messageInfoConfig, messageSuccessConfig
+    ( Config, error, info, success
     , withClass, withClassList, withAttribute
     , withOnClick, withOnMouseDown, withOnMouseUp, withOnMouseEnter, withOnMouseLeave, withOnMouseOver, withOnMouseOut
     , render
-    , Config, messageErrorConfig
     )
 
 {-| Create a `Message` feedback by using predefined Html syntax.
@@ -11,7 +10,7 @@ module Prima.Pyxis.Message exposing
 
 # Configuration
 
-@docs Config messageErrorConfig, messageInfoConfig, messageSuccessConfig
+@docs Config, error, info, success
 
 
 ## Options
@@ -183,22 +182,22 @@ withOnMouseOut tagger =
 
 {-| Defines the configuration of an Info message.
 -}
-messageInfoConfig : List (Html msg) -> Config msg
-messageInfoConfig content =
+info : List (Html msg) -> Config msg
+info content =
     Config (Configuration Info content [])
 
 
 {-| Defines the configuration of a Success message.
 -}
-messageSuccessConfig : List (Html msg) -> Config msg
-messageSuccessConfig content =
+success : List (Html msg) -> Config msg
+success content =
     Config (Configuration Success content [])
 
 
 {-| Defines the configuration of an Error message.
 -}
-messageErrorConfig : List (Html msg) -> Config msg
-messageErrorConfig content =
+error : List (Html msg) -> Config msg
+error content =
     Config (Configuration Error content [])
 
 
