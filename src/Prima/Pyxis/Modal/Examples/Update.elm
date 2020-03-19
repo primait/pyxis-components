@@ -27,6 +27,7 @@ update msg model =
         Hide Small ->
             model
                 |> updateSmallModalState Modal.hide
+                |> updateMessage ""
                 |> Helpers.withoutCmds
 
         Show Large ->
@@ -37,6 +38,7 @@ update msg model =
         Hide Large ->
             model
                 |> updateLargeModalState Modal.hide
+                |> updateMessage ""
                 |> Helpers.withoutCmds
 
         PrintMsg message ->
