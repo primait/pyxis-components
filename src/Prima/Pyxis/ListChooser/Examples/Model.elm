@@ -35,7 +35,7 @@ createInitialState =
         |> ListChooser.withItems finitureList
 
 
-finitureList : List ( String, String, Bool )
+finitureList : List ListChooser.ChooserItem
 finitureList =
     [ ( "finiture_1", "VOLKSWAGEN Golf 1.6 TDI 90 CV 5p. Tech&Sound BlueMo", False )
     , ( "finiture_2", "VOLKSWAGEN Golf 1.6 TDI 110 CV 5p. ", False )
@@ -44,3 +44,4 @@ finitureList =
     , ( "finiture_5", "Audi Golf 1.6 TDI 110 CV 5p. ", False )
     , ( "finiture_6", "Tesla Golf 2.0 TDI 140 CV 5p. Trendline ", False )
     ]
+        |> List.map (\( slug, label, isSelected ) -> ListChooser.createItem slug label isSelected)

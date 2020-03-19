@@ -1,6 +1,6 @@
 module Prima.Pyxis.ListChooser exposing
     ( Config, State, Msg(..), ChooserItem, ViewMode(..)
-    , config, createState, withItems
+    , config, createState, withItems, createItem
     , withId, withAttribute, withWrapperClass, withItemClass, withSelectedItemClass, withMultipleSelection
     , render, update
     )
@@ -15,7 +15,7 @@ module Prima.Pyxis.ListChooser exposing
 
 ## Instancing functions
 
-@docs config, createState, withItems
+@docs config, createState, withItems, createItem
 
 
 ## Options
@@ -195,36 +195,45 @@ toggleViewMode (State internalState) =
 {-| Internal. Selects the current active item(s) of the items in the list
 -}
 selectActiveItem : String -> Config -> State -> State
-selectActiveItem slug listChooserConfig (State state) =
+selectActiveItem slug listChooserConfig state =
     let
         options =
             computeOptions listChooserConfig
     in
     if options.multipleSelection then
-        State
-            { state
-                | items =
-                    state.items
-                        |> List.map
-                            (\item ->
-                                { item
-                                    | isSelected =
-                                        if item.slug == slug then
-                                            not item.isSelected
-
-                                        else
-                                            item.isSelected
-                                }
-                            )
-            }
+        updateItems (updateSingleSelection slug) state
 
     else
-        State
-            { state
-                | items =
-                    state.items
-                        |> List.map (\item -> { item | isSelected = item.slug == slug })
-            }
+        updateItems (updateMultipleSelection slug) state
+
+
+{-| Internal. Update a list of `ChooserItems`
+-}
+updateItems : (ChooserItem -> ChooserItem) -> State -> State
+updateItems mapper (State state) =
+    State { state | items = List.map mapper state.items }
+
+
+{-| Internal. Update the selected status of the item, in a ListChooser which supports only ONE selected item
+-}
+updateSingleSelection : String -> ChooserItem -> ChooserItem
+updateSingleSelection slug (ChooserItem item) =
+    ChooserItem
+        { item
+            | isSelected =
+                if item.slug == slug then
+                    not item.isSelected
+
+                else
+                    item.isSelected
+        }
+
+
+{-| Internal. Update the selected status of the item, in a ListChooser which supports multiple selected items
+-}
+updateMultipleSelection : String -> ChooserItem -> ChooserItem
+updateMultipleSelection slug (ChooserItem item) =
+    ChooserItem { item | isSelected = item.slug == slug }
 
 
 {-| Represent the component State.
@@ -241,7 +250,11 @@ type alias InternalState =
 
 {-| Represent a single item which can be selected via ListChooser's API.
 -}
-type alias ChooserItem =
+type ChooserItem
+    = ChooserItem ChooserItemConfig
+
+
+type alias ChooserItemConfig =
     { slug : String
     , content : String
     , isSelected : Bool
@@ -318,16 +331,16 @@ createState mode =
     ...
 
 -}
-createItem : ( String, String, Bool ) -> ChooserItem
-createItem ( slug, content, isSelected ) =
-    { slug = slug, content = content, isSelected = isSelected }
+createItem : String -> String -> Bool -> ChooserItem
+createItem slug content isSelected =
+    ChooserItem { slug = slug, content = content, isSelected = isSelected }
 
 
 {-| Adds items to the ListChooser instance State record.
 -}
-withItems : List ( String, String, Bool ) -> State -> State
+withItems : List ChooserItem -> State -> State
 withItems items (State currentState) =
-    State { currentState | items = List.map createItem items }
+    State { currentState | items = items }
 
 
 {-| Renders the component by receiving a State and a Config.
@@ -362,12 +375,12 @@ renderList items listChooserConfig =
 {-| Internal. Renders a single item of the `ListChooser`
 -}
 renderItem : Config -> ChooserItem -> Html Msg
-renderItem listChooserConfig item =
+renderItem listChooserConfig ((ChooserItem { slug, content }) as item) =
     li
         [ buildItemClassList item listChooserConfig
-        , onClick (ChooseItem item.slug)
+        , onClick (ChooseItem slug)
         ]
-        [ text item.content ]
+        [ text content ]
 
 
 {-| Internal. Renders the button to toggle the `ListChooser` view mode.
@@ -393,16 +406,16 @@ viewModeToggler mode (Config { viewPartialLabel, viewAllLabel }) =
 {-| Internal. Builds the `classList` of the ListChooser items based on the configuration.
 -}
 buildItemClassList : ChooserItem -> Config -> Html.Attribute msg
-buildItemClassList item listChooserConfig =
+buildItemClassList (ChooserItem { isSelected }) listChooserConfig =
     let
         options =
             computeOptions listChooserConfig
     in
     [ ( "m-list-chooser__item", True )
-    , ( "is-selected", item.isSelected )
+    , ( "is-selected", isSelected )
     ]
-        |> List.append (List.map (\class_ -> ( class_, True )) options.itemClasses)
-        |> List.append (List.map (\class_ -> ( class_, item.isSelected )) options.selectedItemClasses)
+        |> List.append (List.map (H.flip Tuple.pair True) options.itemClasses)
+        |> List.append (List.map (H.flip Tuple.pair isSelected) options.selectedItemClasses)
         |> classList
 
 
