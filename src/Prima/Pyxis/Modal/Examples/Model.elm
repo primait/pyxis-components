@@ -1,14 +1,37 @@
 module Prima.Pyxis.Modal.Examples.Model exposing
-    ( Msg(..)
+    ( Modal(..)
+    , Model
+    , Msg(..)
     , initialModel
     )
 
+import Prima.Pyxis.Modal as Modal
+
 
 type Msg
-    = Show
-    | Hide
+    = Show Modal
+    | Hide Modal
+    | PrintMsg String
 
 
-initialModel : Bool
+type Modal
+    = Small
+    | Medium
+    | Large
+
+
+type alias Model =
+    { messageToPrint : String
+    , isModalVisible : Bool
+    , smallModalConfig : Modal.Config Msg
+    , largeModalConfig : Modal.Config Msg
+    }
+
+
+initialModel : Model
 initialModel =
-    False
+    { messageToPrint = ""
+    , isModalVisible = False
+    , smallModalConfig = Modal.small False (Hide Small)
+    , largeModalConfig = Modal.large False (Hide Large)
+    }

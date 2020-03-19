@@ -249,12 +249,12 @@ overlay overlayOptions renderedModal =
 
 overlayAttributes : OverlayOptions msg -> List (Html.Attribute msg)
 overlayAttributes overlayOptions =
-    [ HtmlAttributes.class "a-overlay"
-    , HtmlAttributes.id overlayId
+    [ HtmlAttributes.id overlayId
     ]
         |> List.append overlayOptions.attributes
         |> List.append (H.maybeSingleton overlayOptions.class)
         |> List.append (H.maybeSingleton overlayOptions.classList)
+        |> List.append [ HtmlAttributes.class "a-overlay" ]
         |> List.append overlayOptions.events
         |> List.append overlayOptions.styles
 
@@ -377,16 +377,18 @@ modal modalOptions modalConfig =
 
 modalAttributes : ModalOptions msg -> ModalConfig msg -> List (Html.Attribute msg)
 modalAttributes modalOptions modalConfig =
-    [ HtmlAttributes.classList
-        [ ( "o-modal", True )
-        , ( "o-modal--small", isSmallSize modalConfig.size )
-        , ( "o-modal--medium", isMediumSize modalConfig.size )
-        , ( "o-modal--large", isLargeSize modalConfig.size )
-        ]
-    ]
+    []
         |> List.append modalOptions.attributes
         |> List.append (H.maybeSingleton modalOptions.class)
         |> List.append (H.maybeSingleton modalOptions.classList)
+        |> List.append
+            [ HtmlAttributes.classList
+                [ ( "o-modal", True )
+                , ( "o-modal--small", isSmallSize modalConfig.size )
+                , ( "o-modal--medium", isMediumSize modalConfig.size )
+                , ( "o-modal--large", isLargeSize modalConfig.size )
+                ]
+            ]
         |> List.append modalOptions.events
         |> List.append (H.maybeSingleton modalOptions.id)
         |> List.append modalOptions.styles
@@ -474,11 +476,11 @@ header headerOptions =
 
 headerAttributes : HeaderOptions msg -> List (Html.Attribute msg)
 headerAttributes headerOptions =
-    [ HtmlAttributes.class "o-modal__header"
-    ]
+    []
         |> List.append headerOptions.attributes
         |> List.append (H.maybeSingleton headerOptions.class)
         |> List.append (H.maybeSingleton headerOptions.classList)
+        |> List.append [ HtmlAttributes.class "o-modal__header" ]
         |> List.append headerOptions.styles
 
 
@@ -614,11 +616,11 @@ body bodyOptions =
 
 bodyAttributes : BodyOptions msg -> List (Html.Attribute msg)
 bodyAttributes bodyOptions =
-    [ HtmlAttributes.class "o-modal__content"
-    ]
+    []
         |> List.append bodyOptions.attributes
         |> List.append (H.maybeSingleton bodyOptions.class)
         |> List.append (H.maybeSingleton bodyOptions.classList)
+        |> List.append [ HtmlAttributes.class "o-modal__content" ]
         |> List.append bodyOptions.styles
 
 
@@ -704,11 +706,11 @@ footer footerOptions =
 
 footerAttributes : FooterOptions msg -> List (Html.Attribute msg)
 footerAttributes footerOptions =
-    [ HtmlAttributes.class "o-modal__footer"
-    ]
+    []
         |> List.append footerOptions.attributes
         |> List.append (H.maybeSingleton footerOptions.class)
         |> List.append (H.maybeSingleton footerOptions.classList)
+        |> List.append [ HtmlAttributes.class "o-modal__footer" ]
         |> List.append footerOptions.styles
 
 
