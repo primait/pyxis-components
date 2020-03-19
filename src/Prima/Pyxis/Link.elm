@@ -1,9 +1,8 @@
 module Prima.Pyxis.Link exposing
     ( Config, simple, standalone
-    , withId, withClass, withTargetBlank, withTargetParent, withTargetSelf, withTargetTop, withIcon
+    , withId, withClass, withTargetBlank, withTargetParent, withTargetSelf, withTargetTop, withAttribute, withClassList, withIcon, withHref
     , withOnClick, withOnMouseDown, withOnMouseUp, withOnMouseEnter, withOnMouseLeave, withOnMouseOver, withOnMouseOut
     , render
-    , withAttribute, withClassList
     )
 
 {-|
@@ -16,17 +15,12 @@ module Prima.Pyxis.Link exposing
 
 ## Options
 
-@docs withId, withClass, withTargetBlank, withTargetParent, withTargetSelf, withTargetTop, withIcon
+@docs withId, withClass, withTargetBlank, withTargetParent, withTargetSelf, withTargetTop, withAttribute, withClassList, withIcon, withHref
 
 
 ## Events
 
 @docs withOnClick, withOnMouseDown, withOnMouseUp, withOnMouseEnter, withOnMouseLeave, withOnMouseOver, withOnMouseOut
-
-
-## Targets
-
-@docs targetBlank, targetParent, targetSelf, targetTop
 
 
 ## Render
@@ -44,10 +38,10 @@ import Prima.Pyxis.Helpers as H
 {-| Represent the configuration of a `Link`.
 -}
 type Config msg
-    = Config (Configuration msg)
+    = Config (LinkConfig msg)
 
 
-type alias Configuration msg =
+type alias LinkConfig msg =
     { type_ : LinkType
     , label : String
     , href : Maybe String
@@ -153,9 +147,9 @@ isStandalone =
         Link.simple "Visit site" "https://www.prima.it"
 
 -}
-simple : String -> String -> Config msg
-simple label href =
-    Config (Configuration Simple label (Just href) Nothing [])
+simple : String -> Config msg
+simple label =
+    Config (LinkConfig Simple label Nothing Nothing [])
 
 
 {-| Create a standalone link. Used when the link itself stands alone.
@@ -171,9 +165,9 @@ simple label href =
         Link.standalone "Visit site" "https://www.prima.it"
 
 -}
-standalone : String -> String -> Config msg
-standalone label href =
-    Config (Configuration Standalone label (Just href) Nothing [])
+standalone : String -> Config msg
+standalone label =
+    Config (LinkConfig Standalone label Nothing Nothing [])
 
 
 {-| Add `a[target="_top"]` attr to the `Config`.
@@ -338,6 +332,13 @@ withOnMouseOut tagger =
 withIcon : String -> Config msg -> Config msg
 withIcon icon (Config linkConfig) =
     Config { linkConfig | icon = Just icon }
+
+
+{-| Adds href attribute to the `Link` component
+-}
+withHref : String -> Config msg -> Config msg
+withHref href (Config linkConfig) =
+    Config { linkConfig | href = Just href }
 
 
 {-| Renders a link by receiving it's configuration.
