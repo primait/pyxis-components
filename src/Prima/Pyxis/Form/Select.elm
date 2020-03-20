@@ -1,5 +1,5 @@
 module Prima.Pyxis.Form.Select exposing
-    ( Select(..), select
+    ( Config(..), select
     , withId, withAttribute, withDefaultValue, withDisabled
     , render
     , Options, SelectChoice, SelectConfig, SelectOption(..), SelectSize(..), addOption, applyOption, buildAttributes, computeOptions, defaultOptions, renderCustomSelect, renderCustomSelectChoice, renderCustomSelectChoiceWrapper, renderCustomSelectStatus, renderSelect, renderSelectChoice, renderValidationMessages, selectChoice, sizeAttribute, taggerAttribute, validationAttribute, withLargeSize, withOnBlur, withOnFocus, withOverridingClass, withPlaceholder, withRegularSize, withSmallSize, withValidation
@@ -10,7 +10,7 @@ module Prima.Pyxis.Form.Select exposing
 
 ## Types and Configuration
 
-@docs Select, select
+@docs Config, select
 
 
 ## Modifiers
@@ -38,8 +38,8 @@ import Prima.Pyxis.Helpers as H
 
 {-| Represent the configuration of a Select type.
 -}
-type Select model msg
-    = Select (SelectConfig model msg)
+type Config model msg
+    = Config (SelectConfig model msg)
 
 
 type alias SelectConfig model msg =
@@ -52,9 +52,9 @@ type alias SelectConfig model msg =
     }
 
 
-select : (model -> Maybe String) -> (String -> msg) -> (model -> Bool) -> msg -> List SelectChoice -> Select model msg
+select : (model -> Maybe String) -> (String -> msg) -> (model -> Bool) -> msg -> List SelectChoice -> Config model msg
 select reader tagger openedReader openedTagger =
-    Select << SelectConfig [] reader tagger openedReader openedTagger
+    Config << SelectConfig [] reader tagger openedReader openedTagger
 
 
 type alias SelectChoice =
@@ -130,14 +130,14 @@ defaultOptions =
 
 {-| Internal.
 -}
-addOption : SelectOption model msg -> Select model msg -> Select model msg
-addOption option (Select selectConfig) =
-    Select { selectConfig | options = selectConfig.options ++ [ option ] }
+addOption : SelectOption model msg -> Config model msg -> Config model msg
+addOption option (Config selectConfig) =
+    Config { selectConfig | options = selectConfig.options ++ [ option ] }
 
 
 {-| Sets an `attribute` to the `Select config`.
 -}
-withAttribute : Html.Attribute msg -> Select model msg -> Select model msg
+withAttribute : Html.Attribute msg -> Config model msg -> Config model msg
 withAttribute attribute =
     addOption (Attribute attribute)
 
@@ -145,73 +145,73 @@ withAttribute attribute =
 {-| Adds a default value to the `Select`.
 Useful to teach the component about it's `pristine/touched` state.
 -}
-withDefaultValue : Maybe String -> Select model msg -> Select model msg
+withDefaultValue : Maybe String -> Config model msg -> Config model msg
 withDefaultValue value =
     addOption (DefaultValue value)
 
 
 {-| Sets a `disabled` to the `Select config`.
 -}
-withDisabled : Bool -> Select model msg -> Select model msg
+withDisabled : Bool -> Config model msg -> Config model msg
 withDisabled disabled =
     addOption (Disabled disabled)
 
 
 {-| Sets a `disabled` to the `Select config`.
 -}
-withPlaceholder : String -> Select model msg -> Select model msg
+withPlaceholder : String -> Config model msg -> Config model msg
 withPlaceholder placeholder =
     addOption (Placeholder placeholder)
 
 
 {-| Sets an `id` to the `Select config`.
 -}
-withId : String -> Select model msg -> Select model msg
+withId : String -> Config model msg -> Config model msg
 withId id =
     addOption (Id id)
 
 
 {-| Sets a `size` to the `Select config`.
 -}
-withLargeSize : Select model msg -> Select model msg
+withLargeSize : Config model msg -> Config model msg
 withLargeSize =
     addOption (Size Large)
 
 
 {-| Sets an `onBlur event` to the `Select config`.
 -}
-withOnBlur : msg -> Select model msg -> Select model msg
+withOnBlur : msg -> Config model msg -> Config model msg
 withOnBlur tagger =
     addOption (OnBlur tagger)
 
 
 {-| Sets an `onFocus event` to the `Select config`.
 -}
-withOnFocus : msg -> Select model msg -> Select model msg
+withOnFocus : msg -> Config model msg -> Config model msg
 withOnFocus tagger =
     addOption (OnFocus tagger)
 
 
-withOverridingClass : String -> Select model msg -> Select model msg
+withOverridingClass : String -> Config model msg -> Config model msg
 withOverridingClass class =
     addOption (OverridingClass class)
 
 
 {-| Sets a `size` to the `Select config`.
 -}
-withRegularSize : Select model msg -> Select model msg
+withRegularSize : Config model msg -> Config model msg
 withRegularSize =
     addOption (Size Regular)
 
 
 {-| Sets a `size` to the `Select config`.
 -}
-withSmallSize : Select model msg -> Select model msg
+withSmallSize : Config model msg -> Config model msg
 withSmallSize =
     addOption (Size Small)
 
 
-withValidation : (model -> Maybe Validation.Type) -> Select model msg -> Select model msg
+withValidation : (model -> Maybe Validation.Type) -> Config model msg -> Config model msg
 withValidation validation =
     addOption (Validation validation)
 
@@ -272,12 +272,12 @@ sizeAttribute size =
         )
 
 
-taggerAttribute : Select model msg -> Html.Attribute msg
-taggerAttribute (Select config) =
+taggerAttribute : Config model msg -> Html.Attribute msg
+taggerAttribute (Config config) =
     Events.onInput config.tagger
 
 
-validationAttribute : model -> Select model msg -> Html.Attribute msg
+validationAttribute : model -> Config model msg -> Html.Attribute msg
 validationAttribute model selectModel =
     let
         warnings =
@@ -299,8 +299,8 @@ validationAttribute model selectModel =
 
 {-| Internal. Applies the `pristine/touched` visual state to the component.
 -}
-pristineAttribute : model -> Select model msg -> Html.Attribute msg
-pristineAttribute model ((Select config) as selectModel) =
+pristineAttribute : model -> Config model msg -> Html.Attribute msg
+pristineAttribute model ((Config config) as selectModel) =
     let
         options =
             computeOptions selectModel
@@ -314,7 +314,7 @@ pristineAttribute model ((Select config) as selectModel) =
 
 {-| Composes all the modifiers into a set of `Html.Attribute`(s).
 -}
-buildAttributes : model -> Select model msg -> List (Html.Attribute msg)
+buildAttributes : model -> Config model msg -> List (Html.Attribute msg)
 buildAttributes model selectModel =
     let
         options =
@@ -340,7 +340,7 @@ buildAttributes model selectModel =
 
 {-| Renders the `Radio config`.
 -}
-render : model -> Select model msg -> List (Html msg)
+render : model -> Config model msg -> List (Html msg)
 render model selectModel =
     [ renderSelect model selectModel
     , renderCustomSelect model selectModel
@@ -348,15 +348,15 @@ render model selectModel =
         ++ renderValidationMessages model selectModel
 
 
-renderSelect : model -> Select model msg -> Html msg
-renderSelect model ((Select config) as selectModel) =
+renderSelect : model -> Config model msg -> Html msg
+renderSelect model ((Config config) as selectModel) =
     Html.select
         (buildAttributes model selectModel)
         (List.map (renderSelectChoice model selectModel) config.selectChoices)
 
 
-renderSelectChoice : model -> Select model msg -> SelectChoice -> Html msg
-renderSelectChoice model (Select config) choice =
+renderSelectChoice : model -> Config model msg -> SelectChoice -> Html msg
+renderSelectChoice model (Config config) choice =
     Html.option
         [ Attrs.value choice.value
         , Attrs.selected <| (==) choice.value <| Maybe.withDefault "" <| config.reader model
@@ -364,8 +364,8 @@ renderSelectChoice model (Select config) choice =
         [ Html.text choice.label ]
 
 
-renderCustomSelect : model -> Select model msg -> Html msg
-renderCustomSelect model ((Select config) as selectModel) =
+renderCustomSelect : model -> Config model msg -> Html msg
+renderCustomSelect model ((Config config) as selectModel) =
     let
         options =
             computeOptions selectModel
@@ -387,8 +387,8 @@ renderCustomSelect model ((Select config) as selectModel) =
         ]
 
 
-renderCustomSelectStatus : model -> Select model msg -> Html msg
-renderCustomSelectStatus model ((Select config) as selectModel) =
+renderCustomSelectStatus : model -> Config model msg -> Html msg
+renderCustomSelectStatus model ((Config config) as selectModel) =
     let
         options =
             computeOptions selectModel
@@ -412,8 +412,8 @@ renderCustomSelectChoiceWrapper =
         [ class "a-form-field__custom-select__list" ]
 
 
-renderCustomSelectChoice : model -> Select model msg -> SelectChoice -> Html msg
-renderCustomSelectChoice model (Select config) choice =
+renderCustomSelectChoice : model -> Config model msg -> SelectChoice -> Html msg
+renderCustomSelectChoice model (Config config) choice =
     Html.li
         [ Attrs.classList
             [ ( "a-form-field__custom-select__list__item", True )
@@ -425,7 +425,7 @@ renderCustomSelectChoice model (Select config) choice =
         ]
 
 
-renderValidationMessages : model -> Select model msg -> List (Html msg)
+renderValidationMessages : model -> Config model msg -> List (Html msg)
 renderValidationMessages model selectModel =
     let
         warnings =
@@ -444,8 +444,8 @@ renderValidationMessages model selectModel =
 
 {-| Internal
 -}
-computeOptions : Select model msg -> Options model msg
-computeOptions (Select config) =
+computeOptions : Config model msg -> Options model msg
+computeOptions (Config config) =
     List.foldl applyOption defaultOptions config.options
 
 

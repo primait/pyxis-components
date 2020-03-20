@@ -1,5 +1,5 @@
 module Prima.Pyxis.Form.Flag exposing
-    ( Flag, flag
+    ( Config, flag
     , withAttribute, withDisabled, withLabel, withName
     , withOnBlur, withOnFocus
     , withValidation
@@ -11,7 +11,7 @@ module Prima.Pyxis.Form.Flag exposing
 
 ## Types and Configuration
 
-@docs Flag, flag
+@docs Config, flag
 
 
 ## Options
@@ -38,15 +38,15 @@ module Prima.Pyxis.Form.Flag exposing
 import Html exposing (Html)
 import Html.Attributes as Attrs
 import Html.Events as Events
-import Prima.Pyxis.Form.Label as Label exposing (Label)
+import Prima.Pyxis.Form.Label as Label
 import Prima.Pyxis.Form.Validation as Validation
 import Prima.Pyxis.Helpers as H
 
 
 {-| Represent the opaque `Flag` configuration.
 -}
-type Flag model msg
-    = Flag (FlagConfig model msg)
+type Config model msg
+    = Config (FlagConfig model msg)
 
 
 {-| Internal. Represent the `Flag` configuration.
@@ -64,7 +64,7 @@ type alias FlagConfig model msg =
 type FlagOption model msg
     = Attribute (Html.Attribute msg)
     | Disabled Bool
-    | Label (Label msg)
+    | Label (Label.Config msg)
     | Name String
     | OnFocus msg
     | OnBlur msg
@@ -73,63 +73,63 @@ type FlagOption model msg
 
 {-| Create a `Flag`.
 -}
-flag : (model -> Maybe Bool) -> (Bool -> msg) -> String -> Flag model msg
+flag : (model -> Maybe Bool) -> (Bool -> msg) -> String -> Config model msg
 flag reader tagger id =
-    Flag <| FlagConfig [] reader tagger id
+    Config <| FlagConfig [] reader tagger id
 
 
 {-| Internal. Adds a generic option to the `Input`.
 -}
-addOption : FlagOption model msg -> Flag model msg -> Flag model msg
-addOption option (Flag flagConfig) =
-    Flag { flagConfig | options = flagConfig.options ++ [ option ] }
+addOption : FlagOption model msg -> Config model msg -> Config model msg
+addOption option (Config flagConfig) =
+    Config { flagConfig | options = flagConfig.options ++ [ option ] }
 
 
 {-| Adds a generic Html.Attribute to the `Input`.
 -}
-withAttribute : Html.Attribute msg -> Flag model msg -> Flag model msg
+withAttribute : Html.Attribute msg -> Config model msg -> Config model msg
 withAttribute attribute =
     addOption (Attribute attribute)
 
 
 {-| Sets a `disabled` to the `Flag config`.
 -}
-withDisabled : Bool -> Flag model msg -> Flag model msg
+withDisabled : Bool -> Config model msg -> Config model msg
 withDisabled disabled =
     addOption (Disabled disabled)
 
 
 {-| Adds a `name` Html.Attribute to the `Flag`.
 -}
-withName : String -> Flag model msg -> Flag model msg
+withName : String -> Config model msg -> Config model msg
 withName name =
     addOption (Name name)
 
 
 {-| Adds a `Label` Html.Attribute to the `Flag`.
 -}
-withLabel : Label msg -> Flag model msg -> Flag model msg
+withLabel : Label.Config msg -> Config model msg -> Config model msg
 withLabel label =
     addOption (Label label)
 
 
 {-| Attaches the `onBlur` event to the `Flag`.
 -}
-withOnBlur : msg -> Flag model msg -> Flag model msg
+withOnBlur : msg -> Config model msg -> Config model msg
 withOnBlur tagger =
     addOption (OnBlur tagger)
 
 
 {-| Attaches the `onFocus` event to the `Flag`.
 -}
-withOnFocus : msg -> Flag model msg -> Flag model msg
+withOnFocus : msg -> Config model msg -> Config model msg
 withOnFocus tagger =
     addOption (OnFocus tagger)
 
 
 {-| Adds a `Validation` rule to the `Flag`.
 -}
-withValidation : (model -> Maybe Validation.Type) -> Flag model msg -> Flag model msg
+withValidation : (model -> Maybe Validation.Type) -> Config model msg -> Config model msg
 withValidation validation =
     addOption (Validation validation)
 
@@ -139,7 +139,7 @@ withValidation validation =
 type alias Options model msg =
     { attributes : List (Html.Attribute msg)
     , disabled : Maybe Bool
-    , label : Maybe (Label msg)
+    , label : Maybe (Label.Config msg)
     , name : Maybe String
     , onFocus : Maybe msg
     , onBlur : Maybe msg
@@ -190,15 +190,15 @@ applyOption modifier options =
 
 {-| Internal. Transforms the `reader` function into a valid Html.Attribute.
 -}
-readerAttribute : model -> Flag model msg -> Html.Attribute msg
-readerAttribute model (Flag config) =
+readerAttribute : model -> Config model msg -> Html.Attribute msg
+readerAttribute model (Config config) =
     (Attrs.checked << Maybe.withDefault False << config.reader) model
 
 
 {-| Internal. Transforms the `tagger` function into a valid Html.Attribute.
 -}
-taggerAttribute : model -> Flag model msg -> Html.Attribute msg
-taggerAttribute model (Flag config) =
+taggerAttribute : model -> Config model msg -> Html.Attribute msg
+taggerAttribute model (Config config) =
     model
         |> config.reader
         |> Maybe.withDefault False
@@ -209,7 +209,7 @@ taggerAttribute model (Flag config) =
 
 {-| Internal. Transforms the `Validation` status into an Html.Attribute `class`.
 -}
-validationAttribute : model -> Flag model msg -> Html.Attribute msg
+validationAttribute : model -> Config model msg -> Html.Attribute msg
 validationAttribute model flagModel =
     let
         warnings =
@@ -231,15 +231,15 @@ validationAttribute model flagModel =
 
 {-| Internal. Applies all the customizations and returns the internal `Options` type.
 -}
-computeOptions : Flag model msg -> Options model msg
-computeOptions (Flag config) =
+computeOptions : Config model msg -> Options model msg
+computeOptions (Config config) =
     List.foldl applyOption defaultOptions config.options
 
 
 {-| Internal. Transforms all the customizations into a list of valid Html.Attribute(s).
 -}
-buildAttributes : model -> Flag model msg -> List (Html.Attribute msg)
-buildAttributes model ((Flag config) as flagModel) =
+buildAttributes : model -> Config model msg -> List (Html.Attribute msg)
+buildAttributes model ((Config config) as flagModel) =
     let
         options =
             computeOptions flagModel
@@ -293,7 +293,7 @@ buildAttributes model ((Flag config) as flagModel) =
             Nothing
 
 -}
-render : model -> Flag model msg -> List (Html msg)
+render : model -> Config model msg -> List (Html msg)
 render model flagModel =
     Html.div
         [ Attrs.class "a-form-field__checkbox-options" ]
@@ -303,8 +303,8 @@ render model flagModel =
 
 {-| Internal. Renders the `Flag` alone.
 -}
-renderFlagChoice : model -> Flag model msg -> Html msg
-renderFlagChoice model ((Flag config) as flagModel) =
+renderFlagChoice : model -> Config model msg -> Html msg
+renderFlagChoice model ((Config config) as flagModel) =
     let
         options =
             computeOptions flagModel
@@ -324,7 +324,7 @@ renderFlagChoice model ((Flag config) as flagModel) =
 
 {-| Internal. Renders the list of errors if present. Renders the list of warnings if not.
 -}
-renderValidationMessages : model -> Flag model msg -> List (Html msg)
+renderValidationMessages : model -> Config model msg -> List (Html msg)
 renderValidationMessages model flagModel =
     let
         warnings =

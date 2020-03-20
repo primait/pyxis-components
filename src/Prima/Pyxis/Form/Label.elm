@@ -1,5 +1,5 @@
 module Prima.Pyxis.Form.Label exposing
-    ( Label, label, labelWithHtml
+    ( Config, label, labelWithHtml
     , withAttribute, withClass, withOverridingClass, withFor, withOnClick, withSubtitle
     , render
     , addOption
@@ -10,7 +10,7 @@ module Prima.Pyxis.Form.Label exposing
 
 ## Types and Configuration
 
-@docs Label, label, labelWithHtml
+@docs Config, label, labelWithHtml
 
 
 ## Generic modifiers
@@ -32,8 +32,8 @@ import Prima.Pyxis.Helpers as H
 
 {-| Represent the opaque `Label` configuration.
 -}
-type Label msg
-    = Label (LabelConfig msg)
+type Config msg
+    = Config (LabelConfig msg)
 
 
 {-| Represent the `Label` configuration.
@@ -46,16 +46,16 @@ type alias LabelConfig msg =
 
 {-| Create a label with string content.
 -}
-label : String -> Label msg
+label : String -> Config msg
 label str =
-    Label <| LabelConfig [] [ text str ]
+    Config <| LabelConfig [] [ text str ]
 
 
 {-| Create a label with html content.
 -}
-labelWithHtml : List (Html msg) -> Label msg
+labelWithHtml : List (Html msg) -> Config msg
 labelWithHtml children =
-    Label <| LabelConfig [] children
+    Config <| LabelConfig [] children
 
 
 {-| Represent the possibile modifiers of a `Label`.
@@ -95,49 +95,49 @@ defaultOptions =
 
 {-| Internal
 -}
-addOption : LabelOption msg -> Label msg -> Label msg
-addOption option (Label labelConfig) =
-    Label { labelConfig | options = option :: labelConfig.options }
+addOption : LabelOption msg -> Config msg -> Config msg
+addOption option (Config labelConfig) =
+    Config { labelConfig | options = option :: labelConfig.options }
 
 
 {-| Sets an `attribute` to the `Label config`.
 -}
-withAttribute : Html.Attribute msg -> Label msg -> Label msg
+withAttribute : Html.Attribute msg -> Config msg -> Config msg
 withAttribute attribute =
     addOption (Attribute attribute)
 
 
 {-| Sets a class which will override the others to the `Label config`.
 -}
-withOverridingClass : String -> Label msg -> Label msg
+withOverridingClass : String -> Config msg -> Config msg
 withOverridingClass class =
     addOption (OverridingClass class)
 
 
 {-| Sets a class to the `Label config`.
 -}
-withClass : String -> Label msg -> Label msg
+withClass : String -> Config msg -> Config msg
 withClass class =
     addOption (Class class)
 
 
 {-| Sets a for to the `Label config`.
 -}
-withFor : String -> Label msg -> Label msg
+withFor : String -> Config msg -> Config msg
 withFor for =
     addOption (For for)
 
 
 {-| Sets an `onClick` to the `Label config`.
 -}
-withOnClick : msg -> Label msg -> Label msg
+withOnClick : msg -> Config msg -> Config msg
 withOnClick onClick =
     addOption (OnClick onClick)
 
 
 {-| Sets a `subLabel` to the `Label config`.
 -}
-withSubtitle : String -> Label msg -> Label msg
+withSubtitle : String -> Config msg -> Config msg
 withSubtitle lbl =
     addOption (Subtitle lbl)
 
@@ -168,8 +168,8 @@ applyOption modifier options =
 
 {-| Internal
 -}
-buildAttributes : Label msg -> List (Html.Attribute msg)
-buildAttributes ((Label _) as labelModel) =
+buildAttributes : Config msg -> List (Html.Attribute msg)
+buildAttributes ((Config _) as labelModel) =
     let
         options =
             computeOptions labelModel
@@ -196,15 +196,15 @@ buildAttributes ((Label _) as labelModel) =
             |> Label.render
 
 -}
-render : Label msg -> Html msg
-render ((Label config) as labelModel) =
+render : Config msg -> Html msg
+render ((Config config) as labelModel) =
     Html.label
         (buildAttributes labelModel)
         (config.children ++ [ renderSubtitle labelModel ])
 
 
-renderSubtitle : Label msg -> Html msg
-renderSubtitle ((Label _) as labelModel) =
+renderSubtitle : Config msg -> Html msg
+renderSubtitle ((Config _) as labelModel) =
     let
         options =
             computeOptions labelModel
@@ -221,6 +221,6 @@ renderSubtitle ((Label _) as labelModel) =
 
 {-| Internal
 -}
-computeOptions : Label msg -> Options msg
-computeOptions (Label config) =
+computeOptions : Config msg -> Options msg
+computeOptions (Config config) =
     List.foldl applyOption defaultOptions config.options

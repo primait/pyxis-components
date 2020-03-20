@@ -1,5 +1,5 @@
 module Prima.Pyxis.Form.Radio exposing
-    ( Radio
+    ( Config
     , withId, withName, withAttribute, withDisabled
     , withValidation
     , render
@@ -11,7 +11,7 @@ module Prima.Pyxis.Form.Radio exposing
 
 ## Types and Configuration
 
-@docs Radio
+@docs Config
 
 
 ## Modifiers
@@ -45,8 +45,8 @@ import Prima.Pyxis.Helpers as H
 
 {-| Represent the configuration of an Change type.
 -}
-type Radio model msg
-    = Radio (RadioConfig model msg)
+type Config model msg
+    = Config (RadioConfig model msg)
 
 
 {-| Internal.
@@ -59,9 +59,9 @@ type alias RadioConfig model msg =
     }
 
 
-radio : (model -> Maybe String) -> (String -> msg) -> List RadioChoice -> Radio model msg
+radio : (model -> Maybe String) -> (String -> msg) -> List RadioChoice -> Config model msg
 radio reader tagger =
-    Radio << RadioConfig [] reader tagger
+    Config << RadioConfig [] reader tagger
 
 
 type alias RadioChoice =
@@ -117,61 +117,61 @@ defaultOptions =
 
 {-| Internal.
 -}
-addOption : RadioOption model msg -> Radio model msg -> Radio model msg
-addOption option (Radio radioConfig) =
-    Radio { radioConfig | options = radioConfig.options ++ [ option ] }
+addOption : RadioOption model msg -> Config model msg -> Config model msg
+addOption option (Config radioConfig) =
+    Config { radioConfig | options = radioConfig.options ++ [ option ] }
 
 
 {-| Sets an `attribute` to the `Radio config`.
 -}
-withAttribute : Html.Attribute msg -> Radio model msg -> Radio model msg
+withAttribute : Html.Attribute msg -> Config model msg -> Config model msg
 withAttribute attribute =
     addOption (Attribute attribute)
 
 
 {-| Sets a `disabled` to the `Radio config`.
 -}
-withDisabled : Bool -> Radio model msg -> Radio model msg
+withDisabled : Bool -> Config model msg -> Config model msg
 withDisabled disabled =
     addOption (Disabled disabled)
 
 
 {-| Sets a `class` to the `Radio config`.
 -}
-withClass : String -> Radio model msg -> Radio model msg
+withClass : String -> Config model msg -> Config model msg
 withClass class_ =
     addOption (Class class_)
 
 
 {-| Sets an `id` to the `Radio config`.
 -}
-withId : String -> Radio model msg -> Radio model msg
+withId : String -> Config model msg -> Config model msg
 withId id =
     addOption (Id id)
 
 
 {-| Sets a `name` to the `Radio config`.
 -}
-withName : String -> Radio model msg -> Radio model msg
+withName : String -> Config model msg -> Config model msg
 withName name =
     addOption (Name name)
 
 
 {-| Sets an `onBlur event` to the `Radio config`.
 -}
-withOnBlur : msg -> Radio model msg -> Radio model msg
+withOnBlur : msg -> Config model msg -> Config model msg
 withOnBlur tagger =
     addOption (OnBlur tagger)
 
 
 {-| Sets an `onFocus event` to the `Radio config`.
 -}
-withOnFocus : msg -> Radio model msg -> Radio model msg
+withOnFocus : msg -> Config model msg -> Config model msg
 withOnFocus tagger =
     addOption (OnFocus tagger)
 
 
-withValidation : (model -> Maybe Validation.Type) -> Radio model msg -> Radio model msg
+withValidation : (model -> Maybe Validation.Type) -> Config model msg -> Config model msg
 withValidation validation =
     addOption (Validation validation)
 
@@ -206,22 +206,22 @@ applyOption modifier options =
             { options | validations = validation :: options.validations }
 
 
-readerAttribute : model -> Radio model msg -> RadioChoice -> Html.Attribute msg
-readerAttribute model (Radio config) choice =
+readerAttribute : model -> Config model msg -> RadioChoice -> Html.Attribute msg
+readerAttribute model (Config config) choice =
     model
         |> config.reader
         |> (==) (Just choice.value)
         |> Attrs.checked
 
 
-taggerAttribute : Radio model msg -> RadioChoice -> Html.Attribute msg
-taggerAttribute (Radio config) choice =
+taggerAttribute : Config model msg -> RadioChoice -> Html.Attribute msg
+taggerAttribute (Config config) choice =
     choice.value
         |> config.tagger
         |> Events.onClick
 
 
-validationAttribute : model -> Radio model msg -> Html.Attribute msg
+validationAttribute : model -> Config model msg -> Html.Attribute msg
 validationAttribute model radioModel =
     let
         warnings =
@@ -243,8 +243,8 @@ validationAttribute model radioModel =
 
 {-| Composes all the modifiers into a set of `Html.Attribute`(s).
 -}
-buildAttributes : model -> Radio model msg -> RadioChoice -> List (Html.Attribute msg)
-buildAttributes model ((Radio _) as radioModel) choice =
+buildAttributes : model -> Config model msg -> RadioChoice -> List (Html.Attribute msg)
+buildAttributes model ((Config _) as radioModel) choice =
     let
         options =
             computeOptions radioModel
@@ -283,16 +283,16 @@ buildAttributes model ((Radio _) as radioModel) choice =
             |> Radio.render
 
 -}
-render : model -> Radio model msg -> List (Html msg)
-render model ((Radio { radioChoices }) as radioModel) =
+render : model -> Config model msg -> List (Html msg)
+render model ((Config { radioChoices }) as radioModel) =
     Html.div
         [ Attrs.class "a-form-field__radio-options" ]
         (List.map (renderRadioChoice model radioModel) radioChoices)
         :: renderValidationMessages model radioModel
 
 
-renderRadioChoice : model -> Radio model msg -> RadioChoice -> Html msg
-renderRadioChoice model ((Radio { tagger }) as radioModel) ({ value, label } as choice) =
+renderRadioChoice : model -> Config model msg -> RadioChoice -> Html msg
+renderRadioChoice model ((Config { tagger }) as radioModel) ({ value, label } as choice) =
     Html.div
         [ Attrs.class "a-form-field__radio-options__item" ]
         [ Html.input
@@ -307,7 +307,7 @@ renderRadioChoice model ((Radio { tagger }) as radioModel) ({ value, label } as 
         ]
 
 
-renderValidationMessages : model -> Radio model msg -> List (Html msg)
+renderValidationMessages : model -> Config model msg -> List (Html msg)
 renderValidationMessages model radioModel =
     let
         warnings =
@@ -326,8 +326,8 @@ renderValidationMessages model radioModel =
 
 {-| Internal
 -}
-computeOptions : Radio model msg -> Options model msg
-computeOptions (Radio { options }) =
+computeOptions : Config model msg -> Options model msg
+computeOptions (Config { options }) =
     List.foldl applyOption defaultOptions options
 
 

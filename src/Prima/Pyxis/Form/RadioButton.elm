@@ -1,5 +1,5 @@
 module Prima.Pyxis.Form.RadioButton exposing
-    ( RadioButton, radioButton, radioButtonChoice, radioButtonChoiceWithSubtitle
+    ( Config, radioButton, radioButtonChoice, radioButtonChoiceWithSubtitle
     , withId, withAttribute, withClass
     , withOnBlur, withOnFocus
     , withValidation
@@ -11,7 +11,7 @@ module Prima.Pyxis.Form.RadioButton exposing
 
 ## Types and Configuration
 
-@docs RadioButton, radioButton, radioButtonChoice, radioButtonChoiceWithSubtitle
+@docs Config, radioButton, radioButtonChoice, radioButtonChoiceWithSubtitle
 
 
 ## Options
@@ -44,8 +44,8 @@ import Prima.Pyxis.Helpers as H
 
 {-| Represent the opaque `RadioButton` configuration.
 -}
-type RadioButton model msg
-    = RadioButton (RadioConfig model msg)
+type Config model msg
+    = Config (RadioConfig model msg)
 
 
 {-| Internal. Represent the `RadioButton` configuration.
@@ -60,9 +60,9 @@ type alias RadioConfig model msg =
 
 {-| Create a radioButton.
 -}
-radioButton : (model -> Maybe String) -> (String -> msg) -> List RadioButtonChoice -> RadioButton model msg
+radioButton : (model -> Maybe String) -> (String -> msg) -> List RadioButtonChoice -> Config model msg
 radioButton reader tagger =
-    RadioButton << RadioConfig [] reader tagger
+    Config << RadioConfig [] reader tagger
 
 
 {-| Represent the `RadioButtonChoice` configuration.
@@ -126,42 +126,42 @@ defaultOptions =
 
 {-| Internal. Adds a generic option to the `RadioButton`.
 -}
-addOption : RadioButtonOption model msg -> RadioButton model msg -> RadioButton model msg
-addOption option (RadioButton radioButtonConfig) =
-    RadioButton { radioButtonConfig | options = radioButtonConfig.options ++ [ option ] }
+addOption : RadioButtonOption model msg -> Config model msg -> Config model msg
+addOption option (Config radioButtonConfig) =
+    Config { radioButtonConfig | options = radioButtonConfig.options ++ [ option ] }
 
 
 {-| Adds a generic Html.Attribute to the `RadioButton`.
 -}
-withAttribute : Html.Attribute msg -> RadioButton model msg -> RadioButton model msg
+withAttribute : Html.Attribute msg -> Config model msg -> Config model msg
 withAttribute attribute =
     addOption (Attribute attribute)
 
 
 {-| Adds a `class` to the `RadioButton`.
 -}
-withClass : String -> RadioButton model msg -> RadioButton model msg
+withClass : String -> Config model msg -> Config model msg
 withClass class_ =
     addOption (Class class_)
 
 
 {-| Adds an `id` Html.Attribute to the `RadioButton`.
 -}
-withId : String -> RadioButton model msg -> RadioButton model msg
+withId : String -> Config model msg -> Config model msg
 withId id =
     addOption (Id id)
 
 
 {-| Attaches the `onBlur` event to the `RadioButton`.
 -}
-withOnBlur : msg -> RadioButton model msg -> RadioButton model msg
+withOnBlur : msg -> Config model msg -> Config model msg
 withOnBlur tagger =
     addOption (OnBlur tagger)
 
 
 {-| Attaches the `onFocus` event to the `RadioButton`.
 -}
-withOnFocus : msg -> RadioButton model msg -> RadioButton model msg
+withOnFocus : msg -> Config model msg -> Config model msg
 withOnFocus tagger =
     addOption (OnFocus tagger)
 
@@ -192,8 +192,8 @@ applyOption modifier options =
 
 {-| Internal. Transforms the `reader` function into a valid Html.Attribute.
 -}
-readerAttribute : model -> RadioButton model msg -> RadioButtonChoice -> Html.Attribute msg
-readerAttribute model (RadioButton config) choice =
+readerAttribute : model -> Config model msg -> RadioButtonChoice -> Html.Attribute msg
+readerAttribute model (Config config) choice =
     if
         model
             |> config.reader
@@ -207,8 +207,8 @@ readerAttribute model (RadioButton config) choice =
 
 {-| Internal. Transforms the `tagger` function into a valid Html.Attribute.
 -}
-taggerAttribute : RadioButton model msg -> RadioButtonChoice -> Html.Attribute msg
-taggerAttribute (RadioButton config) choice =
+taggerAttribute : Config model msg -> RadioButtonChoice -> Html.Attribute msg
+taggerAttribute (Config config) choice =
     choice.value
         |> config.tagger
         |> Events.onClick
@@ -227,14 +227,14 @@ hasSubtitleAttribute choice =
 
 {-| Adds a `Validation` rule to the `RadioButton`.
 -}
-withValidation : (model -> Maybe Validation.Type) -> RadioButton model msg -> RadioButton model msg
+withValidation : (model -> Maybe Validation.Type) -> Config model msg -> Config model msg
 withValidation validation =
     addOption (Validation validation)
 
 
 {-| Internal. Transforms the `Validation` status into an Html.Attribute `class`.
 -}
-validationAttribute : model -> RadioButton model msg -> Html.Attribute msg
+validationAttribute : model -> Config model msg -> Html.Attribute msg
 validationAttribute model radioButtonModel =
     let
         errors =
@@ -256,14 +256,14 @@ validationAttribute model radioButtonModel =
 
 {-| Internal. Applies all the customizations and returns the internal `Options` type.
 -}
-computeOptions : RadioButton model msg -> Options model msg
-computeOptions (RadioButton config) =
+computeOptions : Config model msg -> Options model msg
+computeOptions (Config config) =
     List.foldl applyOption defaultOptions config.options
 
 
 {-| Internal. Transforms all the customizations into a list of valid Html.Attribute(s).
 -}
-buildAttributes : model -> RadioButton model msg -> RadioButtonChoice -> List (Html.Attribute msg)
+buildAttributes : model -> Config model msg -> RadioButtonChoice -> List (Html.Attribute msg)
 buildAttributes model radioButtonModel choice =
     let
         options =
@@ -322,8 +322,8 @@ buildAttributes model radioButtonModel choice =
             Nothing
 
 -}
-render : model -> RadioButton model msg -> List (Html msg)
-render model ((RadioButton config) as radioButtonModel) =
+render : model -> Config model msg -> List (Html msg)
+render model ((Config config) as radioButtonModel) =
     Html.div
         [ Attrs.class "a-form-field__radio-button-options" ]
         (List.map (renderRadioButtonChoice model radioButtonModel) config.choices)
@@ -332,8 +332,8 @@ render model ((RadioButton config) as radioButtonModel) =
 
 {-| Internal. Renders the `RadioButton` alone.
 -}
-renderRadioButtonChoice : model -> RadioButton model msg -> RadioButtonChoice -> Html msg
-renderRadioButtonChoice model ((RadioButton _) as radioButtonModel) ({ title, subtitle } as choice) =
+renderRadioButtonChoice : model -> Config model msg -> RadioButtonChoice -> Html msg
+renderRadioButtonChoice model ((Config _) as radioButtonModel) ({ title, subtitle } as choice) =
     Html.div
         (buildAttributes model radioButtonModel choice)
         [ renderTitle title
@@ -343,8 +343,8 @@ renderRadioButtonChoice model ((RadioButton _) as radioButtonModel) ({ title, su
 
 {-| Internal. Renders the list of errors if present. Renders the list of warnings if not.
 -}
-renderValidationMessages : model -> RadioButton model msg -> List (Html msg)
-renderValidationMessages model ((RadioButton _) as inputModel) =
+renderValidationMessages : model -> Config model msg -> List (Html msg)
+renderValidationMessages model ((Config _) as inputModel) =
     let
         errors =
             errorsValidations model (computeOptions inputModel)
