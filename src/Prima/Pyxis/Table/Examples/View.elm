@@ -42,7 +42,7 @@ createHeaders _ =
 
 createFooters : List (Table.FooterRow Msg)
 createFooters =
-    [ Table.footerRow (createFooterColumns [ "Nazione", "Paese" ]) ]
+    [ Table.row (createColumns [ "Nazione", "Paese" ]) ]
 
 
 createRows : List (List String) -> List (Table.Row Msg)
@@ -53,8 +53,3 @@ createRows rows =
 createColumns : List String -> List (Table.Column Msg)
 createColumns columns =
     List.map (Table.columnString 1) columns
-
-
-createFooterColumns : List String -> List (Table.FooterColumn Msg)
-createFooterColumns columns =
-    List.map (Table.footerColumnString 1) columns
