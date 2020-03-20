@@ -251,6 +251,26 @@ initialFooterOptions =
 Modal by default is printed with a close button on header
 Requires initial visibility state, and the event that should be emitted
 when user interacts with close button
+
+
+## eg.
+
+    --
+    type Msg
+        = HideYourModal
+
+    type alias Model =
+        { field1 : FieldType
+        , isModalVisible : Bool
+        }
+    ...
+    -- Somewhere in your views
+
+    yourModal : Model -> Html Msg
+    yourModal { isModalVisible } =
+        Modal.small isModalVisible HideYourModal
+            |> Modal.render
+
 -}
 small : Bool -> msg -> Config msg
 small initialVisibility closeEvent =
@@ -266,6 +286,26 @@ small initialVisibility closeEvent =
 Modal by default is printed with a close button on header
 Requires initial visibility state, and the event that should be emitted
 when user interacts with close button
+
+
+## eg.
+
+    --
+    type Msg
+        = HideYourModal
+
+    type alias Model =
+        { field1 : FieldType
+        , isModalVisible : Bool
+        }
+    ...
+    -- Somewhere in your views
+
+    yourModal : Model -> Html Msg
+    yourModal { isModalVisible } =
+        Modal.medium isModalVisible HideYourModal
+            |> Modal.render
+
 -}
 medium : Bool -> msg -> Config msg
 medium initialVisibility closeEvent =
@@ -281,6 +321,26 @@ medium initialVisibility closeEvent =
 Modal by default is printed with a close button on header
 Requires initial visibility state, and the event that should be emitted
 when user interacts with close button
+
+
+## eg.
+
+    --
+    type Msg
+        = HideYourModal
+
+    type alias Model =
+        { field1 : FieldType
+        , isModalVisible : Bool
+        }
+    ...
+    -- Somewhere in your views
+
+    yourModal : Model -> Html Msg
+    yourModal { isModalVisible } =
+        Modal.large isModalVisible HideYourModal
+            |> Modal.render
+
 -}
 large : Bool -> msg -> Config msg
 large initialVisibility closeEvent =
@@ -296,6 +356,57 @@ large initialVisibility closeEvent =
 If you need to hold modal config in your model you
 can avoid visibility state duplication and simply use
 this helper in your update to show the modal when you need
+
+
+## eg.
+
+    --
+    type Msg
+        = HideYourModal
+        | ShowModal
+
+    type alias Model =
+        { ...
+        , myModal : Modal.Config Msg
+        }
+
+    model: Model
+    model =
+       { ...
+       , myModal = Modal.small False HideYourModal
+       }
+    ...
+    -- Somewhere in your views
+
+    yourModal : Model -> Html Msg
+    yourModal { myModal } =
+        myModal
+            |> Modal.render
+
+    -- Somewhere in your update
+    case msg of
+        ShowModal ->
+            model
+                |> showModal
+                |> withoutCmds
+        HideYourModal ->
+            model
+                |> hideModal
+                |> withoutCmds
+     ...
+
+     showModal: Model -> Model
+     showModal model =
+        { model
+            | myModal = Modal.show model.myModal
+        }
+
+     hideModal: Model -> Model
+     hideModal model =
+        { model
+             | myModal = Modal.hide model.myModal
+        }
+
 -}
 show : Config msg -> Config msg
 show (Config modalConfig) =
@@ -309,6 +420,57 @@ show (Config modalConfig) =
 If you need to hold modal config in your model you
 can avoid visibility state duplication and simply use
 this helper in your update to hide the modal when you need
+
+
+## eg.
+
+    --
+    type Msg
+        = HideYourModal
+        | ShowModal
+
+    type alias Model =
+        { ...
+        , myModal : Modal.Config Msg
+        }
+
+    model: Model
+    model =
+       { ...
+       , myModal = Modal.small False HideYourModal
+       }
+    ...
+    -- Somewhere in your views
+
+    yourModal : Model -> Html Msg
+    yourModal { myModal } =
+        myModal
+            |> Modal.render
+
+    -- Somewhere in your update
+    case msg of
+        ShowModal ->
+            model
+                |> showModal
+                |> withoutCmds
+        HideYourModal ->
+            model
+                |> hideModal
+                |> withoutCmds
+     ...
+
+     showModal: Model -> Model
+     showModal model =
+        { model
+            | myModal = Modal.show model.myModal
+        }
+
+     hideModal: Model -> Model
+     hideModal model =
+        { model
+             | myModal = Modal.hide model.myModal
+        }
+
 -}
 hide : Config msg -> Config msg
 hide (Config modalConfig) =
@@ -322,6 +484,46 @@ hide (Config modalConfig) =
 If you need to hold modal config in your model you
 can avoid visibility state duplication and simply use
 this helper in your update to toggle the modal when you need
+
+
+## eg.
+
+    --
+    type Msg
+        = ToggleYourModal
+
+    type alias Model =
+        { ...
+        , myModal : Modal.Config Msg
+        }
+
+    model: Model
+    model =
+       { ...
+       , myModal = Modal.small False HideYourModal
+       }
+    ...
+    -- Somewhere in your views
+
+    yourModal : Model -> Html Msg
+    yourModal { myModal } =
+        myModal
+            |> Modal.render
+
+    -- Somewhere in your update
+    case msg of
+        ToggleModal ->
+            model
+                |> toggleModal
+                |> withoutCmds
+     ...
+
+     toggleModal: Model -> Model
+     toggleModal model =
+        { model
+            | myModal = Modal.toggle model.myModal
+        }
+
 -}
 toggle : Config msg -> Config msg
 toggle (Config modalConfig) =
