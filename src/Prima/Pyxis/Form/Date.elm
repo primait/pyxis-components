@@ -1,5 +1,5 @@
 module Prima.Pyxis.Form.Date exposing
-    ( Date, date
+    ( Config, date
     , withAttribute, withClass, withDefaultValue, withDisabled, withId, withName, withPlaceholder
     , withRegularSize, withSmallSize, withLargeSize
     , withDatePicker, withDatePickerVisibility
@@ -13,7 +13,7 @@ module Prima.Pyxis.Form.Date exposing
 
 ## Types and Configuration
 
-@docs Date, date
+@docs Config, date
 
 
 ## Generic modifiers
@@ -59,8 +59,8 @@ import Prima.Pyxis.Helpers as H
 
 {-| Represent the opaque `Date` configuration.
 -}
-type Date model msg
-    = Date (DateConfig model msg)
+type Config model msg
+    = Config (DateConfig model msg)
 
 
 {-| Represent the `Date` configuration.
@@ -74,9 +74,9 @@ type alias DateConfig model msg =
 
 {-| Create an `input[type="date"]` with the default options.
 -}
-date : (model -> DatePicker.Date) -> (DatePicker.Date -> msg) -> Date model msg
+date : (model -> DatePicker.Date) -> (DatePicker.Date -> msg) -> Config model msg
 date reader tagger =
-    Date <| DateConfig [] reader tagger
+    Config <| DateConfig [] reader tagger
 
 
 {-| Represent the possibile modifiers of an `Date`.
@@ -112,14 +112,14 @@ type DateSize
 
 {-| Sets an `attribute` to the `Date`.
 -}
-withAttribute : Html.Attribute msg -> Date model msg -> Date model msg
+withAttribute : Html.Attribute msg -> Config model msg -> Config model msg
 withAttribute attribute =
     addOption (Attribute attribute)
 
 
 {-| Sets a `class` to the `Date`.
 -}
-withClass : String -> Date model msg -> Date model msg
+withClass : String -> Config model msg -> Config model msg
 withClass class_ =
     addOption (Class class_)
 
@@ -127,7 +127,7 @@ withClass class_ =
 {-| Adds a default value to the `Date`.
 Useful to teach the component about it's `pristine/touched` state.
 -}
-withDefaultValue : DatePicker.Date -> Date model msg -> Date model msg
+withDefaultValue : DatePicker.Date -> Config model msg -> Config model msg
 withDefaultValue value =
     addOption (DefaultValue value)
 
@@ -135,89 +135,89 @@ withDefaultValue value =
 {-| Adds a DatePicker to the `Date`.
 Remember to add the visibility policy with `withDatePickerVisibility`.
 -}
-withDatePicker : (model -> Maybe DatePicker.Model) -> (DatePicker.Msg -> msg) -> Date model msg -> Date model msg
+withDatePicker : (model -> Maybe DatePicker.Model) -> (DatePicker.Msg -> msg) -> Config model msg -> Config model msg
 withDatePicker reader tagger =
     addOption (DatePicker reader tagger)
 
 
 {-| Adds a visibility policy to the DatePicker built via `withDatePicker`.
 -}
-withDatePickerVisibility : (model -> Bool) -> Date model msg -> Date model msg
+withDatePickerVisibility : (model -> Bool) -> Config model msg -> Config model msg
 withDatePickerVisibility reader =
     addOption (DatePickerVisibility reader)
 
 
 {-| Sets a `disabled` to the `Date`.
 -}
-withDisabled : Bool -> Date model msg -> Date model msg
+withDisabled : Bool -> Config model msg -> Config model msg
 withDisabled disabled =
     addOption (Disabled disabled)
 
 
 {-| Sets an `id` to the `Date`.
 -}
-withId : String -> Date model msg -> Date model msg
+withId : String -> Config model msg -> Config model msg
 withId id =
     addOption (Id id)
 
 
 {-| Sets a `size` to the `Date`.
 -}
-withLargeSize : Date model msg -> Date model msg
+withLargeSize : Config model msg -> Config model msg
 withLargeSize =
     addOption (Size Large)
 
 
 {-| Sets a `name` to the `Date`.
 -}
-withName : String -> Date model msg -> Date model msg
+withName : String -> Config model msg -> Config model msg
 withName name =
     addOption (Name name)
 
 
 {-| Sets an `onBlur event` to the `Date`.
 -}
-withOnBlur : msg -> Date model msg -> Date model msg
+withOnBlur : msg -> Config model msg -> Config model msg
 withOnBlur tagger =
     addOption (OnBlur tagger)
 
 
 {-| Sets an `onFocus event` to the `Date`.
 -}
-withOnFocus : msg -> Date model msg -> Date model msg
+withOnFocus : msg -> Config model msg -> Config model msg
 withOnFocus tagger =
     addOption (OnFocus tagger)
 
 
 {-| Sets a `placeholder` to the `Date`.
 -}
-withPlaceholder : String -> Date model msg -> Date model msg
+withPlaceholder : String -> Config model msg -> Config model msg
 withPlaceholder placeholder =
     addOption (Placeholder placeholder)
 
 
 {-| Sets a `size` to the `Date`.
 -}
-withRegularSize : Date model msg -> Date model msg
+withRegularSize : Config model msg -> Config model msg
 withRegularSize =
     addOption (Size Regular)
 
 
 {-| Sets a `size` to the `Date`.
 -}
-withSmallSize : Date model msg -> Date model msg
+withSmallSize : Config model msg -> Config model msg
 withSmallSize =
     addOption (Size Small)
 
 
-withValidation : (model -> Maybe Validation.Type) -> Date model msg -> Date model msg
+withValidation : (model -> Maybe Validation.Type) -> Config model msg -> Config model msg
 withValidation validation =
     addOption (Validation validation)
 
 
 {-| Renders the `Date`.
 -}
-render : model -> Date model msg -> List (Html msg)
+render : model -> Config model msg -> List (Html msg)
 render model dateModel =
     let
         options =
@@ -238,14 +238,14 @@ render model dateModel =
         renderDate model dateModel :: renderValidationMessages model dateModel
 
 
-renderDate : model -> Date model msg -> Html msg
+renderDate : model -> Config model msg -> Html msg
 renderDate model dateModel =
     Html.input
         (buildAttributes model dateModel)
         []
 
 
-renderDatePicker : model -> Date model msg -> Html msg
+renderDatePicker : model -> Config model msg -> Html msg
 renderDatePicker model dateModel =
     let
         { datePickerVisibility, datePickerTagger, datePickerReader } =
@@ -272,7 +272,7 @@ renderGroup =
         [ Attrs.class "m-form-input-group m-form-input-group--datepicker" ]
 
 
-renderAppendGroup : Date model msg -> List (Html msg) -> Html msg
+renderAppendGroup : Config model msg -> List (Html msg) -> Html msg
 renderAppendGroup dateModel =
     let
         options =
@@ -284,7 +284,7 @@ renderAppendGroup dateModel =
         ]
 
 
-renderValidationMessages : model -> Date model msg -> List (Html msg)
+renderValidationMessages : model -> Config model msg -> List (Html msg)
 renderValidationMessages model dateModel =
     let
         warnings =
@@ -301,7 +301,7 @@ renderValidationMessages model dateModel =
             List.map Validation.render errors
 
 
-shouldShowDatePicker : model -> Date model msg -> Bool
+shouldShowDatePicker : model -> Config model msg -> Bool
 shouldShowDatePicker model dateModel =
     let
         { datePickerTagger, datePickerReader } =
@@ -317,9 +317,9 @@ shouldShowDatePicker model dateModel =
 
 {-| Internal.
 -}
-addOption : DateOption model msg -> Date model msg -> Date model msg
-addOption option (Date inputConfig) =
-    Date { inputConfig | options = inputConfig.options ++ [ option ] }
+addOption : DateOption model msg -> Config model msg -> Config model msg
+addOption option (Config inputConfig) =
+    Config { inputConfig | options = inputConfig.options ++ [ option ] }
 
 
 {-| Represent the options a user can choose to modify
@@ -432,8 +432,8 @@ sizeAttribute size =
         )
 
 
-readerAttribute : model -> Date model msg -> Html.Attribute msg
-readerAttribute model (Date config) =
+readerAttribute : model -> Config model msg -> Html.Attribute msg
+readerAttribute model (Config config) =
     case config.reader model of
         DatePicker.ParsedDate parsedDate ->
             parsedDate
@@ -446,8 +446,8 @@ readerAttribute model (Date config) =
                 |> Attrs.value
 
 
-taggerAttribute : Date model msg -> Html.Attribute msg
-taggerAttribute (Date config) =
+taggerAttribute : Config model msg -> Html.Attribute msg
+taggerAttribute (Config config) =
     Events.targetValue
         |> Json.Decode.map (config.tagger << stringToDate)
         |> Json.Decode.map (\any -> ( any, True ))
@@ -476,7 +476,7 @@ toIsoFormat str =
         |> String.join "-"
 
 
-validationAttribute : model -> Date model msg -> Html.Attribute msg
+validationAttribute : model -> Config model msg -> Html.Attribute msg
 validationAttribute model dateModel =
     let
         warnings =
@@ -498,8 +498,8 @@ validationAttribute model dateModel =
 
 {-| Internal. Applies the `pristine/touched` visual state to the component.
 -}
-pristineAttribute : model -> Date model msg -> Html.Attribute msg
-pristineAttribute model ((Date config) as dateModel) =
+pristineAttribute : model -> Config model msg -> Html.Attribute msg
+pristineAttribute model ((Config config) as dateModel) =
     let
         options =
             computeOptions dateModel
@@ -513,7 +513,7 @@ pristineAttribute model ((Date config) as dateModel) =
 
 {-| Composes all the modifiers into a set of `Html.Attribute`(s).
 -}
-buildAttributes : model -> Date model msg -> List (Html.Attribute msg)
+buildAttributes : model -> Config model msg -> List (Html.Attribute msg)
 buildAttributes model dateModel =
     let
         options =
@@ -545,8 +545,8 @@ buildAttributes model dateModel =
 
 {-| Internal
 -}
-computeOptions : Date model msg -> Options model msg
-computeOptions (Date config) =
+computeOptions : Config model msg -> Options model msg
+computeOptions (Config config) =
     List.foldl applyOption defaultOptions config.options
 
 

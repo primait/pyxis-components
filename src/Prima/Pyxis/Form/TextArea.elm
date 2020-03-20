@@ -1,5 +1,5 @@
 module Prima.Pyxis.Form.TextArea exposing
-    ( TextArea
+    ( Config
     , withAttribute, withClass, withDefaultValue, withDisabled, withId, withName, withPlaceholder
     , withRegularSize, withSmallSize, withLargeSize
     , withOnBlur, withOnFocus
@@ -13,7 +13,7 @@ module Prima.Pyxis.Form.TextArea exposing
 
 ## Types and Configuration
 
-@docs TextArea
+@docs Config
 
 
 ## Options
@@ -51,8 +51,8 @@ import Prima.Pyxis.Helpers as H
 
 {-| Represent the opaque `TextArea` configuration.
 -}
-type TextArea model msg
-    = TextArea (TextAreaConfig model msg)
+type Config model msg
+    = Config (TextAreaConfig model msg)
 
 
 {-| Internal. Represent the `TextArea` configuration.
@@ -66,9 +66,9 @@ type alias TextAreaConfig model msg =
 
 {-| Create an `textarea`.
 -}
-textArea : (model -> Maybe String) -> (String -> msg) -> TextArea model msg
+textArea : (model -> Maybe String) -> (String -> msg) -> Config model msg
 textArea reader tagger =
-    TextArea <| TextAreaConfig [] reader tagger
+    Config <| TextAreaConfig [] reader tagger
 
 
 {-| Internal. Represent the possible modifiers for an `TextArea`.
@@ -103,14 +103,14 @@ type TextAreaSize
 
 {-| Adds a generic Html.Attribute to the `TextArea`.
 -}
-withAttribute : Html.Attribute msg -> TextArea model msg -> TextArea model msg
+withAttribute : Html.Attribute msg -> Config model msg -> Config model msg
 withAttribute attribute =
     addOption (Attribute attribute)
 
 
 {-| Adds a `class` to the `TextArea`.
 -}
-withClass : String -> TextArea model msg -> TextArea model msg
+withClass : String -> Config model msg -> Config model msg
 withClass class_ =
     addOption (Class class_)
 
@@ -118,93 +118,93 @@ withClass class_ =
 {-| Adds a default value to the `Textarea`.
 Useful to teach the component about it's `pristine/touched` state.
 -}
-withDefaultValue : Maybe String -> TextArea model msg -> TextArea model msg
+withDefaultValue : Maybe String -> Config model msg -> Config model msg
 withDefaultValue value =
     addOption (DefaultValue value)
 
 
 {-| Adds a `disabled` Html.Attribute to the `TextArea`.
 -}
-withDisabled : Bool -> TextArea model msg -> TextArea model msg
+withDisabled : Bool -> Config model msg -> Config model msg
 withDisabled disabled =
     addOption (Disabled disabled)
 
 
 {-| Adds an `id` Html.Attribute to the `TextArea`.
 -}
-withId : String -> TextArea model msg -> TextArea model msg
+withId : String -> Config model msg -> Config model msg
 withId id =
     addOption (Id id)
 
 
 {-| Adds a `name` Html.Attribute to the `TextArea`.
 -}
-withName : String -> TextArea model msg -> TextArea model msg
+withName : String -> Config model msg -> Config model msg
 withName name =
     addOption (Name name)
 
 
 {-| Attaches the `onBlur` event to the `TextArea`.
 -}
-withOnBlur : msg -> TextArea model msg -> TextArea model msg
+withOnBlur : msg -> Config model msg -> Config model msg
 withOnBlur tagger =
     addOption (OnBlur tagger)
 
 
 {-| Attaches the `onFocus` event to the `TextArea`.
 -}
-withOnFocus : msg -> TextArea model msg -> TextArea model msg
+withOnFocus : msg -> Config model msg -> Config model msg
 withOnFocus tagger =
     addOption (OnFocus tagger)
 
 
 {-| Adds a `class` to the `TextArea` which overrides all the previous.
 -}
-withOverridingClass : String -> TextArea model msg -> TextArea model msg
+withOverridingClass : String -> Config model msg -> Config model msg
 withOverridingClass class =
     addOption (OverridingClass class)
 
 
 {-| Adds a `placeholder` Html.Attribute to the `TextArea`.
 -}
-withPlaceholder : String -> TextArea model msg -> TextArea model msg
+withPlaceholder : String -> Config model msg -> Config model msg
 withPlaceholder placeholder =
     addOption (Placeholder placeholder)
 
 
 {-| Adds a `size` of `Regular` to the `TextArea`.
 -}
-withRegularSize : TextArea model msg -> TextArea model msg
+withRegularSize : Config model msg -> Config model msg
 withRegularSize =
     addOption (Size Regular)
 
 
 {-| Sets a `size` of `Small` to the `TextArea`.
 -}
-withSmallSize : TextArea model msg -> TextArea model msg
+withSmallSize : Config model msg -> Config model msg
 withSmallSize =
     addOption (Size Small)
 
 
 {-| Adds a `size` of `Large` to the `TextArea`.
 -}
-withLargeSize : TextArea model msg -> TextArea model msg
+withLargeSize : Config model msg -> Config model msg
 withLargeSize =
     addOption (Size Large)
 
 
 {-| Adds a `Validation` rule to the `TextArea`.
 -}
-withValidation : (model -> Maybe Validation.Type) -> TextArea model msg -> TextArea model msg
+withValidation : (model -> Maybe Validation.Type) -> Config model msg -> Config model msg
 withValidation validation =
     addOption (Validation validation)
 
 
 {-| Internal. Adds a generic option to the `TextArea`.
 -}
-addOption : TextAreaOption model msg -> TextArea model msg -> TextArea model msg
-addOption option (TextArea textAreaConfig) =
-    TextArea { textAreaConfig | options = textAreaConfig.options ++ [ option ] }
+addOption : TextAreaOption model msg -> Config model msg -> Config model msg
+addOption option (Config textAreaConfig) =
+    Config { textAreaConfig | options = textAreaConfig.options ++ [ option ] }
 
 
 {-| Internal. Represent the list of customizations for the `TextArea` component.
@@ -305,21 +305,21 @@ sizeAttribute size =
 
 {-| Internal. Transforms the `reader` function into a valid Html.Attribute.
 -}
-readerAttribute : model -> TextArea model msg -> Html.Attribute msg
-readerAttribute model (TextArea config) =
+readerAttribute : model -> Config model msg -> Html.Attribute msg
+readerAttribute model (Config config) =
     (Attrs.value << Maybe.withDefault "" << config.reader) model
 
 
 {-| Internal. Transforms the `tagger` function into a valid Html.Attribute.
 -}
-taggerAttribute : TextArea model msg -> Html.Attribute msg
-taggerAttribute (TextArea config) =
+taggerAttribute : Config model msg -> Html.Attribute msg
+taggerAttribute (Config config) =
     Events.onInput config.tagger
 
 
 {-| Internal. Transforms the `Validation` status into an Html.Attribute `class`.
 -}
-validationAttribute : model -> TextArea model msg -> Html.Attribute msg
+validationAttribute : model -> Config model msg -> Html.Attribute msg
 validationAttribute model textAreaModel =
     let
         warnings =
@@ -341,8 +341,8 @@ validationAttribute model textAreaModel =
 
 {-| Internal. Applies the `pristine/touched` visual state to the component.
 -}
-pristineAttribute : model -> TextArea model msg -> Html.Attribute msg
-pristineAttribute model ((TextArea config) as textAreaModel) =
+pristineAttribute : model -> Config model msg -> Html.Attribute msg
+pristineAttribute model ((Config config) as textAreaModel) =
     let
         options =
             computeOptions textAreaModel
@@ -356,15 +356,15 @@ pristineAttribute model ((TextArea config) as textAreaModel) =
 
 {-| Internal. Applies all the customizations and returns the internal `Options` type.
 -}
-computeOptions : TextArea model msg -> Options model msg
-computeOptions (TextArea config) =
+computeOptions : Config model msg -> Options model msg
+computeOptions (Config config) =
     List.foldl applyOption defaultOptions config.options
 
 
 {-| Internal. Transforms all the customizations into a list of valid Html.Attribute(s).
 -}
-buildAttributes : model -> TextArea model msg -> List (Html.Attribute msg)
-buildAttributes model ((TextArea _) as textAreaModel) =
+buildAttributes : model -> Config model msg -> List (Html.Attribute msg)
+buildAttributes model ((Config _) as textAreaModel) =
     let
         options =
             computeOptions textAreaModel
@@ -415,7 +415,7 @@ buildAttributes model ((TextArea _) as textAreaModel) =
     view =
         Html.div
             []
-            (TextArea.textArea .note OnInput
+            (Config.textArea .note OnInput
                 |> Input.withClass "my-custom-class"
                 |> Input.withValidation (Maybe.andThen validate << .note)
             )
@@ -428,14 +428,14 @@ buildAttributes model ((TextArea _) as textAreaModel) =
             Nothing
 
 -}
-render : model -> TextArea model msg -> List (Html msg)
+render : model -> Config model msg -> List (Html msg)
 render model textAreaModel =
     renderTextArea model textAreaModel :: renderValidationMessages model textAreaModel
 
 
 {-| Internal. Renders the `Input` alone.
 -}
-renderTextArea : model -> TextArea model msg -> Html msg
+renderTextArea : model -> Config model msg -> Html msg
 renderTextArea model textAreaModel =
     Html.textarea
         (buildAttributes model textAreaModel)
@@ -444,7 +444,7 @@ renderTextArea model textAreaModel =
 
 {-| Internal. Renders the list of errors if present. Renders the list of warnings if not.
 -}
-renderValidationMessages : model -> TextArea model msg -> List (Html msg)
+renderValidationMessages : model -> Config model msg -> List (Html msg)
 renderValidationMessages model textAreaModel =
     let
         warnings =

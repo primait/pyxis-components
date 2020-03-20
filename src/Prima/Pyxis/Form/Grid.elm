@@ -4,13 +4,13 @@ import Html exposing (Html, div)
 import Html.Attributes as Attrs
 
 
-type Grid msg
-    = Grid (List (Row msg))
+type Config msg
+    = Config (List (Row msg))
 
 
-create : Grid msg
+create : Config msg
 create =
-    Grid []
+    Config []
 
 
 type Row msg
@@ -22,9 +22,9 @@ row =
     Row []
 
 
-addRow : Row msg -> Grid msg -> Grid msg
-addRow row_ (Grid grid) =
-    Grid (grid ++ [ row_ ])
+addRow : Row msg -> Config msg -> Config msg
+addRow row_ (Config grid) =
+    Config (grid ++ [ row_ ])
 
 
 type Column msg
@@ -46,8 +46,8 @@ addCols cols (Row rows) =
     Row (rows ++ cols)
 
 
-render : Grid msg -> List (Html msg)
-render (Grid grid) =
+render : Config msg -> List (Html msg)
+render (Config grid) =
     List.map renderRow grid
 
 

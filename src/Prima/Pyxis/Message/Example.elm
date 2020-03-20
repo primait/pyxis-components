@@ -55,18 +55,18 @@ view model =
 appBody : Model -> List (Html Msg)
 appBody _ =
     [ Helpers.pyxisStyle
-    , Container.row
+    , Container.column
         |> Container.withContent
-            ([ Message.messageInfoConfig
-             , Message.messageSuccessConfig
-             , Message.messageErrorConfig
+            ([ [ text "Info: Lorem ipsum dolor sit amet." ]
+                |> Message.info
+                |> Message.withClass "fs-small"
+             , [ text "Success: Lorem ipsum dolor sit amet." ]
+                |> Message.success
+             , [ text "Error: Lorem ipsum dolor sit amet." ]
+                |> Message.error
              ]
-                |> List.map messageBuilder
+                |> List.map Message.render
                 |> List.intersperse Helpers.spacer
             )
+        |> Container.render
     ]
-
-
-messageBuilder : (List (Html msg) -> Message.Config msg) -> Html msg
-messageBuilder mapper =
-    (Message.render << mapper << List.singleton << text) "Lorem ipsum dolor sit amet."

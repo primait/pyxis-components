@@ -26,6 +26,7 @@ appBody isModalVisible =
             [ Button.render True showModalBtn
             , renderModal isModalVisible
             ]
+        |> Container.render
     ]
 
 

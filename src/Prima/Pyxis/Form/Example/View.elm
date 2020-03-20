@@ -21,10 +21,11 @@ appBody model =
         |> Container.withContent
             [ Form.render model.formData <| formConfig model
             ]
+        |> Container.render
     ]
 
 
-formConfig : Model -> Form.Form FormData Msg
+formConfig : Model -> Form.Config FormData Msg
 formConfig model =
     model.form
         |> Form.withFields

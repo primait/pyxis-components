@@ -18,6 +18,7 @@ appBody _ =
     [ Helpers.pyxisStyle
     , Container.row
         |> Container.withContent (List.map Loader.render [ loaderVehicle, loaderSpinnerSmall, loaderSpinnerMedium ])
+        |> Container.render
     ]
 
 

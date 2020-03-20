@@ -1,6 +1,6 @@
 module Prima.Pyxis.Accordion exposing
     ( Config, State, base, light, dark, state
-    , withWrapperClass, withIconClass, withContentClass, withSimpleTitle, withHtmlTitle, withContent
+    , withAttribute, withWrapperClass, withIconClass, withContentClass, withSimpleTitle, withHtmlTitle, withContent
     , open, close
     , render, renderGroup
     )
@@ -15,7 +15,7 @@ module Prima.Pyxis.Accordion exposing
 
 ## Options
 
-@docs withWrapperClass, withIconClass, withContentClass, withSimpleTitle, withHtmlTitle, withContent
+@docs withAttribute, withWrapperClass, withIconClass, withContentClass, withSimpleTitle, withHtmlTitle, withContent
 
 
 ## Helpers
@@ -47,7 +47,7 @@ type alias AccordionConfig msg =
     , tagger : String -> Bool -> msg
     , title : Maybe (Html msg)
     , content : List (Html msg)
-    , options : List AccordionOption
+    , options : List (AccordionOption msg)
     }
 
 
@@ -68,36 +68,42 @@ type State
 
 {-| Internal. Represents the list of available customizations.
 -}
-type alias Options =
-    { wrapperClasses : List ( String, Bool )
+type alias Options msg =
+    { attributes : List (Html.Attribute msg)
+    , wrapperClasses : List ( String, Bool )
     , iconClasses : List String
     , contentClasses : List String
     }
 
 
-{-| Internal. Represents the possible modifiers.
--}
-type AccordionOption
-    = WrapperClass String
-    | IconClass String
-    | ContentClass String
-
-
 {-| Internal. Represents the initial state of the list of customizations for the component.
 -}
-defaultOptions : Options
+defaultOptions : Options msg
 defaultOptions =
-    { wrapperClasses = []
+    { attributes = []
+    , wrapperClasses = []
     , iconClasses = []
     , contentClasses = []
     }
 
 
+{-| Internal. Represents the possible modifiers.
+-}
+type AccordionOption msg
+    = Attribute (Html.Attribute msg)
+    | WrapperClass String
+    | IconClass String
+    | ContentClass String
+
+
 {-| Internal. Applies the customizations made by the end user to the component.
 -}
-applyOption : AccordionOption -> Options -> Options
+applyOption : AccordionOption msg -> Options msg -> Options msg
 applyOption modifier options =
     case modifier of
+        Attribute attribute ->
+            { options | attributes = attribute :: options.attributes }
+
         WrapperClass class ->
             { options | wrapperClasses = ( class, True ) :: options.wrapperClasses }
 
@@ -110,14 +116,14 @@ applyOption modifier options =
 
 {-| Internal. Applies all the customizations and returns the internal `Options` type.
 -}
-computeOptions : Config msg -> Options
+computeOptions : Config msg -> Options msg
 computeOptions (Config config) =
     List.foldl applyOption defaultOptions config.options
 
 
 {-| Internal. Adds a generic option to the `Accordion`.
 -}
-addOption : AccordionOption -> Config msg -> Config msg
+addOption : AccordionOption msg -> Config msg -> Config msg
 addOption option (Config accordionConfig) =
     Config { accordionConfig | options = accordionConfig.options ++ [ option ] }
 
@@ -165,8 +171,7 @@ light slug tagger =
 dark : String -> (String -> Bool -> msg) -> Config msg
 dark slug tagger =
     Config <| AccordionConfig Dark slug tagger Nothing [] []
-
-
+ 
 isBase : AccordionType -> Bool
 isBase =
     (==) Base
@@ -230,6 +235,12 @@ close =
     State False
 
 
+{-| Adds a generic Html.Attribute to the `Config`.
+-}
+withAttribute : Html.Attribute msg -> Config msg -> Config msg
+withAttribute attribute =
+    addOption (Attribute attribute)
+
 {-| Adds a class for the wrapper to the `Config`.
 -}
 withWrapperClass : String -> Config msg -> Config msg
@@ -275,20 +286,25 @@ withContent content (Config accordionConfig) =
 {-| Renders the Accordion component by receiving is State and Config.
 
     Accordion.render myAccordionState myAccordionConfiguration
-
 -}
 render : State -> Config msg -> Html msg
 render (State isOpen) ((Config { type_, tagger, slug, title, content }) as config) =
+    let
+        options =
+            computeOptions config
+    in
     div
-        [ id slug
-        , [ ( "a-accordion", True )
-          , ( "a-accordion--base", isBase type_ )
-          , ( "a-accordion--light", isLight type_ )
-          , ( "a-accordion--dark", isDark type_ )
-          , ( "is-open", isOpen )
-          ]
+        ([ id slug
+         , [ ( "a-accordion", True )
+           , ( "a-accordion--base", isBase type_ )
+           , ( "a-accordion--light", isLight type_ )
+           , ( "a-accordion--dark", isDark type_ )
+           , ( "is-open", isOpen )
+           ]
             |> buildWrapperClass config
-        ]
+         ]
+            |> (++) options.attributes
+        )
         [ div
             [ class "a-accordion__toggle fs-xsmall fw-heavy a-link--alt"
             , onClick (tagger slug isOpen)
