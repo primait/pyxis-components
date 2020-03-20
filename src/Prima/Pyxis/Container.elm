@@ -2,8 +2,9 @@ module Prima.Pyxis.Container exposing
     ( Config, render
     , row, column, rowFluid, columnFluid
     , withContent
-    , withAccessKey, withAttribute, withClass, withClassList, withContentEditable, withDraggable, withDropZone, withHidden, withId, withTabIndex, withTitle
-    , withChangeSizeOnLarge, withChangeSizeOnMedium, withChangeSizeOnSmall, withChangeSizeOnXLarge, withOnBlur, withOnClick, withOnDoubleClick, withOnFocus, withOnMouseEnter, withOnMouseLeave, withOnMouseOut, withOnMouseOver, withStyle
+    , withChangeSizeOnLarge, withChangeSizeOnMedium, withChangeSizeOnSmall, withChangeSizeOnXLarge
+    , withStyle, withAccessKey, withAttribute, withClass, withClassList, withContentEditable, withDraggable, withDropZone, withHidden, withId, withTabIndex, withTitle
+    , withOnBlur, withOnClick, withOnDoubleClick, withOnFocus, withOnMouseEnter, withOnMouseLeave, withOnMouseOut, withOnMouseOver
     )
 
 {-| Create a `Container` by using predefined Html syntax.
@@ -29,17 +30,17 @@ module Prima.Pyxis.Container exposing
 
 ### Size modifiers
 
-@docs changeSizeOnLarge, changeSizeOnMedium, changeSizeOnSmall, changeSizeOnXLarge
+@docs withChangeSizeOnLarge, withChangeSizeOnMedium, withChangeSizeOnSmall, withChangeSizeOnXLarge
 
 
 ### Attribute modifiers
 
-@docs addStyle, withAccessKey, withAttribute, withClass, withClassList, withContentEditable, withDraggable, withDropZone, withHidden, withId, withTabIndex, withTitle
+@docs withStyle, withAccessKey, withAttribute, withClass, withClassList, withContentEditable, withDraggable, withDropZone, withHidden, withId, withTabIndex, withTitle
 
 
 ### Events handlers
 
-@docs onBlur, onClick, onDoubleClick, onFocus, onMouseEnter, onMouseLeave, onMouseOut, onMouseOver
+@docs withOnBlur, withOnClick, withOnDoubleClick, withOnFocus, withOnMouseEnter, withOnMouseLeave, withOnMouseOut, withOnMouseOver
 
 -}
 
