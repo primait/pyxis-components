@@ -7,20 +7,22 @@ import Prima.Pyxis.Helpers as Helpers
 import Prima.Pyxis.ListChooser as ListChooser
 import Prima.Pyxis.ListChooser.Examples.Model
     exposing
-        ( Msg(..)
+        ( Model
+        , Msg(..)
         )
 
 
-view : ListChooser.State -> Browser.Document Msg
+view : Model -> Browser.Document Msg
 view model =
     Browser.Document "ListChooser component" (appBody model)
 
 
-appBody : ListChooser.State -> List (Html Msg)
-appBody chooserItemState =
+appBody : Model -> List (Html Msg)
+appBody { state, config } =
     [ Helpers.pyxisStyle
-    , Container.row
+    , Container.column
         |> Container.withContent
-            [ Html.map ChoosedMsg <| ListChooser.render chooserItemState <| ListChooser.config 3 "Mostra tutto" "Mostra i primi 3"
+            [ Html.map ChosenMsg <| ListChooser.render state config
             ]
+        |> Container.render
     ]
