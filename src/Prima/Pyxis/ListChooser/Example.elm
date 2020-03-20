@@ -1,7 +1,6 @@
 module Prima.Pyxis.ListChooser.Example exposing (main)
 
 import Browser
-import Prima.Pyxis.ListChooser as ListChooser
 import Prima.Pyxis.ListChooser.Examples.Model exposing (Model, Msg, initialModel)
 import Prima.Pyxis.ListChooser.Examples.Update exposing (update)
 import Prima.Pyxis.ListChooser.Examples.View exposing (view)
