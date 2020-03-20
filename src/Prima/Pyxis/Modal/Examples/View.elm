@@ -35,7 +35,7 @@ appBody ({ messageToPrint } as model) =
     [ Helpers.pyxisStyle
     , Container.column
         |> Container.withContent
-            ([ div ([] :: linkContainerStyles)
+            (div linkContainerStyles
                 [ h3 [ style "margin-bottom" "200px" ]
                     [ "Message from modal:"
                         ++ messageToPrint
@@ -48,7 +48,6 @@ appBody ({ messageToPrint } as model) =
                 , Link.simpleWithOnClick "Large Modal" (Show Large)
                     |> Link.render
                 ]
-             ]
                 :: renderModals model
             )
         |> Container.render

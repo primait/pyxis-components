@@ -5,6 +5,7 @@ module Prima.Pyxis.Helpers exposing
     , isJust
     , isNothing
     , loremIpsum
+    , maybeCons
     , maybeSingleton
     , pyxisStyle
     , renderIf
@@ -120,3 +121,15 @@ stopEvt eventType msg =
 maybeSingleton : Maybe a -> List a
 maybeSingleton =
     Maybe.withDefault [] << Maybe.map List.singleton
+
+
+{-| Cons a maybe in a list if is Just
+-}
+maybeCons : Maybe a -> List a -> List a
+maybeCons mA xs =
+    case mA of
+        Just a ->
+            a :: xs
+
+        Nothing ->
+            xs

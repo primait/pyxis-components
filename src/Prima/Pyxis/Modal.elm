@@ -625,9 +625,9 @@ overlayAttributes overlayOptions =
     [ HtmlAttributes.id overlayId
     ]
         |> List.append overlayOptions.attributes
-        |> List.append (H.maybeSingleton overlayOptions.class)
-        |> List.append (H.maybeSingleton overlayOptions.classList)
-        |> List.append [ HtmlAttributes.class "a-overlay" ]
+        |> H.maybeCons overlayOptions.class
+        |> H.maybeCons overlayOptions.classList
+        |> (::) (HtmlAttributes.class "a-overlay")
         |> List.append overlayOptions.events
         |> List.append overlayOptions.styles
 
@@ -642,7 +642,7 @@ withCloseOnOverlayClick (Config modalConfig) =
             (updateOverlayOptions
                 (\overlayOptions ->
                     { overlayOptions
-                        | events = overlayOptions.events ++ [ onOverlayClick modalConfig.closeEvent ]
+                        | events = onOverlayClick modalConfig.closeEvent :: overlayOptions.events
                     }
                 )
             )
@@ -714,7 +714,7 @@ withOverlayAttribute attribute (Config modalConfig) =
             (updateOverlayOptions
                 (\overlayOptions ->
                     { overlayOptions
-                        | attributes = overlayOptions.attributes ++ [ attribute ]
+                        | attributes = attribute :: overlayOptions.attributes
                     }
                 )
             )
@@ -736,7 +736,7 @@ withOverlayStyle property value (Config modalConfig) =
             (updateOverlayOptions
                 (\overlayOptions ->
                     { overlayOptions
-                        | styles = overlayOptions.styles ++ [ HtmlAttributes.style property value ]
+                        | styles = HtmlAttributes.style property value :: overlayOptions.styles
                     }
                 )
             )
@@ -763,20 +763,20 @@ modalAttributes : ModalOptions msg -> ModalConfig msg -> List (Html.Attribute ms
 modalAttributes modalOptions modalConfig =
     []
         |> List.append modalOptions.attributes
-        |> List.append (H.maybeSingleton modalOptions.class)
-        |> List.append (H.maybeSingleton modalOptions.classList)
-        |> List.append
-            [ HtmlAttributes.classList
+        |> H.maybeCons modalOptions.classList
+        |> H.maybeCons modalOptions.class
+        |> (::)
+            (HtmlAttributes.classList
                 [ ( "o-modal", True )
                 , ( "o-modal--small", isSmallSize modalConfig.size )
                 , ( "o-modal--medium", isMediumSize modalConfig.size )
                 , ( "o-modal--large", isLargeSize modalConfig.size )
                 ]
-            ]
+            )
         |> List.append modalOptions.events
-        |> List.append (H.maybeSingleton modalOptions.id)
+        |> H.maybeCons modalOptions.id
         |> List.append modalOptions.styles
-        |> List.append (H.maybeSingleton modalOptions.title)
+        |> H.maybeCons modalOptions.title
 
 
 {-| Modifier
@@ -789,7 +789,7 @@ withAttribute attribute (Config modalConfig) =
         |> updateModalOptions
             (\modalOptions ->
                 { modalOptions
-                    | attributes = modalOptions.attributes ++ [ attribute ]
+                    | attributes = attribute :: modalOptions.attributes
                 }
             )
         |> Config
@@ -805,7 +805,7 @@ withStyle property value (Config modalConfig) =
         |> updateModalOptions
             (\modalOptions ->
                 { modalOptions
-                    | styles = modalOptions.styles ++ [ HtmlAttributes.style property value ]
+                    | styles = HtmlAttributes.style property value :: modalOptions.styles
                 }
             )
         |> Config
@@ -888,9 +888,9 @@ headerAttributes : HeaderOptions msg -> List (Html.Attribute msg)
 headerAttributes headerOptions =
     []
         |> List.append headerOptions.attributes
-        |> List.append (H.maybeSingleton headerOptions.class)
-        |> List.append (H.maybeSingleton headerOptions.classList)
-        |> List.append [ HtmlAttributes.class "o-modal__header" ]
+        |> H.maybeCons headerOptions.classList
+        |> H.maybeCons headerOptions.class
+        |> (::) (HtmlAttributes.class "o-modal__header")
         |> List.append headerOptions.styles
 
 
@@ -905,7 +905,7 @@ withHeaderAttribute headerAttribute (Config modalConfig) =
             (updateHeaderOptions
                 (\headerOptions ->
                     { headerOptions
-                        | attributes = headerOptions.attributes ++ [ headerAttribute ]
+                        | attributes = headerAttribute :: headerOptions.attributes
                     }
                 )
             )
@@ -996,7 +996,7 @@ withHeaderContent customContent (Config modalConfig) =
                 (\headerOptions ->
                     { headerOptions
                         | content =
-                            customContent ++ [ headerCloseButton modalConfig.closeEvent ]
+                            headerCloseButton modalConfig.closeEvent :: customContent
                     }
                 )
             )
@@ -1031,7 +1031,7 @@ withHeaderStyle attribute value (Config modalConfig) =
             (updateHeaderOptions
                 (\headerOptions ->
                     { headerOptions
-                        | styles = headerOptions.styles ++ [ HtmlAttributes.style attribute value ]
+                        | styles = HtmlAttributes.style attribute value :: headerOptions.styles
                     }
                 )
             )
@@ -1063,9 +1063,9 @@ bodyAttributes : BodyOptions msg -> List (Html.Attribute msg)
 bodyAttributes bodyOptions =
     []
         |> List.append bodyOptions.attributes
-        |> List.append (H.maybeSingleton bodyOptions.class)
-        |> List.append (H.maybeSingleton bodyOptions.classList)
-        |> List.append [ HtmlAttributes.class "o-modal__content" ]
+        |> H.maybeCons bodyOptions.classList
+        |> H.maybeCons bodyOptions.class
+        |> (::) (HtmlAttributes.class "o-modal__content")
         |> List.append bodyOptions.styles
 
 
@@ -1081,9 +1081,7 @@ withBodyAttribute attribute (Config modalConfig) =
                 (\bodyOptions ->
                     { bodyOptions
                         | attributes =
-                            bodyOptions.attributes
-                                ++ [ attribute
-                                   ]
+                            attribute :: bodyOptions.attributes
                     }
                 )
             )
@@ -1152,7 +1150,7 @@ withBodyStyle attribute value (Config modalConfig) =
             (updateBodyOptions
                 (\bodyOptions ->
                     { bodyOptions
-                        | styles = bodyOptions.styles ++ [ HtmlAttributes.style attribute value ]
+                        | styles = HtmlAttributes.style attribute value :: bodyOptions.styles
                     }
                 )
             )
@@ -1176,9 +1174,9 @@ footerAttributes : FooterOptions msg -> List (Html.Attribute msg)
 footerAttributes footerOptions =
     []
         |> List.append footerOptions.attributes
-        |> List.append (H.maybeSingleton footerOptions.class)
-        |> List.append (H.maybeSingleton footerOptions.classList)
-        |> List.append [ HtmlAttributes.class "o-modal__footer" ]
+        |> H.maybeCons footerOptions.classList
+        |> H.maybeCons footerOptions.class
+        |> (::) (HtmlAttributes.class "o-modal__footer")
         |> List.append footerOptions.styles
 
 
@@ -1193,10 +1191,7 @@ withFooterAttribute attribute (Config modalConfig) =
             (updateFooterOptions
                 (\footerOptions ->
                     { footerOptions
-                        | attributes =
-                            footerOptions.attributes
-                                ++ [ attribute
-                                   ]
+                        | attributes = attribute :: footerOptions.attributes
                     }
                 )
             )
@@ -1265,7 +1260,7 @@ withFooterStyle attribute value (Config modalConfig) =
             (updateFooterOptions
                 (\footerOptions ->
                     { footerOptions
-                        | styles = footerOptions.styles ++ [ HtmlAttributes.style attribute value ]
+                        | styles = HtmlAttributes.style attribute value :: footerOptions.styles
                     }
                 )
             )
@@ -1298,6 +1293,7 @@ Intercepted X button click event
 -}
 onCloseButtonClick : msg -> Html.Attribute msg
 onCloseButtonClick =
-    InterceptedEvents.onClick (Interceptor.targetWithId headerCloseButtonId)
+    InterceptedEvents.onClick
+        (Interceptor.targetWithId headerCloseButtonId)
         >> InterceptedEvents.withStopPropagation
         >> InterceptedEvents.event

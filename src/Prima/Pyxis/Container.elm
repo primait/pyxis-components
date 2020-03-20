@@ -2,9 +2,8 @@ module Prima.Pyxis.Container exposing
     ( Config, render
     , row, column, rowFluid, columnFluid
     , withContent
-    , changeSizeOnLarge, changeSizeOnMedium, changeSizeOnSmall, changeSizeOnXLarge
-    , addStyle, withAccessKey, withAttribute, withClass, withClassList, withContentEditable, withDraggable, withDropZone, withHidden, withId, withTabIndex, withTitle
-    , onBlur, onClick, onDoubleClick, onFocus, onMouseEnter, onMouseLeave, onMouseOut, onMouseOver
+    , withAccessKey, withAttribute, withClass, withClassList, withContentEditable, withDraggable, withDropZone, withHidden, withId, withTabIndex, withTitle
+    , withChangeSizeOnLarge, withChangeSizeOnMedium, withChangeSizeOnSmall, withChangeSizeOnXLarge, withOnBlur, withOnClick, withOnDoubleClick, withOnFocus, withOnMouseEnter, withOnMouseLeave, withOnMouseOut, withOnMouseOver, withStyle
     )
 
 {-| Create a `Container` by using predefined Html syntax.
@@ -243,18 +242,18 @@ Helper class for container function, compute all optionals Html Attributes
 optionalContainerHtmlAttributes : ContainerOptions msg -> List (Html.Attribute msg)
 optionalContainerHtmlAttributes options =
     []
-        |> List.append (H.maybeSingleton options.accessKey)
-        |> List.append (H.maybeSingleton options.class)
-        |> List.append (H.maybeSingleton options.classList)
-        |> List.append (H.maybeSingleton options.contentEditable)
+        |> H.maybeCons options.accessKey
+        |> H.maybeCons options.classList
+        |> H.maybeCons options.class
+        |> H.maybeCons options.contentEditable
         |> List.append options.attributes
-        |> List.append (H.maybeSingleton options.draggable)
-        |> List.append (H.maybeSingleton options.dropZone)
+        |> H.maybeCons options.draggable
+        |> H.maybeCons options.dropZone
         |> List.append options.events
-        |> List.append (H.maybeSingleton options.hidden)
-        |> List.append (H.maybeSingleton options.id)
-        |> List.append (H.maybeSingleton options.tabIndex)
-        |> List.append (H.maybeSingleton options.title)
+        |> H.maybeCons options.hidden
+        |> H.maybeCons options.id
+        |> H.maybeCons options.tabIndex
+        |> H.maybeCons options.title
         |> List.append (List.map sizeModifierToClass options.sizeModifiers)
         |> List.append options.styles
 
@@ -395,7 +394,8 @@ withContent content config =
         config
 
 
-{-| Configuration modifier. Adds contenteditable attribute on the container
+{-| Configuration modifier.
+Adds contenteditable attribute on the container
 -}
 withContentEditable : Bool -> Config msg -> Config msg
 withContentEditable isEditable config =
@@ -408,7 +408,8 @@ withContentEditable isEditable config =
         config
 
 
-{-| Configuration modifier. Adds hidden attribute on the container
+{-| Configuration modifier.
+Adds hidden attribute on the container
 -}
 withHidden : Bool -> Config msg -> Config msg
 withHidden isHidden config =
@@ -421,7 +422,8 @@ withHidden isHidden config =
         config
 
 
-{-| Configuration modifier. Adds id attribute on the container
+{-| Configuration modifier.
+Adds id attribute on the container
 -}
 withId : String -> Config msg -> Config msg
 withId id config =
@@ -434,7 +436,8 @@ withId id config =
         config
 
 
-{-| Configuration modifier. Adds tab-index attribute on the container
+{-| Configuration modifier.
+Adds tab-index attribute on the container
 -}
 withTabIndex : Int -> Config msg -> Config msg
 withTabIndex index config =
@@ -447,7 +450,8 @@ withTabIndex index config =
         config
 
 
-{-| Configuration modifier. Adds title attribute on the container
+{-| Configuration modifier.
+Adds title attribute on the container
 -}
 withTitle : String -> Config msg -> Config msg
 withTitle title config =
@@ -460,7 +464,8 @@ withTitle title config =
         config
 
 
-{-| Configuration modifier. Adds draggable attribute on the container
+{-| Configuration modifier.
+Adds draggable attribute on the container
 -}
 withDraggable : String -> Config msg -> Config msg
 withDraggable draggable config =
@@ -473,7 +478,8 @@ withDraggable draggable config =
         config
 
 
-{-| Configuration modifier. Adds a generic attribute on the container.
+{-| Configuration modifier.
+Adds a generic attribute on the container.
 You shouldn't use this if is not strictly necessary
 -}
 withAttribute : Html.Attribute msg -> Config msg -> Config msg
@@ -481,13 +487,14 @@ withAttribute customAttribute config =
     updateOptionsRecord
         (\containerOptions ->
             { containerOptions
-                | attributes = List.append containerOptions.attributes [ customAttribute ]
+                | attributes = customAttribute :: containerOptions.attributes
             }
         )
         config
 
 
-{-| Configuration modifier. Adds dropzone attribute on the container
+{-| Configuration modifier.
+Adds dropzone attribute on the container
 -}
 withDropZone : String -> Config msg -> Config msg
 withDropZone dropZone config =
@@ -500,44 +507,49 @@ withDropZone dropZone config =
         config
 
 
-{-| Configuration modifier. Adds style attribute on the container (it can be used multiple times)
+{-| Configuration modifier.
+Adds style attribute on the container (it can be used multiple times)
 -}
-addStyle : String -> String -> Config msg -> Config msg
-addStyle prop value config =
+withStyle : String -> String -> Config msg -> Config msg
+withStyle prop value config =
     updateOptionsRecord
         (\containerOptions ->
             { containerOptions
-                | styles = List.append containerOptions.styles [ HtmlAttributes.style prop value ]
+                | styles = HtmlAttributes.style prop value :: containerOptions.styles
             }
         )
         config
 
 
-{-| Configuration modifier. Swap between Regular or Fluid sizing on Small breakpoint
+{-| Configuration modifier.
+Swap between Regular or Fluid sizing on Small breakpoint
 -}
-changeSizeOnSmall : Config msg -> Config msg
-changeSizeOnSmall config =
+withChangeSizeOnSmall : Config msg -> Config msg
+withChangeSizeOnSmall config =
     changeSizeOnBreakPoint Small config
 
 
-{-| Configuration modifier. Swap between Regular or Fluid sizing on Medium breakpoint
+{-| Configuration modifier.
+Swap between Regular or Fluid sizing on Medium breakpoint
 -}
-changeSizeOnMedium : Config msg -> Config msg
-changeSizeOnMedium config =
+withChangeSizeOnMedium : Config msg -> Config msg
+withChangeSizeOnMedium config =
     changeSizeOnBreakPoint Medium config
 
 
-{-| Configuration modifier. Swap between Regular or Fluid sizing on Large breakpoint
+{-| Configuration modifier.
+Swap between Regular or Fluid sizing on Large breakpoint
 -}
-changeSizeOnLarge : Config msg -> Config msg
-changeSizeOnLarge config =
+withChangeSizeOnLarge : Config msg -> Config msg
+withChangeSizeOnLarge config =
     changeSizeOnBreakPoint Large config
 
 
-{-| Configuration modifier. Swap between Regular or Fluid sizing on XLarge breakpoint
+{-| Configuration modifier.
+Swap between Regular or Fluid sizing on XLarge breakpoint
 -}
-changeSizeOnXLarge : Config msg -> Config msg
-changeSizeOnXLarge config =
+withChangeSizeOnXLarge : Config msg -> Config msg
+withChangeSizeOnXLarge config =
     changeSizeOnBreakPoint XLarge config
 
 
@@ -568,59 +580,67 @@ addSizeModifier modifier config =
         config
 
 
-{-| Configuration modifier. Adds onClick event listener on Container
+{-| Configuration modifier.
+Adds onClick event listener on Container
 -}
-onClick : msg -> Config msg -> Config msg
-onClick msg =
+withOnClick : msg -> Config msg -> Config msg
+withOnClick msg =
     addOptionalEvent (HtmlEvents.onClick msg)
 
 
-{-| Configuration modifier. Adds onDoubleClick event listener on Container
+{-| Configuration modifier.
+Adds onDoubleClick event listener on Container
 -}
-onDoubleClick : msg -> Config msg -> Config msg
-onDoubleClick msg =
+withOnDoubleClick : msg -> Config msg -> Config msg
+withOnDoubleClick msg =
     addOptionalEvent (HtmlEvents.onDoubleClick msg)
 
 
-{-| Configuration modifier. Adds onMouseEnter event listener on Container
+{-| Configuration modifier.
+Adds onMouseEnter event listener on Container
 -}
-onMouseEnter : msg -> Config msg -> Config msg
-onMouseEnter msg =
+withOnMouseEnter : msg -> Config msg -> Config msg
+withOnMouseEnter msg =
     addOptionalEvent (HtmlEvents.onMouseEnter msg)
 
 
-{-| Configuration modifier. Adds onMouseLeave event listener on Container
+{-| Configuration modifier.
+Adds onMouseLeave event listener on Container
 -}
-onMouseLeave : msg -> Config msg -> Config msg
-onMouseLeave msg =
+withOnMouseLeave : msg -> Config msg -> Config msg
+withOnMouseLeave msg =
     addOptionalEvent (HtmlEvents.onMouseLeave msg)
 
 
-{-| Configuration modifier. Adds onMouseOver event listener on Container
+{-| Configuration modifier.
+Adds onMouseOver event listener on Container
 -}
-onMouseOver : msg -> Config msg -> Config msg
-onMouseOver msg =
+withOnMouseOver : msg -> Config msg -> Config msg
+withOnMouseOver msg =
     addOptionalEvent (HtmlEvents.onMouseOver msg)
 
 
-{-| Configuration modifier. Adds onMouseOut event listener on Container
+{-| Configuration modifier.
+Adds onMouseOut event listener on Container
 -}
-onMouseOut : msg -> Config msg -> Config msg
-onMouseOut msg =
+withOnMouseOut : msg -> Config msg -> Config msg
+withOnMouseOut msg =
     addOptionalEvent (HtmlEvents.onMouseOut msg)
 
 
-{-| Configuration modifier. Adds onBlur event listener on Container
+{-| Configuration modifier.
+Adds onBlur event listener on Container
 -}
-onBlur : msg -> Config msg -> Config msg
-onBlur msg =
+withOnBlur : msg -> Config msg -> Config msg
+withOnBlur msg =
     addOptionalEvent (HtmlEvents.onBlur msg)
 
 
-{-| Configuration modifier. Adds onFocus event listener on Container
+{-| Configuration modifier.
+Adds onFocus event listener on Container
 -}
-onFocus : msg -> Config msg -> Config msg
-onFocus msg =
+withOnFocus : msg -> Config msg -> Config msg
+withOnFocus msg =
     addOptionalEvent (HtmlEvents.onFocus msg)
 
 

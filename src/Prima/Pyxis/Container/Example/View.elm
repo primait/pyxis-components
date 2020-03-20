@@ -86,14 +86,14 @@ appBody model =
     , hr [] []
     , sectionTitle "Row Container Fluid, regular on Medium"
     , Container.rowFluid
-        |> Container.changeSizeOnMedium
+        |> Container.withChangeSizeOnMedium
         |> Container.withClass "bgAlertBase"
         |> Container.withContent dummyBlocks
         |> Container.render
     , hr [] []
     , sectionTitle "Row Container, fluid on Medium"
     , Container.row
-        |> Container.changeSizeOnMedium
+        |> Container.withChangeSizeOnMedium
         |> Container.withClass "bgAlertBase"
         |> Container.withContent dummyBlocks
         |> Container.render
@@ -124,11 +124,11 @@ veryLongComposedAttributes =
         << Container.withTitle "container with title"
         << Container.withAccessKey 'c'
         << Container.withTabIndex 1
-        << Container.onBlur Model.OnBlur
-        << Container.onClick Model.OnClick
-        << Container.onDoubleClick Model.OnDoubleClick
-        << Container.onMouseEnter Model.OnMouseEnter
-        << Container.onMouseLeave Model.OnMouseLeave
-        << Container.onMouseOut Model.OnMouseOut
-        << Container.onMouseOver Model.OnMouseOver
-        << Container.onFocus Model.OnFocus
+        << Container.withOnBlur Model.OnBlur
+        << Container.withOnClick Model.OnClick
+        << Container.withOnDoubleClick Model.OnDoubleClick
+        << Container.withOnMouseEnter Model.OnMouseEnter
+        << Container.withOnMouseLeave Model.OnMouseLeave
+        << Container.withOnMouseOut Model.OnMouseOut
+        << Container.withOnMouseOver Model.OnMouseOver
+        << Container.withOnFocus Model.OnFocus
