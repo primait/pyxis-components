@@ -1,10 +1,9 @@
 module Prima.Pyxis.Table exposing
-    ( Config, TableType, State, Header, Row, Column, ColSpan, Sort
-    , config, initialState, defaultType, alternativeType
-    , header, row
-    , columnFloat, columnHtml, columnInteger, columnString
-    , sort, sortAsc, sortDesc
-    , render
+    ( Config, TableType(..), State, Header, Row, Column, ColSpan, Sort(..), Msg
+    , config, withTableClass, withHeaderClass, withFooterClass, withElementClass, withId, withTableType, withAlternateRows
+    , state, withHeaders, withRows, withFooters, withSort
+    , header, row, columnFloat, columnHtml, columnInteger, columnString
+    , render, update
     )
 
 {-| Create a customizable `Table` by using predefined Html syntax.
@@ -12,32 +11,32 @@ module Prima.Pyxis.Table exposing
 
 # Configuration
 
-@docs Config, TableType, State, Header, Row, Column, ColSpan, Sort, Footer, FooterColumn, FooterRow
+@docs Config, TableType, State, Header, Row, Column, ColSpan, Sort, Msg
 
 
 ## Options
 
-@docs config, initialState, defaultType, alternativeType
+@docs config, withTableClass, withHeaderClass, withFooterClass, withElementClass, withId, withTableType, withAlternateRows
 
 
-# Configuration for Rows & Headers
+## State
 
-@docs header, row, footerRow
+@docs state, withHeaders, withRows, withFooters, withSort
 
 
-# Configuration for Columns
+# Configuration for Headers, Rows and Columns
 
-@docs columnFloat, columnHtml, columnInteger, columnString, footerColumnFloat, footerColumnHtml, footerColumnInteger, footerColumnString
+@docs header, row, columnFloat, columnHtml, columnInteger, columnString
 
 
 # Helpers
 
-@docs sort, sortAsc, sortDesc
+@docs sortAsc, sortDesc
 
 
 # Render
 
-@docs render
+@docs render, update
 
 -}
 
@@ -47,6 +46,10 @@ import Html.Attributes exposing (attribute, class, classList, colspan)
 import Html.Events exposing (onClick)
 import List.Extra as LE
 import Prima.Pyxis.Helpers as H
+
+
+type Msg
+    = SortBy Slug
 
 
 {-| Represent the static configuration of the component.
@@ -63,36 +66,7 @@ type alias TableConfig =
 
 {-| Returns the config of the component.
 
-    ...
-
-    type Msg =
-        SortBy String
-    ...
-
-    myTableConfig : Table.Config
-    myTableConfig =
-        let
-            headers : List (Table.Header Msg)
-            headers =
-                List.map (\content -> Table.header (String.toLower content) content SortBy) [ "Country", "Capital city" ]
-
-            rows : List (Table.Row Msg)
-            rows =
-                List.map (Table.row << List.map Table.columnString ) [ ["Italy", "Rome"], ["France", "Paris"], ["U.K.", "London"] ]
-
-            alternateRows =
-                True
-
-            createFooterColumns : List String -> List (Table.FooterColumn Msg)
-            createFooterColumns columns =
-                List.map (Table.footerColumnString 1) columns
-
-            footer : List (Table.FooterRow Msg)
-            footer =
-                [ Table.footerRow (createFooterColumns [ "Country", "Capital city" ]) ]
-
-        in
-        Table.config Table.defaultType sorting headers rows alternateRows footerColumns [("my-custom-class", True)]
+    tableConfig = Table.config True
 
     ...
 
@@ -102,6 +76,8 @@ config sortable =
     Config (TableConfig sortable [])
 
 
+{-| Internal. Represents the list of available customizations.
+-}
 type alias Options =
     { tableClassList : List ( String, Bool )
     , headerClassList : List ( String, Bool )
@@ -187,55 +163,57 @@ type TableType
     | Alternative
 
 
-{-| Represent the Default table skin.
+{-| Internal. Checks if the table is of Alternative type.
 -}
-defaultType : TableType
-defaultType =
-    Default
-
-
-{-| Represent the Alternative table skin.
--}
-alternativeType : TableType
-alternativeType =
-    Alternative
-
-
 isAlternativeTableType : TableType -> Bool
 isAlternativeTableType =
     (==) Alternative
 
 
+{-| Adds a class for the <table> tag to the `Config`
+-}
 withTableClass : String -> Config -> Config
 withTableClass class =
     addOption (TableClass class)
 
 
+{-| Adds a class for the <thead> tag to the `Config`.
+-}
 withHeaderClass : String -> Config -> Config
 withHeaderClass class =
     addOption (HeaderClass class)
 
 
+{-| Adds a class for the <tfoot> tag to the `Config`.
+-}
 withFooterClass : String -> Config -> Config
 withFooterClass class =
     addOption (FooterClass class)
 
 
+{-| Adds a class for the <td> tags to the `Config`.
+-}
 withElementClass : String -> Config -> Config
 withElementClass class =
     addOption (ElementClass class)
 
 
+{-| Adds an id for the <table> tag to the `Config`.
+-}
 withId : String -> Config -> Config
 withId id =
     addOption (Id id)
 
 
+{-| Sets the type for the Table component to `Config`.
+-}
 withTableType : TableType -> Config -> Config
 withTableType tableType =
     addOption (Type_ tableType)
 
 
+{-| Sets the alternate rows option for the Table component to `Config`.
+-}
 withAlternateRows : Bool -> Config -> Config
 withAlternateRows isAlternate =
     addOption (AlternateRows isAlternate)
@@ -243,153 +221,187 @@ withAlternateRows isAlternate =
 
 {-| Represent the basic state of the component.
 -}
-type State msg
-    = State (InternalState msg)
+type State
+    = State InternalState
 
 
 {-| Create an initial State defined by Sort and Column.
 -}
-initialState : Maybe Sort -> Maybe String -> State msg
-initialState sortBy sortedColumn =
+state : Maybe Sort -> Maybe String -> State
+state sortBy sortedColumn =
     State (InternalState sortBy sortedColumn [] [] [])
 
 
-type alias InternalState msg =
+{-| Internal. Represents the State of the `Table`
+-}
+type alias InternalState =
     { sortBy : Maybe Sort
     , sortedColumn : Maybe Slug
-    , headers : List (Header msg)
-    , rows : List (Row msg)
-    , footerColumns : List (Row msg)
+    , headers : List Header
+    , rows : List Row
+    , footerColumns : List Row
     }
 
 
-{-| Represent the sort algorithm
+{-| Represents the sort algorithm
 -}
 type Sort
     = Asc
     | Desc
 
 
-{-| Returns the Ascending sort algorithm.
--}
-sortAsc : Maybe Sort
-sortAsc =
-    Just Asc
-
-
-{-| Returns the Descending sort algorithm.
--}
-sortDesc : Maybe Sort
-sortDesc =
-    Just Desc
-
-
 {-| Sets the sorting algorithm for a specific column.
 -}
-sort : Maybe Slug -> Maybe Sort -> State msg -> State msg
-sort sortedColumnSlug sortAlgorithm (State internalState) =
-    State { internalState | sortBy = sortAlgorithm, sortedColumn = sortedColumnSlug }
+withSort : Slug -> Sort -> State -> State
+withSort sortedColumnSlug algorithm (State internalState) =
+    State { internalState | sortBy = Just algorithm, sortedColumn = Just sortedColumnSlug }
 
 
-withHeaders : List (Header msg) -> State msg -> State msg
+{-| Sets the header columns of the table.
+-}
+withHeaders : List Header -> State -> State
 withHeaders headers (State internalState) =
     State { internalState | headers = headers }
 
 
-withRows : List (Row msg) -> State msg -> State msg
+{-| Sets the content of the rows of the table.
+-}
+withRows : List Row -> State -> State
 withRows rows (State internalState) =
     State { internalState | rows = rows }
 
 
-withFooters : List (Row msg) -> State msg -> State msg
+{-| Sets the footer columns of the table.
+-}
+withFooters : List Row -> State -> State
 withFooters footerColumns (State internalState) =
     State { internalState | footerColumns = footerColumns }
 
 
+{-| Updates the state of the component when a Msg is received.
+-}
+update : Msg -> State -> State
+update msg (State ({ sortedColumn, sortBy } as internalState)) =
+    case msg of
+        SortBy slug ->
+            if isCurrentlySorted slug sortedColumn then
+                State { internalState | sortBy = sortAlgorithm sortBy }
+
+            else
+                State { internalState | sortBy = sortAlgorithm Nothing, sortedColumn = Just slug }
+
+
+{-| Internal. Updates the sorting algorithm applied to the table.
+-}
+sortAlgorithm : Maybe Sort -> Maybe Sort
+sortAlgorithm sortingBy =
+    case sortingBy of
+        Nothing ->
+            Just Asc
+
+        Just Asc ->
+            Just Desc
+
+        Just Desc ->
+            Nothing
+
+
+{-| Internal. Checks of the selected column is currently being sorted
+-}
+isCurrentlySorted : Slug -> Maybe Slug -> Bool
+isCurrentlySorted slug sortedColumn =
+    H.isJust sortedColumn && sortedColumn == Just slug
+
+
 {-| Represent an Header of the table. It's gonna be rendered as a <th/> tag.
 -}
-type Header msg
-    = Header (HeaderConfiguration msg)
+type Header
+    = Header HeaderConfiguration
 
 
-type alias HeaderConfiguration msg =
+{-| Internal. Represents the configuration of a Header column .
+-}
+type alias HeaderConfiguration =
     { slug : Slug
-    , content : List (Html msg)
-    , tagger : Maybe (Slug -> msg)
+    , content : List (Html Msg)
     }
 
 
 {-| Create the Header.
 
-    myHeader : String -> String -> (String -> Msg) -> Table.Header Msg
-    myHeader slug content sortByTagger =
-        Table.header slug content sortByTagger
+    myHeader : String -> String -> Table.Header
+    myHeader slug content =
+        Table.header slug content
 
 -}
-header : Slug -> List (Html msg) -> Maybe (Slug -> msg) -> Header msg
-header slug content maybeTagger =
-    Header <| HeaderConfiguration slug content maybeTagger
+header : Slug -> List (Html Msg) -> Header
+header slug content =
+    Header <| HeaderConfiguration slug content
 
 
 {-| Represent a Row which contains a list of Columns.
 -}
-type Row msg
-    = Row (List (Column msg))
+type Row
+    = Row (List Column)
 
 
 {-| Create a Row
 
-    myRow : List (Column Msg) -> Table.Row Msg
+    myRow : List Column -> Table.Row
     myRow columns =
         Table.row columns
 
 -}
-row : List (Column msg) -> Row msg
+row : List Column -> Row
 row columns =
     Row columns
 
 
 {-| Represent a Column which can manage a specific kind of data.
 -}
-type Column msg
-    = Column (ColumnConfiguration msg)
+type Column
+    = Column ColumnConfiguration
 
 
-type ColumnConfiguration msg
+{-| Internal. Represents the available configurations for the columns.
+-}
+type ColumnConfiguration
     = StringColumn ColSpan String
     | IntegerColumn ColSpan Int
     | FloatColumn ColSpan Float
-    | HtmlColumn ColSpan (List (Html msg) -> String) (List (Html msg))
+    | HtmlColumn ColSpan (List (Html Msg) -> String) (List (Html Msg))
 
 
 {-| Create a Column which content is String primitive.
 -}
-columnString : ColSpan -> String -> Column msg
+columnString : ColSpan -> String -> Column
 columnString colSpan content =
     Column (StringColumn colSpan content)
 
 
 {-| Create a Column which content is Integer primitive.
 -}
-columnInteger : ColSpan -> Int -> Column msg
+columnInteger : ColSpan -> Int -> Column
 columnInteger colSpan content =
     Column (IntegerColumn colSpan content)
 
 
 {-| Create a Column which content is Float primitive.
 -}
-columnFloat : ColSpan -> Float -> Column msg
+columnFloat : ColSpan -> Float -> Column
 columnFloat colSpan content =
     Column (FloatColumn colSpan content)
 
 
-{-| Create a Column which content is Html.
+{-| Create a Column which content is Html, that can be sorted using compareFunction.
 -}
-columnHtml : ColSpan -> (List (Html msg) -> String) -> List (Html msg) -> Column msg
+columnHtml : ColSpan -> (List (Html Msg) -> String) -> List (Html Msg) -> Column
 columnHtml colSpan compareFunction content =
     Column (HtmlColumn colSpan compareFunction content)
 
 
+{-| Represent the slug of a column. Alias for String.
+-}
 type alias Slug =
     String
 
@@ -400,7 +412,9 @@ type alias ColSpan =
     Int
 
 
-sortRows : Int -> List (Row msg) -> List (Row msg)
+{-| Applies the sorting relative of the selected column to the rows.
+-}
+sortRows : Int -> List Row -> List Row
 sortRows columnIndex rows =
     List.sortBy
         (Maybe.withDefault ""
@@ -412,7 +426,9 @@ sortRows columnIndex rows =
         rows
 
 
-columnToComparable : Column msg -> String
+{-| Converts the content of the available datatypes of the column into a String that can be compared.
+-}
+columnToComparable : Column -> String
 columnToComparable (Column columnConf) =
     case columnConf of
         StringColumn _ content ->
@@ -428,12 +444,16 @@ columnToComparable (Column columnConf) =
             compareFunction content
 
 
-pickColumnsFromRow : Row msg -> List (Column msg)
+{-| Internal. Returns the columns of a row
+-}
+pickColumnsFromRow : Row -> List Column
 pickColumnsFromRow (Row columns) =
     columns
 
 
-retrieveHeaderIndexBySlug : Maybe Slug -> List (Header msg) -> Maybe Int
+{-| Internal. Returns the index of the column corresponding to the provided slug
+-}
+retrieveHeaderIndexBySlug : Maybe Slug -> List Header -> Maybe Int
 retrieveHeaderIndexBySlug slug headers =
     headers
         |> List.map (\(Header h) -> h.slug)
@@ -442,7 +462,7 @@ retrieveHeaderIndexBySlug slug headers =
 
 {-| Renders a Table by receiving a State and a Config
 -}
-render : State msg -> Config -> Html msg
+render : State -> Config -> Html Msg
 render (State ({ sortBy, sortedColumn, headers, rows, footerColumns } as internalState)) (Config conf) =
     let
         options =
@@ -478,78 +498,91 @@ render (State ({ sortBy, sortedColumn, headers, rows, footerColumns } as interna
                 ++ options.tableClassList
             )
         ]
-        [ renderTHead internalState options
+        [ renderTHead internalState conf options
         , renderTBody headerSlugs options sortedRows
         , renderTFoot headerSlugs options footerColumns
         ]
 
 
-renderTHead : InternalState msg -> Options -> Html msg
-renderTHead internalState options =
+{-| Internal. Renders the table header by receiving State, Config and the Options
+-}
+renderTHead : InternalState -> TableConfig -> Options -> Html Msg
+renderTHead internalState conf options =
     thead
         [ classList (( "m-table__header", True ) :: options.headerClassList)
         ]
         [ tr
             [ class "m-table__header__row" ]
-            (List.map (renderTH internalState) internalState.headers)
+            (List.map (renderTH internalState conf) internalState.headers)
         ]
 
 
-renderTFoot : List Slug -> Options -> List (Row msg) -> Html msg
+{-| Internal. Renders the table footer by receiving State, Options and the rows of the footer
+-}
+renderTFoot : List Slug -> Options -> List Row -> Html Msg
 renderTFoot headerSlugs options footerRows =
     tbody
         [ classList (( "m-table__footer", True ) :: options.footerClassList) ]
         (List.map (renderFooterTR headerSlugs) footerRows)
 
 
-renderTH : InternalState msg -> Header msg -> Html msg
-renderTH { sortBy, sortedColumn } (Header ({ slug, content } as conf)) =
+{-| Internal. Renders the table header by receiving State, Config and the contents of the column
+-}
+renderTH : InternalState -> TableConfig -> Header -> Html Msg
+renderTH { sortBy, sortedColumn } conf (Header { slug, content }) =
     let
-        sortAttr : Html.Attribute msg
+        sortAttr : Maybe (Html.Attribute Msg)
         sortAttr =
-            case conf.tagger of
-                Just tagger ->
-                    (onClick << tagger) slug
+            if conf.sortable then
+                Just ((onClick << SortBy) slug)
 
-                Nothing ->
-                    attribute "data-unsortable" ""
+            else
+                Nothing
     in
     th
-        [ sortAttr
-        , class "m-table__header__item fs-small"
-        , attribute "data-column" slug
-        ]
+        ([ sortAttr ]
+            |> List.filterMap identity
+            |> List.append
+                [ class "m-table__header__item fs-small"
+                , attribute "data-column" slug
+                ]
+        )
         (content
-            ++ [ if H.isJust sortedColumn then
-                    renderSortIcon sortBy
-
-                 else
-                    text ""
-               ]
+            ++ [ renderSortIcon (isCurrentlySorted slug sortedColumn) sortBy ]
         )
 
 
-renderSortIcon : Maybe Sort -> Html msg
-renderSortIcon sortAlgorithm =
-    i
-        [ classList
-            [ ( "m-table__header__item__icon", True )
-            , ( "a-icon", True )
-            , ( "a-icon-caret-up", sortAlgorithm == Just Asc )
-            , ( "a-icon-caret-down", sortAlgorithm == Just Desc )
+{-| Internal. Renders the icon representing the current sorting direction
+-}
+renderSortIcon : Bool -> Maybe Sort -> Html Msg
+renderSortIcon isSorted algorithm =
+    if isSorted then
+        i
+            [ classList
+                [ ( "m-table__header__item__icon", True )
+                , ( "a-icon", True )
+                , ( "a-icon-caret-up", algorithm == Just Asc )
+                , ( "a-icon-caret-down", algorithm == Just Desc )
+                ]
             ]
-        ]
-        []
+            []
+
+    else
+        text ""
 
 
-renderTBody : List Slug -> Options -> List (Row msg) -> Html msg
+{-| Internal. Renders the table body.
+-}
+renderTBody : List Slug -> Options -> List Row -> Html Msg
 renderTBody headerSlugs options rows =
     tbody
         [ class "m-table__body" ]
         (List.map (renderTR headerSlugs options) rows)
 
 
-renderTR : List Slug -> Options -> Row msg -> Html msg
+{-| Internal. Renders a row of contents.
+-}
+renderTR : List Slug -> Options -> Row -> Html Msg
 renderTR headerSlugs options (Row columns) =
     let
         columnsDictionary =
@@ -560,7 +593,9 @@ renderTR headerSlugs options (Row columns) =
         (List.map (renderTD options) columnsDictionary)
 
 
-renderFooterTR : List Slug -> Row msg -> Html msg
+{-| Internal. Renders a row of footer contents.
+-}
+renderFooterTR : List Slug -> Row -> Html Msg
 renderFooterTR headerSlugs (Row columns) =
     let
         columnsDictionary =
@@ -571,7 +606,9 @@ renderFooterTR headerSlugs (Row columns) =
         (List.map renderFooterTD columnsDictionary)
 
 
-renderTD : Options -> ( Slug, Column msg ) -> Html msg
+{-| Internal. Renders a table accordingly to its type.
+-}
+renderTD : Options -> ( Slug, Column ) -> Html Msg
 renderTD options ( slug, Column conf ) =
     td
         [ classList ([ ( "m-table__body__row__col", True ), ( "fs-small", True ) ] ++ options.elementClassList)
@@ -593,7 +630,9 @@ renderTD options ( slug, Column conf ) =
         )
 
 
-renderFooterTD : ( Slug, Column msg ) -> Html msg
+{-| Internal. Renders a footer cell, accordingly to its content.
+-}
+renderFooterTD : ( Slug, Column ) -> Html Msg
 renderFooterTD ( slug, Column conf ) =
     td
         [ class "m-table__footer__row__col fs-small"
@@ -615,7 +654,9 @@ renderFooterTD ( slug, Column conf ) =
         )
 
 
-pickColSpan : ColumnConfiguration msg -> Int
+{-| Internal. Returns the colspan attribute value for a cell.
+-}
+pickColSpan : ColumnConfiguration -> Int
 pickColSpan conf =
     case conf of
         StringColumn colSpan _ ->
@@ -631,11 +672,15 @@ pickColSpan conf =
             colSpan
 
 
-renderIntColumnTD : Int -> List (Html msg)
+{-| Internal. Renders a column of Integer contents.
+-}
+renderIntColumnTD : Int -> List (Html Msg)
 renderIntColumnTD =
     List.singleton << text << String.fromInt
 
 
-renderFloatColumnTD : Float -> List (Html msg)
+{-| Internal. Renders a column of Float contents.
+-}
+renderFloatColumnTD : Float -> List (Html Msg)
 renderFloatColumnTD =
     List.singleton << text << String.fromFloat

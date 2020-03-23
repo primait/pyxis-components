@@ -4,33 +4,35 @@ module Prima.Pyxis.Table.Examples.Model exposing
     , initialModel
     )
 
+import Html
 import Prima.Pyxis.Table as Table
 
 
 type Msg
-    = Table
-    | SortBy String
+    = TableMsg Table.Msg
 
 
 type alias Model =
-    { headers : List String
-    , rows : List (List String)
-    , tableState : Table.State
+    { tableState : Table.State
     , sortByColumn : Maybe String
     , sortBy : Maybe Table.Sort
-    , footers : List String
     }
 
 
 initialModel : Model
 initialModel =
     Model
-        initialHeaders
-        initialRows
-        (Table.initialState Nothing Nothing)
+        initialState
         Nothing
         Nothing
-        initialHeaders
+
+
+initialState : Table.State
+initialState =
+    Table.state Nothing Nothing
+        |> Table.withHeaders (createHeaders initialHeaders)
+        |> Table.withRows (createRows initialRows)
+        |> Table.withFooters (createRows [ initialHeaders ])
 
 
 initialHeaders : List String
@@ -47,3 +49,18 @@ initialRows =
     , [ "Spagna", "Madrid" ]
     , [ "Olanda", "Amsterdam" ]
     ]
+
+
+createHeaders : List String -> List Table.Header
+createHeaders headers =
+    List.map (\h -> Table.header (String.toLower h) [ Html.strong [] [ Html.text h ] ]) headers
+
+
+createRows : List (List String) -> List Table.Row
+createRows rows =
+    List.map (Table.row << createColumns) rows
+
+
+createColumns : List String -> List Table.Column
+createColumns columns =
+    List.map (Table.columnString 1) columns

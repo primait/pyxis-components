@@ -17,39 +17,11 @@ view model =
 appBody : Model -> List (Html Msg)
 appBody model =
     [ Helpers.pyxisStyle
-    , (Table.render model.tableState << createTableConfiguration) model
+    , Html.map TableMsg (Table.render model.tableState createTableConfiguration)
     ]
 
 
-createTableConfiguration : Model -> Table.Config Msg
-createTableConfiguration model =
-    Table.config
-        Table.defaultType
-        True
-        (createHeaders model.headers)
-        (createRows model.rows)
-        True
-        createFooters
-        [ ( "my-custom-class", True ) ]
-
-
-createHeaders : List String -> List (Table.Header Msg)
-createHeaders _ =
-    [ Table.header (String.toLower "Nazione") "Nazione" (Just SortBy)
-    , Table.header (String.toLower "Paese") "Paese" (Just SortBy)
-    ]
-
-
-createFooters : List (Table.FooterRow Msg)
-createFooters =
-    [ Table.row (createColumns [ "Nazione", "Paese" ]) ]
-
-
-createRows : List (List String) -> List (Table.Row Msg)
-createRows rows =
-    List.map (Table.row << createColumns) rows
-
-
-createColumns : List String -> List (Table.Column Msg)
-createColumns columns =
-    List.map (Table.columnString 1) columns
+createTableConfiguration : Table.Config
+createTableConfiguration =
+    Table.config True
+        |> Table.withHeaderClass "element"
