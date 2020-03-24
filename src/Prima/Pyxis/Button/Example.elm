@@ -10,9 +10,10 @@ module Prima.Pyxis.Button.Example exposing
     )
 
 import Browser
-import Html exposing (Html, div, text)
-import Html.Attributes exposing (class, classList, style)
+import Html exposing (Html, div)
+import Html.Attributes exposing (classList)
 import Prima.Pyxis.Button as Button
+import Prima.Pyxis.ButtonGroup as ButtonGroup
 import Prima.Pyxis.Helpers as Helpers
 
 
@@ -34,31 +35,54 @@ init _ =
 type alias Model =
     { buttons : List (Button.Config Msg)
     , darkButtons : List (Button.Config Msg)
+    , clicked : Maybe String
     }
 
 
 initialModel : Model
 initialModel =
     Model
-        [ Button.callOut Button.Brand "CallOut" NoOp
-        , Button.primary Button.Brand "Primary" NoOp
-        , Button.secondary Button.Brand "Secondary" NoOp
-        , Button.tertiary Button.Brand "Tertiary" NoOp
+        [ Button.callOut "CallOut"
+        , Button.primary "Primary"
+        , Button.secondary "Secondary"
+        , Button.tertiary "Tertiary"
         ]
-        [ Button.callOut Button.BrandDark "CallOut dark" NoOp
-        , Button.primary Button.BrandDark "Primary dark" NoOp
-        , Button.secondary Button.BrandDark "Secondary dark" NoOp
-        , Button.tertiary Button.BrandDark "Tertiary dark" NoOp
+        [ Button.callOut "CallOut dark"
+            |> Button.withColorScheme Button.BrandDark
+            |> Button.withOnClick (HandleEvent "Click 1")
+            |> Button.withClassList [ ( "test", True ), ( "never-applied", False ) ]
+            |> Button.withTabIndex 1
+        , Button.primary "Primary dark"
+            |> Button.withIcon "editing"
+            |> Button.withColorScheme Button.BrandDark
+            |> Button.withOnClick (HandleEvent "Click 2")
+            |> Button.withTabIndex 0
+        , Button.secondary "Secondary dark"
+            |> Button.withColorScheme Button.BrandDark
+            |> Button.withOnMouseEnter (HandleEvent "Hover 3")
+            |> Button.withOnClick (HandleEvent "Click 3")
+            |> Button.withTabIndex 2
+        , Button.tertiary "Tertiary dark"
+            |> Button.withType Button.Submit
+            |> Button.withColorScheme Button.BrandDark
+            |> Button.withTabIndex 3
         ]
+        Nothing
 
 
 type Msg
-    = NoOp
+    = HandleEvent String
+    | NoOp
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-    ( model, Cmd.none )
+    case msg of
+        HandleEvent label ->
+            ( { model | clicked = Just label }, Cmd.none )
+
+        _ ->
+            ( model, Cmd.none )
 
 
 view : Model -> Browser.Document Msg
@@ -70,15 +94,19 @@ appBody : Model -> List (Html Msg)
 appBody model =
     [ Helpers.pyxisStyle
     , model.buttons
-        |> List.map (\btn -> ( True, btn ))
-        |> Button.group
+        |> ButtonGroup.create
+        |> ButtonGroup.render
         |> List.singleton
         |> wrapper False
     , model.darkButtons
-        |> List.map (\btn -> ( True, btn ))
-        |> Button.group
+        |> ButtonGroup.create
+        |> ButtonGroup.withAlignment ButtonGroup.CoverFluid
+        |> ButtonGroup.render
         |> List.singleton
         |> wrapper True
+    , model.clicked
+        |> Maybe.withDefault "No button clicked"
+        |> Html.text
     ]
 
 

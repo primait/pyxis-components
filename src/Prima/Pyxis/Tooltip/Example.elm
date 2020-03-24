@@ -45,7 +45,7 @@ type Msg
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
-update msg model =
+update _ model =
     ( model, Cmd.none )
 
 
@@ -73,9 +73,9 @@ appBody _ =
     ]
 
 
-tooltipBuilder : (List (Html Msg) -> Tooltip.Config msg) -> Html msg
+tooltipBuilder : (List (Html Msg) -> Tooltip.Tooltip Msg) -> Html Msg
 tooltipBuilder mapper =
-    (Tooltip.render << mapper) contentTooltip
+    (Tooltip.render << Tooltip.withClass "a-tooltip-my-class" << mapper) contentTooltip
 
 
 contentTooltip : List (Html Msg)

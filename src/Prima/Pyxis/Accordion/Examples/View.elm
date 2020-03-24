@@ -6,30 +6,33 @@ module Prima.Pyxis.Accordion.Examples.View exposing
     )
 
 import Browser
-import Html exposing (..)
-import Html.Attributes exposing (class)
+import Html exposing (Html)
 import Prima.Pyxis.Accordion as Accordion
 import Prima.Pyxis.Accordion.Examples.Model
     exposing
         ( Accordion
         , AccordionType(..)
-        , Model
         , Msg(..)
+        , accordionContent
+        , accordionTypeToHtmlTitle
+        , accordionTypeToSimpleTitle
         )
 import Prima.Pyxis.Container as Container
 import Prima.Pyxis.Helpers as Helpers
 
 
-view : Model -> Browser.Document Msg
-view model =
-    Browser.Document "Accordion component" (appBody model)
+view : List Accordion -> Browser.Document Msg
+view accordionList =
+    Browser.Document "Accordion component" (appBody accordionList)
 
 
-appBody : Model -> List (Html Msg)
-appBody model =
+appBody : List Accordion -> List (Html Msg)
+appBody accordionList =
     [ Helpers.pyxisStyle
-    , Container.default
-        ((List.intersperse Helpers.spacer << List.map accordionRender) model.accordionList)
+    , Container.column
+        |> Container.withContent
+            ((List.intersperse Helpers.spacer << List.map accordionRender) accordionList)
+        |> Container.render
     ]
 
 
@@ -40,15 +43,18 @@ accordionRender accordion =
 
 accordionConfig : Accordion -> Accordion.Config Msg
 accordionConfig accordion =
-    (case accordion.accordionType of
+    case accordion.accordionType of
         Light ->
-            Accordion.lightConfig
+            Accordion.light accordion.slug ToggleAccordion
+                |> Accordion.withSimpleTitle (accordionTypeToSimpleTitle accordion.accordionType)
+                |> Accordion.withContent accordionContent
 
         Dark ->
-            Accordion.darkConfig
+            Accordion.dark accordion.slug ToggleAccordion
+                |> Accordion.withHtmlTitle (accordionTypeToHtmlTitle accordion.accordionType)
+                |> Accordion.withContent accordionContent
 
         Base ->
-            Accordion.baseConfig
-    )
-        accordion.slug
-        ToggleAccordion
+            Accordion.base accordion.slug ToggleAccordion
+                |> Accordion.withSimpleTitle (accordionTypeToSimpleTitle accordion.accordionType)
+                |> Accordion.withContent accordionContent

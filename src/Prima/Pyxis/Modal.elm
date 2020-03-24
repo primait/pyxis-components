@@ -1,360 +1,1299 @@
 module Prima.Pyxis.Modal exposing
-    ( Config, config
-    , ModalSize, small, medium, large
-    , ModalHeader, defaultHeader, customHeader
-    , ModalFooter, emptyFooter, withButtonsFooter, customFooter
-    , view
+    ( Config, render
+    , small, medium, large
+    , withCloseOnOverlayClick, withOverlayStyle, withOverlayAttribute, withOverlayClass, withOverlayClassList
+    , withAttribute, withClass, withClassList, withId, withStyle, withTitleAttribute
+    , withHeaderAttribute, withHeaderClass, withHeaderClassList, withHeaderContent, withHeaderContentOnly, withHeaderStyle, withHeaderTitle, withHeaderTitleOnly
+    , withBodyAttribute, withBodyClass, withBodyClassList, withBodyContent, withBodyStyle
+    , withFooterAttribute, withFooterClass, withFooterClassList, withFooterContent, withFooterStyle
+    , hide, show, toggle
     )
 
-{-| Allows to create a Modal component using predefined Html syntax.
+{-| Create a `Modal` by using predefined Html syntax.
 
 
-# Modal Configuration
+## Ready to use
 
-@docs Config, config
-
-
-# Modal Size
-
-@docs ModalSize, small, medium, large
+@docs Config, render
 
 
-# Modal Header
+## Constructors
 
-@docs ModalHeader, defaultHeader, customHeader
-
-
-# Modal Footer
-
-@docs ModalFooter, emptyFooter, withButtonsFooter, customFooter
+@docs small, medium, large
 
 
-# Rendering
+## Modifiers
 
-@docs view
+
+### Overlay modifier
+
+@docs withCloseOnOverlayClick, withOverlayStyle, withOverlayAttribute, withOverlayClass, withOverlayClassList
+
+
+### Modal modifiers
+
+@docs withAttribute, withClass, withClassList, withId, withContent, withStyle, withTitleAttribute
+
+
+### Header modifiers
+
+@docs withHeaderAttribute, withHeaderClass, withHeaderClassList, withHeaderContent, withHeaderContentOnly, withHeaderStyle, withHeaderTitle, withHeaderTitleOnly
+
+
+### Body modifiers
+
+@docs withBodyAttribute, withBodyClass, withBodyClassList, withBodyContent, withBodyStyle
+
+
+### Footer modifiers
+
+@docs withFooterAttribute, withFooterClass, withFooterClassList, withFooterContent, withFooterStyle
+
+
+### Helpers
+
+@docs hide, show, toggle
 
 -}
 
-import Html exposing (..)
-import Html.Attributes exposing (class, classList)
-import Html.Events exposing (onClick)
-import Json.Decode
-import Prima.Pyxis.Button as Button
+import Html exposing (Html)
+import Html.Attributes as HtmlAttributes
+import Prima.Pyxis.Helpers as H
+import Prima.Pyxis.Shared.InterceptedEvents as InterceptedEvents
+import Prima.Pyxis.Shared.Interceptor as Interceptor
 
 
-{-| Represents the configuration of a Modal component.
-The Modal will trigger a "closed" Msg when the overlay is clicked.
-Is up to you to intercept and manage this Msg.
+{-| Represent the configuration of a `Modal`.
+This type can't be created directly and is Opaque.
+You must use Configuration constructors instead
 -}
 type Config msg
-    = Config (Configuration msg)
+    = Config (ModalConfig msg)
 
 
-type alias Configuration msg =
-    { size : ModalSize
-    , header : ModalHeader msg
-    , content : List (Html msg)
-    , footer : ModalFooter msg
-    , closeTagger : msg
+{-| Internal.
+Represent the Modal configuration record
+-}
+type alias ModalConfig msg =
+    { closeEvent : msg
+    , options : Options msg
+    , size : Size
+    , visible : Bool
     }
 
 
-{-| Creates a Modal.Config.
+type Size
+    = Small
+    | Medium
+    | Large
+
+
+isSmallSize : Size -> Bool
+isSmallSize =
+    (==) Small
+
+
+isMediumSize : Size -> Bool
+isMediumSize =
+    (==) Medium
+
+
+isLargeSize : Size -> Bool
+isLargeSize =
+    (==) Large
+
+
+{-| Internal.
+Opaque ModalOptions constructor
+-}
+type Options msg
+    = Options (ModalOptions msg)
+
+
+{-| Internal.
+Represents the optional configurations of a Modal
+-}
+type alias ModalOptions msg =
+    { attributes : List (Html.Attribute msg)
+    , bodyOptions : BodyOptions msg
+    , class : Maybe (Html.Attribute msg)
+    , classList : Maybe (Html.Attribute msg)
+    , events : List (Html.Attribute msg)
+    , footerOptions : FooterOptions msg
+    , headerOptions : HeaderOptions msg
+    , id : Maybe (Html.Attribute msg)
+    , overlayOptions : OverlayOptions msg
+    , styles : List (Html.Attribute msg)
+    , title : Maybe (Html.Attribute msg)
+    }
+
+
+{-| Internal.
+modal options at construction instants
+-}
+initialModalOptions : msg -> ModalOptions msg
+initialModalOptions closeEvent =
+    { attributes = []
+    , bodyOptions = initialBodyOptions
+    , class = Nothing
+    , classList = Nothing
+    , events = []
+    , footerOptions = initialFooterOptions
+    , headerOptions = initialHeaderOptions closeEvent
+    , id = Nothing
+    , overlayOptions = initialOverlayOptions
+    , styles = []
+    , title = Nothing
+    }
+
+
+{-| Internal.
+Options specific for modal body section (content in css context)
+-}
+type alias BodyOptions msg =
+    { attributes : List (Html.Attribute msg)
+    , class : Maybe (Html.Attribute msg)
+    , classList : Maybe (Html.Attribute msg)
+    , content : List (Html msg)
+    , styles : List (Html.Attribute msg)
+    }
+
+
+{-| Internal.
+body options at construction instants
+-}
+initialBodyOptions : BodyOptions msg
+initialBodyOptions =
+    { attributes = []
+    , class = Nothing
+    , content = []
+    , classList = Nothing
+    , styles = []
+    }
+
+
+{-| Internal.
+Options specific for modal header section
+-}
+type alias HeaderOptions msg =
+    { attributes : List (Html.Attribute msg)
+    , class : Maybe (Html.Attribute msg)
+    , classList : Maybe (Html.Attribute msg)
+    , content : List (Html msg)
+    , styles : List (Html.Attribute msg)
+    }
+
+
+{-| Internal.
+header options at construction instants
+-}
+initialHeaderOptions : msg -> HeaderOptions msg
+initialHeaderOptions closeEvent =
+    { attributes = []
+    , class = Nothing
+    , classList = Nothing
+    , content = [ headerCloseButton closeEvent ]
+    , styles = []
+    }
+
+
+{-| Internal.
+Options specific for modal overlay section
+-}
+type alias OverlayOptions msg =
+    { attributes : List (Html.Attribute msg)
+    , class : Maybe (Html.Attribute msg)
+    , classList : Maybe (Html.Attribute msg)
+    , events : List (Html.Attribute msg)
+    , styles : List (Html.Attribute msg)
+    }
+
+
+{-| Internal.
+overlay options at construction instants
+-}
+initialOverlayOptions : OverlayOptions msg
+initialOverlayOptions =
+    { class = Nothing
+    , classList = Nothing
+    , attributes = []
+    , events = []
+    , styles = []
+    }
+
+
+{-| Internal.
+Options specific for modal footer section
+-}
+type alias FooterOptions msg =
+    { attributes : List (Html.Attribute msg)
+    , class : Maybe (Html.Attribute msg)
+    , classList : Maybe (Html.Attribute msg)
+    , content : List (Html msg)
+    , styles : List (Html.Attribute msg)
+    }
+
+
+{-| Internal.
+body options at construction instants
+-}
+initialFooterOptions : FooterOptions msg
+initialFooterOptions =
+    { class = Nothing
+    , classList = Nothing
+    , attributes = []
+    , content = []
+    , styles = []
+    }
+
+
+{-| Small size modal constructor.
+Modal by default is printed with a close button on header
+Requires initial visibility state, and the event that should be emitted
+when user interacts with close button
+
+
+## eg.
 
     --
-    import Prima.Pyxis.Modal as Modal
-    import Html exposing (Html, p, text)
+    type Msg
+        = HideYourModal
 
+    type alias Model =
+        { field1 : FieldType
+        , isModalVisible : Bool
+        }
     ...
+    -- Somewhere in your views
 
-    type Msg =
-        ModalClosed
-
-    ...
-
-    myModalConfig : Modal.Config
-    myModalConfig =
-        let
-            modalHeader : Modal.ModalHeader Msg
-            modalHeader =
-                Modal.defaultHeader "My modal title"
-
-            modalFooter : Modal.ModalFooter Msg
-            modalFooter =
-                Modal.emptyFooter
-
-            modalContent : List (Html Msg)
-            modalContent =
-                p [] [ text "Lorem ipsum dolor sit amet."]
-        in
-        Modal.config Modal.medium modalHeader  modalContent modalFooter ModalClosed
+    yourModal : Model -> Html Msg
+    yourModal { isModalVisible } =
+        Modal.small isModalVisible HideYourModal
+            |> Modal.render
 
 -}
-config : ModalSize -> ModalHeader msg -> List (Html msg) -> ModalFooter msg -> msg -> Config msg
-config size header content footer closeTagger =
-    Config <| Configuration size header content footer closeTagger
+small : Bool -> msg -> Config msg
+small initialVisibility closeEvent =
+    Config
+        { closeEvent = closeEvent
+        , options = Options (initialModalOptions closeEvent)
+        , size = Small
+        , visible = initialVisibility
+        }
 
 
-{-| Represents the Modal size.
--}
-type ModalSize
-    = SmallModalSize
-    | MediumModalSize
-    | LargeModalSize
+{-| Medium modal configuration constructor.
+Modal by default is printed with a close button on header
+Requires initial visibility state, and the event that should be emitted
+when user interacts with close button
 
 
-{-| Creates a Small ModalSize
--}
-small : ModalSize
-small =
-    SmallModalSize
-
-
-{-| Creates a Medium ModalSize
--}
-medium : ModalSize
-medium =
-    MediumModalSize
-
-
-{-| Creates a Large ModalSize
--}
-large : ModalSize
-large =
-    LargeModalSize
-
-
-isSmallModalSize : ModalSize -> Bool
-isSmallModalSize =
-    (==) SmallModalSize
-
-
-isMediumModalSize : ModalSize -> Bool
-isMediumModalSize =
-    (==) MediumModalSize
-
-
-isLargeModalSize : ModalSize -> Bool
-isLargeModalSize =
-    (==) LargeModalSize
-
-
-{-| Represents the Header configuration of a Modal.
--}
-type ModalHeader msg
-    = ModalHeaderDefault String
-    | ModalHeaderCustom (List (Html msg))
-
-
-{-| Creates a Header config with a simple title.
--}
-defaultHeader : String -> ModalHeader msg
-defaultHeader =
-    ModalHeaderDefault
-
-
-{-| Creates a Header config with custom Html content.
--}
-customHeader : List (Html msg) -> ModalHeader msg
-customHeader =
-    ModalHeaderCustom
-
-
-{-| Represents the Footer configuration of a Modal.
--}
-type ModalFooter msg
-    = ModalFooterEmpty
-    | ModalFooterButtons (List (Html msg))
-    | ModalFooterCustom (List (Html msg))
-
-
-{-| Represents a Footer without content.
--}
-emptyFooter : ModalFooter msg
-emptyFooter =
-    ModalFooterEmpty
-
-
-{-| Represents a Footer with a list of Prima.Pyxis.Button instances.
-All the buttons will be wrapper in a btnGroup, so no more than 4 buttons are allowed.
--}
-withButtonsFooter : List (Html msg) -> ModalFooter msg
-withButtonsFooter =
-    ModalFooterButtons
-
-
-{-| Represents a Footer with custom Html content.
--}
-customFooter : List (Html msg) -> ModalFooter msg
-customFooter =
-    ModalFooterCustom
-
-
-{-| Renders the Modal by passing isVisible flag and a Modal.Config
+## eg.
 
     --
-    import Prima.Pyxis.Modal as Modal
-    import Html exposing (Html, p, text)
+    type Msg
+        = HideYourModal
 
+    type alias Model =
+        { field1 : FieldType
+        , isModalVisible : Bool
+        }
     ...
+    -- Somewhere in your views
 
-    type Msg =
-        ModalClosed
+    yourModal : Model -> Html Msg
+    yourModal { isModalVisible } =
+        Modal.medium isModalVisible HideYourModal
+            |> Modal.render
 
+-}
+medium : Bool -> msg -> Config msg
+medium initialVisibility closeEvent =
+    Config
+        { closeEvent = closeEvent
+        , options = Options (initialModalOptions closeEvent)
+        , size = Medium
+        , visible = initialVisibility
+        }
+
+
+{-| Large modal configuration constructor.
+Modal by default is printed with a close button on header
+Requires initial visibility state, and the event that should be emitted
+when user interacts with close button
+
+
+## eg.
+
+    --
+    type Msg
+        = HideYourModal
+
+    type alias Model =
+        { field1 : FieldType
+        , isModalVisible : Bool
+        }
     ...
+    -- Somewhere in your views
 
-    myModalConfig : Modal.Config
-    myModalConfig =
-        let
-            modalHeader : Modal.ModalHeader Msg
-            modalHeader =
-                Modal.defaultHeader "My modal title"
-
-            modalFooter : Modal.ModalFooter Msg
-            modalFooter =
-                Modal.emptyFooter
-
-            modalContent : List (Html Msg)
-            modalContent =
-                p [] [ text "Lorem ipsum dolor sit amet."]
-        in
-        Modal.config Modal.medium modalHeader  modalContent modalFooter ModalClosed
-
-    renderModal : Html Msg
-    renderModal =
-        let
-            isVisible =
-                True
-        in
-        Modal.view isVisible myModalConfig
+    yourModal : Model -> Html Msg
+    yourModal { isModalVisible } =
+        Modal.large isModalVisible HideYourModal
+            |> Modal.render
 
 -}
-view : Bool -> Config msg -> Html msg
-view isVisible (Config modalConfig) =
-    if isVisible then
-        div
-            [ classList [ ( "a-overlay", True ) ]
-            , Html.Events.on "click" <| overlayClickInterceptor modalConfig.closeTagger
-            ]
-            [ modal modalConfig
-            ]
-
-    else
-        text ""
+large : Bool -> msg -> Config msg
+large initialVisibility closeEvent =
+    Config
+        { closeEvent = closeEvent
+        , options = Options (initialModalOptions closeEvent)
+        , size = Large
+        , visible = initialVisibility
+        }
 
 
-{-| Private method. See:
-<https://github.com/rundis/elm-bootstrap/blob/5.2.0/src/Bootstrap/Modal.elm>
-<https://github.com/rundis/elm-bootstrap/blob/5.2.0/src/Bootstrap/Utilities/DomHelper.elm>
+{-| Utility that shows a modal.
+If you need to hold modal config in your model you
+can avoid visibility state duplication and simply use
+this helper in your update to show the modal when you need
+
+
+## eg.
+
+    --
+    type Msg
+        = HideYourModal
+        | ShowModal
+
+    type alias Model =
+        { ...
+        , myModal : Modal.Config Msg
+        }
+
+    model: Model
+    model =
+       { ...
+       , myModal = Modal.small False HideYourModal
+       }
+    ...
+    -- Somewhere in your views
+
+    yourModal : Model -> Html Msg
+    yourModal { myModal } =
+        myModal
+            |> Modal.render
+
+    -- Somewhere in your update
+    case msg of
+        ShowModal ->
+            model
+                |> showModal
+                |> withoutCmds
+        HideYourModal ->
+            model
+                |> hideModal
+                |> withoutCmds
+     ...
+
+     showModal: Model -> Model
+     showModal model =
+        { model
+            | myModal = Modal.show model.myModal
+        }
+
+     hideModal: Model -> Model
+     hideModal model =
+        { model
+             | myModal = Modal.hide model.myModal
+        }
+
 -}
-overlayClickInterceptor : msg -> Json.Decode.Decoder msg
-overlayClickInterceptor action =
-    decodeClassName
-        |> decodeTarget
-        |> Json.Decode.andThen (overlayClickInterceptorDecodeOrFail action)
+show : Config msg -> Config msg
+show (Config modalConfig) =
+    { modalConfig
+        | visible = True
+    }
+        |> Config
 
 
-{-| Private method
+{-| Utility that hides a modal.
+If you need to hold modal config in your model you
+can avoid visibility state duplication and simply use
+this helper in your update to hide the modal when you need
+
+
+## eg.
+
+    --
+    type Msg
+        = HideYourModal
+        | ShowModal
+
+    type alias Model =
+        { ...
+        , myModal : Modal.Config Msg
+        }
+
+    model: Model
+    model =
+       { ...
+       , myModal = Modal.small False HideYourModal
+       }
+    ...
+    -- Somewhere in your views
+
+    yourModal : Model -> Html Msg
+    yourModal { myModal } =
+        myModal
+            |> Modal.render
+
+    -- Somewhere in your update
+    case msg of
+        ShowModal ->
+            model
+                |> showModal
+                |> withoutCmds
+        HideYourModal ->
+            model
+                |> hideModal
+                |> withoutCmds
+     ...
+
+     showModal: Model -> Model
+     showModal model =
+        { model
+            | myModal = Modal.show model.myModal
+        }
+
+     hideModal: Model -> Model
+     hideModal model =
+        { model
+             | myModal = Modal.hide model.myModal
+        }
+
 -}
-overlayClickInterceptorDecodeOrFail : msg -> String -> Json.Decode.Decoder msg
-overlayClickInterceptorDecodeOrFail action className =
-    if String.contains "a-overlay" className then
-        Json.Decode.succeed action
+hide : Config msg -> Config msg
+hide (Config modalConfig) =
+    { modalConfig
+        | visible = False
+    }
+        |> Config
 
-    else
-        Json.Decode.fail "ignoring"
+
+{-| Utility that toggle modal visibility.
+If you need to hold modal config in your model you
+can avoid visibility state duplication and simply use
+this helper in your update to toggle the modal when you need
 
 
-{-| Private method
+## eg.
+
+    --
+    type Msg
+        = ToggleYourModal
+
+    type alias Model =
+        { ...
+        , myModal : Modal.Config Msg
+        }
+
+    model: Model
+    model =
+       { ...
+       , myModal = Modal.small False HideYourModal
+       }
+    ...
+    -- Somewhere in your views
+
+    yourModal : Model -> Html Msg
+    yourModal { myModal } =
+        myModal
+            |> Modal.render
+
+    -- Somewhere in your update
+    case msg of
+        ToggleModal ->
+            model
+                |> toggleModal
+                |> withoutCmds
+     ...
+
+     toggleModal: Model -> Model
+     toggleModal model =
+        { model
+            | myModal = Modal.toggle model.myModal
+        }
+
 -}
-decodeTarget : Json.Decode.Decoder any -> Json.Decode.Decoder any
-decodeTarget decoder =
-    Json.Decode.field "target" decoder
+toggle : Config msg -> Config msg
+toggle (Config modalConfig) =
+    { modalConfig
+        | visible = not modalConfig.visible
+    }
+        |> Config
 
 
-{-| Private method
+{-| Internal.
+extract modal options record
 -}
-decodeClassName : Json.Decode.Decoder String
-decodeClassName =
-    Json.Decode.at [ "className" ] Json.Decode.string
+deObfuscateModalOptions : Options msg -> ModalOptions msg
+deObfuscateModalOptions (Options modalOptions) =
+    modalOptions
 
 
-{-| Private method
+{-| Internal.
+pick modal options record from modal config
 -}
-modal : Configuration msg -> Html msg
-modal modalConfig =
-    div
-        [ classList
-            [ ( "o-modal", True )
-            , ( "o-modal--small", isSmallModalSize modalConfig.size )
-            , ( "o-modal--medium", isMediumModalSize modalConfig.size )
-            , ( "o-modal--large", isLargeModalSize modalConfig.size )
-            ]
+pickModalOptions : ModalConfig msg -> ModalOptions msg
+pickModalOptions =
+    .options >> deObfuscateModalOptions
+
+
+{-| Internal.
+pick overlay options from modal config
+-}
+pickOverlayOptions : ModalConfig msg -> OverlayOptions msg
+pickOverlayOptions =
+    pickModalOptions >> .overlayOptions
+
+
+{-| Internal.
+update modal options
+-}
+updateModalOptions : (ModalOptions msg -> ModalOptions msg) -> ModalConfig msg -> ModalConfig msg
+updateModalOptions modalOptionsMapper modalConfig =
+    { modalConfig | options = Options <| modalOptionsMapper <| pickModalOptions modalConfig }
+
+
+{-| Internal.
+update body options
+-}
+updateBodyOptions : (BodyOptions msg -> BodyOptions msg) -> ModalOptions msg -> ModalOptions msg
+updateBodyOptions contentOptionsMapper modalOptions =
+    { modalOptions | bodyOptions = contentOptionsMapper modalOptions.bodyOptions }
+
+
+{-| Internal.
+update footer options
+-}
+updateFooterOptions : (FooterOptions msg -> FooterOptions msg) -> ModalOptions msg -> ModalOptions msg
+updateFooterOptions footerOptionsMapper modalOptions =
+    { modalOptions | footerOptions = footerOptionsMapper modalOptions.footerOptions }
+
+
+{-| Internal.
+update header options
+-}
+updateHeaderOptions : (HeaderOptions msg -> HeaderOptions msg) -> ModalOptions msg -> ModalOptions msg
+updateHeaderOptions headerOptionsMapper modalOptions =
+    { modalOptions | headerOptions = headerOptionsMapper modalOptions.headerOptions }
+
+
+{-| Internal.
+update overlay options
+-}
+updateOverlayOptions : (OverlayOptions msg -> OverlayOptions msg) -> ModalOptions msg -> ModalOptions msg
+updateOverlayOptions headerOptionsMapper modalOptions =
+    { modalOptions | overlayOptions = headerOptionsMapper modalOptions.overlayOptions }
+
+
+{-| Renders the modal config
+(note that modal is not rendered until visible
+-}
+render : Config msg -> Html msg
+render (Config modalConfig) =
+    H.renderIf modalConfig.visible <|
+        overlay (pickOverlayOptions modalConfig)
+            [ modal (pickModalOptions modalConfig) modalConfig ]
+
+
+{-| Internal.
+renders overlay
+-}
+overlay : OverlayOptions msg -> List (Html msg) -> Html msg
+overlay overlayOptions renderedModal =
+    Html.div
+        (overlayAttributes overlayOptions)
+        renderedModal
+
+
+{-| Internal.
+constructs overlay attribute list from overlay options
+-}
+overlayAttributes : OverlayOptions msg -> List (Html.Attribute msg)
+overlayAttributes overlayOptions =
+    [ HtmlAttributes.id overlayId
+    ]
+        |> List.append overlayOptions.attributes
+        |> H.maybeCons overlayOptions.class
+        |> H.maybeCons overlayOptions.classList
+        |> (::) (HtmlAttributes.class "a-overlay")
+        |> List.append overlayOptions.events
+        |> List.append overlayOptions.styles
+
+
+{-| Modifier
+The modal closes if overlay is clicked
+-}
+withCloseOnOverlayClick : Config msg -> Config msg
+withCloseOnOverlayClick (Config modalConfig) =
+    modalConfig
+        |> updateModalOptions
+            (updateOverlayOptions
+                (\overlayOptions ->
+                    { overlayOptions
+                        | events = onOverlayClick modalConfig.closeEvent :: overlayOptions.events
+                    }
+                )
+            )
+        |> Config
+
+
+{-| Internal.
+Intercepted overlay click
+-}
+onOverlayClick : msg -> Html.Attribute msg
+onOverlayClick =
+    InterceptedEvents.onClick (Interceptor.targetWithId overlayId)
+        >> InterceptedEvents.withStopPropagation
+        >> InterceptedEvents.event
+
+
+{-| Internal.
+Overlay id. Is used to intercept overlay events
+-}
+overlayId : String
+overlayId =
+    "modalOverlay"
+
+
+{-| Modifier
+Adds class attribute to overlay
+-}
+withOverlayClass : String -> Config msg -> Config msg
+withOverlayClass class (Config modalConfig) =
+    modalConfig
+        |> updateModalOptions
+            (updateOverlayOptions
+                (\overlayOptions ->
+                    { overlayOptions
+                        | class = Just (HtmlAttributes.class class)
+                    }
+                )
+            )
+        |> Config
+
+
+{-| Modifier
+Adds classList attribute to overlay
+-}
+withOverlayClassList : List ( String, Bool ) -> Config msg -> Config msg
+withOverlayClassList classList (Config modalConfig) =
+    modalConfig
+        |> updateModalOptions
+            (updateOverlayOptions
+                (\overlayOptions ->
+                    { overlayOptions
+                        | classList = Just (HtmlAttributes.classList classList)
+                    }
+                )
+            )
+        |> Config
+
+
+{-| Modifier
+Adds a generic attribute to overlay.
+If you are planning to add a custom event listener you may
+take a look to InterceptedEvents and Interceptor modules to avoid
+undesired bubbling and onOverlayClick function in this module.
+-}
+withOverlayAttribute : Html.Attribute msg -> Config msg -> Config msg
+withOverlayAttribute attribute (Config modalConfig) =
+    modalConfig
+        |> updateModalOptions
+            (updateOverlayOptions
+                (\overlayOptions ->
+                    { overlayOptions
+                        | attributes = attribute :: overlayOptions.attributes
+                    }
+                )
+            )
+        |> Config
+
+
+
+-- Missing some events on overlay
+
+
+{-| Modifier
+Adds a style attribute to overlay.
+It can be used several times
+-}
+withOverlayStyle : String -> String -> Config msg -> Config msg
+withOverlayStyle property value (Config modalConfig) =
+    modalConfig
+        |> updateModalOptions
+            (updateOverlayOptions
+                (\overlayOptions ->
+                    { overlayOptions
+                        | styles = HtmlAttributes.style property value :: overlayOptions.styles
+                    }
+                )
+            )
+        |> Config
+
+
+{-| Internal.
+renders modal
+-}
+modal : ModalOptions msg -> ModalConfig msg -> Html msg
+modal modalOptions modalConfig =
+    Html.div
+        (modalAttributes modalOptions modalConfig)
+        [ header modalOptions.headerOptions
+        , body modalOptions.bodyOptions
+        , footer modalOptions.footerOptions
         ]
-        [ modalHeader modalConfig.header modalConfig.closeTagger
-        , modalContent modalConfig.content
-        , modalFooter modalConfig.footer
-        ]
 
 
-{-| Private method
+{-| Internal.
+Builds modal attribute list
 -}
-modalHeader : ModalHeader msg -> msg -> Html msg
-modalHeader header action =
-    div
-        [ class "o-modal__header" ]
-        (case header of
-            ModalHeaderDefault title ->
-                [ modalTitle title
-                , modalClose action
+modalAttributes : ModalOptions msg -> ModalConfig msg -> List (Html.Attribute msg)
+modalAttributes modalOptions modalConfig =
+    []
+        |> List.append modalOptions.attributes
+        |> H.maybeCons modalOptions.classList
+        |> H.maybeCons modalOptions.class
+        |> (::)
+            (HtmlAttributes.classList
+                [ ( "o-modal", True )
+                , ( "o-modal--small", isSmallSize modalConfig.size )
+                , ( "o-modal--medium", isMediumSize modalConfig.size )
+                , ( "o-modal--large", isLargeSize modalConfig.size )
                 ]
+            )
+        |> List.append modalOptions.events
+        |> H.maybeCons modalOptions.id
+        |> List.append modalOptions.styles
+        |> H.maybeCons modalOptions.title
 
-            ModalHeaderCustom content ->
-                content
-        )
 
-
-{-| Private method
+{-| Modifier
+Adds generic attribute to modal.
+It can be used several times
 -}
-modalContent : List (Html msg) -> Html msg
-modalContent =
-    div
-        [ class "o-modal__content" ]
+withAttribute : Html.Attribute msg -> Config msg -> Config msg
+withAttribute attribute (Config modalConfig) =
+    modalConfig
+        |> updateModalOptions
+            (\modalOptions ->
+                { modalOptions
+                    | attributes = attribute :: modalOptions.attributes
+                }
+            )
+        |> Config
 
 
-{-| Private method
+{-| Modifier
+Adds style attribute to modal.
+It can be used several times
 -}
-modalFooter : ModalFooter msg -> Html msg
-modalFooter footer =
-    div
-        [ class "o-modal__footer" ]
-        (case footer of
-            ModalFooterEmpty ->
-                []
-
-            ModalFooterButtons buttons ->
-                [ div [ class "m-btnGroup" ] buttons ]
-
-            ModalFooterCustom content ->
-                content
-        )
+withStyle : String -> String -> Config msg -> Config msg
+withStyle property value (Config modalConfig) =
+    modalConfig
+        |> updateModalOptions
+            (\modalOptions ->
+                { modalOptions
+                    | styles = HtmlAttributes.style property value :: modalOptions.styles
+                }
+            )
+        |> Config
 
 
-{-| Private method
+{-| Modifier
+Adds class attribute to modal.
 -}
-modalTitle : String -> Html msg
-modalTitle title =
-    h3
-        [ class "o-modal__title" ]
-        [ text title ]
+withClass : String -> Config msg -> Config msg
+withClass class (Config modalConfig) =
+    modalConfig
+        |> updateModalOptions
+            (\modalOptions ->
+                { modalOptions
+                    | class = Just (HtmlAttributes.class class)
+                }
+            )
+        |> Config
 
 
-{-| Private method
+{-| Modifier
+Adds classList attribute to modal.
 -}
-modalClose : msg -> Html msg
-modalClose action =
-    i
-        [ class "a-icon a-icon-close o-modal__close"
-        , onClick action
+withClassList : List ( String, Bool ) -> Config msg -> Config msg
+withClassList classList (Config modalConfig) =
+    modalConfig
+        |> updateModalOptions
+            (\modalOptions ->
+                { modalOptions
+                    | classList = Just (HtmlAttributes.classList classList)
+                }
+            )
+        |> Config
+
+
+{-| Modifier
+Adds id attribute to modal.
+-}
+withId : String -> Config msg -> Config msg
+withId id (Config modalConfig) =
+    modalConfig
+        |> updateModalOptions
+            (\modalOptions ->
+                { modalOptions
+                    | id = Just (HtmlAttributes.id id)
+                }
+            )
+        |> Config
+
+
+{-| Modifier
+Adds title attribute to modal.
+-}
+withTitleAttribute : String -> Config msg -> Config msg
+withTitleAttribute title (Config modalConfig) =
+    modalConfig
+        |> updateModalOptions
+            (\modalOptions ->
+                { modalOptions
+                    | title = Just (HtmlAttributes.title title)
+                }
+            )
+        |> Config
+
+
+{-| Internal.
+Renders modal header
+-}
+header : HeaderOptions msg -> Html msg
+header headerOptions =
+    Html.div
+        (headerAttributes headerOptions)
+        headerOptions.content
+
+
+{-| Internal.
+Builds modal header attribute list
+-}
+headerAttributes : HeaderOptions msg -> List (Html.Attribute msg)
+headerAttributes headerOptions =
+    []
+        |> List.append headerOptions.attributes
+        |> H.maybeCons headerOptions.classList
+        |> H.maybeCons headerOptions.class
+        |> (::) (HtmlAttributes.class "o-modal__header")
+        |> List.append headerOptions.styles
+
+
+{-| Modifier
+Adds generic attribute to modal header.
+It can be used several times
+-}
+withHeaderAttribute : Html.Attribute msg -> Config msg -> Config msg
+withHeaderAttribute headerAttribute (Config modalConfig) =
+    modalConfig
+        |> updateModalOptions
+            (updateHeaderOptions
+                (\headerOptions ->
+                    { headerOptions
+                        | attributes = headerAttribute :: headerOptions.attributes
+                    }
+                )
+            )
+        |> Config
+
+
+{-| Modifier
+Adds class attribute to modal header.
+-}
+withHeaderClass : String -> Config msg -> Config msg
+withHeaderClass class (Config modalConfig) =
+    modalConfig
+        |> updateModalOptions
+            (updateHeaderOptions
+                (\headerOptions ->
+                    { headerOptions
+                        | class = Just (HtmlAttributes.class class)
+                    }
+                )
+            )
+        |> Config
+
+
+{-| Modifier
+Adds classList attribute to modal header.
+-}
+withHeaderClassList : List ( String, Bool ) -> Config msg -> Config msg
+withHeaderClassList classList (Config modalConfig) =
+    modalConfig
+        |> updateModalOptions
+            (updateHeaderOptions
+                (\headerOptions ->
+                    { headerOptions
+                        | classList = Just (HtmlAttributes.classList classList)
+                    }
+                )
+            )
+        |> Config
+
+
+{-| Modifier
+Prints given string in modal title section with close button
+-}
+withHeaderTitle : String -> Config msg -> Config msg
+withHeaderTitle title (Config modalConfig) =
+    modalConfig
+        |> updateModalOptions
+            (updateHeaderOptions
+                (\headerOptions ->
+                    { headerOptions
+                        | content =
+                            [ headerTitle title
+                            , headerCloseButton modalConfig.closeEvent
+                            ]
+                    }
+                )
+            )
+        |> Config
+
+
+{-| Modifier
+Prints given string in modal title section without close button
+-}
+withHeaderTitleOnly : String -> Config msg -> Config msg
+withHeaderTitleOnly title (Config modalConfig) =
+    modalConfig
+        |> updateModalOptions
+            (updateHeaderOptions
+                (\headerOptions ->
+                    { headerOptions
+                        | content =
+                            [ headerTitle title
+                            ]
+                    }
+                )
+            )
+        |> Config
+
+
+{-| Modifier
+Adds a custom html content in modal header with close button
+-}
+withHeaderContent : List (Html msg) -> Config msg -> Config msg
+withHeaderContent customContent (Config modalConfig) =
+    modalConfig
+        |> updateModalOptions
+            (updateHeaderOptions
+                (\headerOptions ->
+                    { headerOptions
+                        | content =
+                            headerCloseButton modalConfig.closeEvent :: customContent
+                    }
+                )
+            )
+        |> Config
+
+
+{-| Modifier
+Adds a custom html content in modal header without close button
+-}
+withHeaderContentOnly : List (Html msg) -> Config msg -> Config msg
+withHeaderContentOnly customContent (Config modalConfig) =
+    modalConfig
+        |> updateModalOptions
+            (updateHeaderOptions
+                (\headerOptions ->
+                    { headerOptions
+                        | content = customContent
+                    }
+                )
+            )
+        |> Config
+
+
+{-| Modifier
+Adds a style attribute to header.
+It can be used several times
+-}
+withHeaderStyle : String -> String -> Config msg -> Config msg
+withHeaderStyle attribute value (Config modalConfig) =
+    modalConfig
+        |> updateModalOptions
+            (updateHeaderOptions
+                (\headerOptions ->
+                    { headerOptions
+                        | styles = HtmlAttributes.style attribute value :: headerOptions.styles
+                    }
+                )
+            )
+        |> Config
+
+
+{-| Internal.
+Prints predefined modal title in its own markup
+-}
+headerTitle : String -> Html msg
+headerTitle title =
+    Html.h3 [ HtmlAttributes.class "o-modal__title" ]
+        [ Html.text title ]
+
+
+{-| Internal.
+Renders modal body
+-}
+body : BodyOptions msg -> Html msg
+body bodyOptions =
+    Html.div (bodyAttributes bodyOptions)
+        bodyOptions.content
+
+
+{-| Internal.
+Consucts modal body attribute list
+-}
+bodyAttributes : BodyOptions msg -> List (Html.Attribute msg)
+bodyAttributes bodyOptions =
+    []
+        |> List.append bodyOptions.attributes
+        |> H.maybeCons bodyOptions.classList
+        |> H.maybeCons bodyOptions.class
+        |> (::) (HtmlAttributes.class "o-modal__content")
+        |> List.append bodyOptions.styles
+
+
+{-| Modifier
+Adds a generic attribute to modal body.
+It can be used several times
+-}
+withBodyAttribute : Html.Attribute msg -> Config msg -> Config msg
+withBodyAttribute attribute (Config modalConfig) =
+    modalConfig
+        |> updateModalOptions
+            (updateBodyOptions
+                (\bodyOptions ->
+                    { bodyOptions
+                        | attributes =
+                            attribute :: bodyOptions.attributes
+                    }
+                )
+            )
+        |> Config
+
+
+{-| Modifier
+Adds a class attribute to modal body.
+-}
+withBodyClass : String -> Config msg -> Config msg
+withBodyClass class (Config modalConfig) =
+    modalConfig
+        |> updateModalOptions
+            (updateBodyOptions
+                (\bodyOptions ->
+                    { bodyOptions
+                        | class = Just (HtmlAttributes.class class)
+                    }
+                )
+            )
+        |> Config
+
+
+{-| Modifier
+Adds a classList attribute to modal body.
+-}
+withBodyClassList : List ( String, Bool ) -> Config msg -> Config msg
+withBodyClassList classList (Config modalConfig) =
+    modalConfig
+        |> updateModalOptions
+            (updateBodyOptions
+                (\bodyOptions ->
+                    { bodyOptions
+                        | classList = Just (HtmlAttributes.classList classList)
+                    }
+                )
+            )
+        |> Config
+
+
+{-| Modifier
+Adds a content to modal body.
+-}
+withBodyContent : List (Html msg) -> Config msg -> Config msg
+withBodyContent content (Config modalConfig) =
+    modalConfig
+        |> updateModalOptions
+            (updateBodyOptions
+                (\bodyOptions ->
+                    { bodyOptions
+                        | content = content
+                    }
+                )
+            )
+        |> Config
+
+
+{-| Modifier
+Adds a style attribute to modal body.
+It can be used several times
+-}
+withBodyStyle : String -> String -> Config msg -> Config msg
+withBodyStyle attribute value (Config modalConfig) =
+    modalConfig
+        |> updateModalOptions
+            (updateBodyOptions
+                (\bodyOptions ->
+                    { bodyOptions
+                        | styles = HtmlAttributes.style attribute value :: bodyOptions.styles
+                    }
+                )
+            )
+        |> Config
+
+
+{-| Internal.
+Render footer
+-}
+footer : FooterOptions msg -> Html msg
+footer footerOptions =
+    Html.div
+        (footerAttributes footerOptions)
+        footerOptions.content
+
+
+{-| Internal.
+Builds footer attribute list
+-}
+footerAttributes : FooterOptions msg -> List (Html.Attribute msg)
+footerAttributes footerOptions =
+    []
+        |> List.append footerOptions.attributes
+        |> H.maybeCons footerOptions.classList
+        |> H.maybeCons footerOptions.class
+        |> (::) (HtmlAttributes.class "o-modal__footer")
+        |> List.append footerOptions.styles
+
+
+{-| Modifier
+Adds a generic attribute to modal footer.
+It can be used several times
+-}
+withFooterAttribute : Html.Attribute msg -> Config msg -> Config msg
+withFooterAttribute attribute (Config modalConfig) =
+    modalConfig
+        |> updateModalOptions
+            (updateFooterOptions
+                (\footerOptions ->
+                    { footerOptions
+                        | attributes = attribute :: footerOptions.attributes
+                    }
+                )
+            )
+        |> Config
+
+
+{-| Modifier
+Adds a class attribute to modal footer.
+-}
+withFooterClass : String -> Config msg -> Config msg
+withFooterClass class (Config modalConfig) =
+    modalConfig
+        |> updateModalOptions
+            (updateFooterOptions
+                (\footerOptions ->
+                    { footerOptions
+                        | class = Just (HtmlAttributes.class class)
+                    }
+                )
+            )
+        |> Config
+
+
+{-| Modifier
+Adds classList attribute to modal footer.
+-}
+withFooterClassList : List ( String, Bool ) -> Config msg -> Config msg
+withFooterClassList classList (Config modalConfig) =
+    modalConfig
+        |> updateModalOptions
+            (updateFooterOptions
+                (\footerOptions ->
+                    { footerOptions
+                        | classList = Just (HtmlAttributes.classList classList)
+                    }
+                )
+            )
+        |> Config
+
+
+{-| Modifier
+Adds a content to modal footer.
+-}
+withFooterContent : List (Html msg) -> Config msg -> Config msg
+withFooterContent content (Config modalConfig) =
+    modalConfig
+        |> updateModalOptions
+            (updateFooterOptions
+                (\footerOptions ->
+                    { footerOptions
+                        | content = content
+                    }
+                )
+            )
+        |> Config
+
+
+{-| Modifier
+Adds a style attribute to modal footer.
+It can be used several times
+-}
+withFooterStyle : String -> String -> Config msg -> Config msg
+withFooterStyle attribute value (Config modalConfig) =
+    modalConfig
+        |> updateModalOptions
+            (updateFooterOptions
+                (\footerOptions ->
+                    { footerOptions
+                        | styles = HtmlAttributes.style attribute value :: footerOptions.styles
+                    }
+                )
+            )
+        |> Config
+
+
+{-| Internal.
+Icon for closing modal
+-}
+headerCloseButton : msg -> Html msg
+headerCloseButton closeEvent =
+    Html.i
+        [ HtmlAttributes.class "a-icon a-icon-close o-modal__close"
+        , HtmlAttributes.id headerCloseButtonId
+        , onCloseButtonClick closeEvent
         ]
         []
+
+
+{-| Internal.
+Modal X button id
+-}
+headerCloseButtonId : String
+headerCloseButtonId =
+    "modalHeaderCloseButton"
+
+
+{-| Internal.
+Intercepted X button click event
+-}
+onCloseButtonClick : msg -> Html.Attribute msg
+onCloseButtonClick =
+    InterceptedEvents.onClick
+        (Interceptor.targetWithId headerCloseButtonId)
+        >> InterceptedEvents.withStopPropagation
+        >> InterceptedEvents.event
