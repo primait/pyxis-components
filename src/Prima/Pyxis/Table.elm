@@ -43,8 +43,8 @@ module Prima.Pyxis.Table exposing
 import Array
 import Html exposing (Html, i, table, tbody, td, text, th, thead, tr)
 import Html.Attributes exposing (attribute, class, classList, colspan)
-import Html.Events exposing (onClick)
-import Json.Decode as JsonDecode
+import Html.Events
+import Json.Decode as JD
 import List.Extra as LE
 import Prima.Pyxis.Helpers as H
 
@@ -500,8 +500,8 @@ render (State ({ sortBy, sortedColumn } as internalState)) (Config ({ headers, r
             )
         ]
         [ renderTHead internalState conf options
-        , renderTBody headerSlugs conf options sortedRows
-        , renderTFoot headerSlugs conf options footerColumns
+        , renderTBody headerSlugs options sortedRows
+        , renderTFoot headerSlugs options footerColumns
         ]
 
 
@@ -520,11 +520,11 @@ renderTHead internalState ({ headers } as conf) options =
 
 {-| Internal. Renders the table footer by receiving State, Options and the rows of the footer
 -}
-renderTFoot : List Slug -> TableConfig msg -> Options -> List (Row msg) -> Html msg
-renderTFoot headerSlugs internalConfig options footerRows =
+renderTFoot : List Slug -> Options -> List (Row msg) -> Html msg
+renderTFoot headerSlugs options footerRows =
     tbody
         [ classList (( "m-table__footer", True ) :: options.footerClassList) ]
-        (List.map (renderFooterTR internalConfig headerSlugs) footerRows)
+        (List.map (renderFooterTR headerSlugs) footerRows)
 
 
 {-| Internal. Renders the table header by receiving State, Config and the contents of the column
@@ -545,28 +545,21 @@ renderTH ({ sortBy, sortedColumn } as internalState) conf (Header { slug, conten
         )
 
 
+{-| Internal. Renders the onClick attribute, mapping with the outside message type, and updating the sorting.
+-}
 internalOnClick : String -> State -> (State -> msg) -> Html.Attribute msg
 internalOnClick slug (State internalState) msgMapper =
     slug
-        |> JsonDecode.succeed
-        |> JsonDecode.map
+        |> JD.succeed
+        |> JD.map
             (\s ->
                 State
                     { internalState
                         | sortedColumn = Just s
-                        , sortBy =
-                            case internalState.sortBy of
-                                Just Asc ->
-                                    Just Desc
-
-                                Just Desc ->
-                                    Nothing
-
-                                Nothing ->
-                                    Just Asc
+                        , sortBy = sortAlgorithm internalState.sortBy
                     }
             )
-        |> JsonDecode.map msgMapper
+        |> JD.map msgMapper
         |> Html.Events.on "click"
 
 
@@ -591,43 +584,43 @@ renderSortIcon isSorted algorithm =
 
 {-| Internal. Renders the table body.
 -}
-renderTBody : List Slug -> TableConfig msg -> Options -> List (Row msg) -> Html msg
-renderTBody headerSlugs internalConfig options rows =
+renderTBody : List Slug -> Options -> List (Row msg) -> Html msg
+renderTBody headerSlugs options rows =
     tbody
         [ class "m-table__body" ]
-        (List.map (renderTR headerSlugs internalConfig options) rows)
+        (List.map (renderTR headerSlugs options) rows)
 
 
 {-| Internal. Renders a row of contents.
 -}
-renderTR : List Slug -> TableConfig msg -> Options -> Row msg -> Html msg
-renderTR headerSlugs internalConfig options (Row columns) =
+renderTR : List Slug -> Options -> Row msg -> Html msg
+renderTR headerSlugs options (Row columns) =
     let
         columnsDictionary =
             List.map2 (\slug col -> ( slug, col )) headerSlugs columns
     in
     tr
         [ class "m-table__body__row" ]
-        (List.map (renderTD internalConfig options) columnsDictionary)
+        (List.map (renderTD options) columnsDictionary)
 
 
 {-| Internal. Renders a row of footer contents.
 -}
-renderFooterTR : TableConfig msg -> List Slug -> Row msg -> Html msg
-renderFooterTR internalConfig headerSlugs (Row columns) =
+renderFooterTR : List Slug -> Row msg -> Html msg
+renderFooterTR headerSlugs (Row columns) =
     let
         columnsDictionary =
             List.map2 (\slug col -> ( slug, col )) headerSlugs columns
     in
     tr
         [ class "m-table__footer__row" ]
-        (List.map (renderFooterTD internalConfig) columnsDictionary)
+        (List.map renderFooterTD columnsDictionary)
 
 
 {-| Internal. Renders a table accordingly to its type.
 -}
-renderTD : TableConfig msg -> Options -> ( Slug, Column msg ) -> Html msg
-renderTD internalConfig options ( slug, Column conf ) =
+renderTD : Options -> ( Slug, Column msg ) -> Html msg
+renderTD options ( slug, Column conf ) =
     td
         [ classList ([ ( "m-table__body__row__col", True ), ( "fs-small", True ) ] ++ options.elementClassList)
         , (colspan << pickColSpan) conf
@@ -650,8 +643,8 @@ renderTD internalConfig options ( slug, Column conf ) =
 
 {-| Internal. Renders a footer cell, accordingly to its content.
 -}
-renderFooterTD : TableConfig msg -> ( Slug, Column msg ) -> Html msg
-renderFooterTD internalConfig ( slug, Column conf ) =
+renderFooterTD : ( Slug, Column msg ) -> Html msg
+renderFooterTD ( slug, Column conf ) =
     td
         [ class "m-table__footer__row__col fs-small"
         , (colspan << pickColSpan) conf

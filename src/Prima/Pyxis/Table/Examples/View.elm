@@ -4,7 +4,7 @@ import Browser
 import Html exposing (Html)
 import Prima.Pyxis.Helpers as Helpers
 import Prima.Pyxis.Table as Table
-import Prima.Pyxis.Table.Examples.Model as M exposing (Model, Msg(..))
+import Prima.Pyxis.Table.Examples.Model exposing (Model, Msg(..))
 
 
 view : Model -> Browser.Document Msg

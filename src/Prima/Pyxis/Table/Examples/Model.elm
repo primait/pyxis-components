@@ -4,7 +4,6 @@ module Prima.Pyxis.Table.Examples.Model exposing
     , initialModel
     )
 
-import Html
 import Prima.Pyxis.Table as Table
 
 

@@ -70,7 +70,7 @@ createTableState =
 -}
 type Msg
     = AtrDetailChanged AtrDetailType Year String
-    | SortyBy Table.State
+    | SortBy Table.State
 
 
 {-| Updates the configuration of the Atr table.
@@ -89,7 +89,7 @@ update msg (Config configuration) =
             , updatedConf.atrDetails
             )
 
-        SortyBy tableState ->
+        SortBy tableState ->
             let
                 updatedConf =
                     updateTableState tableState configuration
@@ -326,7 +326,7 @@ render (Config { atrDetails, alternateRows, isEditable, tableState, tableClassLi
             (buildHeaders << List.map (String.fromInt << .year << destructureAtrDetail)) atrDetails
 
         tableConfig =
-            Table.config False SortyBy
+            Table.config False SortBy
                 |> Table.withAlternateRows alternateRows
                 |> Table.withClassList tableClassList
                 |> Table.withHeaders headers
