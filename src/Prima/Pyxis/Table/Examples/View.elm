@@ -21,7 +21,7 @@ appBody model =
     ]
 
 
-createTableConfiguration : Table.Config
+createTableConfiguration : Table.Config Msg
 createTableConfiguration =
-    Table.config True
+    Table.config True identity
         |> Table.withHeaderClass "element"

@@ -48,6 +48,7 @@ type alias Configuration =
     { atrDetails : List AtrDetail
     , alternateRows : Bool
     , isEditable : Bool
+    , tableState : Table.State msg
     , tableClassList : List ( String, Bool )
     }
 
@@ -57,13 +58,19 @@ be managed by parent application. Requires a list of AtrDetail.
 -}
 config : Bool -> List ( String, Bool ) -> List AtrDetail -> ( Config, Cmd Msg )
 config isEditable tableClassList atrDetails =
-    ( Config (Configuration atrDetails True isEditable tableClassList), Cmd.none )
+    ( Config (Configuration atrDetails True isEditable createTableState tableClassList), Cmd.none )
+
+
+createTableState : Table.State
+createTableState =
+    Table.state Nothing Nothing
 
 
 {-| Represent a changing AtrDetail action
 -}
 type Msg
     = AtrDetailChanged AtrDetailType Year String
+    | TableMsg Table.Msg
 
 
 {-| Updates the configuration of the Atr table.
@@ -76,6 +83,16 @@ update msg (Config configuration) =
             let
                 updatedConf =
                     updateConfiguration atrType year value configuration
+            in
+            ( Config updatedConf
+            , Cmd.none
+            , updatedConf.atrDetails
+            )
+
+        TableMsg subMsg ->
+            let
+                updatedConf =
+                    updateTableState subMsg configuration
             in
             ( Config updatedConf
             , Cmd.none
@@ -97,6 +114,11 @@ updateConfiguration atrType year value configuration =
                 )
                 configuration.atrDetails
     }
+
+
+updateTableState : Table.Msg -> Configuration -> Configuration
+updateTableState msg configuration =
+    { configuration | tableState = Table.update msg configuration.tableState }
 
 
 updateAtrDetail : AtrDetailType -> Year -> String -> AtrDetail -> AtrDetail
@@ -295,7 +317,7 @@ type alias Year =
 {-| Renders the table by receiving a Configuration. The columns of this table are expressed by the length of the AtrDetail list.
 -}
 render : Config -> Html Msg
-render (Config { atrDetails, alternateRows, isEditable, tableClassList }) =
+render (Config { atrDetails, alternateRows, isEditable, tableState, tableClassList }) =
     let
         destructureAtrDetail (AtrDetail atrConfiguration) =
             atrConfiguration
@@ -305,16 +327,26 @@ render (Config { atrDetails, alternateRows, isEditable, tableClassList }) =
 
         rows =
             buildRows isEditable atrDetails
+
+        tableConfig =
+            Table.config False TableMsg
+                |> Table.withAlternateRows alternateRows
+                |> Table.withClassList tableClassList
+
+        internalState =
+            tableState
+                |> Table.withHeaders headers
+                |> Table.withRows rows
     in
-    Table.render (Table.initialState Nothing Nothing) <| Table.config Table.defaultType True headers rows alternateRows [] tableClassList
+    Html.map TableMsg (Table.render internalState tableConfig)
 
 
-buildHeaders : List String -> List (Table.Header Msg)
+buildHeaders : List String -> List Table.Header
 buildHeaders yearsOfAtrDetail =
-    Table.header "" "" Nothing :: List.map (\year -> Table.header year year Nothing) yearsOfAtrDetail
+    Table.header "" [ text "" ] :: List.map (\year -> Table.header year [ text year ]) yearsOfAtrDetail
 
 
-buildRows : Bool -> List AtrDetail -> List (Table.Row Msg)
+buildRows : Bool -> List AtrDetail -> List Table.Row
 buildRows isEditable atrDetails =
     List.map
         (\atrType -> Table.row <| Table.columnString 1 (atrTypeToString atrType) :: List.map (buildColumn isEditable atrType) atrDetails)
@@ -329,9 +361,9 @@ buildRows isEditable atrDetails =
         ]
 
 
-buildColumn : Bool -> AtrDetailType -> AtrDetail -> Table.Column Msg
+buildColumn : Bool -> AtrDetailType -> AtrDetail -> Table.Column
 buildColumn isEditable atrType atrDetail =
-    (Table.columnHtml 1 << buildColumnContent isEditable atrType) atrDetail
+    (Table.columnHtml 1 Nothing << List.map (Html.map TableMsg) << buildColumnContent isEditable atrType) atrDetail
 
 
 buildColumnContent : Bool -> AtrDetailType -> AtrDetail -> List (Html Msg)

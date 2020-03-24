@@ -13,7 +13,7 @@ type Msg
 
 
 type alias Model =
-    { tableState : Table.State
+    { tableState : Table.State Msg
     , sortByColumn : Maybe String
     , sortBy : Maybe Table.Sort
     }
@@ -27,7 +27,7 @@ initialModel =
         Nothing
 
 
-initialState : Table.State
+initialState : Table.State Msg
 initialState =
     Table.state Nothing Nothing
         |> Table.withHeaders (createHeaders initialHeaders)
@@ -56,11 +56,11 @@ createHeaders headers =
     List.map (\h -> Table.header (String.toLower h) [ Html.strong [] [ Html.text h ] ]) headers
 
 
-createRows : List (List String) -> List Table.Row
+createRows : List (List String) -> List (Table.Row Msg)
 createRows rows =
     List.map (Table.row << createColumns) rows
 
 
-createColumns : List String -> List Table.Column
+createColumns : List String -> List (Table.Column Msg)
 createColumns columns =
     List.map (Table.columnString 1) columns
