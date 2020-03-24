@@ -48,7 +48,7 @@ type alias Configuration =
     { atrDetails : List AtrDetail
     , alternateRows : Bool
     , isEditable : Bool
-    , tableState : Table.State msg
+    , tableState : Table.State
     , tableClassList : List ( String, Bool )
     }
 
@@ -70,7 +70,7 @@ createTableState =
 -}
 type Msg
     = AtrDetailChanged AtrDetailType Year String
-    | TableMsg Table.Msg
+    | SortyBy Table.State
 
 
 {-| Updates the configuration of the Atr table.
@@ -89,10 +89,10 @@ update msg (Config configuration) =
             , updatedConf.atrDetails
             )
 
-        TableMsg subMsg ->
+        SortyBy tableState ->
             let
                 updatedConf =
-                    updateTableState subMsg configuration
+                    updateTableState tableState configuration
             in
             ( Config updatedConf
             , Cmd.none
@@ -116,9 +116,9 @@ updateConfiguration atrType year value configuration =
     }
 
 
-updateTableState : Table.Msg -> Configuration -> Configuration
-updateTableState msg configuration =
-    { configuration | tableState = Table.update msg configuration.tableState }
+updateTableState : Table.State -> Configuration -> Configuration
+updateTableState tableState configuration =
+    { configuration | tableState = tableState }
 
 
 updateAtrDetail : AtrDetailType -> Year -> String -> AtrDetail -> AtrDetail
@@ -325,28 +325,22 @@ render (Config { atrDetails, alternateRows, isEditable, tableState, tableClassLi
         headers =
             (buildHeaders << List.map (String.fromInt << .year << destructureAtrDetail)) atrDetails
 
-        rows =
-            buildRows isEditable atrDetails
-
         tableConfig =
-            Table.config False TableMsg
+            Table.config False SortyBy
                 |> Table.withAlternateRows alternateRows
                 |> Table.withClassList tableClassList
-
-        internalState =
-            tableState
                 |> Table.withHeaders headers
-                |> Table.withRows rows
+                |> Table.withRows (buildRows isEditable atrDetails)
     in
-    Html.map TableMsg (Table.render internalState tableConfig)
+    Table.render tableState tableConfig
 
 
-buildHeaders : List String -> List Table.Header
+buildHeaders : List String -> List (Table.Header Msg)
 buildHeaders yearsOfAtrDetail =
     Table.header "" [ text "" ] :: List.map (\year -> Table.header year [ text year ]) yearsOfAtrDetail
 
 
-buildRows : Bool -> List AtrDetail -> List Table.Row
+buildRows : Bool -> List AtrDetail -> List (Table.Row Msg)
 buildRows isEditable atrDetails =
     List.map
         (\atrType -> Table.row <| Table.columnString 1 (atrTypeToString atrType) :: List.map (buildColumn isEditable atrType) atrDetails)
@@ -361,9 +355,9 @@ buildRows isEditable atrDetails =
         ]
 
 
-buildColumn : Bool -> AtrDetailType -> AtrDetail -> Table.Column
+buildColumn : Bool -> AtrDetailType -> AtrDetail -> Table.Column Msg
 buildColumn isEditable atrType atrDetail =
-    (Table.columnHtml 1 Nothing << List.map (Html.map TableMsg) << buildColumnContent isEditable atrType) atrDetail
+    (Table.columnHtml 1 Nothing << buildColumnContent isEditable atrType) atrDetail
 
 
 buildColumnContent : Bool -> AtrDetailType -> AtrDetail -> List (Html Msg)

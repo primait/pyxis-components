@@ -1,9 +1,9 @@
 module Prima.Pyxis.Table exposing
-    ( Config, TableType(..), State, Header, Row, Column, ColSpan, Sort(..), Msg
+    ( Config, TableType(..), State, Header, Row, Column, ColSpan, Sort(..)
     , config, withClass, withClassList, withHeaderClass, withFooterClass, withElementClass, withId, withTableType, withAlternateRows
     , state, withHeaders, withRows, withFooters, withSort
     , header, row, columnFloat, columnHtml, columnInteger, columnString
-    , render, update
+    , render
     )
 
 {-| Create a customizable `Table` by using predefined Html syntax.
@@ -11,7 +11,7 @@ module Prima.Pyxis.Table exposing
 
 # Configuration
 
-@docs Config, TableType, State, Header, Row, Column, ColSpan, Sort, Msg
+@docs Config, TableType, State, Header, Row, Column, ColSpan, Sort
 
 
 ## Options
@@ -36,7 +36,7 @@ module Prima.Pyxis.Table exposing
 
 # Render
 
-@docs render, update
+@docs render
 
 -}
 
@@ -44,12 +44,9 @@ import Array
 import Html exposing (Html, i, table, tbody, td, text, th, thead, tr)
 import Html.Attributes exposing (attribute, class, classList, colspan)
 import Html.Events exposing (onClick)
+import Json.Decode as JsonDecode
 import List.Extra as LE
 import Prima.Pyxis.Helpers as H
-
-
-type Msg
-    = SortBy Slug
 
 
 {-| Represent the static configuration of the component.
@@ -60,7 +57,10 @@ type Config msg
 
 type alias TableConfig msg =
     { sortable : Bool
-    , msgMapper : msg -> Msg
+    , msgMapper : State -> msg
+    , headers : List (Header msg)
+    , rows : List (Row msg)
+    , footerColumns : List (Row msg)
     , options : List TableOption
     }
 
@@ -72,9 +72,9 @@ type alias TableConfig msg =
     ...
 
 -}
-config : Bool -> (msg -> Msg) -> Config msg
+config : Bool -> (State -> msg) -> Config msg
 config sortable toMsg =
-    Config (TableConfig sortable toMsg [])
+    Config (TableConfig sortable toMsg [] [] [] [])
 
 
 {-| Internal. Represents the list of available customizations.
@@ -233,25 +233,22 @@ withAlternateRows isAlternate =
 
 {-| Represent the basic state of the component.
 -}
-type State msg
-    = State (InternalState msg)
+type State
+    = State InternalState
 
 
 {-| Create an initial State defined by Sort and Column.
 -}
-state : Maybe Sort -> Maybe String -> State msg
+state : Maybe Sort -> Maybe String -> State
 state sortBy sortedColumn =
-    State (InternalState sortBy sortedColumn [] [] [])
+    State (InternalState sortBy sortedColumn)
 
 
 {-| Internal. Represents the State of the `Table`
 -}
-type alias InternalState msg =
+type alias InternalState =
     { sortBy : Maybe Sort
     , sortedColumn : Maybe Slug
-    , headers : List Header
-    , rows : List (Row msg)
-    , footerColumns : List (Row msg)
     }
 
 
@@ -264,43 +261,30 @@ type Sort
 
 {-| Sets the sorting algorithm for a specific column.
 -}
-withSort : Slug -> Sort -> State msg -> State msg
+withSort : Slug -> Sort -> State -> State
 withSort sortedColumnSlug algorithm (State internalState) =
     State { internalState | sortBy = Just algorithm, sortedColumn = Just sortedColumnSlug }
 
 
 {-| Sets the header columns of the table.
 -}
-withHeaders : List Header -> State msg -> State msg
-withHeaders headers (State internalState) =
-    State { internalState | headers = headers }
+withHeaders : List (Header msg) -> Config msg -> Config msg
+withHeaders headers (Config internalConfig) =
+    Config { internalConfig | headers = headers }
 
 
 {-| Sets the content of the rows of the table.
 -}
-withRows : List (Row msg) -> State msg -> State msg
-withRows rows (State internalState) =
-    State { internalState | rows = rows }
+withRows : List (Row msg) -> Config msg -> Config msg
+withRows rows (Config internalConfig) =
+    Config { internalConfig | rows = rows }
 
 
 {-| Sets the footer columns of the table.
 -}
-withFooters : List (Row msg) -> State msg -> State msg
-withFooters footerColumns (State internalState) =
-    State { internalState | footerColumns = footerColumns }
-
-
-{-| Updates the state of the component when a Msg is received.
--}
-update : Msg -> State msg -> State msg
-update msg (State ({ sortedColumn, sortBy } as internalState)) =
-    case msg of
-        SortBy slug ->
-            if isCurrentlySorted slug sortedColumn then
-                State { internalState | sortBy = sortAlgorithm sortBy }
-
-            else
-                State { internalState | sortBy = sortAlgorithm Nothing, sortedColumn = Just slug }
+withFooters : List (Row msg) -> Config msg -> Config msg
+withFooters footerColumns (Config internalConfig) =
+    Config { internalConfig | footerColumns = footerColumns }
 
 
 {-| Internal. Updates the sorting algorithm applied to the table.
@@ -327,15 +311,15 @@ isCurrentlySorted slug sortedColumn =
 
 {-| Represent an Header of the table. It's gonna be rendered as a <th/> tag.
 -}
-type Header
-    = Header HeaderConfiguration
+type Header msg
+    = Header (HeaderConfiguration msg)
 
 
 {-| Internal. Represents the configuration of a Header column .
 -}
-type alias HeaderConfiguration =
+type alias HeaderConfiguration msg =
     { slug : Slug
-    , content : List (Html Msg)
+    , content : List (Html msg)
     }
 
 
@@ -346,7 +330,7 @@ type alias HeaderConfiguration =
         Table.header slug content
 
 -}
-header : Slug -> List (Html Msg) -> Header
+header : Slug -> List (Html msg) -> Header msg
 header slug content =
     Header <| HeaderConfiguration slug content
 
@@ -470,7 +454,7 @@ pickColumnsFromRow (Row columns) =
 
 {-| Internal. Returns the index of the column corresponding to the provided slug
 -}
-retrieveHeaderIndexBySlug : Maybe Slug -> List Header -> Maybe Int
+retrieveHeaderIndexBySlug : Maybe Slug -> List (Header msg) -> Maybe Int
 retrieveHeaderIndexBySlug slug headers =
     headers
         |> List.map (\(Header h) -> h.slug)
@@ -479,8 +463,8 @@ retrieveHeaderIndexBySlug slug headers =
 
 {-| Renders a Table by receiving a State and a Config
 -}
-render : State msg -> Config msg -> Html Msg
-render (State ({ sortBy, sortedColumn, headers, rows, footerColumns } as internalState)) (Config conf) =
+render : State -> Config msg -> Html msg
+render (State ({ sortBy, sortedColumn } as internalState)) (Config ({ headers, rows, footerColumns } as conf)) =
     let
         options =
             computeOptions conf
@@ -523,20 +507,20 @@ render (State ({ sortBy, sortedColumn, headers, rows, footerColumns } as interna
 
 {-| Internal. Renders the table header by receiving State, Config and the Options
 -}
-renderTHead : InternalState msg -> TableConfig msg -> Options -> Html Msg
-renderTHead internalState conf options =
+renderTHead : InternalState -> TableConfig msg -> Options -> Html msg
+renderTHead internalState ({ headers } as conf) options =
     thead
         [ classList (( "m-table__header", True ) :: options.headerClassList)
         ]
         [ tr
             [ class "m-table__header__row" ]
-            (List.map (renderTH internalState conf) internalState.headers)
+            (List.map (renderTH internalState conf) headers)
         ]
 
 
 {-| Internal. Renders the table footer by receiving State, Options and the rows of the footer
 -}
-renderTFoot : List Slug -> TableConfig msg -> Options -> List (Row msg) -> Html Msg
+renderTFoot : List Slug -> TableConfig msg -> Options -> List (Row msg) -> Html msg
 renderTFoot headerSlugs internalConfig options footerRows =
     tbody
         [ classList (( "m-table__footer", True ) :: options.footerClassList) ]
@@ -545,33 +529,50 @@ renderTFoot headerSlugs internalConfig options footerRows =
 
 {-| Internal. Renders the table header by receiving State, Config and the contents of the column
 -}
-renderTH : InternalState msg -> TableConfig msg -> Header -> Html Msg
-renderTH { sortBy, sortedColumn } conf (Header { slug, content }) =
-    let
-        sortAttr : Maybe (Html.Attribute Msg)
-        sortAttr =
-            if conf.sortable then
-                Just ((onClick << SortBy) slug)
-
-            else
-                Nothing
-    in
+renderTH : InternalState -> TableConfig msg -> Header msg -> Html msg
+renderTH ({ sortBy, sortedColumn } as internalState) conf (Header { slug, content }) =
     th
-        ([ sortAttr ]
-            |> List.filterMap identity
-            |> List.append
-                [ class "m-table__header__item fs-small"
-                , attribute "data-column" slug
-                ]
-        )
+        [ class "m-table__header__item fs-small"
+        , attribute "data-column" slug
+        , if conf.sortable then
+            internalOnClick slug (State internalState) conf.msgMapper
+
+          else
+            attribute "data-unsortable" ""
+        ]
         (content
             ++ [ renderSortIcon (isCurrentlySorted slug sortedColumn) sortBy ]
         )
 
 
+internalOnClick : String -> State -> (State -> msg) -> Html.Attribute msg
+internalOnClick slug (State internalState) msgMapper =
+    slug
+        |> JsonDecode.succeed
+        |> JsonDecode.map
+            (\s ->
+                State
+                    { internalState
+                        | sortedColumn = Just s
+                        , sortBy =
+                            case internalState.sortBy of
+                                Just Asc ->
+                                    Just Desc
+
+                                Just Desc ->
+                                    Nothing
+
+                                Nothing ->
+                                    Just Asc
+                    }
+            )
+        |> JsonDecode.map msgMapper
+        |> Html.Events.on "click"
+
+
 {-| Internal. Renders the icon representing the current sorting direction
 -}
-renderSortIcon : Bool -> Maybe Sort -> Html Msg
+renderSortIcon : Bool -> Maybe Sort -> Html msg
 renderSortIcon isSorted algorithm =
     if isSorted then
         i
@@ -590,7 +591,7 @@ renderSortIcon isSorted algorithm =
 
 {-| Internal. Renders the table body.
 -}
-renderTBody : List Slug -> TableConfig msg -> Options -> List (Row msg) -> Html Msg
+renderTBody : List Slug -> TableConfig msg -> Options -> List (Row msg) -> Html msg
 renderTBody headerSlugs internalConfig options rows =
     tbody
         [ class "m-table__body" ]
@@ -599,7 +600,7 @@ renderTBody headerSlugs internalConfig options rows =
 
 {-| Internal. Renders a row of contents.
 -}
-renderTR : List Slug -> TableConfig msg -> Options -> Row msg -> Html Msg
+renderTR : List Slug -> TableConfig msg -> Options -> Row msg -> Html msg
 renderTR headerSlugs internalConfig options (Row columns) =
     let
         columnsDictionary =
@@ -612,7 +613,7 @@ renderTR headerSlugs internalConfig options (Row columns) =
 
 {-| Internal. Renders a row of footer contents.
 -}
-renderFooterTR : TableConfig msg -> List Slug -> Row msg -> Html Msg
+renderFooterTR : TableConfig msg -> List Slug -> Row msg -> Html msg
 renderFooterTR internalConfig headerSlugs (Row columns) =
     let
         columnsDictionary =
@@ -625,7 +626,7 @@ renderFooterTR internalConfig headerSlugs (Row columns) =
 
 {-| Internal. Renders a table accordingly to its type.
 -}
-renderTD : TableConfig msg -> Options -> ( Slug, Column msg ) -> Html Msg
+renderTD : TableConfig msg -> Options -> ( Slug, Column msg ) -> Html msg
 renderTD internalConfig options ( slug, Column conf ) =
     td
         [ classList ([ ( "m-table__body__row__col", True ), ( "fs-small", True ) ] ++ options.elementClassList)
@@ -643,13 +644,13 @@ renderTD internalConfig options ( slug, Column conf ) =
                 renderFloatColumnTD content
 
             HtmlColumn _ _ content ->
-                List.map (Html.map internalConfig.msgMapper) content
+                content
         )
 
 
 {-| Internal. Renders a footer cell, accordingly to its content.
 -}
-renderFooterTD : TableConfig msg -> ( Slug, Column msg ) -> Html Msg
+renderFooterTD : TableConfig msg -> ( Slug, Column msg ) -> Html msg
 renderFooterTD internalConfig ( slug, Column conf ) =
     td
         [ class "m-table__footer__row__col fs-small"
@@ -667,7 +668,7 @@ renderFooterTD internalConfig ( slug, Column conf ) =
                 renderFloatColumnTD content
 
             HtmlColumn _ _ content ->
-                List.map (Html.map internalConfig.msgMapper) content
+                content
         )
 
 
@@ -691,13 +692,13 @@ pickColSpan conf =
 
 {-| Internal. Renders a column of Integer contents.
 -}
-renderIntColumnTD : Int -> List (Html Msg)
+renderIntColumnTD : Int -> List (Html msg)
 renderIntColumnTD =
     List.singleton << text << String.fromInt
 
 
 {-| Internal. Renders a column of Float contents.
 -}
-renderFloatColumnTD : Float -> List (Html Msg)
+renderFloatColumnTD : Float -> List (Html msg)
 renderFloatColumnTD =
     List.singleton << text << String.fromFloat

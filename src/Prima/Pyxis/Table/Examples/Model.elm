@@ -9,11 +9,11 @@ import Prima.Pyxis.Table as Table
 
 
 type Msg
-    = TableMsg Table.Msg
+    = SortBy Table.State
 
 
 type alias Model =
-    { tableState : Table.State Msg
+    { tableState : Table.State
     , sortByColumn : Maybe String
     , sortBy : Maybe Table.Sort
     }
@@ -27,40 +27,6 @@ initialModel =
         Nothing
 
 
-initialState : Table.State Msg
+initialState : Table.State
 initialState =
     Table.state Nothing Nothing
-        |> Table.withHeaders (createHeaders initialHeaders)
-        |> Table.withRows (createRows initialRows)
-        |> Table.withFooters (createRows [ initialHeaders ])
-
-
-initialHeaders : List String
-initialHeaders =
-    [ "Nazione", "Capitale" ]
-
-
-initialRows : List (List String)
-initialRows =
-    [ [ "Italia", "Roma" ]
-    , [ "Francia", "Parigi" ]
-    , [ "UK", "Londra" ]
-    , [ "Russia", "Mosca" ]
-    , [ "Spagna", "Madrid" ]
-    , [ "Olanda", "Amsterdam" ]
-    ]
-
-
-createHeaders : List String -> List Table.Header
-createHeaders headers =
-    List.map (\h -> Table.header (String.toLower h) [ Html.strong [] [ Html.text h ] ]) headers
-
-
-createRows : List (List String) -> List (Table.Row Msg)
-createRows rows =
-    List.map (Table.row << createColumns) rows
-
-
-createColumns : List String -> List (Table.Column Msg)
-createColumns columns =
-    List.map (Table.columnString 1) columns
