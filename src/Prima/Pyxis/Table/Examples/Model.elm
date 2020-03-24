@@ -8,42 +8,24 @@ import Prima.Pyxis.Table as Table
 
 
 type Msg
-    = Table
-    | SortBy String
+    = SortBy Table.State
 
 
 type alias Model =
-    { headers : List String
-    , rows : List (List String)
-    , tableState : Table.State
+    { tableState : Table.State
     , sortByColumn : Maybe String
     , sortBy : Maybe Table.Sort
-    , footers : List String
     }
 
 
 initialModel : Model
 initialModel =
     Model
-        initialHeaders
-        initialRows
-        (Table.initialState Nothing Nothing)
+        initialState
         Nothing
         Nothing
-        initialHeaders
 
 
-initialHeaders : List String
-initialHeaders =
-    [ "Nazione", "Capitale" ]
-
-
-initialRows : List (List String)
-initialRows =
-    [ [ "Italia", "Roma" ]
-    , [ "Francia", "Parigi" ]
-    , [ "UK", "Londra" ]
-    , [ "Russia", "Mosca" ]
-    , [ "Spagna", "Madrid" ]
-    , [ "Olanda", "Amsterdam" ]
-    ]
+initialState : Table.State
+initialState =
+    Table.state Nothing Nothing

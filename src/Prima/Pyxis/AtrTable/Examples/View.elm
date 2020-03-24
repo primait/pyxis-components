@@ -24,4 +24,5 @@ appBody model =
         |> Container.withContent
             [ Html.map AtrTableMsg <| AtrTable.render model.atrTable
             ]
+        |> Container.render
     ]

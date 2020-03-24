@@ -1,4 +1,4 @@
-module Main exposing (main)
+module Prima.Pyxis.Table.Example exposing (main)
 
 import Browser
 import Prima.Pyxis.Table.Examples.Model exposing (Model, Msg(..), initialModel)

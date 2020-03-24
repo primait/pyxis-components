@@ -17,32 +17,38 @@ view model =
 appBody : Model -> List (Html Msg)
 appBody model =
     [ Helpers.pyxisStyle
-    , (Table.render model.tableState << createTableConfiguration) model
+    , Table.render model.tableState createTableConfiguration
     ]
 
 
-createTableConfiguration : Model -> Table.Config Msg
-createTableConfiguration model =
-    Table.config
-        Table.defaultType
-        True
-        (createHeaders model.headers)
-        (createRows model.rows)
-        True
-        createFooters
-        [ ( "my-custom-class", True ) ]
+createTableConfiguration : Table.Config Msg
+createTableConfiguration =
+    Table.config True SortBy
+        |> Table.withHeaderClass "element"
+        |> Table.withHeaders (createHeaders initialHeaders)
+        |> Table.withRows (createRows initialRows)
+        |> Table.withFooters (createRows [ initialHeaders ])
+
+
+initialHeaders : List String
+initialHeaders =
+    [ "Nazione", "Capitale" ]
+
+
+initialRows : List (List String)
+initialRows =
+    [ [ "Italia", "Roma" ]
+    , [ "Francia", "Parigi" ]
+    , [ "UK", "Londra" ]
+    , [ "Russia", "Mosca" ]
+    , [ "Spagna", "Madrid" ]
+    , [ "Olanda", "Amsterdam" ]
+    ]
 
 
 createHeaders : List String -> List (Table.Header Msg)
-createHeaders _ =
-    [ Table.header (String.toLower "Nazione") "Nazione" (Just SortBy)
-    , Table.header (String.toLower "Paese") "Paese" (Just SortBy)
-    ]
-
-
-createFooters : List (Table.FooterRow Msg)
-createFooters =
-    [ Table.footerRow (createFooterColumns [ "Nazione", "Paese" ]) ]
+createHeaders headers =
+    List.map (\h -> Table.header (String.toLower h) [ Html.strong [] [ Html.text h ] ]) headers
 
 
 createRows : List (List String) -> List (Table.Row Msg)
@@ -53,8 +59,3 @@ createRows rows =
 createColumns : List String -> List (Table.Column Msg)
 createColumns columns =
     List.map (Table.columnString 1) columns
-
-
-createFooterColumns : List String -> List (Table.FooterColumn Msg)
-createFooterColumns columns =
-    List.map (Table.footerColumnString 1) columns

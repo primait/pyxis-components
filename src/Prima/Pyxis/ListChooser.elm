@@ -1,6 +1,6 @@
 module Prima.Pyxis.ListChooser exposing
     ( Config, State, Msg(..), ChooserItem, ViewMode(..)
-    , config, createState, withItems, createItem
+    , config, state, withItems, createItem
     , withId, withAttribute, withWrapperClass, withItemClass, withSelectedItemClass, withMultipleSelection
     , render, update
     )
@@ -15,7 +15,7 @@ module Prima.Pyxis.ListChooser exposing
 
 ## Instancing functions
 
-@docs config, createState, withItems, createItem
+@docs config, state, withItems, createItem
 
 
 ## Options
@@ -159,13 +159,13 @@ config shownItems viewAllLabel viewPartialLabel =
 {-| Updates the state of the component when a Msg is received.
 -}
 update : Msg -> Config -> State -> State
-update msg listChooserConfig state =
+update msg listChooserConfig listChooserState =
     case msg of
         ToggleViewMode ->
-            toggleViewMode state
+            toggleViewMode listChooserState
 
         ChooseItem slug ->
-            selectActiveItem slug listChooserConfig state
+            selectActiveItem slug listChooserConfig listChooserState
 
 
 {-| Defines the mode in which the list must be shown. It's possible to choose
@@ -195,23 +195,23 @@ toggleViewMode (State internalState) =
 {-| Internal. Selects the current active item(s) of the items in the list
 -}
 selectActiveItem : String -> Config -> State -> State
-selectActiveItem slug listChooserConfig state =
+selectActiveItem slug listChooserConfig listChooserState =
     let
         options =
             computeOptions listChooserConfig
     in
     if options.multipleSelection then
-        updateItems (updateSingleSelection slug) state
+        updateItems (updateSingleSelection slug) listChooserState
 
     else
-        updateItems (updateMultipleSelection slug) state
+        updateItems (updateMultipleSelection slug) listChooserState
 
 
 {-| Internal. Update a list of `ChooserItems`
 -}
 updateItems : (ChooserItem -> ChooserItem) -> State -> State
-updateItems mapper (State state) =
-    State { state | items = List.map mapper state.items }
+updateItems mapper (State listChooserState) =
+    State { listChooserState | items = List.map mapper listChooserState.items }
 
 
 {-| Internal. Update the selected status of the item, in a ListChooser which supports only ONE selected item
@@ -305,8 +305,8 @@ withSelectedItemClass class_ =
 
 {-| Creates the State record of a ListChooser.
 -}
-createState : ViewMode -> State
-createState mode =
+state : ViewMode -> State
+state mode =
     State (InternalState mode [])
 
 

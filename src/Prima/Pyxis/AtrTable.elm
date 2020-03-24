@@ -1,6 +1,6 @@
 module Prima.Pyxis.AtrTable exposing
     ( Config, AtrDetail, Msg
-    , config, atr, update
+    , config, atr, update, withClassList
     , paritaria, paritariaMista, paritariaCose, paritariaPersone, principale, principaleMista, principaleCose, principalePersone
     , render
     )
@@ -18,7 +18,7 @@ Warning. This documentation requires knownledge of Insurance domain.
 
 ## Options
 
-@docs config, atr, update
+@docs config, atr, update, withClassList
 
 
 # Helpers
@@ -48,22 +48,38 @@ type alias Configuration =
     { atrDetails : List AtrDetail
     , alternateRows : Bool
     , isEditable : Bool
-    , tableClassList : List ( String, Bool )
+    , tableState : Table.State
+    , classList : List ( String, Bool )
     }
 
 
 {-| Returns a Tuple containing the Config and a possible batch of side effects to
 be managed by parent application. Requires a list of AtrDetail.
 -}
-config : Bool -> List ( String, Bool ) -> List AtrDetail -> ( Config, Cmd Msg )
-config isEditable tableClassList atrDetails =
-    ( Config (Configuration atrDetails True isEditable tableClassList), Cmd.none )
+config : Bool -> List AtrDetail -> ( Config, Cmd Msg )
+config isEditable atrDetails =
+    ( Config (Configuration atrDetails True isEditable createTableState []), Cmd.none )
+
+
+{-| Internal. Creates an initial Table.State to be saved in the configuration.
+-}
+createTableState : Table.State
+createTableState =
+    Table.state Nothing Nothing
+
+
+{-| Add a custom ClassList to the AtrTable.
+-}
+withClassList : List ( String, Bool ) -> Config -> Config
+withClassList classList (Config conf) =
+    Config { conf | classList = classList }
 
 
 {-| Represent a changing AtrDetail action
 -}
 type Msg
     = AtrDetailChanged AtrDetailType Year String
+    | SortBy Table.State
 
 
 {-| Updates the configuration of the Atr table.
@@ -76,6 +92,16 @@ update msg (Config configuration) =
             let
                 updatedConf =
                     updateConfiguration atrType year value configuration
+            in
+            ( Config updatedConf
+            , Cmd.none
+            , updatedConf.atrDetails
+            )
+
+        SortBy tableState ->
+            let
+                updatedConf =
+                    updateTableState tableState configuration
             in
             ( Config updatedConf
             , Cmd.none
@@ -97,6 +123,11 @@ updateConfiguration atrType year value configuration =
                 )
                 configuration.atrDetails
     }
+
+
+updateTableState : Table.State -> Configuration -> Configuration
+updateTableState tableState configuration =
+    { configuration | tableState = tableState }
 
 
 updateAtrDetail : AtrDetailType -> Year -> String -> AtrDetail -> AtrDetail
@@ -295,7 +326,7 @@ type alias Year =
 {-| Renders the table by receiving a Configuration. The columns of this table are expressed by the length of the AtrDetail list.
 -}
 render : Config -> Html Msg
-render (Config { atrDetails, alternateRows, isEditable, tableClassList }) =
+render (Config { atrDetails, alternateRows, isEditable, tableState, classList }) =
     let
         destructureAtrDetail (AtrDetail atrConfiguration) =
             atrConfiguration
@@ -303,15 +334,19 @@ render (Config { atrDetails, alternateRows, isEditable, tableClassList }) =
         headers =
             (buildHeaders << List.map (String.fromInt << .year << destructureAtrDetail)) atrDetails
 
-        rows =
-            buildRows isEditable atrDetails
+        tableConfig =
+            Table.config False SortBy
+                |> Table.withAlternateRows alternateRows
+                |> Table.withClassList classList
+                |> Table.withHeaders headers
+                |> Table.withRows (buildRows isEditable atrDetails)
     in
-    Table.render (Table.initialState Nothing Nothing) <| Table.config Table.defaultType True headers rows alternateRows [] tableClassList
+    Table.render tableState tableConfig
 
 
 buildHeaders : List String -> List (Table.Header Msg)
 buildHeaders yearsOfAtrDetail =
-    Table.header "" "" Nothing :: List.map (\year -> Table.header year year Nothing) yearsOfAtrDetail
+    Table.header "" [ text "" ] :: List.map (\year -> Table.header year [ text year ]) yearsOfAtrDetail
 
 
 buildRows : Bool -> List AtrDetail -> List (Table.Row Msg)
