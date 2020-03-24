@@ -21,6 +21,7 @@ appBody model =
         |> Container.withContent
             [ Form.render model.formData <| formConfig model
             ]
+        |> Container.render
     ]
 
 

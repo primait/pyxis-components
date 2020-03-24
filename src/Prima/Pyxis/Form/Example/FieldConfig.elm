@@ -80,7 +80,9 @@ fiscalCodeGroupConfig =
             "fiscal_code"
 
         cta =
-            Link.render <| Link.simple "Calcola" "www.prima.it"
+            Link.simple "Calcola"
+                |> Link.withHref "https://www.prima.it"
+                |> Link.render
     in
     Input.text .fiscalCode (OnInput FiscalCode)
         |> Input.withId slug
@@ -126,7 +128,9 @@ privacyConfig =
 privacyLabel : List (Html Msg)
 privacyLabel =
     [ text "Dichiaro di accettare i termini e condizioni della "
-    , Link.render <| Link.simple "http://prima.it" "Prima.it"
+    , Link.simple "Calcola"
+        |> Link.withHref "https://www.prima.it"
+        |> Link.render
     , text " privacy."
     ]
 

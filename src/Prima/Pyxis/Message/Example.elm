@@ -55,7 +55,7 @@ view model =
 appBody : Model -> List (Html Msg)
 appBody _ =
     [ Helpers.pyxisStyle
-    , Container.row
+    , Container.column
         |> Container.withContent
             ([ [ text "Info: Lorem ipsum dolor sit amet." ]
                 |> Message.info
@@ -68,4 +68,5 @@ appBody _ =
                 |> List.map Message.render
                 |> List.intersperse Helpers.spacer
             )
+        |> Container.render
     ]
