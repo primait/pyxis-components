@@ -1,6 +1,6 @@
 module Prima.Pyxis.AtrTable exposing
     ( Config, AtrDetail, Msg
-    , config, atr, update
+    , config, atr, update, withClassList
     , paritaria, paritariaMista, paritariaCose, paritariaPersone, principale, principaleMista, principaleCose, principalePersone
     , render
     )
@@ -18,7 +18,7 @@ Warning. This documentation requires knownledge of Insurance domain.
 
 ## Options
 
-@docs config, atr, update
+@docs config, atr, update, withClassList
 
 
 # Helpers
@@ -49,21 +49,30 @@ type alias Configuration =
     , alternateRows : Bool
     , isEditable : Bool
     , tableState : Table.State
-    , tableClassList : List ( String, Bool )
+    , classList : List ( String, Bool )
     }
 
 
 {-| Returns a Tuple containing the Config and a possible batch of side effects to
 be managed by parent application. Requires a list of AtrDetail.
 -}
-config : Bool -> List ( String, Bool ) -> List AtrDetail -> ( Config, Cmd Msg )
-config isEditable tableClassList atrDetails =
-    ( Config (Configuration atrDetails True isEditable createTableState tableClassList), Cmd.none )
+config : Bool -> List AtrDetail -> ( Config, Cmd Msg )
+config isEditable atrDetails =
+    ( Config (Configuration atrDetails True isEditable createTableState []), Cmd.none )
 
 
+{-| Internal. Creates an initial Table.State to be saved in the configuration.
+-}
 createTableState : Table.State
 createTableState =
     Table.state Nothing Nothing
+
+
+{-| Add a custom ClassList to the AtrTable.
+-}
+withClassList : List ( String, Bool ) -> Config -> Config
+withClassList classList (Config conf) =
+    Config { conf | classList = classList }
 
 
 {-| Represent a changing AtrDetail action
@@ -317,7 +326,7 @@ type alias Year =
 {-| Renders the table by receiving a Configuration. The columns of this table are expressed by the length of the AtrDetail list.
 -}
 render : Config -> Html Msg
-render (Config { atrDetails, alternateRows, isEditable, tableState, tableClassList }) =
+render (Config { atrDetails, alternateRows, isEditable, tableState, classList }) =
     let
         destructureAtrDetail (AtrDetail atrConfiguration) =
             atrConfiguration
@@ -328,7 +337,7 @@ render (Config { atrDetails, alternateRows, isEditable, tableState, tableClassLi
         tableConfig =
             Table.config False SortBy
                 |> Table.withAlternateRows alternateRows
-                |> Table.withClassList tableClassList
+                |> Table.withClassList classList
                 |> Table.withHeaders headers
                 |> Table.withRows (buildRows isEditable atrDetails)
     in
@@ -357,7 +366,7 @@ buildRows isEditable atrDetails =
 
 buildColumn : Bool -> AtrDetailType -> AtrDetail -> Table.Column Msg
 buildColumn isEditable atrType atrDetail =
-    (Table.columnHtml 1 Nothing << buildColumnContent isEditable atrType) atrDetail
+    (Table.columnHtml 1 << buildColumnContent isEditable atrType) atrDetail
 
 
 buildColumnContent : Bool -> AtrDetailType -> AtrDetail -> List (Html Msg)
