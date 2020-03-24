@@ -1,6 +1,6 @@
 module Prima.Pyxis.Table exposing
     ( Config, TableType(..), State, Header, Row, Column, ColSpan, Sort(..)
-    , config, withClass, withClassList, withHeaderClass, withFooterClass, withElementClass, withId, withTableType, withAlternateRows
+    , config, withClass, withClassList, withHeaderClass, withFooterClass, withElementClass, withId, withTableType, withAlternateRows, withHtmlConvertFunction
     , state, withHeaders, withRows, withFooters, withSort
     , header, row, columnFloat, columnHtml, columnInteger, columnString
     , render
@@ -16,7 +16,7 @@ module Prima.Pyxis.Table exposing
 
 ## Options
 
-@docs config, withClass, withClassList, withHeaderClass, withFooterClass, withElementClass, withId, withTableType, withAlternateRows
+@docs config, withClass, withClassList, withHeaderClass, withFooterClass, withElementClass, withId, withTableType, withAlternateRows, withHtmlConvertFunction
 
 
 ## State
@@ -61,7 +61,7 @@ type alias TableConfig msg =
     , headers : List (Header msg)
     , rows : List (Row msg)
     , footerColumns : List (Row msg)
-    , options : List TableOption
+    , options : List (TableOption msg)
     }
 
 
@@ -79,7 +79,7 @@ config sortable toMsg =
 
 {-| Internal. Represents the list of available customizations.
 -}
-type alias Options =
+type alias Options msg =
     { tableClassList : List ( String, Bool )
     , headerClassList : List ( String, Bool )
     , footerClassList : List ( String, Bool )
@@ -87,12 +87,13 @@ type alias Options =
     , id : Maybe String
     , tableType : TableType
     , alternateRows : Bool
+    , htmlConvertFn : Maybe (List (Html msg) -> String)
     }
 
 
 {-| Internal. Represents the initial state of the list of customizations for the component.
 -}
-defaultOptions : Options
+defaultOptions : Options msg
 defaultOptions =
     { tableClassList = []
     , headerClassList = []
@@ -101,12 +102,13 @@ defaultOptions =
     , id = Nothing
     , tableType = Default
     , alternateRows = False
+    , htmlConvertFn = Nothing
     }
 
 
 {-| Internal. Represents the possible modifiers.
 -}
-type TableOption
+type TableOption msg
     = TableClass String
     | TableClassList (List ( String, Bool ))
     | HeaderClass String
@@ -115,11 +117,12 @@ type TableOption
     | Id String
     | Type_ TableType
     | AlternateRows Bool
+    | HtmlConvertFunction (List (Html msg) -> String)
 
 
 {-| Internal. Applies the customizations made by the end user to the component.
 -}
-applyOption : TableOption -> Options -> Options
+applyOption : TableOption msg -> Options msg -> Options msg
 applyOption modifier options =
     case modifier of
         TableClass class ->
@@ -146,17 +149,20 @@ applyOption modifier options =
         AlternateRows isAlternate ->
             { options | alternateRows = isAlternate }
 
+        HtmlConvertFunction comparer ->
+            { options | htmlConvertFn = Just comparer }
+
 
 {-| Internal. Applies all the customizations and returns the internal `Options` type.
 -}
-computeOptions : TableConfig msg -> Options
+computeOptions : TableConfig msg -> Options msg
 computeOptions tableConfig =
     List.foldl applyOption defaultOptions tableConfig.options
 
 
 {-| Internal. Adds a generic option to the `Table`.
 -}
-addOption : TableOption -> Config msg -> Config msg
+addOption : TableOption msg -> Config msg -> Config msg
 addOption option (Config tableConfig) =
     Config { tableConfig | options = tableConfig.options ++ [ option ] }
 
@@ -229,6 +235,13 @@ withTableType tableType =
 withAlternateRows : Bool -> Config msg -> Config msg
 withAlternateRows isAlternate =
     addOption (AlternateRows isAlternate)
+
+
+{-| Sets the function to convert HTML content to string to be compared in sorting.
+-}
+withHtmlConvertFunction : (List (Html msg) -> String) -> Config msg -> Config msg
+withHtmlConvertFunction comparer =
+    addOption (HtmlConvertFunction comparer)
 
 
 {-| Represent the basic state of the component.
@@ -365,7 +378,7 @@ type ColumnConfiguration msg
     = StringColumn ColSpan String
     | IntegerColumn ColSpan Int
     | FloatColumn ColSpan Float
-    | HtmlColumn ColSpan (Maybe (List (Html msg) -> String)) (List (Html msg))
+    | HtmlColumn ColSpan (List (Html msg))
 
 
 {-| Create a Column which content is String primitive.
@@ -391,9 +404,9 @@ columnFloat colSpan content =
 
 {-| Create a Column which content is Html, that can be sorted using compareFunction.
 -}
-columnHtml : ColSpan -> Maybe (List (Html msg) -> String) -> List (Html msg) -> Column msg
-columnHtml colSpan compareFunction content =
-    Column (HtmlColumn colSpan compareFunction content)
+columnHtml : ColSpan -> List (Html msg) -> Column msg
+columnHtml colSpan content =
+    Column (HtmlColumn colSpan content)
 
 
 {-| Represent the slug of a column. Alias for String.
@@ -410,11 +423,11 @@ type alias ColSpan =
 
 {-| Applies the sorting relative of the selected column to the rows.
 -}
-sortRows : Int -> List (Row msg) -> List (Row msg)
-sortRows columnIndex rows =
+sortRows : Options msg -> Int -> List (Row msg) -> List (Row msg)
+sortRows options columnIndex rows =
     List.sortBy
         (Maybe.withDefault ""
-            << Maybe.map columnToComparable
+            << Maybe.map (columnToComparable options)
             << Array.get columnIndex
             << Array.fromList
             << pickColumnsFromRow
@@ -424,8 +437,8 @@ sortRows columnIndex rows =
 
 {-| Converts the content of the available datatypes of the column into a String that can be compared.
 -}
-columnToComparable : Column msg -> String
-columnToComparable (Column columnConf) =
+columnToComparable : Options msg -> Column msg -> String
+columnToComparable options (Column columnConf) =
     case columnConf of
         StringColumn _ content ->
             content
@@ -436,8 +449,8 @@ columnToComparable (Column columnConf) =
         FloatColumn _ content ->
             String.fromFloat content
 
-        HtmlColumn _ compareFunction content ->
-            case compareFunction of
+        HtmlColumn _ content ->
+            case options.htmlConvertFn of
                 Just fn ->
                     fn content
 
@@ -479,10 +492,10 @@ render (State ({ sortBy, sortedColumn } as internalState)) (Config ({ headers, r
                         rows
 
                     Just Asc ->
-                        sortRows index rows
+                        sortRows options index rows
 
                     Just Desc ->
-                        (List.reverse << sortRows index) rows
+                        (List.reverse << sortRows options index) rows
 
             else
                 rows
@@ -507,7 +520,7 @@ render (State ({ sortBy, sortedColumn } as internalState)) (Config ({ headers, r
 
 {-| Internal. Renders the table header by receiving State, Config and the Options
 -}
-renderTHead : InternalState -> TableConfig msg -> Options -> Html msg
+renderTHead : InternalState -> TableConfig msg -> Options msg -> Html msg
 renderTHead internalState ({ headers } as conf) options =
     thead
         [ classList (( "m-table__header", True ) :: options.headerClassList)
@@ -520,7 +533,7 @@ renderTHead internalState ({ headers } as conf) options =
 
 {-| Internal. Renders the table footer by receiving State, Options and the rows of the footer
 -}
-renderTFoot : List Slug -> Options -> List (Row msg) -> Html msg
+renderTFoot : List Slug -> Options msg -> List (Row msg) -> Html msg
 renderTFoot headerSlugs options footerRows =
     tbody
         [ classList (( "m-table__footer", True ) :: options.footerClassList) ]
@@ -584,7 +597,7 @@ renderSortIcon isSorted algorithm =
 
 {-| Internal. Renders the table body.
 -}
-renderTBody : List Slug -> Options -> List (Row msg) -> Html msg
+renderTBody : List Slug -> Options msg -> List (Row msg) -> Html msg
 renderTBody headerSlugs options rows =
     tbody
         [ class "m-table__body" ]
@@ -593,7 +606,7 @@ renderTBody headerSlugs options rows =
 
 {-| Internal. Renders a row of contents.
 -}
-renderTR : List Slug -> Options -> Row msg -> Html msg
+renderTR : List Slug -> Options msg -> Row msg -> Html msg
 renderTR headerSlugs options (Row columns) =
     let
         columnsDictionary =
@@ -619,7 +632,7 @@ renderFooterTR headerSlugs (Row columns) =
 
 {-| Internal. Renders a table accordingly to its type.
 -}
-renderTD : Options -> ( Slug, Column msg ) -> Html msg
+renderTD : Options msg -> ( Slug, Column msg ) -> Html msg
 renderTD options ( slug, Column conf ) =
     td
         [ classList ([ ( "m-table__body__row__col", True ), ( "fs-small", True ) ] ++ options.elementClassList)
@@ -636,7 +649,7 @@ renderTD options ( slug, Column conf ) =
             FloatColumn _ content ->
                 renderFloatColumnTD content
 
-            HtmlColumn _ _ content ->
+            HtmlColumn _ content ->
                 content
         )
 
@@ -660,7 +673,7 @@ renderFooterTD ( slug, Column conf ) =
             FloatColumn _ content ->
                 renderFloatColumnTD content
 
-            HtmlColumn _ _ content ->
+            HtmlColumn _ content ->
                 content
         )
 
@@ -679,7 +692,7 @@ pickColSpan conf =
         FloatColumn colSpan _ ->
             colSpan
 
-        HtmlColumn colSpan _ _ ->
+        HtmlColumn colSpan _ ->
             colSpan
 
 
