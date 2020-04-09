@@ -62,10 +62,10 @@ appBody _ =
         , style "position" "relative"
         , style "top" "100px"
         ]
-        ([ Tooltip.upConfig
-         , Tooltip.downConfig
-         , Tooltip.leftConfig
-         , Tooltip.rightConfig
+        ([ Tooltip.up
+         , Tooltip.down
+         , Tooltip.left
+         , Tooltip.right
          ]
             |> List.map tooltipBuilder
             |> List.intersperse Helpers.spacer
@@ -73,7 +73,7 @@ appBody _ =
     ]
 
 
-tooltipBuilder : (List (Html Msg) -> Tooltip.Tooltip Msg) -> Html Msg
+tooltipBuilder : (List (Html Msg) -> Tooltip.Config Msg) -> Html Msg
 tooltipBuilder mapper =
     (Tooltip.render << Tooltip.withClass "a-tooltip-my-class" << mapper) contentTooltip
 

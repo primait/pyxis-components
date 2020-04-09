@@ -1,24 +1,39 @@
 module Prima.Pyxis.Form.Example.Update exposing (update)
 
 import Date
+import Prima.Pyxis.Form.Autocomplete as Autocomplete
 import Prima.Pyxis.Form.DatePicker as DatePicker
-import Prima.Pyxis.Form.Example.Model
-    exposing
-        ( Field(..)
-        , FormData
-        , Model
-        , Msg(..)
-        , UIState
-        )
+import Prima.Pyxis.Form.Example.Model exposing (BirthDateField(..), Field(..), FormData, Model, Msg(..), UIState)
+import Prima.Pyxis.Form.Select as Select
 import Prima.Pyxis.Helpers as H
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
+        AutocompleteMsg subMsg ->
+            model
+                |> updateAutocomplete subMsg
+                |> H.withoutCmds
+
+        SelectMsg subMsg ->
+            model
+                |> updateSelect subMsg
+                |> H.withoutCmds
+
         OnCheck Privacy value ->
             model
                 |> updatePrivacy value
+                |> H.withoutCmds
+
+        OnCheck UserPrivacyMarketing value ->
+            model
+                |> updateUserPrivacyMarketing value
+                |> H.withoutCmds
+
+        OnCheck UserPrivacyThirdPart value ->
+            model
+                |> updateUserPrivacyThirdPart value
                 |> H.withoutCmds
 
         OnInput Username value ->
@@ -36,39 +51,20 @@ update msg model =
                 |> updateGuideType value
                 |> H.withoutCmds
 
-        OnInput PowerSource value ->
-            model
-                |> updatePowerSource value
-                |> closePowerSourceSelect
-                |> H.withoutCmds
-
         OnInput FiscalCode value ->
             model
                 |> updateFiscalCode (Just value)
                 |> H.withoutCmds
 
-        OnInput Country value ->
+        OnInput (BirthDateCompound field) value ->
             model
-                |> updateCountry (Just value)
-                |> updateCountryFilter Nothing
-                |> closeCountryAutocomplete
+                |> updateBirthDateCompound field (Just value)
                 |> H.withoutCmds
 
         OnDateInput BirthDate value ->
             model
                 |> updateBirthDate value
-                |> H.withoutCmds
-
-        OnFilter Country value ->
-            model
-                |> updateCountryFilter (Just value)
-                |> updateCountry Nothing
-                |> openCountryAutocomplete
-                |> H.withoutCmds
-
-        OnToggle PowerSource ->
-            model
-                |> togglePowerSourceSelect
+                |> closeBirthDateDatePicker
                 |> H.withoutCmds
 
         OnChange VisitedCountries value ->
@@ -97,7 +93,7 @@ update msg model =
                 |> openBirthDateDatePicker
                 |> H.withoutCmds
 
-        OnChange InsurancePolicyType value ->
+        OnChange InsuranceType value ->
             model
                 |> updateInsurancePolicyType value
                 |> H.withoutCmds
@@ -107,8 +103,25 @@ update msg model =
                 |> updateNote (Just value)
                 |> H.withoutCmds
 
+        ToggleTooltip ->
+            model
+                |> toggleTooltip
+                |> H.withoutCmds
+
         _ ->
             H.withoutCmds model
+
+
+updateAutocomplete : Autocomplete.Msg -> Model -> Model
+updateAutocomplete autocompleteMsg =
+    updateFormData (\f -> { f | countryAutocomplete = Autocomplete.update autocompleteMsg f.countryAutocomplete })
+        >> updateFormData (\f -> { f | country = Autocomplete.selectedValue f.countryAutocomplete })
+
+
+updateSelect : Select.Msg -> Model -> Model
+updateSelect selectMsg =
+    updateFormData (\f -> { f | powerSourceSelect = Select.update selectMsg f.powerSourceSelect })
+        >> updateFormData (\f -> { f | powerSource = Select.selectedValue f.powerSourceSelect })
 
 
 updateUsername : Maybe String -> Model -> Model
@@ -131,48 +144,25 @@ updateGuideType value =
     updateFormData (\f -> { f | guideType = Just value })
 
 
-updatePowerSource : String -> Model -> Model
-updatePowerSource value =
-    updateFormData (\f -> { f | powerSource = Just value })
+updateBirthDateCompound : BirthDateField -> Maybe String -> Model -> Model
+updateBirthDateCompound field value =
+    updateFormData
+        (\f ->
+            case field of
+                Day ->
+                    { f | birthDateDay = Maybe.map (String.left 2) value }
+
+                Month ->
+                    { f | birthDateMonth = Maybe.map (String.left 2) value }
+
+                Year ->
+                    { f | birthDateYear = Maybe.map (String.left 4) value }
+        )
 
 
-updateCountry : Maybe String -> Model -> Model
-updateCountry value =
-    updateFormData (\f -> { f | country = value })
-
-
-updateCountryFilter : Maybe String -> Model -> Model
-updateCountryFilter value =
-    updateFormData (\f -> { f | countryFilter = value })
-
-
-openCountryAutocomplete : Model -> Model
-openCountryAutocomplete =
-    updateFormData <| updateUiState (\ui -> { ui | countryAutocompleteOpened = True })
-
-
-closeCountryAutocomplete : Model -> Model
-closeCountryAutocomplete =
-    updateFormData <| updateUiState (\ui -> { ui | countryAutocompleteOpened = False })
-
-
-togglePowerSourceSelect : Model -> Model
-togglePowerSourceSelect model =
-    if model.formData.uiState.powerSourceSelectOpened then
-        closePowerSourceSelect model
-
-    else
-        openPowerSourceSelect model
-
-
-openPowerSourceSelect : Model -> Model
-openPowerSourceSelect =
-    updateFormData <| updateUiState (\ui -> { ui | powerSourceSelectOpened = True })
-
-
-closePowerSourceSelect : Model -> Model
-closePowerSourceSelect =
-    updateFormData <| updateUiState (\ui -> { ui | powerSourceSelectOpened = False })
+toggleTooltip : Model -> Model
+toggleTooltip =
+    updateFormData <| updateUiState (\ui -> { ui | usernameTooltipVisible = not ui.usernameTooltipVisible })
 
 
 updateFiscalCode : Maybe String -> Model -> Model
@@ -181,8 +171,23 @@ updateFiscalCode value =
 
 
 updateBirthDate : DatePicker.Date -> Model -> Model
-updateBirthDate value =
-    updateFormData (\f -> { f | birthDate = value })
+updateBirthDate value model =
+    model
+        |> updateFormData
+            (\f ->
+                { f
+                    | birthDate = value
+                    , birthDateDatePicker =
+                        case value of
+                            DatePicker.ParsedDate date ->
+                                f.birthDateDatePicker
+                                    |> Maybe.map (DatePicker.setDate date)
+                                    |> Maybe.map (DatePicker.update (DatePicker.SelectDate date))
+
+                            _ ->
+                                f.birthDateDatePicker
+                }
+            )
 
 
 updateBirthDateDatePicker : DatePicker.Msg -> Model -> Model
@@ -247,9 +252,19 @@ updateCountryVisited value ({ formData } as model) =
 
 updateInsurancePolicyType : String -> Model -> Model
 updateInsurancePolicyType value =
-    updateFormData (\f -> { f | tipoPolizza = Just value })
+    updateFormData (\f -> { f | insuranceType = Just value })
 
 
 updateNote : Maybe String -> Model -> Model
 updateNote value =
     updateFormData (\f -> { f | note = value })
+
+
+updateUserPrivacyMarketing : Bool -> Model -> Model
+updateUserPrivacyMarketing value =
+    updateFormData (\f -> { f | userPrivacyMarketing = Just value })
+
+
+updateUserPrivacyThirdPart : Bool -> Model -> Model
+updateUserPrivacyThirdPart value =
+    updateFormData (\f -> { f | userPrivacyThirdPart = Just value })

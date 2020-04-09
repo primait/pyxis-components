@@ -1,44 +1,43 @@
 module Prima.Pyxis.Form.TextArea exposing
     ( TextArea
-    , withAttribute, withClass, withDefaultValue, withDisabled, withId, withName, withPlaceholder
-    , withRegularSize, withSmallSize, withLargeSize
+    , textArea
+    , render
+    , withAttribute, withClass, withDefaultValue, withDisabled, withId, withMediumSize, withSmallSize, withLargeSize, withName, withPlaceholder
     , withOnBlur, withOnFocus
     , withValidation
-    , render
-    , taggerAttribute, textArea, withOverridingClass
     )
 
 {-|
 
 
-## Types and Configuration
+## Configuration
 
 @docs TextArea
 
 
-## Options
+## Configuration Methods
 
-@docs withAttribute, withClass, withDefaultValue, withDisabled, withId, withName, withPlaceholder
-
-
-## Size modifiers
-
-@docs withRegularSize, withSmallSize, withLargeSize
-
-
-## Events
-
-@docs withOnBlur, withOnFocus
-
-
-## Validations
-
-@docs withValidation
+@docs textArea
 
 
 ## Rendering
 
 @docs render
+
+
+## Options
+
+@docs withAttribute, withClass, withDefaultValue, withDisabled, withId, withMediumSize, withSmallSize, withLargeSize, withName, withPlaceholder
+
+
+## Event Options
+
+@docs withOnBlur, withOnFocus
+
+
+## Validation
+
+@docs withValidation
 
 -}
 
@@ -82,7 +81,6 @@ type TextAreaOption model msg
     | Name String
     | OnBlur msg
     | OnFocus msg
-    | OverridingClass String
     | Placeholder String
     | Size TextAreaSize
     | Validation (model -> Maybe Validation.Type)
@@ -97,7 +95,7 @@ type Default
 -}
 type TextAreaSize
     = Small
-    | Regular
+    | Medium
     | Large
 
 
@@ -158,13 +156,6 @@ withOnFocus tagger =
     addOption (OnFocus tagger)
 
 
-{-| Adds a `class` to the `TextArea` which overrides all the previous.
--}
-withOverridingClass : String -> TextArea model msg -> TextArea model msg
-withOverridingClass class =
-    addOption (OverridingClass class)
-
-
 {-| Adds a `placeholder` Html.Attribute to the `TextArea`.
 -}
 withPlaceholder : String -> TextArea model msg -> TextArea model msg
@@ -172,11 +163,11 @@ withPlaceholder placeholder =
     addOption (Placeholder placeholder)
 
 
-{-| Adds a `size` of `Regular` to the `TextArea`.
+{-| Adds a `size` of `Medium` to the `TextArea`.
 -}
-withRegularSize : TextArea model msg -> TextArea model msg
-withRegularSize =
-    addOption (Size Regular)
+withMediumSize : TextArea model msg -> TextArea model msg
+withMediumSize =
+    addOption (Size Medium)
 
 
 {-| Sets a `size` of `Small` to the `TextArea`.
@@ -232,14 +223,14 @@ defaultOptions =
     { attributes = []
     , defaultValue = Indeterminate
     , disabled = Nothing
-    , classes = [ "a-form-field__textarea" ]
+    , classes = [ "a-form-textarea" ]
     , groupClasses = []
     , id = Nothing
     , name = Nothing
     , onFocus = Nothing
     , onBlur = Nothing
     , placeholder = Nothing
-    , size = Regular
+    , size = Medium
     , validations = []
     }
 
@@ -254,9 +245,6 @@ applyOption modifier options =
 
         Class class ->
             { options | classes = class :: options.classes }
-
-        OverridingClass class ->
-            { options | classes = [ class ] }
 
         DefaultValue value ->
             { options | defaultValue = Value value }
@@ -295,7 +283,7 @@ sizeAttribute size =
             Small ->
                 "is-small"
 
-            Regular ->
+            Medium ->
                 "is-medium"
 
             Large ->

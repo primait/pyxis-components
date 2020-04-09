@@ -1,6 +1,6 @@
-module Prima.Pyxis.Form.Radio exposing
-    ( Radio, RadioChoice
-    , radio, radioChoice
+module Prima.Pyxis.Form.RadioFlag exposing
+    ( RadioFlag
+    , radioFlagLight, radioFlagDark
     , render
     , withAttribute, withClass, withDisabled, withId, withName
     , withOnBlur, withOnFocus
@@ -12,12 +12,12 @@ module Prima.Pyxis.Form.Radio exposing
 
 ## Configuration
 
-@docs Radio, RadioChoice
+@docs RadioFlag
 
 
 ## Configuration Methods
 
-@docs radio, radioChoice
+@docs radioFlagLight, radioFlagDark
 
 
 ## Rendering
@@ -49,47 +49,78 @@ import Prima.Pyxis.Form.Validation as Validation
 import Prima.Pyxis.Helpers as H
 
 
-{-| Represents the configuration choice for the `Radio`.
+{-| Represents the configuration choice for the `RadioFlag`.
 -}
-type Radio model msg
-    = Radio (RadioConfig model msg)
+type RadioFlag model msg
+    = RadioFlag (RadioFlagConfig model msg)
 
 
 {-| Internal.
 -}
-type alias RadioConfig model msg =
-    { options : List (RadioOption model msg)
-    , reader : model -> Maybe String
-    , tagger : String -> msg
-    , radioChoices : List RadioChoice
+type alias RadioFlagConfig model msg =
+    { options : List (RadioFlagOption model msg)
+    , reader : model -> Maybe Bool
+    , tagger : Bool -> msg
+    , skin : Skin
+    , radioChoices : List RadioFlagChoice
     }
 
 
-{-| Creates the `Radio`.
--}
-radio : (model -> Maybe String) -> (String -> msg) -> List RadioChoice -> Radio model msg
-radio reader tagger =
-    Radio << RadioConfig [] reader tagger
+type Skin
+    = Light
+    | Dark
 
 
-{-| Represents a choice for the `Radio`.
+isLight : Skin -> Bool
+isLight =
+    (==) Light
+
+
+isDark : Skin -> Bool
+isDark =
+    (==) Dark
+
+
+{-| Creates the `RadioFlag` with a light skin.
 -}
-type alias RadioChoice =
-    { value : String
+radioFlagLight : (model -> Maybe Bool) -> (Bool -> msg) -> RadioFlag model msg
+radioFlagLight reader tagger =
+    [ RadioFlagChoice True "Sì"
+    , RadioFlagChoice False "No"
+    ]
+        |> RadioFlagConfig [] reader tagger Light
+        |> RadioFlag
+
+
+{-| Creates the `RadioFlag` with a dark skin.
+-}
+radioFlagDark : (model -> Maybe Bool) -> (Bool -> msg) -> RadioFlag model msg
+radioFlagDark reader tagger =
+    [ RadioFlagChoice True "Sì"
+    , RadioFlagChoice False "No"
+    ]
+        |> RadioFlagConfig [] reader tagger Dark
+        |> RadioFlag
+
+
+{-| Represents a choice for the `RadioFlag`.
+-}
+type alias RadioFlagChoice =
+    { value : Bool
     , label : String
     }
 
 
-{-| Creates a choice for the `Radio`.
+{-| Creates a choice for the `RadioFlag`.
 -}
-radioChoice : String -> String -> RadioChoice
-radioChoice value label =
-    RadioChoice value label
+radioFlagChoice : Bool -> String -> RadioFlagChoice
+radioFlagChoice value label =
+    RadioFlagChoice value label
 
 
 {-| Internal.
 -}
-type RadioOption model msg
+type RadioFlagOption model msg
     = Attribute (Html.Attribute msg)
     | Class String
     | Disabled Bool
@@ -117,7 +148,7 @@ type alias Options model msg =
 defaultOptions : Options model msg
 defaultOptions =
     { attributes = []
-    , class = [ "a-form-radio__input" ]
+    , class = [ "a-form-radio-flag__input" ]
     , disabled = Nothing
     , id = Nothing
     , name = Nothing
@@ -129,70 +160,70 @@ defaultOptions =
 
 {-| Internal.
 -}
-addOption : RadioOption model msg -> Radio model msg -> Radio model msg
-addOption option (Radio radioConfig) =
-    Radio { radioConfig | options = radioConfig.options ++ [ option ] }
+addOption : RadioFlagOption model msg -> RadioFlag model msg -> RadioFlag model msg
+addOption option (RadioFlag radioConfig) =
+    RadioFlag { radioConfig | options = radioConfig.options ++ [ option ] }
 
 
 {-| Sets an `attribute` to the `Radio config`.
 -}
-withAttribute : Html.Attribute msg -> Radio model msg -> Radio model msg
+withAttribute : Html.Attribute msg -> RadioFlag model msg -> RadioFlag model msg
 withAttribute attribute =
     addOption (Attribute attribute)
 
 
 {-| Sets a `disabled` to the `Radio config`.
 -}
-withDisabled : Bool -> Radio model msg -> Radio model msg
+withDisabled : Bool -> RadioFlag model msg -> RadioFlag model msg
 withDisabled disabled =
     addOption (Disabled disabled)
 
 
 {-| Sets a `class` to the `Radio config`.
 -}
-withClass : String -> Radio model msg -> Radio model msg
+withClass : String -> RadioFlag model msg -> RadioFlag model msg
 withClass class_ =
     addOption (Class class_)
 
 
 {-| Sets an `id` to the `Radio config`.
 -}
-withId : String -> Radio model msg -> Radio model msg
+withId : String -> RadioFlag model msg -> RadioFlag model msg
 withId id =
     addOption (Id id)
 
 
 {-| Sets a `name` to the `Radio config`.
 -}
-withName : String -> Radio model msg -> Radio model msg
+withName : String -> RadioFlag model msg -> RadioFlag model msg
 withName name =
     addOption (Name name)
 
 
 {-| Sets an `onBlur event` to the `Radio config`.
 -}
-withOnBlur : msg -> Radio model msg -> Radio model msg
+withOnBlur : msg -> RadioFlag model msg -> RadioFlag model msg
 withOnBlur tagger =
     addOption (OnBlur tagger)
 
 
 {-| Sets an `onFocus event` to the `Radio config`.
 -}
-withOnFocus : msg -> Radio model msg -> Radio model msg
+withOnFocus : msg -> RadioFlag model msg -> RadioFlag model msg
 withOnFocus tagger =
     addOption (OnFocus tagger)
 
 
-{-| Adds a validation rule to the `Radio`.
+{-| Adds a validation rule to the `RadioFlag`.
 -}
-withValidation : (model -> Maybe Validation.Type) -> Radio model msg -> Radio model msg
+withValidation : (model -> Maybe Validation.Type) -> RadioFlag model msg -> RadioFlag model msg
 withValidation validation =
     addOption (Validation validation)
 
 
 {-| Internal.
 -}
-applyOption : RadioOption model msg -> Options model msg -> Options model msg
+applyOption : RadioFlagOption model msg -> Options model msg -> Options model msg
 applyOption modifier options =
     case modifier of
         Attribute attribute ->
@@ -220,22 +251,22 @@ applyOption modifier options =
             { options | validations = validation :: options.validations }
 
 
-readerAttribute : model -> Radio model msg -> RadioChoice -> Html.Attribute msg
-readerAttribute model (Radio config) choice =
+readerAttribute : model -> RadioFlag model msg -> RadioFlagChoice -> Html.Attribute msg
+readerAttribute model (RadioFlag config) choice =
     model
         |> config.reader
         |> (==) (Just choice.value)
         |> Attrs.checked
 
 
-taggerAttribute : Radio model msg -> RadioChoice -> Html.Attribute msg
-taggerAttribute (Radio config) choice =
+taggerAttribute : RadioFlag model msg -> RadioFlagChoice -> Html.Attribute msg
+taggerAttribute (RadioFlag config) choice =
     choice.value
         |> config.tagger
         |> Events.onClick
 
 
-validationAttribute : model -> Radio model msg -> Html.Attribute msg
+validationAttribute : model -> RadioFlag model msg -> Html.Attribute msg
 validationAttribute model radioModel =
     let
         warnings =
@@ -257,8 +288,8 @@ validationAttribute model radioModel =
 
 {-| Composes all the modifiers into a set of `Html.Attribute`(s).
 -}
-buildAttributes : model -> Radio model msg -> RadioChoice -> List (Html.Attribute msg)
-buildAttributes model ((Radio _) as radioModel) choice =
+buildAttributes : model -> RadioFlag model msg -> RadioFlagChoice -> List (Html.Attribute msg)
+buildAttributes model radioModel choice =
     let
         options =
             computeOptions radioModel
@@ -281,47 +312,41 @@ buildAttributes model ((Radio _) as radioModel) choice =
         |> (::) (taggerAttribute radioModel choice)
         |> (::) (validationAttribute model radioModel)
         |> (::) (Attrs.type_ "radio")
-        |> (::) (Attrs.value choice.value)
+        |> (::) (Attrs.value (boolToValue choice.value))
 
 
-{-| Renders the `Radio config`.
-
-    import Prima.Pyxis.Form.Radio as Radio
-
-    view : List (Html Msg)
-    view =
-        [ radioChoice "option_1" "Option 1"
-        , radioChoice "option_2" "Option 2"
-        ]
-            |> Radio.radio
-            |> Radio.render
-
+{-| Renders the `RadioFlag`.
 -}
-render : model -> Radio model msg -> List (Html msg)
-render model ((Radio { radioChoices }) as radioModel) =
+render : model -> RadioFlag model msg -> List (Html msg)
+render model ((RadioFlag { radioChoices }) as radioModel) =
     Html.div
-        [ Attrs.class "a-form-radio-options" ]
+        [ Attrs.class "a-form-radio-flag-options" ]
         (List.map (renderRadioChoice model radioModel) radioChoices)
         :: renderValidationMessages model radioModel
 
 
-renderRadioChoice : model -> Radio model msg -> RadioChoice -> Html msg
-renderRadioChoice model ((Radio { tagger }) as radioModel) ({ value, label } as choice) =
+renderRadioChoice : model -> RadioFlag model msg -> RadioFlagChoice -> Html msg
+renderRadioChoice model ((RadioFlag { tagger, skin }) as radioModel) ({ value, label } as choice) =
     Html.div
-        [ Attrs.class "a-form-radio" ]
+        [ Attrs.classList
+            [ ( "a-form-radio-flag", True )
+            , ( "a-form-radio-flag--light", isLight skin )
+            , ( "a-form-radio-flag--dark", isDark skin )
+            ]
+        ]
         [ Html.input
             (buildAttributes model radioModel choice)
             []
         , label
             |> Label.label
             |> Label.withOnClick (tagger value)
-            |> Label.withFor value
-            |> Label.withOverridingClass "a-form-radio__label"
+            |> Label.withFor (boolToValue value)
+            |> Label.withOverridingClass "a-form-radio-flag__label"
             |> Label.render
         ]
 
 
-renderValidationMessages : model -> Radio model msg -> List (Html msg)
+renderValidationMessages : model -> RadioFlag model msg -> List (Html msg)
 renderValidationMessages model radioModel =
     let
         warnings =
@@ -340,8 +365,8 @@ renderValidationMessages model radioModel =
 
 {-| Internal
 -}
-computeOptions : Radio model msg -> Options model msg
-computeOptions (Radio { options }) =
+computeOptions : RadioFlag model msg -> Options model msg
+computeOptions (RadioFlag { options }) =
     List.foldl applyOption defaultOptions options
 
 
@@ -357,3 +382,12 @@ errorsValidations model options =
     options.validations
         |> List.filterMap (H.flip identity model)
         |> List.filter Validation.isError
+
+
+boolToValue : Bool -> String
+boolToValue flag =
+    if flag then
+        "si"
+
+    else
+        "no"

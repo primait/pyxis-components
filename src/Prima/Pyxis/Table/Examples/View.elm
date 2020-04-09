@@ -23,11 +23,11 @@ appBody model =
 
 createTableConfiguration : Table.Config Msg
 createTableConfiguration =
-    Table.config True SortBy
+    Table.base True SortBy
         |> Table.withHeaderClass "element"
-        |> Table.withHeaders (createHeaders initialHeaders)
-        |> Table.withRows (createRows initialRows)
-        |> Table.withFooters (createRows [ initialHeaders ])
+        |> Table.addHeaders (createHeaders initialHeaders)
+        |> Table.addRows (createRows initialRows)
+        |> Table.addFooters (createRows [ initialHeaders ])
 
 
 initialHeaders : List String

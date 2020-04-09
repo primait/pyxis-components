@@ -1,4 +1,4 @@
-module Prima.Pyxis.Shared.Interceptor exposing
+module Prima.Pyxis.Commons.Interceptor exposing
     ( Interceptor(..)
     , targetContainsClass
     , targetWithId

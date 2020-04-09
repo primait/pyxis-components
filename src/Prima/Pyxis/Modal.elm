@@ -1,66 +1,69 @@
 module Prima.Pyxis.Modal exposing
-    ( Config, render
+    ( Config
     , small, medium, large
-    , withCloseOnOverlayClick, withOverlayStyle, withOverlayAttribute, withOverlayClass, withOverlayClassList
+    , render
+    , hide, show, toggle
     , withAttribute, withClass, withClassList, withId, withStyle, withTitleAttribute
+    , withCloseOnOverlayClick, withOverlayStyle, withOverlayAttribute, withOverlayClass, withOverlayClassList
     , withHeaderAttribute, withHeaderClass, withHeaderClassList, withHeaderContent, withHeaderContentOnly, withHeaderStyle, withHeaderTitle, withHeaderTitleOnly
     , withBodyAttribute, withBodyClass, withBodyClassList, withBodyContent, withBodyStyle
     , withFooterAttribute, withFooterClass, withFooterClassList, withFooterContent, withFooterStyle
-    , hide, show, toggle
     )
 
-{-| Create a `Modal` by using predefined Html syntax.
+{-|
 
 
-## Ready to use
+## Configuration
 
-@docs Config, render
+@docs Config
 
 
-## Constructors
+## Configuration Methods
 
 @docs small, medium, large
 
 
-## Modifiers
+## Rendering
+
+@docs render
 
 
-### Overlay modifier
+## Methods
+
+@docs hide, show, toggle
+
+
+## Options
+
+@docs withAttribute, withClass, withClassList, withId, withStyle, withTitleAttribute
+
+
+## Overlay Options
 
 @docs withCloseOnOverlayClick, withOverlayStyle, withOverlayAttribute, withOverlayClass, withOverlayClassList
 
 
-### Modal modifiers
-
-@docs withAttribute, withClass, withClassList, withId, withContent, withStyle, withTitleAttribute
-
-
-### Header modifiers
+## Header Options
 
 @docs withHeaderAttribute, withHeaderClass, withHeaderClassList, withHeaderContent, withHeaderContentOnly, withHeaderStyle, withHeaderTitle, withHeaderTitleOnly
 
 
-### Body modifiers
+## Body Options
 
 @docs withBodyAttribute, withBodyClass, withBodyClassList, withBodyContent, withBodyStyle
 
 
-### Footer modifiers
+## Footer Options
 
 @docs withFooterAttribute, withFooterClass, withFooterClassList, withFooterContent, withFooterStyle
-
-
-### Helpers
-
-@docs hide, show, toggle
 
 -}
 
 import Html exposing (Html)
 import Html.Attributes as HtmlAttributes
+import Prima.Pyxis.Commons.InterceptedEvents as InterceptedEvents
+import Prima.Pyxis.Commons.Interceptor as Interceptor
 import Prima.Pyxis.Helpers as H
-import Prima.Pyxis.Shared.InterceptedEvents as InterceptedEvents
-import Prima.Pyxis.Shared.Interceptor as Interceptor
 
 
 {-| Represent the configuration of a `Modal`.

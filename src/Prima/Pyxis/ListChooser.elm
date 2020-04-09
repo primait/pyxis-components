@@ -1,31 +1,31 @@
 module Prima.Pyxis.ListChooser exposing
     ( Config, State, Msg(..), ChooserItem, ViewMode(..)
-    , config, state, withItems, createItem
-    , withId, withAttribute, withWrapperClass, withItemClass, withSelectedItemClass, withMultipleSelection
-    , render, update
+    , config, init, update, createItem
+    , render
+    , withId, withAttribute, withItems, withItemClass, withMultipleSelection, withSelectedItemClass, withWrapperClass
     )
 
-{-| Create a List of ChooserItems component.
+{-|
 
 
-# Configuration and Types
+## Configuration
 
 @docs Config, State, Msg, ChooserItem, ViewMode
 
 
-## Instancing functions
+## Configuration Methods
 
-@docs config, state, withItems, createItem
+@docs config, init, update, createItem
+
+
+## Rendering
+
+@docs render
 
 
 ## Options
 
-@docs withId, withAttribute, withWrapperClass, withItemClass, withSelectedItemClass, withMultipleSelection
-
-
-# Render
-
-@docs render, update
+@docs withId, withAttribute, withItems, withItemClass, withMultipleSelection, withSelectedItemClass, withWrapperClass
 
 -}
 
@@ -305,8 +305,8 @@ withSelectedItemClass class_ =
 
 {-| Creates the State record of a ListChooser.
 -}
-state : ViewMode -> State
-state mode =
+init : ViewMode -> State
+init mode =
     State (InternalState mode [])
 
 
@@ -368,7 +368,7 @@ render (State { mode, items }) ((Config { shownItems }) as listChooserConfig) =
 renderList : List ChooserItem -> Config -> Html Msg
 renderList items listChooserConfig =
     ul
-        [ class "m-list-chooser__list no-list-style no-margin no-padding" ]
+        [ class "a-list-chooser__list no-list-style no-margin no-padding" ]
         (List.map (renderItem listChooserConfig) items)
 
 
@@ -411,7 +411,7 @@ buildItemClassList (ChooserItem { isSelected }) listChooserConfig =
         options =
             computeOptions listChooserConfig
     in
-    [ ( "m-list-chooser__item", True )
+    [ ( "a-list-chooser__item", True )
     , ( "is-selected", isSelected )
     ]
         |> List.append (List.map (H.flip Tuple.pair True) options.itemClasses)
@@ -432,7 +432,7 @@ buildWrapperAttributes ((Config { shownItems }) as listChooserConfig) =
     ]
         |> List.filterMap identity
         |> List.append [ attribute "data-max-items" <| String.fromInt shownItems ]
-        |> (::) (buildClass options.wrapperClasses [ "m-list-chooser", "direction-column" ])
+        |> (::) (buildClass options.wrapperClasses [ "a-list-chooser" ])
         |> List.append options.attributes
 
 

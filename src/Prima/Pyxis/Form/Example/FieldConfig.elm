@@ -1,5 +1,6 @@
 module Prima.Pyxis.Form.Example.FieldConfig exposing
-    ( birthDateConfig
+    ( birthDateCompoundConfig
+    , birthDateConfig
     , checkboxConfig
     , countryConfig
     , fiscalCodeGroupConfig
@@ -10,26 +11,32 @@ module Prima.Pyxis.Form.Example.FieldConfig exposing
     , privacyLabel
     , radioButtonConfig
     , textAreaConfig
+    , userPrivacyMarketingConfig
+    , userPrivacyThirdPartConfig
     , usernameGroupConfig
+    , usernameWithTooltipConfig
     )
 
-import Html exposing (Html, text)
+import Html exposing (Html)
 import Html.Attributes as Attrs
+import Html.Events as Events
 import Prima.Pyxis.Form as Form
 import Prima.Pyxis.Form.Autocomplete as Autocomplete
 import Prima.Pyxis.Form.Checkbox as Checkbox
+import Prima.Pyxis.Form.CheckboxFlag as CheckboxFlag
 import Prima.Pyxis.Form.Date as Date
-import Prima.Pyxis.Form.Example.Model exposing (Field(..), FormData, Msg(..))
-import Prima.Pyxis.Form.Flag as Flag
+import Prima.Pyxis.Form.Example.FieldValidations as Validation
+import Prima.Pyxis.Form.Example.Model exposing (BirthDateField(..), Field(..), FormData, Msg(..))
 import Prima.Pyxis.Form.Input as Input
 import Prima.Pyxis.Form.Label as Label
 import Prima.Pyxis.Form.Radio as Radio
 import Prima.Pyxis.Form.RadioButton as RadioButton
+import Prima.Pyxis.Form.RadioFlag as RadioFlag
 import Prima.Pyxis.Form.Select as Select
 import Prima.Pyxis.Form.TextArea as TextArea
-import Prima.Pyxis.Form.Validation as Validation
 import Prima.Pyxis.Helpers as H
 import Prima.Pyxis.Link as Link
+import Prima.Pyxis.Tooltip as Tooltip
 
 
 usernameGroupConfig : Form.FormField FormData Msg
@@ -44,7 +51,37 @@ usernameGroupConfig =
     Input.text .username (OnInput Username)
         |> Input.withId slug
         |> Input.withAppendGroup [ userIcon ]
+        |> Input.withValidation (Validation.notEmptyValidation .username)
+        |> Input.withValidation (Validation.atLeastTwoCharsValidation .username)
         |> Form.input
+        |> Form.withLabel
+            ("Username"
+                |> Label.label
+                |> Label.withFor slug
+            )
+
+
+usernameWithTooltipConfig : Bool -> Form.FormField FormData Msg
+usernameWithTooltipConfig showTooltip =
+    let
+        slug =
+            "username"
+
+        icon =
+            Html.i [ Attrs.class "a-icon a-icon-info", Events.onClick ToggleTooltip ] []
+
+        tooltip =
+            Tooltip.up [ Html.text H.loremIpsum ]
+    in
+    Input.text .username (OnInput Username)
+        |> Input.withId slug
+        |> Form.input
+        |> Form.withAppendableHtml
+            [ icon
+            , tooltip
+                |> Tooltip.render
+                |> H.renderIf showTooltip
+            ]
         |> Form.withLabel
             ("Username"
                 |> Label.label
@@ -64,6 +101,8 @@ passwordGroupConfig =
     Input.password .password (OnInput Password)
         |> Input.withId slug
         |> Input.withPrependGroup [ lockIcon ]
+        |> Input.withValidation (Validation.notEmptyValidation .password)
+        |> Input.withValidation (Validation.atLeastTwoCharsValidation .password)
         |> Form.input
         |> Form.withLabel
             ("Password"
@@ -78,16 +117,17 @@ fiscalCodeGroupConfig =
     let
         slug =
             "fiscal_code"
-
-        cta =
-            Link.simple "Calcola"
-                |> Link.withHref "https://www.prima.it"
-                |> Link.render
     in
     Input.text .fiscalCode (OnInput FiscalCode)
         |> Input.withId slug
         |> Input.withLargeSize
-        |> Input.withPrependGroup [ cta ]
+        |> Input.withPrependGroup
+            ("Calcola"
+                |> Link.simple
+                |> Link.withHref "https://www.prima.it"
+                |> Link.render
+                |> List.singleton
+            )
         |> Input.withGroupClass "is-large"
         |> Form.input
         |> Form.withLabel
@@ -103,20 +143,13 @@ privacyConfig =
         slug =
             "privacy"
     in
-    Flag.flag .privacy (OnCheck Privacy) slug
-        |> Flag.withLabel
+    CheckboxFlag.flag .privacy (OnCheck Privacy) slug
+        |> CheckboxFlag.withLabel
             (privacyLabel
                 |> Label.labelWithHtml
                 |> Label.withFor slug
             )
-        |> Flag.withValidation
-            (\m ->
-                if Maybe.withDefault True <| Maybe.map not m.privacy then
-                    Just <| Validation.ErrorWithMessage "You must accept the privacy."
-
-                else
-                    Nothing
-            )
+        |> CheckboxFlag.withValidation Validation.privacyValidation
         |> Form.flag
         |> Form.withLabel
             ("Privacy"
@@ -127,12 +160,36 @@ privacyConfig =
 
 privacyLabel : List (Html Msg)
 privacyLabel =
-    [ text "Dichiaro di accettare i termini e condizioni della "
+    [ Html.text "Dichiaro di accettare i termini e condizioni della "
     , Link.simple "Calcola"
         |> Link.withHref "https://www.prima.it"
         |> Link.render
-    , text " privacy."
+    , Html.text " privacy."
     ]
+
+
+userPrivacyMarketingConfig : Form.FormField FormData Msg
+userPrivacyMarketingConfig =
+    RadioFlag.radioFlagLight .userPrivacyMarketing (OnCheck UserPrivacyMarketing)
+        |> RadioFlag.withName "user_privacy_marketing"
+        |> RadioFlag.withValidation (Validation.userPrivacyAcceptedValidation .userPrivacyMarketing)
+        |> Form.radioFlag
+        |> Form.withLabel
+            ("Acconsento al trattamento dei miei dati personali per fini commerciali ovvero offerte speciali e informazioni promozionali relative a prodotti/servizi di Prima o di soggetti terzi anche attraverso posta cartacea, sistemi automatizzati (email, sms, fax) o tramite operatore telefonico."
+                |> Label.label
+            )
+
+
+userPrivacyThirdPartConfig : Form.FormField FormData Msg
+userPrivacyThirdPartConfig =
+    RadioFlag.radioFlagDark .userPrivacyThirdPart (OnCheck UserPrivacyThirdPart)
+        |> RadioFlag.withName "user_privacy_third_part"
+        |> RadioFlag.withValidation (Validation.userPrivacyAcceptedValidation .userPrivacyThirdPart)
+        |> Form.radioFlag
+        |> Form.withLabel
+            ("Acconsento al trattamento dei miei dati personali per ricerche di mercato e fini statistici e/o per la personalizzazione del marketing diretto e della pubblicità comportamentale."
+                |> Label.label
+            )
 
 
 guideTypeConfig : Form.FormField FormData Msg
@@ -143,14 +200,7 @@ guideTypeConfig =
     ]
         |> Radio.radio .guideType (OnInput GuideType)
         |> Radio.withName "guide_type"
-        |> Radio.withValidation
-            (\m ->
-                if H.isNothing m.guideType then
-                    Just <| Validation.ErrorWithMessage "Cannot be empty"
-
-                else
-                    Nothing
-            )
+        |> Radio.withValidation (Validation.notEmptyValidation .guideType)
         |> Form.radio
         |> Form.withLabel
             ("Tipo di guida"
@@ -158,35 +208,17 @@ guideTypeConfig =
             )
 
 
-powerSourceConfig : Form.FormField FormData Msg
-powerSourceConfig =
+powerSourceConfig : Select.State -> Form.FormField FormData Msg
+powerSourceConfig state =
     let
         slug =
             "powerSource"
     in
-    [ Select.selectChoice "diesel" "Diesel"
-    , Select.selectChoice "petrol" "Benzina"
-    , Select.selectChoice "hybrid" "Benzina / Elettrico"
-    ]
-        |> Select.select .powerSource (OnInput PowerSource) (.powerSourceSelectOpened << .uiState) (OnToggle PowerSource)
+    Select.select
         |> Select.withId slug
-        |> Select.withValidation
-            (\m ->
-                if String.isEmpty <| Maybe.withDefault "" <| m.powerSource then
-                    Just <| Validation.WarningWithMessage "Cannot be empty"
-
-                else
-                    Nothing
-            )
-        |> Select.withValidation
-            (\m ->
-                if (==) "diesel" <| Maybe.withDefault "" <| m.powerSource then
-                    Just <| Validation.ErrorWithMessage "Cannot be Diesel"
-
-                else
-                    Nothing
-            )
-        |> Form.select
+        |> Select.withValidation (Validation.notEmptyValidation .powerSource)
+        |> Select.withValidation Validation.powerSourceNotDieselValidation
+        |> Form.select SelectMsg state
         |> Form.withLabel
             ("Alimentazione"
                 |> Label.label
@@ -194,32 +226,18 @@ powerSourceConfig =
             )
 
 
-countryConfig : Form.FormField FormData Msg
-countryConfig =
+countryConfig : Autocomplete.State -> Form.FormField FormData Msg
+countryConfig state =
     let
         slug =
-            "country"
+            "country-test"
     in
-    [ Autocomplete.autocompleteChoice "italy" "Italy"
-    , Autocomplete.autocompleteChoice "france" "France"
-    , Autocomplete.autocompleteChoice "spain" "Spain"
-    , Autocomplete.autocompleteChoice "usa" "U.S.A."
-    , Autocomplete.autocompleteChoice "germany" "Germany"
-    , Autocomplete.autocompleteChoice "uk" "U.K."
-    ]
-        |> Autocomplete.autocomplete .country (OnInput Country) .countryFilter (OnFilter Country) (.countryAutocompleteOpened << .uiState)
-        |> Autocomplete.withThreshold 3
+    Autocomplete.autocomplete
         |> Autocomplete.withLargeSize
+        |> Autocomplete.withThreshold 1
         |> Autocomplete.withId slug
-        |> Autocomplete.withValidation
-            (\m ->
-                if (==) "italy" <| Maybe.withDefault "" <| m.country then
-                    Just <| Validation.ErrorWithMessage "The field is empty"
-
-                else
-                    Nothing
-            )
-        |> Form.autocomplete
+        |> Autocomplete.withValidation Validation.countryNotItalyValidation
+        |> Form.autocomplete AutocompleteMsg state
         |> Form.withLabel
             ("Paese di nascita"
                 |> Label.label
@@ -242,14 +260,7 @@ checkboxConfig =
     in
     valuesOption
         |> Checkbox.checkbox .countryVisited (OnChange VisitedCountries)
-        |> Checkbox.withValidation
-            (\m ->
-                if List.isEmpty m.countryVisited then
-                    Just <| Validation.ErrorWithMessage "The field is empty"
-
-                else
-                    Nothing
-            )
+        |> Checkbox.withValidation Validation.countryVisitedEmptyValidation
         |> Checkbox.withName "country_visited"
         |> Form.checkbox
         |> Form.withLabel
@@ -261,18 +272,11 @@ checkboxConfig =
 radioButtonConfig : Form.FormField FormData Msg
 radioButtonConfig =
     [ RadioButton.radioButtonChoiceWithSubtitle "soloMutuo" "Solo mutuo" "Lorem ipsum dolor sit amet"
-    , RadioButton.radioButtonChoiceWithSubtitle "estensioneMutuo" "Estensione mutuo" "Polizza intregativa: estende la protezione obbligatoria per mutuo."
+    , RadioButton.radioButtonChoiceWithSubtitle "estensioneMutuo" "Estensione mutuo" "Polizza integrativa: estende la protezione obbligatoria per mutuo."
     , RadioButton.radioButtonChoiceWithSubtitle "altreSoluzioni" "Altre soluzioni" "Offerta completa adatta a tutte le esigenze."
     ]
-        |> RadioButton.radioButton .tipoPolizza (OnChange InsurancePolicyType)
-        |> RadioButton.withValidation
-            (\m ->
-                if String.isEmpty <| Maybe.withDefault "" m.tipoPolizza then
-                    Just <| Validation.ErrorWithMessage "Cannot be empty"
-
-                else
-                    Nothing
-            )
+        |> RadioButton.radioButton .insuranceType (OnChange InsuranceType)
+        |> RadioButton.withValidation (Validation.notEmptyValidation .insuranceType)
         |> Form.radioButton
         |> Form.withLabel
             ("Tipo di polizza"
@@ -290,22 +294,7 @@ textAreaConfig =
         |> TextArea.withId slug
         |> TextArea.withLargeSize
         |> TextArea.withPlaceholder "Describe something happened"
-        |> TextArea.withValidation
-            (\m ->
-                if String.isEmpty <| Maybe.withDefault "" <| m.note then
-                    Just <| Validation.ErrorWithMessage "The field is empty"
-
-                else
-                    Nothing
-            )
-        |> TextArea.withValidation
-            (\m ->
-                if (==) "ciao" <| Maybe.withDefault "" <| m.note then
-                    Just <| Validation.WarningWithMessage "Cannot be 'Ciao'"
-
-                else
-                    Nothing
-            )
+        |> TextArea.withValidation (Validation.notEmptyValidation .note)
         |> Form.textArea
         |> Form.withLabel
             ("Note"
@@ -330,4 +319,33 @@ birthDateConfig =
             ("Data di nascita"
                 |> Label.label
                 |> Label.withFor slug
+            )
+
+
+birthDateDayConfig : Input.Input FormData Msg
+birthDateDayConfig =
+    Input.text .birthDateDay (OnInput (BirthDateCompound Day))
+
+
+birthDateMonthConfig : Input.Input FormData Msg
+birthDateMonthConfig =
+    Input.text .birthDateMonth (OnInput (BirthDateCompound Month))
+
+
+birthDateYearConfig : Input.Input FormData Msg
+birthDateYearConfig =
+    Input.text .birthDateYear (OnInput (BirthDateCompound Year))
+
+
+birthDateCompoundConfig : Form.FormField FormData Msg
+birthDateCompoundConfig =
+    [ birthDateDayConfig
+    , birthDateMonthConfig
+    , birthDateYearConfig
+    ]
+        |> List.map Input.withSmallSize
+        |> Form.inputList
+        |> Form.withLabel
+            ("Data di nascita"
+                |> Label.label
             )

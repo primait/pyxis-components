@@ -1,31 +1,31 @@
 module Prima.Pyxis.Loader exposing
     ( Config
     , spinner, vehicle
-    , medium, small
     , render
+    , withMediumSize, withSmallSize, withText
     )
 
-{-| Create a `Loader` with svg animation.
+{-|
 
 
-# Configuration
+## Configuration
 
 @docs Config
 
 
-## Options
+## Configuration Methods
 
 @docs spinner, vehicle
 
 
-# Helpers
-
-@docs medium, small
-
-
-# Render
+## Rendering
 
 @docs render
+
+
+## Options
+
+@docs withMediumSize, withSmallSize, withText
 
 -}
 
@@ -43,7 +43,7 @@ type Config
 
 type alias Configuration =
     { type_ : LoaderType
-    , size : Maybe LoaderSize
+    , size : LoaderSize
     , text : Maybe String
     }
 
@@ -65,18 +65,25 @@ isLoaderMedium =
     (==) Medium
 
 
-{-| Define a Small size for the loader. You can use it only with Spinner loader.
+{-| Sets a size to the `Loader`.
 -}
-small : Maybe LoaderSize
-small =
-    Just Small
+withSmallSize : Config -> Config
+withSmallSize (Config config) =
+    Config { config | size = Small }
 
 
-{-| Define a Medium size for the loader. You can use it only with Spinner loader.
+{-| Sets a size to the `Loader`.
 -}
-medium : Maybe LoaderSize
-medium =
-    Just Medium
+withMediumSize : Config -> Config
+withMediumSize (Config config) =
+    Config { config | size = Medium }
+
+
+{-| Adds a text to the `Loader`.
+-}
+withText : String -> Config -> Config
+withText txt (Config config) =
+    Config { config | text = Just txt }
 
 
 type LoaderType
@@ -85,59 +92,28 @@ type LoaderType
 
 
 {-| Represent the configuration of the Spinner loader.
-
-    import Prima.Pyxis.Loader as Loader
-
-    ...
-
-    config : Loader.Config
-    config =
-        Loader.spinner Loader.small (Just "Please wait...")
-
-    ...
-
 -}
-spinner : Maybe LoaderSize -> Maybe String -> Config
-spinner size text =
-    Config (Configuration Spinner size text)
+spinner : Config
+spinner =
+    Config (Configuration Spinner Medium Nothing)
 
 
 {-| Represent the configuration of the Vehicle loader.
-
-    import Prima.Pyxis.Loader as Loader
-
-    ...
-
-    config : Loader.Config
-    config =
-        Loader.vehicle (Just "Please wait...")
-
-    ...
-
 -}
-vehicle : Maybe String -> Config
-vehicle text =
-    Config (Configuration Vehicle Nothing text)
+vehicle : Config
+vehicle =
+    Config (Configuration Vehicle Medium Nothing)
 
 
 {-| Renders the loader and it's (infinite) animation.
-
-    import Prima.Pyxis.Loader as Loader
-
-    ...
-
-    Loader.render <| Loader.vehicle (Just "Please wait...")
-
-    ...
-
 -}
 render : Config -> Html msg
 render (Config { size, type_, text }) =
     div
         [ HA.classList
             [ ( "m-loader", True )
-            , ( "m-loader--small", (Maybe.withDefault False << Maybe.map isLoaderSmall) size )
-            , ( "m-loader--medium", (Maybe.withDefault False << Maybe.map isLoaderMedium) size )
+            , ( "m-loader--small", isLoaderSmall size )
+            , ( "m-loader--medium", isLoaderMedium size )
             ]
         ]
         [ case type_ of

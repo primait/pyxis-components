@@ -1,4 +1,4 @@
-module Prima.Pyxis.Shared.InterceptedEvents exposing
+module Prima.Pyxis.Commons.InterceptedEvents exposing
     ( Config, onClick, onDoubleClick, on
     , withStopPropagation, withPreventDefault
     , event
@@ -26,7 +26,7 @@ module Prima.Pyxis.Shared.InterceptedEvents exposing
 import Html
 import Html.Events
 import Json.Decode as JsonDecode
-import Prima.Pyxis.Shared.Interceptor as Interceptor exposing (Interceptor)
+import Prima.Pyxis.Commons.Interceptor as Interceptor exposing (Interceptor)
 
 
 {-| Internal use only

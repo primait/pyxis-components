@@ -1,68 +1,221 @@
 module Prima.Pyxis.Form.Select exposing
-    ( Select(..), select
-    , withId, withAttribute, withDefaultValue, withDisabled
+    ( Select, State, Msg, SelectChoice
+    , select, init, update, selectChoice
+    , selectedValue, subscription
     , render
-    , Options, SelectChoice, SelectConfig, SelectOption(..), SelectSize(..), addOption, applyOption, buildAttributes, computeOptions, defaultOptions, renderCustomSelect, renderCustomSelectChoice, renderCustomSelectChoiceWrapper, renderCustomSelectStatus, renderSelect, renderSelectChoice, renderValidationMessages, selectChoice, sizeAttribute, taggerAttribute, validationAttribute, withLargeSize, withOnBlur, withOnFocus, withOverridingClass, withPlaceholder, withRegularSize, withSmallSize, withValidation
+    , withAttribute, withId, withDefaultValue, withDisabled, withClass, withLargeSize, withMediumSize, withOverridingClass, withPlaceholder, withSmallSize
+    , withOnBlur, withOnFocus
+    , withValidation
     )
 
 {-|
 
 
-## Types and Configuration
+## Configuration
 
-@docs Select, select
-
-
-## Modifiers
-
-@docs withId, withName, withAttribute, withDefaultValue, withDisabled, withValue
+@docs Select, State, Msg, SelectChoice
 
 
-## Events
+## Configuration Methods
 
-@docs withOnSelect
+@docs select, init, update, selectChoice
 
 
-## Render
+## Methods
+
+@docs selectedValue, subscription
+
+
+## Rendering
 
 @docs render
 
+
+## Options
+
+@docs withAttribute, withId, withDefaultValue, withDisabled, withClass, withLargeSize, withMediumSize, withOverridingClass, withPlaceholder, withSmallSize
+
+
+## Event Options
+
+@docs withOnBlur, withOnFocus
+
+
+## Validation
+
+@docs withValidation
+
 -}
 
+import Array
+import Browser.Events
 import Html exposing (Attribute, Html, text)
 import Html.Attributes as Attrs exposing (class, id, value)
 import Html.Events as Events
+import Json.Decode
+import Prima.Pyxis.Form.Commons.KeyboardEvents as KeyboardEvents
 import Prima.Pyxis.Form.Validation as Validation
 import Prima.Pyxis.Helpers as H
 
 
-{-| Represent the configuration of a Select type.
+{-| Represents the Msg of the `Select`.
 -}
-type Select model msg
-    = Select (SelectConfig model msg)
+type Msg
+    = OnSelect String
+    | OnToggleMenu
+    | OnKeyPress (Maybe KeyboardEvents.KeyCode)
 
 
-type alias SelectConfig model msg =
-    { options : List (SelectOption model msg)
-    , reader : model -> Maybe String
-    , tagger : String -> msg
-    , openedReader : model -> Bool
-    , openedTagger : msg
-    , selectChoices : List SelectChoice
+{-| The `State` of the `Select`
+-}
+type State
+    = State StateConfig
+
+
+{-| Internal.
+The configuration of the `Select`'s `State`.
+-}
+type alias StateConfig =
+    { focused : Maybe String
+    , selected : Maybe String
+    , isMenuOpen : Bool
+    , choices : List SelectChoice
     }
 
 
-select : (model -> Maybe String) -> (String -> msg) -> (model -> Bool) -> msg -> List SelectChoice -> Select model msg
-select reader tagger openedReader openedTagger =
-    Select << SelectConfig [] reader tagger openedReader openedTagger
+{-| Initializes the `Select`'s `State`.
+-}
+init : List SelectChoice -> State
+init choices =
+    State <| StateConfig Nothing Nothing False choices
 
 
+{-| Updates the `Select`'s `State`.
+-}
+update : Msg -> State -> State
+update msg ((State state) as stateModel) =
+    case msg of
+        OnSelect value ->
+            updateOnSelect (Just value) stateModel
+
+        OnToggleMenu ->
+            updateOnToggleMenu stateModel
+
+        OnKeyPress (Just KeyboardEvents.UpKey) ->
+            updateOnKeyUp stateModel
+
+        OnKeyPress (Just KeyboardEvents.DownKey) ->
+            updateOnKeyDown stateModel
+
+        OnKeyPress (Just KeyboardEvents.EnterKey) ->
+            updateOnSelect state.focused stateModel
+
+        OnKeyPress Nothing ->
+            stateModel
+
+
+{-| Internal.
+-}
+updateOnSelect : Maybe String -> State -> State
+updateOnSelect value (State state) =
+    State { state | selected = value, isMenuOpen = False }
+
+
+{-| Internal.
+-}
+updateOnToggleMenu : State -> State
+updateOnToggleMenu (State state) =
+    State { state | isMenuOpen = not state.isMenuOpen }
+
+
+{-| Internal.
+-}
+updateOnKeyUp : State -> State
+updateOnKeyUp ((State state) as stateModel) =
+    let
+        focusedItemIndex =
+            pickFocusedItemIndex stateModel
+    in
+    State
+        { state
+            | focused =
+                stateModel
+                    |> pickChoiceByIndex
+                        (if KeyboardEvents.wentTooHigh focusedItemIndex then
+                            focusedItemIndex
+
+                         else
+                            focusedItemIndex - 1
+                        )
+                    |> Maybe.map .value
+        }
+
+
+{-| Internal.
+-}
+updateOnKeyDown : State -> State
+updateOnKeyDown ((State state) as stateModel) =
+    let
+        focusedItemIndex =
+            pickFocusedItemIndex stateModel
+
+        thereIsNoFocusedItem =
+            Nothing == state.focused
+
+        wentTooLow =
+            KeyboardEvents.wentTooLow focusedItemIndex state.choices
+    in
+    State
+        { state
+            | focused =
+                stateModel
+                    |> pickChoiceByIndex
+                        (if thereIsNoFocusedItem || wentTooLow then
+                            0
+
+                         else
+                            focusedItemIndex + 1
+                        )
+                    |> Maybe.map .value
+        }
+
+
+{-| Returns the current `SelectChoice.value` selected by the user.
+-}
+selectedValue : State -> Maybe String
+selectedValue (State stateConfig) =
+    stateConfig.selected
+
+
+{-| Represent the opaque `Select` configuration.
+-}
+type Select model
+    = Select (SelectConfig model)
+
+
+{-| Internal. Represent the `Select` configuration.
+-}
+type alias SelectConfig model =
+    List (SelectOption model)
+
+
+{-| Creates the `Select`.
+-}
+select : Select model
+select =
+    Select []
+
+
+{-| Represents an option for the `Select`.
+-}
 type alias SelectChoice =
     { value : String
     , label : String
     }
 
 
+{-| Creates an option for the `Select`.
+-}
 selectChoice : String -> String -> SelectChoice
 selectChoice value label =
     SelectChoice value label
@@ -70,14 +223,14 @@ selectChoice value label =
 
 {-| Internal.
 -}
-type SelectOption model msg
-    = Attribute (Html.Attribute msg)
+type SelectOption model
+    = Attribute (Html.Attribute Msg)
     | Class String
     | DefaultValue (Maybe String)
     | Disabled Bool
     | Id String
-    | OnFocus msg
-    | OnBlur msg
+    | OnFocus Msg
+    | OnBlur Msg
     | OverridingClass String
     | Placeholder String
     | Size SelectSize
@@ -93,51 +246,51 @@ type Default
 -}
 type SelectSize
     = Small
-    | Regular
+    | Medium
     | Large
 
 
 {-| Internal.
 -}
-type alias Options model msg =
-    { attributes : List (Html.Attribute msg)
+type alias Options model =
+    { attributes : List (Html.Attribute Msg)
     , class : List String
     , defaultValue : Default
     , disabled : Maybe Bool
     , id : Maybe String
-    , onFocus : Maybe msg
-    , onBlur : Maybe msg
+    , onFocus : Maybe Msg
+    , onBlur : Maybe Msg
     , placeholder : String
     , size : SelectSize
     , validations : List (model -> Maybe Validation.Type)
     }
 
 
-defaultOptions : Options model msg
+defaultOptions : Options model
 defaultOptions =
     { attributes = []
-    , class = [ "a-form-field__select" ]
+    , class = [ "a-form-select a-form-select--native" ]
     , defaultValue = Indeterminate
     , disabled = Nothing
     , id = Nothing
     , onFocus = Nothing
     , onBlur = Nothing
     , placeholder = "Seleziona"
-    , size = Regular
+    , size = Medium
     , validations = []
     }
 
 
 {-| Internal.
 -}
-addOption : SelectOption model msg -> Select model msg -> Select model msg
-addOption option (Select selectConfig) =
-    Select { selectConfig | options = selectConfig.options ++ [ option ] }
+addOption : SelectOption model -> Select model -> Select model
+addOption option (Select options) =
+    Select <| options ++ [ option ]
 
 
-{-| Sets an `attribute` to the `Select config`.
+{-| Sets an `attribute` to the `Select`.
 -}
-withAttribute : Html.Attribute msg -> Select model msg -> Select model msg
+withAttribute : Html.Attribute Msg -> Select model -> Select model
 withAttribute attribute =
     addOption (Attribute attribute)
 
@@ -145,80 +298,91 @@ withAttribute attribute =
 {-| Adds a default value to the `Select`.
 Useful to teach the component about it's `pristine/touched` state.
 -}
-withDefaultValue : Maybe String -> Select model msg -> Select model msg
+withDefaultValue : Maybe String -> Select model -> Select model
 withDefaultValue value =
     addOption (DefaultValue value)
 
 
-{-| Sets a `disabled` to the `Select config`.
+{-| Sets a `disabled` to the `Select`.
 -}
-withDisabled : Bool -> Select model msg -> Select model msg
+withDisabled : Bool -> Select model -> Select model
 withDisabled disabled =
     addOption (Disabled disabled)
 
 
-{-| Sets a `disabled` to the `Select config`.
+{-| Adds a `class` to the `Select`.
 -}
-withPlaceholder : String -> Select model msg -> Select model msg
+withClass : String -> Select model -> Select model
+withClass className =
+    addOption (Class className)
+
+
+{-| Sets a `placeholder` to the `Select`.
+-}
+withPlaceholder : String -> Select model -> Select model
 withPlaceholder placeholder =
     addOption (Placeholder placeholder)
 
 
-{-| Sets an `id` to the `Select config`.
+{-| Sets an `id` to the `Select`.
 -}
-withId : String -> Select model msg -> Select model msg
+withId : String -> Select model -> Select model
 withId id =
     addOption (Id id)
 
 
-{-| Sets a `size` to the `Select config`.
+{-| Sets a `Size` to the `Select`.
 -}
-withLargeSize : Select model msg -> Select model msg
+withLargeSize : Select model -> Select model
 withLargeSize =
     addOption (Size Large)
 
 
-{-| Sets an `onBlur event` to the `Select config`.
+{-| Sets an `onBlur event` to the `Select`.
 -}
-withOnBlur : msg -> Select model msg -> Select model msg
+withOnBlur : Msg -> Select model -> Select model
 withOnBlur tagger =
     addOption (OnBlur tagger)
 
 
-{-| Sets an `onFocus event` to the `Select config`.
+{-| Sets an `onFocus event` to the `Select`.
 -}
-withOnFocus : msg -> Select model msg -> Select model msg
+withOnFocus : Msg -> Select model -> Select model
 withOnFocus tagger =
     addOption (OnFocus tagger)
 
 
-withOverridingClass : String -> Select model msg -> Select model msg
+{-| Overrides the default classes of the `Select`.
+-}
+withOverridingClass : String -> Select model -> Select model
 withOverridingClass class =
     addOption (OverridingClass class)
 
 
-{-| Sets a `size` to the `Select config`.
+{-| Sets a `Size` to the `Select`.
 -}
-withRegularSize : Select model msg -> Select model msg
-withRegularSize =
-    addOption (Size Regular)
+withMediumSize : Select model -> Select model
+withMediumSize =
+    addOption (Size Medium)
 
 
-{-| Sets a `size` to the `Select config`.
+{-| Sets a `Size` to the `Select`.
 -}
-withSmallSize : Select model msg -> Select model msg
+withSmallSize : Select model -> Select model
 withSmallSize =
     addOption (Size Small)
 
 
-withValidation : (model -> Maybe Validation.Type) -> Select model msg -> Select model msg
+{-| Adds a validation rule to the `Select`.
+-}
+withValidation : (model -> Maybe Validation.Type) -> Select model -> Select model
 withValidation validation =
     addOption (Validation validation)
 
 
 {-| Internal.
 -}
-applyOption : SelectOption model msg -> Options model msg -> Options model msg
+applyOption : SelectOption model -> Options model -> Options model
 applyOption modifier options =
     case modifier of
         Attribute attribute ->
@@ -257,14 +421,14 @@ applyOption modifier options =
 
 {-| Transforms an `SelectSize` into a valid `Html.Attribute`.
 -}
-sizeAttribute : SelectSize -> Html.Attribute msg
+sizeAttribute : SelectSize -> Html.Attribute Msg
 sizeAttribute size =
     Attrs.class
         (case size of
             Small ->
                 "is-small"
 
-            Regular ->
+            Medium ->
                 "is-medium"
 
             Large ->
@@ -272,12 +436,12 @@ sizeAttribute size =
         )
 
 
-taggerAttribute : Select model msg -> Html.Attribute msg
-taggerAttribute (Select config) =
-    Events.onInput config.tagger
+taggerAttribute : Html.Attribute Msg
+taggerAttribute =
+    Events.onInput OnSelect
 
 
-validationAttribute : model -> Select model msg -> Html.Attribute msg
+validationAttribute : model -> Select model -> Html.Attribute Msg
 validationAttribute model selectModel =
     let
         warnings =
@@ -299,13 +463,13 @@ validationAttribute model selectModel =
 
 {-| Internal. Applies the `pristine/touched` visual state to the component.
 -}
-pristineAttribute : model -> Select model msg -> Html.Attribute msg
-pristineAttribute model ((Select config) as selectModel) =
+pristineAttribute : State -> Select model -> Html.Attribute Msg
+pristineAttribute (State { selected }) selectModel =
     let
         options =
             computeOptions selectModel
     in
-    if Value (config.reader model) == options.defaultValue then
+    if Value selected == options.defaultValue then
         Attrs.class "is-pristine"
 
     else
@@ -314,8 +478,8 @@ pristineAttribute model ((Select config) as selectModel) =
 
 {-| Composes all the modifiers into a set of `Html.Attribute`(s).
 -}
-buildAttributes : model -> Select model msg -> List (Html.Attribute msg)
-buildAttributes model selectModel =
+buildAttributes : model -> State -> Select model -> List (Html.Attribute Msg)
+buildAttributes model stateModel selectModel =
     let
         options =
             computeOptions selectModel
@@ -333,72 +497,71 @@ buildAttributes model selectModel =
         |> (++) options.attributes
         |> (::) (H.classesAttribute options.class)
         |> (::) (sizeAttribute options.size)
-        |> (::) (taggerAttribute selectModel)
+        |> (::) taggerAttribute
         |> (::) (validationAttribute model selectModel)
-        |> (::) (pristineAttribute model selectModel)
+        |> (::) (pristineAttribute stateModel selectModel)
 
 
 {-| Renders the `Radio config`.
 -}
-render : model -> Select model msg -> List (Html msg)
-render model selectModel =
-    [ renderSelect model selectModel
-    , renderCustomSelect model selectModel
+render : model -> State -> Select model -> List (Html Msg)
+render model stateModel selectModel =
+    [ renderSelect model stateModel selectModel
+    , renderCustomSelect model stateModel selectModel
     ]
         ++ renderValidationMessages model selectModel
 
 
-renderSelect : model -> Select model msg -> Html msg
-renderSelect model ((Select config) as selectModel) =
+renderSelect : model -> State -> Select model -> Html Msg
+renderSelect model ((State { choices }) as stateModel) selectModel =
     Html.select
-        (buildAttributes model selectModel)
-        (List.map (renderSelectChoice model selectModel) config.selectChoices)
+        (buildAttributes model stateModel selectModel)
+        (List.map (renderSelectChoice stateModel) choices)
 
 
-renderSelectChoice : model -> Select model msg -> SelectChoice -> Html msg
-renderSelectChoice model (Select config) choice =
+renderSelectChoice : State -> SelectChoice -> Html Msg
+renderSelectChoice (State { selected }) choice =
     Html.option
         [ Attrs.value choice.value
-        , Attrs.selected <| (==) choice.value <| Maybe.withDefault "" <| config.reader model
+        , Attrs.selected (selected == Just choice.value)
         ]
         [ Html.text choice.label ]
 
 
-renderCustomSelect : model -> Select model msg -> Html msg
-renderCustomSelect model ((Select config) as selectModel) =
+renderCustomSelect : model -> State -> Select model -> Html Msg
+renderCustomSelect model ((State { choices, isMenuOpen }) as stateModel) selectModel =
     let
         options =
             computeOptions selectModel
     in
     Html.div
         [ Attrs.classList
-            [ ( "a-form-field__custom-select", True )
-            , ( "is-open", config.openedReader model )
+            [ ( "a-form-select", True )
+            , ( "is-open", isMenuOpen )
             , ( "is-disabled", Maybe.withDefault False options.disabled )
             ]
         , sizeAttribute options.size
         , validationAttribute model selectModel
         ]
-        [ selectModel
-            |> renderCustomSelectStatus model
-        , config.selectChoices
-            |> List.map (renderCustomSelectChoice model selectModel)
+        [ renderCustomSelectStatus stateModel selectModel
+        , choices
+            |> List.map (renderCustomSelectChoice stateModel)
             |> renderCustomSelectChoiceWrapper
         ]
 
 
-renderCustomSelectStatus : model -> Select model msg -> Html msg
-renderCustomSelectStatus model ((Select config) as selectModel) =
+renderCustomSelectStatus : State -> Select model -> Html Msg
+renderCustomSelectStatus (State { choices, selected }) selectModel =
     let
         options =
             computeOptions selectModel
     in
     Html.span
-        [ Attrs.class "a-form-field__custom-select__status"
-        , Events.onClick config.openedTagger
+        [ Attrs.class "a-form-select__status"
+        , Events.onClick OnToggleMenu
         ]
-        [ config.selectChoices
-            |> List.filter ((==) (config.reader model) << Just << .value)
+        [ choices
+            |> List.filter ((==) selected << Just << .value)
             |> List.map .label
             |> List.head
             |> Maybe.withDefault options.placeholder
@@ -406,26 +569,26 @@ renderCustomSelectStatus model ((Select config) as selectModel) =
         ]
 
 
-renderCustomSelectChoiceWrapper : List (Html msg) -> Html msg
+renderCustomSelectChoiceWrapper : List (Html Msg) -> Html Msg
 renderCustomSelectChoiceWrapper =
     Html.ul
-        [ class "a-form-field__custom-select__list" ]
+        [ class "a-form-select__list" ]
 
 
-renderCustomSelectChoice : model -> Select model msg -> SelectChoice -> Html msg
-renderCustomSelectChoice model (Select config) choice =
+renderCustomSelectChoice : State -> SelectChoice -> Html Msg
+renderCustomSelectChoice stateModel choice =
     Html.li
         [ Attrs.classList
-            [ ( "a-form-field__custom-select__list__item", True )
-            , ( "is-selected", ((==) (Just choice.value) << config.reader) model )
+            [ ( "a-form-select__list__item", True )
+            , ( "is-selected", isChoiceSelected stateModel choice || isChoiceFocused stateModel choice )
             ]
-        , (Events.onClick << config.tagger) choice.value
+        , (Events.onClick << OnSelect) choice.value
         ]
         [ text choice.label
         ]
 
 
-renderValidationMessages : model -> Select model msg -> List (Html msg)
+renderValidationMessages : model -> Select model -> List (Html Msg)
 renderValidationMessages model selectModel =
     let
         warnings =
@@ -444,20 +607,61 @@ renderValidationMessages model selectModel =
 
 {-| Internal
 -}
-computeOptions : Select model msg -> Options model msg
-computeOptions (Select config) =
-    List.foldl applyOption defaultOptions config.options
+computeOptions : Select model -> Options model
+computeOptions (Select options) =
+    List.foldl applyOption defaultOptions options
 
 
-warningValidations : model -> Options model msg -> List Validation.Type
+warningValidations : model -> Options model -> List Validation.Type
 warningValidations model options =
     options.validations
         |> List.filterMap (H.flip identity model)
         |> List.filter Validation.isWarning
 
 
-errorsValidations : model -> Options model msg -> List Validation.Type
+errorsValidations : model -> Options model -> List Validation.Type
 errorsValidations model options =
     options.validations
         |> List.filterMap (H.flip identity model)
         |> List.filter Validation.isError
+
+
+isChoiceSelected : State -> SelectChoice -> Bool
+isChoiceSelected (State stateConfig) choice =
+    Just choice.value == stateConfig.selected
+
+
+isChoiceFocused : State -> SelectChoice -> Bool
+isChoiceFocused (State stateConfig) choice =
+    Just choice.value == stateConfig.focused
+
+
+{-| Internal. Returns the focusedItem index or zero.
+-}
+pickFocusedItemIndex : State -> Int
+pickFocusedItemIndex (State { focused, choices }) =
+    choices
+        |> List.indexedMap Tuple.pair
+        |> List.filter ((==) focused << Just << .value << Tuple.second)
+        |> List.head
+        |> Maybe.map Tuple.first
+        |> Maybe.withDefault 0
+
+
+{-| Internal. Returns the `SelectChoice` found by index.
+-}
+pickChoiceByIndex : Int -> State -> Maybe SelectChoice
+pickChoiceByIndex index (State { choices }) =
+    choices
+        |> Array.fromList
+        |> Array.get index
+
+
+{-| Needed to wire keyboard events to the `Select`.
+-}
+subscription : Sub Msg
+subscription =
+    Events.keyCode
+        |> Json.Decode.map KeyboardEvents.toKeyCode
+        |> Json.Decode.map OnKeyPress
+        |> Browser.Events.onKeyDown

@@ -1,31 +1,37 @@
 module Prima.Pyxis.Link exposing
-    ( Config, simple, standalone
-    , withId, withClass, withTargetBlank, withTargetParent, withTargetSelf, withTargetTop, withAttribute, withClassList, withIcon, withHref
-    , withOnClick, withOnMouseDown, withOnMouseUp, withOnMouseEnter, withOnMouseLeave, withOnMouseOver, withOnMouseOut
+    ( Config
+    , simple, standalone
     , render
+    , withAttribute, withId, withClass, withClassList, withIcon, withHref, withTargetBlank, withTargetParent, withTargetSelf, withTargetTop
+    , withOnClick, withOnMouseDown, withOnMouseUp, withOnMouseEnter, withOnMouseLeave, withOnMouseOver, withOnMouseOut
     )
 
 {-|
 
 
-## Types and Configuration
+## Configuration
 
-@docs Config, simple, standalone
+@docs Config
+
+
+## Configuration Methods
+
+@docs simple, standalone
+
+
+## Rendering
+
+@docs render
 
 
 ## Options
 
-@docs withId, withClass, withTargetBlank, withTargetParent, withTargetSelf, withTargetTop, withAttribute, withClassList, withIcon, withHref
+@docs withAttribute, withId, withClass, withClassList, withIcon, withHref, withTargetBlank, withTargetParent, withTargetSelf, withTargetTop
 
 
-## Events
+## Event Options
 
 @docs withOnClick, withOnMouseDown, withOnMouseUp, withOnMouseEnter, withOnMouseLeave, withOnMouseOver, withOnMouseOut
-
-
-## Render
-
-@docs render
 
 -}
 

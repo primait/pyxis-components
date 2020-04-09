@@ -47,24 +47,20 @@ initialModel =
         , Button.secondary "Secondary"
         , Button.tertiary "Tertiary"
         ]
-        [ Button.callOut "CallOut dark"
-            |> Button.withColorScheme Button.BrandDark
+        [ Button.callOut "CallOut"
             |> Button.withOnClick (HandleEvent "Click 1")
-            |> Button.withClassList [ ( "test", True ), ( "never-applied", False ) ]
+            |> Button.withClass "test"
             |> Button.withTabIndex 1
-        , Button.primary "Primary dark"
+        , Button.primaryAlt "Primary alt"
             |> Button.withIcon "editing"
-            |> Button.withColorScheme Button.BrandDark
             |> Button.withOnClick (HandleEvent "Click 2")
             |> Button.withTabIndex 0
-        , Button.secondary "Secondary dark"
-            |> Button.withColorScheme Button.BrandDark
+        , Button.secondaryAlt "Secondary alt"
             |> Button.withOnMouseEnter (HandleEvent "Hover 3")
             |> Button.withOnClick (HandleEvent "Click 3")
             |> Button.withTabIndex 2
-        , Button.tertiary "Tertiary dark"
-            |> Button.withType Button.Submit
-            |> Button.withColorScheme Button.BrandDark
+        , Button.tertiaryAlt "Tertiary alt"
+            |> Button.withTypeSubmit
             |> Button.withTabIndex 3
         ]
         Nothing
@@ -100,7 +96,7 @@ appBody model =
         |> wrapper False
     , model.darkButtons
         |> ButtonGroup.create
-        |> ButtonGroup.withAlignment ButtonGroup.CoverFluid
+        |> ButtonGroup.withAlignmentCoverFluid
         |> ButtonGroup.render
         |> List.singleton
         |> wrapper True

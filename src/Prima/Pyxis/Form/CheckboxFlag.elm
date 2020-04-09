@@ -1,17 +1,28 @@
-module Prima.Pyxis.Form.Flag exposing
-    ( Flag, flag
+module Prima.Pyxis.Form.CheckboxFlag exposing
+    ( Flag
+    , flag
+    , render
     , withAttribute, withDisabled, withLabel, withName
     , withOnBlur, withOnFocus
     , withValidation
-    , render
     )
 
 {-|
 
 
-## Types and Configuration
+## Configuration
 
-@docs Flag, flag
+@docs Flag
+
+
+## Configuration Methods
+
+@docs flag
+
+
+## Rendering
+
+@docs render
 
 
 ## Options
@@ -19,19 +30,14 @@ module Prima.Pyxis.Form.Flag exposing
 @docs withAttribute, withDisabled, withLabel, withName
 
 
-## Events
+## Event Options
 
 @docs withOnBlur, withOnFocus
 
 
-## Validations
+## Validation
 
 @docs withValidation
-
-
-## Rendering
-
-@docs render
 
 -}
 
@@ -151,7 +157,7 @@ type alias Options model msg =
 -}
 defaultOptions : Options model msg
 defaultOptions =
-    { attributes = [ Attrs.class "a-form-field__checkbox" ]
+    { attributes = [ Attrs.class "a-form-checkbox__input" ]
     , disabled = Nothing
     , label = Nothing
     , name = Nothing
@@ -296,7 +302,7 @@ buildAttributes model ((Flag config) as flagModel) =
 render : model -> Flag model msg -> List (Html msg)
 render model flagModel =
     Html.div
-        [ Attrs.class "a-form-field__checkbox-options" ]
+        [ Attrs.class "a-form-checkbox-options" ]
         [ renderFlagChoice model flagModel ]
         :: renderValidationMessages model flagModel
 
@@ -310,14 +316,14 @@ renderFlagChoice model ((Flag config) as flagModel) =
             computeOptions flagModel
     in
     Html.div
-        [ Attrs.class "a-form-field__checkbox-options__item" ]
+        [ Attrs.class "a-form-checkbox" ]
         [ Html.input
             (buildAttributes model flagModel)
             []
         , options.label
             |> Maybe.withDefault (Label.labelWithHtml [])
             |> Label.withFor config.id
-            |> Label.withOverridingClass "a-form-field__checkbox-options__item__label"
+            |> Label.withOverridingClass "a-form-checkbox__label"
             |> Label.render
         ]
 

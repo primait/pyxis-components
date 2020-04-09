@@ -1,16 +1,27 @@
 module Prima.Pyxis.Message exposing
-    ( Config, error, info, success
+    ( Config
+    , error, info, success
+    , render
     , withClass, withClassList, withAttribute
     , withOnClick, withOnMouseDown, withOnMouseUp, withOnMouseEnter, withOnMouseLeave, withOnMouseOver, withOnMouseOut
-    , render
     )
 
-{-| Create a `Message` feedback by using predefined Html syntax.
+{-|
 
 
-# Configuration
+## Configuration
 
-@docs Config, error, info, success
+@docs Config
+
+
+## Configuration Methods
+
+@docs error, info, success
+
+
+## Rendering
+
+@docs render
 
 
 ## Options
@@ -18,14 +29,9 @@ module Prima.Pyxis.Message exposing
 @docs withClass, withClassList, withAttribute
 
 
-## Events
+## Event Options
 
 @docs withOnClick, withOnMouseDown, withOnMouseUp, withOnMouseEnter, withOnMouseLeave, withOnMouseOver, withOnMouseOut
-
-
-# Render
-
-@docs render
 
 -}
 

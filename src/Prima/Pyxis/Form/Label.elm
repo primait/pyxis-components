@@ -1,26 +1,37 @@
 module Prima.Pyxis.Form.Label exposing
-    ( Label, label, labelWithHtml
-    , withAttribute, withClass, withOverridingClass, withFor, withOnClick, withSubtitle
+    ( Label
+    , label, labelWithHtml
     , render
-    , addOption
+    , withAttribute, withClass, withFor, withOverridingClass, withSubtitle
+    , withOnClick
     )
 
 {-|
 
 
-## Types and Configuration
+## Configuration
 
-@docs Label, label, labelWithHtml
+@docs Label
 
 
-## Generic modifiers
+## Configuration Methods
 
-@docs withAttribute, withClass, withOverridingClass, withFor, withOnClick, withSubtitle
+@docs label, labelWithHtml
 
 
 ## Rendering
 
 @docs render
+
+
+## Options
+
+@docs withAttribute, withClass, withFor, withOverridingClass, withSubtitle
+
+
+## Event Options
+
+@docs withOnClick
 
 -}
 
@@ -86,14 +97,14 @@ type alias Options msg =
 defaultOptions : Options msg
 defaultOptions =
     { attributes = []
-    , classes = [ "a-form-field__label" ]
+    , classes = [ "a-form-label" ]
     , for = Nothing
     , onClick = Nothing
     , subLabel = Nothing
     }
 
 
-{-| Internal
+{-| Internal.
 -}
 addOption : LabelOption msg -> Label msg -> Label msg
 addOption option (Label labelConfig) =
@@ -215,7 +226,7 @@ renderSubtitle ((Label _) as labelModel) =
 
         Just lbl ->
             Html.span
-                [ Attrs.class "a-form-field__label__subtitle" ]
+                [ Attrs.class "a-form-label__subtitle" ]
                 [ text lbl ]
 
 
