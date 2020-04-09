@@ -1,6 +1,6 @@
 module Prima.Pyxis.Accordion exposing
     ( Config, State, base, light, dark, state
-    , withAttribute, withWrapperClass, withIconClass, withContentClass, withSimpleTitle, withHtmlTitle, withContent
+    , withAttribute, withWrapperClass, withContentClass, withSimpleTitle, withHtmlTitle, withContent
     , open, close
     , render, renderGroup
     )
@@ -15,7 +15,7 @@ module Prima.Pyxis.Accordion exposing
 
 ## Options
 
-@docs withAttribute, withWrapperClass, withIconClass, withContentClass, withSimpleTitle, withHtmlTitle, withContent
+@docs withAttribute, withWrapperClass, withContentClass, withSimpleTitle, withHtmlTitle, withContent
 
 
 ## Helpers
@@ -71,7 +71,6 @@ type State
 type alias Options msg =
     { attributes : List (Html.Attribute msg)
     , wrapperClasses : List ( String, Bool )
-    , iconClasses : List String
     , contentClasses : List String
     }
 
@@ -82,7 +81,6 @@ defaultOptions : Options msg
 defaultOptions =
     { attributes = []
     , wrapperClasses = []
-    , iconClasses = []
     , contentClasses = []
     }
 
@@ -92,7 +90,6 @@ defaultOptions =
 type AccordionOption msg
     = Attribute (Html.Attribute msg)
     | WrapperClass String
-    | IconClass String
     | ContentClass String
 
 
@@ -106,9 +103,6 @@ applyOption modifier options =
 
         WrapperClass class ->
             { options | wrapperClasses = ( class, True ) :: options.wrapperClasses }
-
-        IconClass class ->
-            { options | iconClasses = class :: options.iconClasses }
 
         ContentClass class ->
             { options | contentClasses = class :: options.contentClasses }
@@ -171,7 +165,8 @@ light slug tagger =
 dark : String -> (String -> Bool -> msg) -> Config msg
 dark slug tagger =
     Config <| AccordionConfig Dark slug tagger Nothing [] []
- 
+
+
 isBase : AccordionType -> Bool
 isBase =
     (==) Base
@@ -241,18 +236,12 @@ withAttribute : Html.Attribute msg -> Config msg -> Config msg
 withAttribute attribute =
     addOption (Attribute attribute)
 
+
 {-| Adds a class for the wrapper to the `Config`.
 -}
 withWrapperClass : String -> Config msg -> Config msg
 withWrapperClass class_ =
     addOption (WrapperClass class_)
-
-
-{-| Adds a class for the icon to the `Config`.
--}
-withIconClass : String -> Config msg -> Config msg
-withIconClass class_ =
-    addOption (IconClass class_)
 
 
 {-| Adds a class for the content to the `Config`.
@@ -286,6 +275,7 @@ withContent content (Config accordionConfig) =
 {-| Renders the Accordion component by receiving is State and Config.
 
     Accordion.render myAccordionState myAccordionConfiguration
+
 -}
 render : State -> Config msg -> Html msg
 render (State isOpen) ((Config { type_, tagger, slug, title, content }) as config) =
@@ -295,10 +285,10 @@ render (State isOpen) ((Config { type_, tagger, slug, title, content }) as confi
     in
     div
         ([ id slug
-         , [ ( "a-accordion", True )
-           , ( "a-accordion--base", isBase type_ )
-           , ( "a-accordion--light", isLight type_ )
-           , ( "a-accordion--dark", isDark type_ )
+         , [ ( "m-accordion", True )
+           , ( "m-accordion--base", isBase type_ )
+           , ( "m-accordion--light", isLight type_ )
+           , ( "m-accordion--dark", isDark type_ )
            , ( "is-open", isOpen )
            ]
             |> buildWrapperClass config
@@ -306,13 +296,13 @@ render (State isOpen) ((Config { type_, tagger, slug, title, content }) as confi
             |> (++) options.attributes
         )
         [ div
-            [ class "a-accordion__toggle fs-xsmall fw-heavy a-link--alt"
+            [ class "m-accordion__toggle fs-xsmall fw-heavy a-link--alt"
             , onClick (tagger slug isOpen)
             ]
             [ title
                 |> Maybe.withDefault (text "")
-            , i
-                [ buildIconClass config ]
+            , div
+                [ class "m-accordion__icon" ]
                 []
             ]
         , div
@@ -348,21 +338,7 @@ buildContentClass config =
     in
     options.contentClasses
         |> String.join " "
-        |> String.append "a-accordion__content fs-small "
-        |> class
-
-
-{-| Internal. Transforms the customized iconClasses into an Html.Attribute
--}
-buildIconClass : Config msg -> Html.Attribute msg
-buildIconClass config =
-    let
-        options =
-            computeOptions config
-    in
-    options.iconClasses
-        |> String.join " "
-        |> String.append "a-icon "
+        |> String.append "m-accordion__content fs-small "
         |> class
 
 

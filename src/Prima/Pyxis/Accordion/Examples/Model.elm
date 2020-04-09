@@ -9,7 +9,6 @@ module Prima.Pyxis.Accordion.Examples.Model exposing
     )
 
 import Html exposing (Html, text)
-import Html.Attributes as Attrs
 import Prima.Pyxis.Accordion as Accordion
 import Prima.Pyxis.Helpers as Helpers
 
@@ -73,19 +72,19 @@ accordionTypeToHtmlTitle type_ =
         Base ->
             Html.span []
                 [ text "I am a "
-                , Html.strong [ Attrs.class "cBrandBase" ] [ text "base accordion" ]
+                , Html.strong [] [ text "base accordion" ]
                 ]
 
         Light ->
             Html.span []
                 [ text "I am a "
-                , Html.strong [ Attrs.class "cBrandBase" ] [ text "light accordion" ]
+                , Html.strong [] [ text "light accordion" ]
                 ]
 
         Dark ->
             Html.span []
                 [ text "I am a "
-                , Html.strong [ Attrs.class "cBrandBase" ] [ text "dark accordion" ]
+                , Html.strong [] [ text "dark accordion" ]
                 ]
 
 
