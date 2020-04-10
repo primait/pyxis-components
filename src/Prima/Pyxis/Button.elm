@@ -1,9 +1,10 @@
 module Prima.Pyxis.Button exposing
-    ( Config, Emphasis, ColorScheme(..), Target(..), Type_(..), callOut, primary, secondary, tertiary
-    , withColorScheme, withSize
+    ( Config, Emphasis, Target(..), Type_(..), callOut, primary, secondary, tertiary
+    , withSize
     , withAttribute, withClassList, withDisabled, withIcon, withId, withTabIndex, withTitle, withType, withTarget
     , withOnClick, withOnMouseDown, withOnMouseUp, withOnMouseEnter, withOnMouseLeave, withOnMouseOver, withOnMouseOut
     , render
+    , loading, primaryAlt, secondaryAlt, tertiaryAlt
     )
 
 {-| Create a `Button` using predefined Html syntax.
@@ -11,12 +12,12 @@ module Prima.Pyxis.Button exposing
 
 ## Configuration
 
-@docs Config, Emphasis, ColorScheme, Target, Type_, callOut, primary, secondary, tertiary
+@docs Config, Emphasis, Target, Type_, callOut, primary, secondary, tertiary
 
 
-## Size and ColorScheme
+## Size
 
-@docs withColorScheme, withSize
+@docs withSize
 
 
 ## Options
@@ -48,7 +49,6 @@ type Config msg
 
 type alias ButtonConfig msg =
     { emphasis : Emphasis
-    , color : ColorScheme
     , size : Size
     , label : String
     , icon : Maybe String
@@ -61,8 +61,12 @@ type alias ButtonConfig msg =
 type Emphasis
     = CallOut
     | Primary
+    | PrimaryAlt
     | Secondary
+    | SecondaryAlt
     | Tertiary
+    | TertiaryAlt
+    | Loading
 
 
 isCallOut : Emphasis -> Bool
@@ -75,14 +79,34 @@ isPrimary =
     (==) Primary
 
 
+isPrimaryAlt : Emphasis -> Bool
+isPrimaryAlt =
+    (==) PrimaryAlt
+
+
 isSecondary : Emphasis -> Bool
 isSecondary =
     (==) Secondary
 
 
+isSecondaryAlt : Emphasis -> Bool
+isSecondaryAlt =
+    (==) SecondaryAlt
+
+
 isTertiary : Emphasis -> Bool
 isTertiary =
     (==) Tertiary
+
+
+isTertiaryAlt : Emphasis -> Bool
+isTertiaryAlt =
+    (==) TertiaryAlt
+
+
+isLoading : Emphasis -> Bool
+isLoading =
+    (==) Loading
 
 
 type Type_
@@ -190,23 +214,10 @@ addOption option (Config buttonConfig) =
     Config { buttonConfig | options = buttonConfig.options ++ [ option ] }
 
 
-{-| Represent the color scheme used to render the button.
--}
-type ColorScheme
-    = Brand
-    | BrandDark
-
-
-{-| Internal. Checks if button is dark themed
--}
-isDark : ColorScheme -> Bool
-isDark =
-    (==) BrandDark
-
-
 type Size
     = Normal
     | Small
+    | Tiny
 
 
 {-| Internal. Checks if button is `Normal` sized
@@ -221,6 +232,13 @@ isNormal =
 isSmall : Size -> Bool
 isSmall =
     (==) Small
+
+
+{-| Internal. Checks if button is `Tiny` sized
+-}
+isTiny : Size -> Bool
+isTiny =
+    (==) Tiny
 
 
 {-| Create a button with a `callOut` visual weight and a `default size`.
@@ -242,28 +260,56 @@ isSmall =
 -}
 callOut : String -> Config msg
 callOut label =
-    Config (ButtonConfig CallOut Brand Normal label Nothing [])
+    Config (ButtonConfig CallOut Normal label Nothing [])
 
 
 {-| Create a button with a `Primary` visual weight and a `default size`.
 -}
 primary : String -> Config msg
 primary label =
-    Config (ButtonConfig Primary Brand Normal label Nothing [])
+    Config (ButtonConfig Primary Normal label Nothing [])
+
+
+{-| Create a button with a `Primary Alt` visual weight and a `default size`.
+-}
+primaryAlt : String -> Config msg
+primaryAlt label =
+    Config (ButtonConfig PrimaryAlt Normal label Nothing [])
 
 
 {-| Create a button with a `Secondary` visual weight and a `default size`.
 -}
 secondary : String -> Config msg
 secondary label =
-    Config (ButtonConfig Secondary Brand Normal label Nothing [])
+    Config (ButtonConfig Secondary Normal label Nothing [])
+
+
+{-| Create a button with a `Secondary Alt` visual weight and a `default size`.
+-}
+secondaryAlt : String -> Config msg
+secondaryAlt label =
+    Config (ButtonConfig SecondaryAlt Normal label Nothing [])
 
 
 {-| Create a button with a `Tertiary` visual weight and a `default size`.
 -}
 tertiary : String -> Config msg
 tertiary label =
-    Config (ButtonConfig Tertiary Brand Normal label Nothing [])
+    Config (ButtonConfig Tertiary Normal label Nothing [])
+
+
+{-| Create a button with a `Tertiary Alt` visual weight and a `default size`.
+-}
+tertiaryAlt : String -> Config msg
+tertiaryAlt label =
+    Config (ButtonConfig TertiaryAlt Normal label Nothing [])
+
+
+{-| Create a button with a `Loading` visual weight and a `default size`.
+-}
+loading : String -> Config msg
+loading label =
+    Config (ButtonConfig Loading Normal label Nothing [])
 
 
 {-| Changes the size of the `Button`.
@@ -271,13 +317,6 @@ tertiary label =
 withSize : Size -> Config msg -> Config msg
 withSize size (Config buttonConfig) =
     Config { buttonConfig | size = size }
-
-
-{-| Changes the color scheme of the `Button`.
--}
-withColorScheme : ColorScheme -> Config msg -> Config msg
-withColorScheme color (Config buttonConfig) =
-    Config { buttonConfig | color = color }
 
 
 {-| Adds an `icon` to the `Button`.
@@ -499,15 +538,19 @@ buildFormTarget options =
 {-| Internal. Merges the component configuration and options to a classList attribute.
 -}
 buildClassList : Config msg -> Options msg -> Html.Attribute msg
-buildClassList (Config { emphasis, size, color }) options =
+buildClassList (Config { emphasis, size }) options =
     [ ( "a-btn", True )
     , ( "a-btn--callout", isCallOut emphasis )
     , ( "a-btn--primary", isPrimary emphasis )
+    , ( "a-btn--primary-alt", isPrimaryAlt emphasis )
     , ( "a-btn--secondary", isSecondary emphasis )
+    , ( "a-btn--secondary-alt", isSecondaryAlt emphasis )
     , ( "a-btn--tertiary", isTertiary emphasis )
+    , ( "a-btn--tertiary-alt", isTertiaryAlt emphasis )
+    , ( "a-btn--loading", isLoading emphasis )
     , ( "a-btn--small", isSmall size )
+    , ( "a-btn--tiny", isTiny size )
     , ( "a-btn--normal", isNormal size )
-    , ( "a-btn--dark", isDark color )
     ]
         |> List.append options.classList
         |> Attrs.classList
