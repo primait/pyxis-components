@@ -29,7 +29,7 @@ module Prima.Pyxis.Accordion exposing
 
 -}
 
-import Html exposing (Html, div, i, text)
+import Html exposing (Html, div, text)
 import Html.Attributes exposing (class, classList, id)
 import Html.Events exposing (onClick)
 
@@ -296,7 +296,7 @@ render (State isOpen) ((Config { type_, tagger, slug, title, content }) as confi
             |> (++) options.attributes
         )
         [ div
-            [ class "m-accordion__toggle fs-xsmall fw-heavy a-link--alt"
+            [ class "m-accordion__toggle"
             , onClick (tagger slug isOpen)
             ]
             [ title
@@ -338,7 +338,7 @@ buildContentClass config =
     in
     options.contentClasses
         |> String.join " "
-        |> String.append "m-accordion__content fs-small "
+        |> String.append "m-accordion__content"
         |> class
 
 
