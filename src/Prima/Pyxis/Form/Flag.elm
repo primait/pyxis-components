@@ -151,7 +151,7 @@ type alias Options model msg =
 -}
 defaultOptions : Options model msg
 defaultOptions =
-    { attributes = [ Attrs.class "a-form-field__checkbox" ]
+    { attributes = [ Attrs.class "a-form-checkbox__input" ]
     , disabled = Nothing
     , label = Nothing
     , name = Nothing
@@ -296,7 +296,7 @@ buildAttributes model ((Flag config) as flagModel) =
 render : model -> Flag model msg -> List (Html msg)
 render model flagModel =
     Html.div
-        [ Attrs.class "a-form-field__checkbox-options" ]
+        [ Attrs.class "a-form-checkbox-options" ]
         [ renderFlagChoice model flagModel ]
         :: renderValidationMessages model flagModel
 
@@ -310,14 +310,14 @@ renderFlagChoice model ((Flag config) as flagModel) =
             computeOptions flagModel
     in
     Html.div
-        [ Attrs.class "a-form-field__checkbox-options__item" ]
+        [ Attrs.class "a-form-checkbox" ]
         [ Html.input
             (buildAttributes model flagModel)
             []
         , options.label
             |> Maybe.withDefault (Label.labelWithHtml [])
             |> Label.withFor config.id
-            |> Label.withOverridingClass "a-form-field__checkbox-options__item__label"
+            |> Label.withOverridingClass "a-form-checkbox__label"
             |> Label.render
         ]
 

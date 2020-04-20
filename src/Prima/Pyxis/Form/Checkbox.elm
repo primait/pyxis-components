@@ -113,7 +113,7 @@ type alias Options model msg =
 defaultOptions : Options model msg
 defaultOptions =
     { attributes = []
-    , class = [ "a-form-field__checkbox" ]
+    , class = [ "a-form-checkbox__input" ]
     , disabled = Nothing
     , id = Nothing
     , name = Nothing
@@ -333,7 +333,7 @@ render : model -> Checkbox model msg -> List (Html msg)
 render model ((Checkbox config) as checkboxModel) =
     [ Html.div
         [ Attrs.classList
-            [ ( "a-form-field__checkbox-options", True )
+            [ ( "a-form-checkbox-options", True )
             ]
         , validationAttribute model checkboxModel
         ]
@@ -346,7 +346,7 @@ render model ((Checkbox config) as checkboxModel) =
 renderCheckbox : model -> Checkbox model msg -> CheckboxChoice -> Html msg
 renderCheckbox model ((Checkbox config) as checkboxModel) checkboxItem =
     Html.div
-        [ Attrs.class "a-form-field__checkbox-options__item" ]
+        [ Attrs.class "a-form-checkbox" ]
         [ Html.input
             (buildAttributes model checkboxModel checkboxItem.value)
             []
@@ -354,7 +354,7 @@ renderCheckbox model ((Checkbox config) as checkboxModel) checkboxItem =
             |> Label.label
             |> Label.withOnClick (config.tagger checkboxItem.value)
             |> Label.withFor checkboxItem.value
-            |> Label.withOverridingClass "a-form-field__checkbox-options__item__label"
+            |> Label.withOverridingClass "a-form-checkbox__label"
             |> Label.render
         ]
 

@@ -433,7 +433,7 @@ renderField model formField =
 render : model -> Form model msg -> Html msg
 render model (Form formConfig) =
     Html.div
-        [ class "m-form" ]
+        [ class "o-form" ]
         (formConfig.fields
             |> List.map (H.flip Grid.addRow Grid.create << buildGridRow model)
             |> List.map Grid.render

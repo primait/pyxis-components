@@ -56,12 +56,12 @@ render type_ =
     case type_ of
         WarningWithMessage message ->
             Html.div
-                [ Attrs.class "a-form-field__warning" ]
+                [ Attrs.class "a-form-warning" ]
                 [ Html.text message ]
 
         ErrorWithMessage message ->
             Html.div
-                [ Attrs.class "a-form-field__error" ]
+                [ Attrs.class "a-form-error" ]
                 [ Html.text message ]
 
         _ ->

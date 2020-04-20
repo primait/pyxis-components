@@ -105,7 +105,7 @@ type alias Options model msg =
 defaultOptions : Options model msg
 defaultOptions =
     { attributes = []
-    , class = [ "a-form-field__radio" ]
+    , class = [ "a-form-radio__input" ]
     , disabled = Nothing
     , id = Nothing
     , name = Nothing
@@ -286,7 +286,7 @@ buildAttributes model ((Radio _) as radioModel) choice =
 render : model -> Radio model msg -> List (Html msg)
 render model ((Radio { radioChoices }) as radioModel) =
     Html.div
-        [ Attrs.class "a-form-field__radio-options" ]
+        [ Attrs.class "a-form-radio-options" ]
         (List.map (renderRadioChoice model radioModel) radioChoices)
         :: renderValidationMessages model radioModel
 
@@ -294,7 +294,7 @@ render model ((Radio { radioChoices }) as radioModel) =
 renderRadioChoice : model -> Radio model msg -> RadioChoice -> Html msg
 renderRadioChoice model ((Radio { tagger }) as radioModel) ({ value, label } as choice) =
     Html.div
-        [ Attrs.class "a-form-field__radio-options__item" ]
+        [ Attrs.class "a-form-radio" ]
         [ Html.input
             (buildAttributes model radioModel choice)
             []
@@ -302,7 +302,7 @@ renderRadioChoice model ((Radio { tagger }) as radioModel) ({ value, label } as 
             |> Label.label
             |> Label.withOnClick (tagger value)
             |> Label.withFor value
-            |> Label.withOverridingClass "a-form-field__radio-options__item__label"
+            |> Label.withOverridingClass "a-form-radio__label"
             |> Label.render
         ]
 

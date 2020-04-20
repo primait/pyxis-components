@@ -86,7 +86,7 @@ type alias Options msg =
 defaultOptions : Options msg
 defaultOptions =
     { attributes = []
-    , classes = [ "a-form-field__label" ]
+    , classes = [ "a-form-label" ]
     , for = Nothing
     , onClick = Nothing
     , subLabel = Nothing
@@ -215,7 +215,7 @@ renderSubtitle ((Label _) as labelModel) =
 
         Just lbl ->
             Html.span
-                [ Attrs.class "a-form-field__label__subtitle" ]
+                [ Attrs.class "a-form-label__subtitle" ]
                 [ text lbl ]
 
 

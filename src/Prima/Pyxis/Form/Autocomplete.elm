@@ -260,7 +260,7 @@ defaultOptions =
     { attributes = []
     , defaultValue = Indeterminate
     , disabled = Nothing
-    , classes = [ "a-form-field__input" ]
+    , classes = [ "a-form-input" ]
     , id = Nothing
     , name = Nothing
     , onFocus = Nothing
@@ -449,7 +449,7 @@ render model ((Autocomplete config) as autocompleteModel) =
     in
     Html.div
         [ Attrs.classList
-            [ ( "a-form-field__autocomplete", True )
+            [ ( "a-form-autocomplete", True )
             , ( "is-open", hasReachedThreshold && config.openedReader model )
             , ( "is-small", options.size == Small )
             , ( "is-medium", options.size == Regular )
@@ -462,7 +462,7 @@ render model ((Autocomplete config) as autocompleteModel) =
             (buildAttributes model autocompleteModel)
             []
         , Html.ul
-            [ Attrs.class "a-form-field__autocomplete__list" ]
+            [ Attrs.class "a-form-autocomplete__list" ]
             (if List.length filteredChoices > 0 then
                 List.map (renderAutocompleteChoice model autocompleteModel) filteredChoices
 
@@ -477,7 +477,7 @@ renderAutocompleteChoice : model -> Autocomplete model msg -> AutocompleteChoice
 renderAutocompleteChoice model (Autocomplete config) choice =
     Html.li
         [ Attrs.classList
-            [ ( "a-form-field__autocomplete__list__item", True )
+            [ ( "a-form-autocomplete__list__item", True )
             , ( "is-selected", Just choice.value == config.reader model )
             ]
         , (Events.onClick << config.tagger) choice.value
@@ -490,7 +490,7 @@ renderAutocompleteChoice model (Autocomplete config) choice =
 renderAutocompleteNoResults : model -> Autocomplete model msg -> List (Html msg)
 renderAutocompleteNoResults _ (Autocomplete _) =
     [ Html.li
-        [ Attrs.class "a-form-field__autocomplete__list--no-results" ]
+        [ Attrs.class "a-form-autocomplete__list--no-results" ]
         [ Html.text "Nessun risultato." ]
     ]
 

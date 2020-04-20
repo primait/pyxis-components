@@ -116,7 +116,7 @@ type alias Options model msg =
 defaultOptions : Options model msg
 defaultOptions =
     { attributes = []
-    , class = [ "a-form-field__select" ]
+    , class = [ "a-form-select a-form-select--native" ]
     , defaultValue = Indeterminate
     , disabled = Nothing
     , id = Nothing
@@ -372,7 +372,7 @@ renderCustomSelect model ((Select config) as selectModel) =
     in
     Html.div
         [ Attrs.classList
-            [ ( "a-form-field__custom-select", True )
+            [ ( "a-form-select", True )
             , ( "is-open", config.openedReader model )
             , ( "is-disabled", Maybe.withDefault False options.disabled )
             ]
@@ -394,7 +394,7 @@ renderCustomSelectStatus model ((Select config) as selectModel) =
             computeOptions selectModel
     in
     Html.span
-        [ Attrs.class "a-form-field__custom-select__status"
+        [ Attrs.class "a-form-select__status"
         , Events.onClick config.openedTagger
         ]
         [ config.selectChoices
@@ -409,14 +409,14 @@ renderCustomSelectStatus model ((Select config) as selectModel) =
 renderCustomSelectChoiceWrapper : List (Html msg) -> Html msg
 renderCustomSelectChoiceWrapper =
     Html.ul
-        [ class "a-form-field__custom-select__list" ]
+        [ class "a-form-select__list" ]
 
 
 renderCustomSelectChoice : model -> Select model msg -> SelectChoice -> Html msg
 renderCustomSelectChoice model (Select config) choice =
     Html.li
         [ Attrs.classList
-            [ ( "a-form-field__custom-select__list__item", True )
+            [ ( "a-form-select__list__item", True )
             , ( "is-selected", ((==) (Just choice.value) << config.reader) model )
             ]
         , (Events.onClick << config.tagger) choice.value

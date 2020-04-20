@@ -116,7 +116,7 @@ type alias Options model msg =
 defaultOptions : Options model msg
 defaultOptions =
     { attributes = []
-    , class = [ "a-form-field__radio-button-options__item" ]
+    , class = [ "a-form-radio-button" ]
     , id = Nothing
     , onFocus = Nothing
     , onBlur = Nothing
@@ -325,7 +325,7 @@ buildAttributes model radioButtonModel choice =
 render : model -> RadioButton model msg -> List (Html msg)
 render model ((RadioButton config) as radioButtonModel) =
     Html.div
-        [ Attrs.class "a-form-field__radio-button-options" ]
+        [ Attrs.class "a-form-radio-button-options" ]
         (List.map (renderRadioButtonChoice model radioButtonModel) config.choices)
         :: renderValidationMessages model radioButtonModel
 
@@ -365,7 +365,7 @@ renderValidationMessages model ((RadioButton _) as inputModel) =
 renderTitle : String -> Html msg
 renderTitle title =
     Html.strong
-        [ Attrs.class "a-form-field__radio-button__title" ]
+        [ Attrs.class "a-form-radio-button__title" ]
         [ Html.text title ]
 
 
@@ -374,7 +374,7 @@ renderTitle title =
 renderSubtitle : String -> Html msg
 renderSubtitle subtitle =
     Html.p
-        [ Attrs.class "a-form-field__radio-button__subtitle" ]
+        [ Attrs.class "a-form-radio-button__subtitle" ]
         [ Html.text subtitle ]
 
 

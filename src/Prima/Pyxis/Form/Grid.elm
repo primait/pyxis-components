@@ -1,7 +1,7 @@
 module Prima.Pyxis.Form.Grid exposing (Row, addCol, addCols, addRow, col, create, render, row)
 
 import Html exposing (Html, div)
-import Html.Attributes as Attrs
+import Html.Attributes exposing (attribute, class)
 
 
 type Grid msg
@@ -54,11 +54,11 @@ render (Grid grid) =
 renderRow : Row msg -> Html msg
 renderRow (Row rows) =
     div
-        [ Attrs.class "a-form-field"
+        [ class "m-form-row"
         , rows
             |> List.length
             |> String.fromInt
-            |> Attrs.attribute "data-children-count"
+            |> attribute "data-children-count"
         ]
         (List.map renderCol rows)
 
@@ -66,5 +66,5 @@ renderRow (Row rows) =
 renderCol : Column msg -> Html msg
 renderCol (Column col_) =
     div
-        [ Attrs.class "a-form-field__item" ]
+        [ class "m-form-row__item" ]
         col_
