@@ -1,9 +1,8 @@
 module Prima.Pyxis.Form.Grid exposing
-    ( create
-    , Row
+    ( Grid, Row, Childrens, create
+    , addRow
     , withOneColumn, withTwoColumns, withThreeColumns, withFourColumns
     , render
-    , addRow, emptyRow
     )
 
 {-|
@@ -11,12 +10,12 @@ module Prima.Pyxis.Form.Grid exposing
 
 ## Types and Configuration
 
-@docs Grid, create
+@docs Grid, Row, Childrens, create
 
 
 ## Rows
 
-@docs Row, row
+@docs emptyRow, addRow
 
 
 ## Childrens

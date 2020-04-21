@@ -19,7 +19,9 @@ appBody model =
     [ Helpers.pyxisStyle
     , Container.row
         |> Container.withContent
-            [ Form.render model.formData <| formConfig model
+            [ model
+                |> formConfig
+                |> Form.render model.formData
             ]
         |> Container.render
     ]
