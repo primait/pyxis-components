@@ -1,6 +1,6 @@
 module Prima.Pyxis.Form exposing
-    ( Form, init, setAsPristine, setAsSubmitted, setAsTouched, isPristine, isTouched, isSubmitted
-    , FormField, input, autocomplete, checkbox, date, flag, radio, radioButton, select, textArea
+    ( Form, init
+    , FormField, input, inputList, autocomplete, checkbox, date, flag, radio, radioButton, select, textArea
     , withLabel, withAppendableHtml, withFields
     , render
     )
@@ -10,12 +10,12 @@ module Prima.Pyxis.Form exposing
 
 ## Types and Configuration
 
-@docs Form, init, setAsPristine, setAsSubmitted, setAsTouched, isPristine, isTouched, isSubmitted
+@docs Form, init
 
 
 ## Fields
 
-@docs FormField, input, autocomplete, checkbox, date, flag, radio, radioButton, select, textArea
+@docs FormField, input, inputList, autocomplete, checkbox, date, flag, radio, radioButton, select, textArea
 
 
 ## Manipulating Form and Fields
@@ -52,8 +52,7 @@ type Form model msg
 
 
 type alias FormConfig model msg =
-    { state : FormState
-    , fields : List (List (FormField model msg))
+    { fields : List (List (FormField model msg))
     }
 
 
@@ -61,57 +60,7 @@ type alias FormConfig model msg =
 -}
 init : Form model msg
 init =
-    Form <| FormConfig Pristine []
-
-
-{-| Represent the `Form` state.
--}
-type FormState
-    = Pristine
-    | Touched
-    | Submitted
-
-
-{-| Checks if a `Form` is in the `Pristine` state.
--}
-isPristine : Form model msg -> Bool
-isPristine (Form { state }) =
-    state == Pristine
-
-
-{-| Checks if a `Form` is in the `Touched` state.
--}
-isTouched : Form model msg -> Bool
-isTouched (Form { state }) =
-    state == Touched
-
-
-{-| Checks if a `Form` is in the `Submitted` state.
--}
-isSubmitted : Form model msg -> Bool
-isSubmitted (Form { state }) =
-    state == Submitted
-
-
-{-| Sets the `Form` to `Pristine` state.
--}
-setAsPristine : Form model msg -> Form model msg
-setAsPristine (Form config) =
-    Form { config | state = Pristine }
-
-
-{-| Sets the `Form` to `Submitted` state.
--}
-setAsSubmitted : Form model msg -> Form model msg
-setAsSubmitted (Form config) =
-    Form { config | state = Submitted }
-
-
-{-| Sets the `Form` to `Touched` state.
--}
-setAsTouched : Form model msg -> Form model msg
-setAsTouched (Form config) =
-    Form { config | state = Touched }
+    Form <| FormConfig []
 
 
 {-| Adds a list of field (which represents a row of the `Grid`) to the `Form`.
@@ -125,6 +74,7 @@ withFields fields (Form formConfig) =
 -}
 type FormField model msg
     = InputField (InputFieldConfig model msg)
+    | InputListField (List (InputFieldConfig model msg))
     | FlagField (FlagFieldConfig model msg)
     | RadioField (RadioFieldConfig model msg)
     | SelectField (SelectFieldConfig model msg)
@@ -155,6 +105,12 @@ pickLabel formField =
 
         InputField { label } ->
             label
+
+        InputListField ({ label } :: _) ->
+            label
+
+        InputListField [] ->
+            Nothing
 
         RadioField { label } ->
             label
@@ -189,6 +145,18 @@ type alias InputFieldConfig model msg =
 input : Input.Input model msg -> FormField model msg
 input config =
     InputField <| InputFieldConfig config Nothing []
+
+
+{-| Transforms an `Input` component into a `FormField`.
+-}
+inputList : List (Input.Input model msg) -> FormField model msg
+inputList configs =
+    let
+        buildConfig : Input.Input model msg -> InputFieldConfig model msg
+        buildConfig config =
+            InputFieldConfig config Nothing []
+    in
+    InputListField <| List.map buildConfig configs
 
 
 {-| Internal. Represent the configuration of a `FormField` which holds an `Flag` component.
@@ -333,6 +301,12 @@ withLabel lbl formField =
         InputField fieldConfig ->
             InputField { fieldConfig | label = Just lbl }
 
+        InputListField (fieldConfig :: tail) ->
+            InputListField ({ fieldConfig | label = Just lbl } :: tail)
+
+        InputListField [] ->
+            formField
+
         SelectField fieldConfig ->
             SelectField { fieldConfig | label = Just lbl }
 
@@ -365,6 +339,9 @@ withAppendableHtml html formField =
 
         InputField fieldConfig ->
             InputField { fieldConfig | appendableHtml = html }
+
+        InputListField _ ->
+            formField
 
         SelectField fieldConfig ->
             SelectField { fieldConfig | appendableHtml = html }
@@ -402,6 +379,11 @@ renderField model formField =
     case formField of
         InputField { config, appendableHtml } ->
             Input.render model config ++ appendableHtml
+
+        InputListField list ->
+            list
+                |> List.map (renderField model << InputField)
+                |> List.concat
 
         FlagField { config, appendableHtml } ->
             Flag.render model config ++ appendableHtml
