@@ -35,6 +35,9 @@ formConfig model =
             , Config.passwordGroupConfig
             ]
         |> Form.withFields
+            [ Config.usernameWithTooltipConfig model.formData.uiState.usernameTooltipVisible
+            ]
+        |> Form.withFields
             [ Config.birthDateCompoundConfig
             ]
         |> Form.withFields

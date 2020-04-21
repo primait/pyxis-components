@@ -12,10 +12,12 @@ module Prima.Pyxis.Form.Example.FieldConfig exposing
     , radioButtonConfig
     , textAreaConfig
     , usernameGroupConfig
+    , usernameWithTooltipConfig
     )
 
-import Html exposing (Html, text)
+import Html exposing (Html)
 import Html.Attributes as Attrs
+import Html.Events as Events
 import Prima.Pyxis.Form as Form
 import Prima.Pyxis.Form.Autocomplete as Autocomplete
 import Prima.Pyxis.Form.Checkbox as Checkbox
@@ -31,6 +33,7 @@ import Prima.Pyxis.Form.TextArea as TextArea
 import Prima.Pyxis.Form.Validation as Validation
 import Prima.Pyxis.Helpers as H
 import Prima.Pyxis.Link as Link
+import Prima.Pyxis.Tooltip as Tooltip
 
 
 usernameGroupConfig : Form.FormField FormData Msg
@@ -46,6 +49,34 @@ usernameGroupConfig =
         |> Input.withId slug
         |> Input.withAppendGroup [ userIcon ]
         |> Form.input
+        |> Form.withLabel
+            ("Username"
+                |> Label.label
+                |> Label.withFor slug
+            )
+
+
+usernameWithTooltipConfig : Bool -> Form.FormField FormData Msg
+usernameWithTooltipConfig showTooltip =
+    let
+        slug =
+            "username"
+
+        icon =
+            Html.i [ Attrs.class "a-icon a-icon-info", Events.onClick ToggleTooltip ] []
+
+        tooltip =
+            Tooltip.upConfig [ Html.text H.loremIpsum ]
+    in
+    Input.text .username (OnInput Username)
+        |> Input.withId slug
+        |> Form.input
+        |> Form.withAppendableHtml
+            [ icon
+            , tooltip
+                |> Tooltip.render
+                |> H.renderIf showTooltip
+            ]
         |> Form.withLabel
             ("Username"
                 |> Label.label
@@ -128,11 +159,11 @@ privacyConfig =
 
 privacyLabel : List (Html Msg)
 privacyLabel =
-    [ text "Dichiaro di accettare i termini e condizioni della "
+    [ Html.text "Dichiaro di accettare i termini e condizioni della "
     , Link.simple "Calcola"
         |> Link.withHref "https://www.prima.it"
         |> Link.render
-    , text " privacy."
+    , Html.text " privacy."
     ]
 
 

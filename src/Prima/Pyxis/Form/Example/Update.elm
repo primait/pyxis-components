@@ -105,6 +105,11 @@ update msg model =
                 |> updateNote (Just value)
                 |> H.withoutCmds
 
+        ToggleTooltip ->
+            model
+                |> toggleTooltip
+                |> H.withoutCmds
+
         _ ->
             H.withoutCmds model
 
@@ -187,6 +192,11 @@ openPowerSourceSelect =
 closePowerSourceSelect : Model -> Model
 closePowerSourceSelect =
     updateFormData <| updateUiState (\ui -> { ui | powerSourceSelectOpened = False })
+
+
+toggleTooltip : Model -> Model
+toggleTooltip =
+    updateFormData <| updateUiState (\ui -> { ui | usernameTooltipVisible = not ui.usernameTooltipVisible })
 
 
 updateFiscalCode : Maybe String -> Model -> Model

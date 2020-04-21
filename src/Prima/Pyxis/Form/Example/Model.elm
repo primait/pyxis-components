@@ -23,6 +23,7 @@ type Msg
     | OnDateInput Field DatePicker.Date
     | OnDatePickerUpdate Field DatePicker.Msg
     | OnTodayDateReceived Date.Date
+    | ToggleTooltip
 
 
 type alias Model =
@@ -105,6 +106,7 @@ type alias UIState =
     { countryAutocompleteOpened : Bool
     , powerSourceSelectOpened : Bool
     , birthDateDatePickerOpened : Bool
+    , usernameTooltipVisible : Bool
     }
 
 
@@ -113,4 +115,5 @@ initialUIState =
     { countryAutocompleteOpened = False
     , powerSourceSelectOpened = False
     , birthDateDatePickerOpened = False
+    , usernameTooltipVisible = False
     }
