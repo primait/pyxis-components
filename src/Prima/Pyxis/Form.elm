@@ -427,38 +427,26 @@ render model (Form formConfig) =
 -}
 buildGridRow : model -> List (FormField model msg) -> Grid.Row msg
 buildGridRow model fields =
-    (case fields of
+    case fields of
         first :: second :: [] ->
             case ( hasLabel first, hasLabel second ) of
                 ( _, True ) ->
-                    [ first
-                        |> renderLabel
-                    , first
-                        |> renderField model
-                    , second
-                        |> renderLabel
-                    , second
-                        |> renderField model
-                    ]
+                    Grid.withFourColumns
+                        (renderLabel first)
+                        (renderField model first)
+                        (renderLabel second)
+                        (renderField model second)
 
                 ( _, False ) ->
-                    [ first
-                        |> renderLabel
-                    , first
-                        |> renderField model
-                    , second
-                        |> renderField model
-                    ]
+                    Grid.withThreeColumns
+                        (renderLabel first)
+                        (renderField model first)
+                        (renderField model second)
 
         first :: [] ->
-            [ first
-                |> renderLabel
-            , first
-                |> renderField model
-            ]
+            Grid.withTwoColumns
+                (renderLabel first)
+                (renderField model first)
 
         _ ->
-            []
-    )
-        |> List.map Grid.col
-        |> H.flip Grid.addCols Grid.row
+            Grid.emptyRow
