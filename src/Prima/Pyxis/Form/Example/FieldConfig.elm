@@ -207,7 +207,7 @@ countryConfig : Form.FormField FormData Msg
 countryConfig =
     let
         slug =
-            "country"
+            "country-test"
     in
     [ Autocomplete.autocompleteChoice "italy" "Italy"
     , Autocomplete.autocompleteChoice "france" "France"
@@ -217,8 +217,8 @@ countryConfig =
     , Autocomplete.autocompleteChoice "uk" "U.K."
     ]
         |> Autocomplete.autocomplete .country (OnInput Country) .countryFilter (OnFilter Country) (.countryAutocompleteOpened << .uiState)
-        |> Autocomplete.withThreshold 3
         |> Autocomplete.withLargeSize
+        |> Autocomplete.withThreshold 3
         |> Autocomplete.withId slug
         |> Autocomplete.withValidation Validation.countryNotItalyValidation
         |> Form.autocomplete
