@@ -1,5 +1,6 @@
 module Prima.Pyxis.Form.Example.Model exposing
-    ( Field(..)
+    ( BirthDateField(..)
+    , Field(..)
     , FormData
     , Model
     , Msg(..)
@@ -44,10 +45,17 @@ type Field
     | PowerSource
     | Country
     | FiscalCode
-    | InsurancePolicyType
+    | InsuranceType
     | Note
     | VisitedCountries
     | BirthDate
+    | BirthDateCompound BirthDateField
+
+
+type BirthDateField
+    = Day
+    | Month
+    | Year
 
 
 type alias FormData =
@@ -62,7 +70,10 @@ type alias FormData =
     , countryVisited : List String
     , birthDate : DatePicker.Date
     , birthDateDatePicker : Maybe DatePicker.Model
-    , tipoPolizza : Maybe String
+    , birthDateDay : Maybe String
+    , birthDateMonth : Maybe String
+    , birthDateYear : Maybe String
+    , insuranceType : Maybe String
     , note : Maybe String
     , uiState : UIState
     }
@@ -81,7 +92,10 @@ initialFormData =
     , countryVisited = [ "italia", "francia" ]
     , birthDate = DatePicker.PartialDate Nothing
     , birthDateDatePicker = Nothing
-    , tipoPolizza = Nothing
+    , birthDateDay = Nothing
+    , birthDateMonth = Nothing
+    , birthDateYear = Nothing
+    , insuranceType = Nothing
     , note = Nothing
     , uiState = initialUIState
     }

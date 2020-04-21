@@ -2,14 +2,7 @@ module Prima.Pyxis.Form.Example.Update exposing (update)
 
 import Date
 import Prima.Pyxis.Form.DatePicker as DatePicker
-import Prima.Pyxis.Form.Example.Model
-    exposing
-        ( Field(..)
-        , FormData
-        , Model
-        , Msg(..)
-        , UIState
-        )
+import Prima.Pyxis.Form.Example.Model exposing (BirthDateField(..), Field(..), FormData, Model, Msg(..), UIState)
 import Prima.Pyxis.Helpers as H
 
 
@@ -52,6 +45,11 @@ update msg model =
                 |> updateCountry (Just value)
                 |> updateCountryFilter Nothing
                 |> closeCountryAutocomplete
+                |> H.withoutCmds
+
+        OnInput (BirthDateCompound field) value ->
+            model
+                |> updateBirthDateCompound field (Just value)
                 |> H.withoutCmds
 
         OnDateInput BirthDate value ->
@@ -97,7 +95,7 @@ update msg model =
                 |> openBirthDateDatePicker
                 |> H.withoutCmds
 
-        OnChange InsurancePolicyType value ->
+        OnChange InsuranceType value ->
             model
                 |> updateInsurancePolicyType value
                 |> H.withoutCmds
@@ -144,6 +142,22 @@ updateCountry value =
 updateCountryFilter : Maybe String -> Model -> Model
 updateCountryFilter value =
     updateFormData (\f -> { f | countryFilter = value })
+
+
+updateBirthDateCompound : BirthDateField -> Maybe String -> Model -> Model
+updateBirthDateCompound field value =
+    updateFormData
+        (\f ->
+            case field of
+                Day ->
+                    { f | birthDateDay = Maybe.map (String.left 2) value }
+
+                Month ->
+                    { f | birthDateMonth = Maybe.map (String.left 2) value }
+
+                Year ->
+                    { f | birthDateYear = Maybe.map (String.left 4) value }
+        )
 
 
 openCountryAutocomplete : Model -> Model
@@ -247,7 +261,7 @@ updateCountryVisited value ({ formData } as model) =
 
 updateInsurancePolicyType : String -> Model -> Model
 updateInsurancePolicyType value =
-    updateFormData (\f -> { f | tipoPolizza = Just value })
+    updateFormData (\f -> { f | insuranceType = Just value })
 
 
 updateNote : Maybe String -> Model -> Model

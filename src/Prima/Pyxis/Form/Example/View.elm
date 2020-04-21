@@ -33,6 +33,9 @@ formConfig model =
             , Config.passwordGroupConfig
             ]
         |> Form.withFields
+            [ Config.birthDateCompoundConfig
+            ]
+        |> Form.withFields
             [ Config.birthDateConfig
             ]
         |> Form.withFields

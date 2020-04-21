@@ -1,5 +1,6 @@
 module Prima.Pyxis.Form.Example.FieldConfig exposing
-    ( birthDateConfig
+    ( birthDateCompoundConfig
+    , birthDateConfig
     , checkboxConfig
     , countryConfig
     , fiscalCodeGroupConfig
@@ -19,7 +20,7 @@ import Prima.Pyxis.Form as Form
 import Prima.Pyxis.Form.Autocomplete as Autocomplete
 import Prima.Pyxis.Form.Checkbox as Checkbox
 import Prima.Pyxis.Form.Date as Date
-import Prima.Pyxis.Form.Example.Model exposing (Field(..), FormData, Msg(..))
+import Prima.Pyxis.Form.Example.Model exposing (BirthDateField(..), Field(..), FormData, Msg(..))
 import Prima.Pyxis.Form.Flag as Flag
 import Prima.Pyxis.Form.Input as Input
 import Prima.Pyxis.Form.Label as Label
@@ -261,13 +262,13 @@ checkboxConfig =
 radioButtonConfig : Form.FormField FormData Msg
 radioButtonConfig =
     [ RadioButton.radioButtonChoiceWithSubtitle "soloMutuo" "Solo mutuo" "Lorem ipsum dolor sit amet"
-    , RadioButton.radioButtonChoiceWithSubtitle "estensioneMutuo" "Estensione mutuo" "Polizza intregativa: estende la protezione obbligatoria per mutuo."
+    , RadioButton.radioButtonChoiceWithSubtitle "estensioneMutuo" "Estensione mutuo" "Polizza integrativa: estende la protezione obbligatoria per mutuo."
     , RadioButton.radioButtonChoiceWithSubtitle "altreSoluzioni" "Altre soluzioni" "Offerta completa adatta a tutte le esigenze."
     ]
-        |> RadioButton.radioButton .tipoPolizza (OnChange InsurancePolicyType)
+        |> RadioButton.radioButton .insuranceType (OnChange InsuranceType)
         |> RadioButton.withValidation
             (\m ->
-                if String.isEmpty <| Maybe.withDefault "" m.tipoPolizza then
+                if String.isEmpty <| Maybe.withDefault "" m.insuranceType then
                     Just <| Validation.ErrorWithMessage "Cannot be empty"
 
                 else
@@ -330,4 +331,33 @@ birthDateConfig =
             ("Data di nascita"
                 |> Label.label
                 |> Label.withFor slug
+            )
+
+
+birthDateDayConfig : Input.Input FormData Msg
+birthDateDayConfig =
+    Input.text .birthDateDay (OnInput (BirthDateCompound Day))
+
+
+birthDateMonthConfig : Input.Input FormData Msg
+birthDateMonthConfig =
+    Input.text .birthDateMonth (OnInput (BirthDateCompound Month))
+
+
+birthDateYearConfig : Input.Input FormData Msg
+birthDateYearConfig =
+    Input.text .birthDateYear (OnInput (BirthDateCompound Year))
+
+
+birthDateCompoundConfig : Form.FormField FormData Msg
+birthDateCompoundConfig =
+    [ birthDateDayConfig
+    , birthDateMonthConfig
+    , birthDateYearConfig
+    ]
+        |> List.map Input.withSmallSize
+        |> Form.inputList
+        |> Form.withLabel
+            ("Data di nascita"
+                |> Label.label
             )
