@@ -22,6 +22,7 @@ import Prima.Pyxis.Form as Form
 import Prima.Pyxis.Form.Autocomplete as Autocomplete
 import Prima.Pyxis.Form.Checkbox as Checkbox
 import Prima.Pyxis.Form.Date as Date
+import Prima.Pyxis.Form.Example.FieldValidations as Validation
 import Prima.Pyxis.Form.Example.Model exposing (BirthDateField(..), Field(..), FormData, Msg(..))
 import Prima.Pyxis.Form.Flag as Flag
 import Prima.Pyxis.Form.Input as Input
@@ -30,7 +31,6 @@ import Prima.Pyxis.Form.Radio as Radio
 import Prima.Pyxis.Form.RadioButton as RadioButton
 import Prima.Pyxis.Form.Select as Select
 import Prima.Pyxis.Form.TextArea as TextArea
-import Prima.Pyxis.Form.Validation as Validation
 import Prima.Pyxis.Helpers as H
 import Prima.Pyxis.Link as Link
 import Prima.Pyxis.Tooltip as Tooltip
@@ -48,6 +48,8 @@ usernameGroupConfig =
     Input.text .username (OnInput Username)
         |> Input.withId slug
         |> Input.withAppendGroup [ userIcon ]
+        |> Input.withValidation (Validation.notEmptyValidation .username)
+        |> Input.withValidation (Validation.atLeastTwoCharsValidation .username)
         |> Form.input
         |> Form.withLabel
             ("Username"
@@ -96,6 +98,8 @@ passwordGroupConfig =
     Input.password .password (OnInput Password)
         |> Input.withId slug
         |> Input.withPrependGroup [ lockIcon ]
+        |> Input.withValidation (Validation.notEmptyValidation .password)
+        |> Input.withValidation (Validation.atLeastTwoCharsValidation .password)
         |> Form.input
         |> Form.withLabel
             ("Password"
@@ -110,16 +114,17 @@ fiscalCodeGroupConfig =
     let
         slug =
             "fiscal_code"
-
-        cta =
-            Link.simple "Calcola"
-                |> Link.withHref "https://www.prima.it"
-                |> Link.render
     in
     Input.text .fiscalCode (OnInput FiscalCode)
         |> Input.withId slug
         |> Input.withLargeSize
-        |> Input.withPrependGroup [ cta ]
+        |> Input.withPrependGroup
+            ("Calcola"
+                |> Link.simple
+                |> Link.withHref "https://www.prima.it"
+                |> Link.render
+                |> List.singleton
+            )
         |> Input.withGroupClass "is-large"
         |> Form.input
         |> Form.withLabel
@@ -141,14 +146,7 @@ privacyConfig =
                 |> Label.labelWithHtml
                 |> Label.withFor slug
             )
-        |> Flag.withValidation
-            (\m ->
-                if Maybe.withDefault True <| Maybe.map not m.privacy then
-                    Just <| Validation.ErrorWithMessage "You must accept the privacy."
-
-                else
-                    Nothing
-            )
+        |> Flag.withValidation Validation.privacyValidation
         |> Form.flag
         |> Form.withLabel
             ("Privacy"
@@ -175,14 +173,7 @@ guideTypeConfig =
     ]
         |> Radio.radio .guideType (OnInput GuideType)
         |> Radio.withName "guide_type"
-        |> Radio.withValidation
-            (\m ->
-                if H.isNothing m.guideType then
-                    Just <| Validation.ErrorWithMessage "Cannot be empty"
-
-                else
-                    Nothing
-            )
+        |> Radio.withValidation (Validation.notEmptyValidation .guideType)
         |> Form.radio
         |> Form.withLabel
             ("Tipo di guida"
@@ -202,22 +193,8 @@ powerSourceConfig =
     ]
         |> Select.select .powerSource (OnInput PowerSource) (.powerSourceSelectOpened << .uiState) (OnToggle PowerSource)
         |> Select.withId slug
-        |> Select.withValidation
-            (\m ->
-                if String.isEmpty <| Maybe.withDefault "" <| m.powerSource then
-                    Just <| Validation.WarningWithMessage "Cannot be empty"
-
-                else
-                    Nothing
-            )
-        |> Select.withValidation
-            (\m ->
-                if (==) "diesel" <| Maybe.withDefault "" <| m.powerSource then
-                    Just <| Validation.ErrorWithMessage "Cannot be Diesel"
-
-                else
-                    Nothing
-            )
+        |> Select.withValidation (Validation.notEmptyValidation .powerSource)
+        |> Select.withValidation Validation.powerSourceNotDieselValidation
         |> Form.select
         |> Form.withLabel
             ("Alimentazione"
@@ -243,14 +220,7 @@ countryConfig =
         |> Autocomplete.withThreshold 3
         |> Autocomplete.withLargeSize
         |> Autocomplete.withId slug
-        |> Autocomplete.withValidation
-            (\m ->
-                if (==) "italy" <| Maybe.withDefault "" <| m.country then
-                    Just <| Validation.ErrorWithMessage "The field is empty"
-
-                else
-                    Nothing
-            )
+        |> Autocomplete.withValidation Validation.countryNotItalyValidation
         |> Form.autocomplete
         |> Form.withLabel
             ("Paese di nascita"
@@ -274,14 +244,7 @@ checkboxConfig =
     in
     valuesOption
         |> Checkbox.checkbox .countryVisited (OnChange VisitedCountries)
-        |> Checkbox.withValidation
-            (\m ->
-                if List.isEmpty m.countryVisited then
-                    Just <| Validation.ErrorWithMessage "The field is empty"
-
-                else
-                    Nothing
-            )
+        |> Checkbox.withValidation Validation.countryVisitedEmptyValidation
         |> Checkbox.withName "country_visited"
         |> Form.checkbox
         |> Form.withLabel
@@ -297,14 +260,7 @@ radioButtonConfig =
     , RadioButton.radioButtonChoiceWithSubtitle "altreSoluzioni" "Altre soluzioni" "Offerta completa adatta a tutte le esigenze."
     ]
         |> RadioButton.radioButton .insuranceType (OnChange InsuranceType)
-        |> RadioButton.withValidation
-            (\m ->
-                if String.isEmpty <| Maybe.withDefault "" m.insuranceType then
-                    Just <| Validation.ErrorWithMessage "Cannot be empty"
-
-                else
-                    Nothing
-            )
+        |> RadioButton.withValidation (Validation.notEmptyValidation .insuranceType)
         |> Form.radioButton
         |> Form.withLabel
             ("Tipo di polizza"
@@ -322,22 +278,7 @@ textAreaConfig =
         |> TextArea.withId slug
         |> TextArea.withLargeSize
         |> TextArea.withPlaceholder "Describe something happened"
-        |> TextArea.withValidation
-            (\m ->
-                if String.isEmpty <| Maybe.withDefault "" <| m.note then
-                    Just <| Validation.ErrorWithMessage "The field is empty"
-
-                else
-                    Nothing
-            )
-        |> TextArea.withValidation
-            (\m ->
-                if (==) "ciao" <| Maybe.withDefault "" <| m.note then
-                    Just <| Validation.WarningWithMessage "Cannot be 'Ciao'"
-
-                else
-                    Nothing
-            )
+        |> TextArea.withValidation (Validation.notEmptyValidation .note)
         |> Form.textArea
         |> Form.withLabel
             ("Note"
