@@ -285,10 +285,10 @@ render (State isOpen) ((Config { type_, tagger, slug, title, content }) as confi
     in
     div
         ([ id slug
-         , [ ( "m-accordion", True )
-           , ( "m-accordion--base", isBase type_ )
-           , ( "m-accordion--light", isLight type_ )
-           , ( "m-accordion--dark", isDark type_ )
+         , [ ( "a-accordion", True )
+           , ( "a-accordion--base", isBase type_ )
+           , ( "a-accordion--light", isLight type_ )
+           , ( "a-accordion--dark", isDark type_ )
            , ( "is-open", isOpen )
            ]
             |> buildWrapperClass config
@@ -296,13 +296,13 @@ render (State isOpen) ((Config { type_, tagger, slug, title, content }) as confi
             |> (++) options.attributes
         )
         [ div
-            [ class "m-accordion__toggle"
+            [ class "a-accordion__toggle"
             , onClick (tagger slug isOpen)
             ]
             [ title
                 |> Maybe.withDefault (text "")
             , div
-                [ class "m-accordion__icon" ]
+                [ class "a-accordion__icon" ]
                 []
             ]
         , div
@@ -338,7 +338,7 @@ buildContentClass config =
     in
     options.contentClasses
         |> String.join " "
-        |> String.append "m-accordion__content"
+        |> String.append "a-accordion__content"
         |> class
 
 

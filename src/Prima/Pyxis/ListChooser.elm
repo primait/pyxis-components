@@ -368,7 +368,7 @@ render (State { mode, items }) ((Config { shownItems }) as listChooserConfig) =
 renderList : List ChooserItem -> Config -> Html Msg
 renderList items listChooserConfig =
     ul
-        [ class "m-list-chooser__list no-list-style no-margin no-padding" ]
+        [ class "a-list-chooser__list no-list-style no-margin no-padding" ]
         (List.map (renderItem listChooserConfig) items)
 
 
@@ -411,7 +411,7 @@ buildItemClassList (ChooserItem { isSelected }) listChooserConfig =
         options =
             computeOptions listChooserConfig
     in
-    [ ( "m-list-chooser__item", True )
+    [ ( "a-list-chooser__item", True )
     , ( "is-selected", isSelected )
     ]
         |> List.append (List.map (H.flip Tuple.pair True) options.itemClasses)
@@ -432,7 +432,7 @@ buildWrapperAttributes ((Config { shownItems }) as listChooserConfig) =
     ]
         |> List.filterMap identity
         |> List.append [ attribute "data-max-items" <| String.fromInt shownItems ]
-        |> (::) (buildClass options.wrapperClasses [ "m-list-chooser", "direction-column" ])
+        |> (::) (buildClass options.wrapperClasses [ "a-list-chooser" ])
         |> List.append options.attributes
 
 
