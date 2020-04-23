@@ -1,7 +1,7 @@
 module Prima.Pyxis.Form.Input exposing
     ( Input, text, password, date, number, email
     , withAttribute, withClass, withDefaultValue, withDisabled, withId, withName, withPlaceholder, withOverridingClass
-    , withRegularSize, withSmallSize, withLargeSize
+    , withMediumSize, withSmallSize, withLargeSize
     , withPrependGroup, withAppendGroup, withGroupClass
     , withOnBlur, withOnFocus
     , withValidation
@@ -23,7 +23,7 @@ module Prima.Pyxis.Form.Input exposing
 
 ## Size
 
-@docs withRegularSize, withSmallSize, withLargeSize
+@docs withMediumSize, withSmallSize, withLargeSize
 
 
 ## InputGroup
@@ -151,7 +151,7 @@ type Default
 -}
 type InputSize
     = Small
-    | Regular
+    | Medium
     | Large
 
 
@@ -254,11 +254,11 @@ withLargeSize =
     addOption (Size Large)
 
 
-{-| Adds a `size` of `Regular` to the `Input`.
+{-| Adds a `size` of `Medium` to the `Input`.
 -}
-withRegularSize : Input model msg -> Input model msg
-withRegularSize =
-    addOption (Size Regular)
+withMediumSize : Input model msg -> Input model msg
+withMediumSize =
+    addOption (Size Medium)
 
 
 {-| Sets a `size` of `Small` to the `Input`.
@@ -318,7 +318,7 @@ defaultOptions =
     , onBlur = Nothing
     , placeholder = Nothing
     , prependGroup = Nothing
-    , size = Regular
+    , size = Medium
     , validations = []
     }
 
@@ -406,7 +406,7 @@ sizeAttribute size =
             Small ->
                 "is-small"
 
-            Regular ->
+            Medium ->
                 "is-medium"
 
             Large ->

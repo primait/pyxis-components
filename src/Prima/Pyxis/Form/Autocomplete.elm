@@ -1,7 +1,7 @@
 module Prima.Pyxis.Form.Autocomplete exposing
     ( Autocomplete, AutocompleteChoice, autocomplete, autocompleteChoice
     , withAttribute, withClass, withDefaultValue, withDisabled, withId, withName, withPlaceholder, withThreshold, withOverridingClass
-    , withRegularSize, withSmallSize, withLargeSize
+    , withMediumSize, withSmallSize, withLargeSize
     , withOnBlur, withOnFocus
     , withValidation
     , render
@@ -22,7 +22,7 @@ module Prima.Pyxis.Form.Autocomplete exposing
 
 ## Size
 
-@docs withRegularSize, withSmallSize, withLargeSize
+@docs withMediumSize, withSmallSize, withLargeSize
 
 
 ## Events
@@ -215,10 +215,10 @@ withLargeSize =
     addOption (Size Large)
 
 
-{-| Adds a `size` of `Regular` to the `Autocomplete`.
+{-| Adds a `size` of `Medium` to the `Autocomplete`.
 -}
-withRegularSize : Autocomplete model msg -> Autocomplete model msg
-withRegularSize =
+withMediumSize : Autocomplete model msg -> Autocomplete model msg
+withMediumSize =
     addOption (Size Medium)
 
 

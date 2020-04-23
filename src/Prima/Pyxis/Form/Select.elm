@@ -2,7 +2,7 @@ module Prima.Pyxis.Form.Select exposing
     ( Select(..), select
     , withId, withAttribute, withDefaultValue, withDisabled
     , render
-    , Options, SelectChoice, SelectConfig, SelectOption(..), SelectSize(..), addOption, applyOption, buildAttributes, computeOptions, defaultOptions, renderCustomSelect, renderCustomSelectChoice, renderCustomSelectChoiceWrapper, renderCustomSelectStatus, renderSelect, renderSelectChoice, renderValidationMessages, selectChoice, sizeAttribute, taggerAttribute, validationAttribute, withLargeSize, withOnBlur, withOnFocus, withOverridingClass, withPlaceholder, withRegularSize, withSmallSize, withValidation
+    , Options, SelectChoice, SelectConfig, SelectOption(..), SelectSize(..), addOption, applyOption, buildAttributes, computeOptions, defaultOptions, renderCustomSelect, renderCustomSelectChoice, renderCustomSelectChoiceWrapper, renderCustomSelectStatus, renderSelect, renderSelectChoice, renderValidationMessages, selectChoice, sizeAttribute, taggerAttribute, validationAttribute, withLargeSize, withMediumSize, withOnBlur, withOnFocus, withOverridingClass, withPlaceholder, withSmallSize, withValidation
     )
 
 {-|
@@ -93,7 +93,7 @@ type Default
 -}
 type SelectSize
     = Small
-    | Regular
+    | Medium
     | Large
 
 
@@ -123,7 +123,7 @@ defaultOptions =
     , onFocus = Nothing
     , onBlur = Nothing
     , placeholder = "Seleziona"
-    , size = Regular
+    , size = Medium
     , validations = []
     }
 
@@ -199,9 +199,9 @@ withOverridingClass class =
 
 {-| Sets a `size` to the `Select config`.
 -}
-withRegularSize : Select model msg -> Select model msg
-withRegularSize =
-    addOption (Size Regular)
+withMediumSize : Select model msg -> Select model msg
+withMediumSize =
+    addOption (Size Medium)
 
 
 {-| Sets a `size` to the `Select config`.
@@ -264,7 +264,7 @@ sizeAttribute size =
             Small ->
                 "is-small"
 
-            Regular ->
+            Medium ->
                 "is-medium"
 
             Large ->

@@ -1,7 +1,7 @@
 module Prima.Pyxis.Form.Date exposing
     ( Date, date
     , withAttribute, withClass, withDefaultValue, withDisabled, withId, withName, withPlaceholder
-    , withRegularSize, withSmallSize, withLargeSize
+    , withMediumSize, withSmallSize, withLargeSize
     , withDatePicker, withDatePickerVisibility
     , withOnBlur, withOnFocus
     , withValidation
@@ -23,7 +23,7 @@ module Prima.Pyxis.Form.Date exposing
 
 ## Size modifiers
 
-@docs withRegularSize, withSmallSize, withLargeSize
+@docs withMediumSize, withSmallSize, withLargeSize
 
 
 ## DatePicker modifiers
@@ -106,7 +106,7 @@ type Default
 -}
 type DateSize
     = Small
-    | Regular
+    | Medium
     | Large
 
 
@@ -198,9 +198,9 @@ withPlaceholder placeholder =
 
 {-| Sets a `size` to the `Date`.
 -}
-withRegularSize : Date model msg -> Date model msg
-withRegularSize =
-    addOption (Size Regular)
+withMediumSize : Date model msg -> Date model msg
+withMediumSize =
+    addOption (Size Medium)
 
 
 {-| Sets a `size` to the `Date`.
@@ -365,7 +365,7 @@ defaultOptions =
     , onBlur = Nothing
     , placeholder = Nothing
     , prependGroup = Nothing
-    , size = Regular
+    , size = Medium
     , validations = []
     }
 
@@ -424,7 +424,7 @@ sizeAttribute size =
             Small ->
                 "is-small"
 
-            Regular ->
+            Medium ->
                 "is-medium"
 
             Large ->

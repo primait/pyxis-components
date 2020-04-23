@@ -78,7 +78,7 @@ type FlowType
 
 {-| Internal.
 Represent the Container possible size.
-Regular is the standard centered container with side empty space.
+Medium is the standard centered container with side empty space.
 Fluid always covers 100% of page width.
 -}
 type Size
@@ -100,7 +100,7 @@ type BreakPoint
 Represent the Container sizing modifier. A container with a certain Size can swap with the other size on certain breakpoints
 -}
 type SizeModifier
-    = RegularOn BreakPoint
+    = MediumOn BreakPoint
     | FluidOn BreakPoint
 
 
@@ -291,7 +291,7 @@ Converts SizeModifier to class
 sizeModifierToClass : SizeModifier -> Html.Attribute msg
 sizeModifierToClass sizeModifier =
     case sizeModifier of
-        RegularOn breakPoint ->
+        MediumOn breakPoint ->
             HtmlAttributes.class <| (++) "a-containerOnBp" <| breakPointToClassSuffix breakPoint
 
         FluidOn breakPoint ->
@@ -523,7 +523,7 @@ withStyle prop value config =
 
 
 {-| Configuration modifier.
-Swap between Regular or Fluid sizing on Small breakpoint
+Swap between Medium or Fluid sizing on Small breakpoint
 -}
 withChangeSizeOnSmall : Config msg -> Config msg
 withChangeSizeOnSmall config =
@@ -531,7 +531,7 @@ withChangeSizeOnSmall config =
 
 
 {-| Configuration modifier.
-Swap between Regular or Fluid sizing on Medium breakpoint
+Swap between Medium or Fluid sizing on Medium breakpoint
 -}
 withChangeSizeOnMedium : Config msg -> Config msg
 withChangeSizeOnMedium config =
@@ -539,7 +539,7 @@ withChangeSizeOnMedium config =
 
 
 {-| Configuration modifier.
-Swap between Regular or Fluid sizing on Large breakpoint
+Swap between Medium or Fluid sizing on Large breakpoint
 -}
 withChangeSizeOnLarge : Config msg -> Config msg
 withChangeSizeOnLarge config =
@@ -547,7 +547,7 @@ withChangeSizeOnLarge config =
 
 
 {-| Configuration modifier.
-Swap between Regular or Fluid sizing on XLarge breakpoint
+Swap between Medium or Fluid sizing on XLarge breakpoint
 -}
 withChangeSizeOnXLarge : Config msg -> Config msg
 withChangeSizeOnXLarge config =
@@ -564,7 +564,7 @@ changeSizeOnBreakPoint breakPoint config =
             addSizeModifier (FluidOn breakPoint) config
 
         Fluid ->
-            addSizeModifier (RegularOn breakPoint) config
+            addSizeModifier (MediumOn breakPoint) config
 
 
 {-| Internal.

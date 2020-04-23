@@ -1,7 +1,7 @@
 module Prima.Pyxis.Form.TextArea exposing
     ( TextArea
     , withAttribute, withClass, withDefaultValue, withDisabled, withId, withName, withPlaceholder
-    , withRegularSize, withSmallSize, withLargeSize
+    , withMediumSize, withSmallSize, withLargeSize
     , withOnBlur, withOnFocus
     , withValidation
     , render
@@ -23,7 +23,7 @@ module Prima.Pyxis.Form.TextArea exposing
 
 ## Size modifiers
 
-@docs withRegularSize, withSmallSize, withLargeSize
+@docs withMediumSize, withSmallSize, withLargeSize
 
 
 ## Events
@@ -97,7 +97,7 @@ type Default
 -}
 type TextAreaSize
     = Small
-    | Regular
+    | Medium
     | Large
 
 
@@ -172,11 +172,11 @@ withPlaceholder placeholder =
     addOption (Placeholder placeholder)
 
 
-{-| Adds a `size` of `Regular` to the `TextArea`.
+{-| Adds a `size` of `Medium` to the `TextArea`.
 -}
-withRegularSize : TextArea model msg -> TextArea model msg
-withRegularSize =
-    addOption (Size Regular)
+withMediumSize : TextArea model msg -> TextArea model msg
+withMediumSize =
+    addOption (Size Medium)
 
 
 {-| Sets a `size` of `Small` to the `TextArea`.
@@ -239,7 +239,7 @@ defaultOptions =
     , onFocus = Nothing
     , onBlur = Nothing
     , placeholder = Nothing
-    , size = Regular
+    , size = Medium
     , validations = []
     }
 
@@ -295,7 +295,7 @@ sizeAttribute size =
             Small ->
                 "is-small"
 
-            Regular ->
+            Medium ->
                 "is-medium"
 
             Large ->
