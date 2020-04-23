@@ -540,7 +540,7 @@ buildAttributes model dateModel =
         |> (::) (sizeAttribute options.size)
         |> (::) (validationAttribute model dateModel)
         |> (::) (pristineAttribute model dateModel)
-        |> (::) (Attrs.type_ "text")
+        |> (::) (Attrs.type_ "date")
 
 
 {-| Internal
