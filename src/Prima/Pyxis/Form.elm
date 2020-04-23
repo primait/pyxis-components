@@ -1,7 +1,9 @@
 module Prima.Pyxis.Form exposing
-    ( Form, init
-    , FormField, input, inputList, autocomplete, checkbox, date, flag, radio, radioButton, select, textArea
-    , withLabel, withAppendableHtml, withFields, withFieldsAndLegend
+    ( Form, FormField, init
+    , withFields, withFieldsAndLegend
+    , legend, legendWithPrependableHtml, legendWithAppendableHtml
+    , input, inputList, autocomplete, checkbox, date, flag, radio, radioButton, select, textArea
+    , withLabel, withAppendableHtml
     , render
     )
 
@@ -10,17 +12,27 @@ module Prima.Pyxis.Form exposing
 
 ## Types and Configuration
 
-@docs Form, init
+@docs Form, FormField, FormFieldset, Legend, init
 
 
-## Fields
+## Adding Fields to the Form
 
-@docs FormField, input, inputList, autocomplete, checkbox, date, flag, radio, radioButton, select, textArea
+@docs withFields, withFieldsAndLegend
 
 
-## Manipulating Form and Fields
+## Defining Legend
 
-@docs withLabel, withAppendableHtml, withFields, withFieldsAndLegend
+@docs legend, legendWithPrependableHtml, legendWithAppendableHtml
+
+
+## Defining Fields
+
+@docs input, inputList, autocomplete, checkbox, date, flag, radio, radioButton, select, textArea
+
+
+## Manipulating Fields
+
+@docs withLabel, withAppendableHtml
 
 
 ## Rendering
@@ -51,25 +63,65 @@ type Form model msg
     = Form (FormConfig model msg)
 
 
+{-| Internal. Represents the configuration of a `Form`.
+-}
 type alias FormConfig model msg =
     { fieldsets : List (FormFieldset model msg)
     }
 
 
 {-| Create an instance of a `Form`.
+You can specify later which fields will go inside it.
 -}
 init : Form model msg
 init =
     Form <| FormConfig []
 
 
+{-| Internal. Convenient way to represents a List of FormField.
+Think about it as a list of columns for each row of the grid.
+-}
 type alias FormFieldList model msg =
     List (FormField model msg)
 
 
+{-| Represents `FormFieldset`.
+This is not a one-to-one representation of an html `fieldset` tag.
+
+A `FormFieldset` is made up of a list of list of `FormFields`.
+The first list represents the rows of a grid, the latter represents each column of a row.
+
+-}
 type FormFieldset model msg
     = WithoutLegend (FormFieldList model msg)
-    | WithLegend String (List (FormFieldList model msg))
+    | WithLegend (Legend msg) (List (FormFieldList model msg))
+
+
+{-| Represents the `Legend` for a `FormFieldset`.
+-}
+type Legend msg
+    = Legend String (List (Html msg)) (List (Html msg))
+
+
+{-| Creates a `Legend` for a `FormFieldset`.
+-}
+legend : String -> Legend msg
+legend name =
+    Legend name [] []
+
+
+{-| Creates a `Legend` with prependable Html.
+-}
+legendWithPrependableHtml : String -> List (Html msg) -> Legend msg
+legendWithPrependableHtml name prependableHtml =
+    Legend name prependableHtml []
+
+
+{-| Creates a `Legend` with appendable Html.
+-}
+legendWithAppendableHtml : String -> List (Html msg) -> Legend msg
+legendWithAppendableHtml name appendableHtml =
+    Legend name [] appendableHtml
 
 
 {-| Adds a list of field (which represents a row of the `Grid`) to the `Form`.
@@ -86,13 +138,16 @@ withFields fields (Form formConfig) =
         }
 
 
-withFieldsAndLegend : String -> List (FormFieldList model msg) -> Form model msg -> Form model msg
-withFieldsAndLegend legend fields (Form formConfig) =
+{-| Adds a list of list of field (which represents a list of row of the `Grid`) to the `Form`.
+This list will be wrapped inside a fieldset.
+-}
+withFieldsAndLegend : Legend msg -> List (FormFieldList model msg) -> Form model msg -> Form model msg
+withFieldsAndLegend legend_ fields (Form formConfig) =
     Form
         { formConfig
             | fieldsets =
                 fields
-                    |> WithLegend legend
+                    |> WithLegend legend_
                     |> List.singleton
                     |> List.append formConfig.fieldsets
         }
@@ -406,7 +461,7 @@ renderField : model -> FormField model msg -> List (Html msg)
 renderField model formField =
     case formField of
         InputField { config, appendableHtml } ->
-            Input.render model config ++ appendableHtml
+            Input.render model config ++ renderAppendableHtml appendableHtml
 
         InputListField list ->
             list
@@ -414,28 +469,28 @@ renderField model formField =
                 |> List.concat
 
         FlagField { config, appendableHtml } ->
-            Flag.render model config ++ appendableHtml
+            Flag.render model config ++ renderAppendableHtml appendableHtml
 
         RadioField { config, appendableHtml } ->
-            Radio.render model config ++ appendableHtml
+            Radio.render model config ++ renderAppendableHtml appendableHtml
 
         SelectField { config, appendableHtml } ->
-            Select.render model config ++ appendableHtml
+            Select.render model config ++ renderAppendableHtml appendableHtml
 
         AutocompleteField { config, appendableHtml } ->
-            Autocomplete.render model config ++ appendableHtml
+            Autocomplete.render model config ++ renderAppendableHtml appendableHtml
 
         CheckboxField { config, appendableHtml } ->
-            Checkbox.render model config ++ appendableHtml
+            Checkbox.render model config ++ renderAppendableHtml appendableHtml
 
         RadioButtonField { config, appendableHtml } ->
-            RadioButton.render model config ++ appendableHtml
+            RadioButton.render model config ++ renderAppendableHtml appendableHtml
 
         TextAreaField { config, appendableHtml } ->
-            TextArea.render model config ++ appendableHtml
+            TextArea.render model config ++ renderAppendableHtml appendableHtml
 
         DateField { config, appendableHtml } ->
-            Date.render model config ++ appendableHtml
+            Date.render model config ++ renderAppendableHtml appendableHtml
 
 
 {-| Renders the form with all his fields.
@@ -456,27 +511,48 @@ renderFieldset model fieldset =
         WithoutLegend fields ->
             fields
                 |> List.singleton
-                |> List.map (H.flip Grid.addRow Grid.create << buildGridRow model)
-                |> List.map Grid.render
-                |> List.concat
+                |> renderFields model
 
-        WithLegend legend fields ->
+        WithLegend legend_ fields ->
             [ Html.fieldset
                 [ class "o-form__fieldset" ]
                 (fields
-                    |> List.map (H.flip Grid.addRow Grid.create << buildGridRow model)
-                    |> List.map Grid.render
-                    |> List.concat
-                    |> (::) (renderLegend legend)
+                    |> renderFields model
+                    |> (::) (renderLegend legend_)
                 )
             ]
 
 
-renderLegend : String -> Html msg
-renderLegend title =
+renderLegend : Legend msg -> Html msg
+renderLegend (Legend title prependableHtml appendableHtml) =
     Html.legend
         [ class "o-form__fieldset__legend" ]
-        [ Html.text title ]
+        [ Html.div
+            [ class "o-form__fieldset__legend__prepend" ]
+            prependableHtml
+        , Html.span
+            [ class "o-form__fieldset__legend__title" ]
+            [ Html.text title ]
+        , Html.div
+            [ class "o-form__fieldset__legend__append" ]
+            appendableHtml
+        ]
+
+
+renderAppendableHtml : List (Html msg) -> List (Html msg)
+renderAppendableHtml content =
+    [ Html.div
+        [ class "m-form-row__item__append" ]
+        content
+    ]
+
+
+renderFields : model -> List (FormFieldList model msg) -> List (Html msg)
+renderFields model fields =
+    fields
+        |> List.map (H.flip Grid.addRow Grid.create << buildGridRow model)
+        |> List.map Grid.render
+        |> List.concat
 
 
 {-| Internal. Create a `Grid` row.

@@ -2,6 +2,7 @@ module Prima.Pyxis.Form.Example.View exposing (view)
 
 import Browser
 import Html exposing (Html)
+import Html.Attributes as Attrs
 import Prima.Pyxis.Container as Container
 import Prima.Pyxis.Form as Form
 import Prima.Pyxis.Form.Example.FieldConfig as Config
@@ -29,14 +30,28 @@ appBody model =
 
 formConfig : Model -> Form.Form FormData Msg
 formConfig model =
+    let
+        userIcon =
+            Html.i [ Attrs.class "a-icon-plus" ] []
+    in
     model.form
-        |> Form.withFieldsAndLegend "User profile"
+        |> Form.withFieldsAndLegend
+            (Form.legendWithPrependableHtml
+                "User profile"
+                [ userIcon ]
+            )
             [ [ Config.usernameGroupConfig
               , Config.passwordGroupConfig
               ]
             , [ Config.usernameWithTooltipConfig model.formData.uiState.usernameTooltipVisible
               ]
-            , [ Config.birthDateCompoundConfig
+            ]
+        |> Form.withFieldsAndLegend
+            (Form.legendWithAppendableHtml
+                "User profile"
+                [ userIcon ]
+            )
+            [ [ Config.birthDateCompoundConfig
               ]
             , [ Config.birthDateConfig
               ]
