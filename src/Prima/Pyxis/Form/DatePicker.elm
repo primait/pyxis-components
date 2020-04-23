@@ -1,7 +1,7 @@
 module Prima.Pyxis.Form.DatePicker exposing
     ( Model, Msg(..), Date(..)
     , init, update
-    , selectedDate
+    , selectedDate, setDate
     , render
     )
 
@@ -20,7 +20,7 @@ module Prima.Pyxis.Form.DatePicker exposing
 
 ## Helpers
 
-@docs selectedDate
+@docs selectedDate, setDate
 
 
 ## Rendering
@@ -33,6 +33,7 @@ import Date
 import Html exposing (Html)
 import Html.Attributes as Attrs
 import Html.Events as Events
+import Prima.Pyxis.Helpers as H
 import Time exposing (Month(..), Weekday(..))
 
 
@@ -67,6 +68,13 @@ selectedDate model =
     ParsedDate model.date
 
 
+{-| Selects a valid Date into the DatePicker
+-}
+setDate : Date.Date -> Model -> Model
+setDate date =
+    updateSelectedDate date
+
+
 adjustInitialDate : Date.Date -> ( Date.Date, Date.Date ) -> Date.Date
 adjustInitialDate day ( low, high ) =
     if Date.isBetween low high day then
@@ -86,7 +94,8 @@ formattedMonth =
     Date.formatWithLanguage italianLanguage "MMMM y" << .date
 
 
-{-| -}
+{-| The DatePicker message
+-}
 type Msg
     = Noop
     | YearSelection
@@ -95,6 +104,7 @@ type Msg
     | NextMonth
     | SelectYear Int
     | SelectDay Int
+    | SelectDate Date.Date
 
 
 {-| -}
@@ -121,6 +131,9 @@ update msg model =
 
         SelectDay day ->
             updateSelectedDay day model
+
+        SelectDate date ->
+            updateSelectedDate date model
 
 
 fromDateRangeToList : List Date.Date -> ( Date.Date, Date.Date ) -> List Date.Date
@@ -178,6 +191,13 @@ updateSelectedDay day model =
             Date.fromCalendarDate (Date.year model.date) (Date.month model.date) day
     in
     updateModelIfValid ValidDay newDate model
+
+
+updateSelectedDate : Date.Date -> Model -> Model
+updateSelectedDate date model =
+    model
+        |> updateModelIfValid ValidDay date
+        |> updateModelIfValid ValidMonth date
 
 
 type ValidityCheck
@@ -402,7 +422,7 @@ yearPicker ({ daysPickerRange } as model) =
             [ Attrs.class "a-datepicker__year-picker__scroller" ]
             [ Html.div
                 [ Attrs.class "a-datepicker__year-picker__scroller__list" ]
-                (List.map (\y -> yearButton y (Date.year model.date)) <| List.range (Date.year lowerBound) (Date.year upperBound))
+                (List.map (H.flip yearButton (Date.year model.date)) <| List.range (Date.year lowerBound) (Date.year upperBound))
             ]
         ]
 

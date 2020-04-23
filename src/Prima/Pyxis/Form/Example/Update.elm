@@ -8,7 +8,7 @@ import Prima.Pyxis.Helpers as H
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-    case msg of
+    case Debug.log "update" msg of
         OnCheck Privacy value ->
             model
                 |> updatePrivacy value
@@ -61,6 +61,7 @@ update msg model =
         OnDateInput BirthDate value ->
             model
                 |> updateBirthDate value
+                |> closeBirthDateDatePicker
                 |> H.withoutCmds
 
         OnFilter Country value ->
@@ -211,8 +212,23 @@ updateFiscalCode value =
 
 
 updateBirthDate : DatePicker.Date -> Model -> Model
-updateBirthDate value =
-    updateFormData (\f -> { f | birthDate = value })
+updateBirthDate value model =
+    model
+        |> updateFormData
+            (\f ->
+                { f
+                    | birthDate = value
+                    , birthDateDatePicker =
+                        case value of
+                            DatePicker.ParsedDate date ->
+                                f.birthDateDatePicker
+                                    |> Maybe.map (DatePicker.setDate date)
+                                    |> Maybe.map (DatePicker.update (DatePicker.SelectDate date))
+
+                            _ ->
+                                f.birthDateDatePicker
+                }
+            )
 
 
 updateBirthDateDatePicker : DatePicker.Msg -> Model -> Model

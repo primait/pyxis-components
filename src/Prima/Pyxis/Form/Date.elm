@@ -307,12 +307,10 @@ shouldShowDatePicker model dateModel =
         { datePickerTagger, datePickerReader } =
             computeOptions dateModel
     in
-    case ( datePickerTagger, datePickerReader model ) of
-        ( Just _, Just _ ) ->
-            True
-
-        _ ->
-            False
+    model
+        |> datePickerReader
+        |> Maybe.map2 (\_ _ -> True) datePickerTagger
+        |> Maybe.withDefault False
 
 
 {-| Internal.
@@ -437,7 +435,7 @@ readerAttribute model (Date config) =
     case config.reader model of
         DatePicker.ParsedDate parsedDate ->
             parsedDate
-                |> Date.format "dd/MM/yyyy"
+                |> Date.format "yyyy-MM-dd"
                 |> Attrs.value
 
         DatePicker.PartialDate partialDate ->
@@ -450,7 +448,7 @@ taggerAttribute : Date model msg -> Html.Attribute msg
 taggerAttribute (Date config) =
     Events.targetValue
         |> Json.Decode.map (config.tagger << stringToDate)
-        |> Json.Decode.map (\any -> ( any, True ))
+        |> Json.Decode.map (H.flip Tuple.pair True)
         |> Events.stopPropagationOn "input"
 
 
