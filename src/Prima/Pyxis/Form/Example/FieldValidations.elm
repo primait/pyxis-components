@@ -43,7 +43,7 @@ powerSourceNotDieselValidation { powerSource } =
 
 countryNotItalyValidation : FormData -> Maybe Validation.Type
 countryNotItalyValidation { country } =
-    if Maybe.withDefault False <| Maybe.map ((==) "italy") country then
+    if Maybe.withDefault False <| Maybe.map (not << (==) "italy") country then
         Just <| Validation.ErrorWithMessage "You must choose Italy"
 
     else

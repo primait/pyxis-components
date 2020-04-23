@@ -118,8 +118,23 @@ type DefaultValue
 -}
 type AutocompleteSize
     = Small
-    | Regular
+    | Medium
     | Large
+
+
+isSmall : AutocompleteSize -> Bool
+isSmall =
+    (==) Small
+
+
+isMedium : AutocompleteSize -> Bool
+isMedium =
+    (==) Medium
+
+
+isLarge : AutocompleteSize -> Bool
+isLarge =
+    (==) Large
 
 
 {-| Adds a generic Html.Attribute to the `Autocomplete`.
@@ -204,7 +219,7 @@ withLargeSize =
 -}
 withRegularSize : Autocomplete model msg -> Autocomplete model msg
 withRegularSize =
-    addOption (Size Regular)
+    addOption (Size Medium)
 
 
 {-| Adds a `size` of `Small` to the `Autocomplete`.
@@ -266,7 +281,7 @@ defaultOptions =
     , onFocus = Nothing
     , onBlur = Nothing
     , placeholder = Nothing
-    , size = Regular
+    , size = Medium
     , threshold = 1
     , validations = []
     }
@@ -446,14 +461,18 @@ render model ((Autocomplete config) as autocompleteModel) =
                 |> Maybe.map String.length
                 |> Maybe.withDefault 0
                 |> (<=) options.threshold
+
+        hasSelectedAnyChoice =
+            List.any (isChoiceSelected model autocompleteModel) config.autocompleteChoices
     in
     Html.div
         [ Attrs.classList
             [ ( "a-form-autocomplete", True )
             , ( "is-open", hasReachedThreshold && config.openedReader model )
-            , ( "is-small", options.size == Small )
-            , ( "is-medium", options.size == Regular )
-            , ( "is-large", options.size == Large )
+            , ( "has-selected-choice", hasSelectedAnyChoice )
+            , ( "is-small", isSmall options.size )
+            , ( "is-medium", isMedium options.size )
+            , ( "is-large", isLarge options.size )
             ]
         , validationAttribute model autocompleteModel
         , pristineAttribute model autocompleteModel
@@ -467,18 +486,21 @@ render model ((Autocomplete config) as autocompleteModel) =
                 List.map (renderAutocompleteChoice model autocompleteModel) filteredChoices
 
              else
-                renderAutocompleteNoResults model autocompleteModel
+                renderAutocompleteNoResults
             )
+        , autocompleteModel
+            |> renderResetIcon
+            |> H.renderIf hasSelectedAnyChoice
         ]
         :: renderValidationMessages model autocompleteModel
 
 
 renderAutocompleteChoice : model -> Autocomplete model msg -> AutocompleteChoice -> Html msg
-renderAutocompleteChoice model (Autocomplete config) choice =
+renderAutocompleteChoice model ((Autocomplete config) as autocompleteModel) choice =
     Html.li
         [ Attrs.classList
             [ ( "a-form-autocomplete__list__item", True )
-            , ( "is-selected", Just choice.value == config.reader model )
+            , ( "is-selected", isChoiceSelected model autocompleteModel choice )
             ]
         , (Events.onClick << config.tagger) choice.value
         ]
@@ -487,12 +509,21 @@ renderAutocompleteChoice model (Autocomplete config) choice =
 
 {-| Internal. Renders the `Autocomplete` with no results.
 -}
-renderAutocompleteNoResults : model -> Autocomplete model msg -> List (Html msg)
-renderAutocompleteNoResults _ (Autocomplete _) =
+renderAutocompleteNoResults : List (Html msg)
+renderAutocompleteNoResults =
     [ Html.li
         [ Attrs.class "a-form-autocomplete__list--no-results" ]
         [ Html.text "Nessun risultato." ]
     ]
+
+
+renderResetIcon : Autocomplete model msg -> Html msg
+renderResetIcon (Autocomplete config) =
+    Html.i
+        [ Attrs.class "a-form-autocomplete__reset-icon a-icon-close"
+        , (Events.onClick << config.tagger) ""
+        ]
+        []
 
 
 {-| Internal. Renders the list of errors if present. Renders the list of warnings if not.
@@ -563,3 +594,8 @@ errorsValidations model options =
     options.validations
         |> List.filterMap (H.flip identity model)
         |> List.filter Validation.isError
+
+
+isChoiceSelected : model -> Autocomplete model msg -> AutocompleteChoice -> Bool
+isChoiceSelected model (Autocomplete config) choice =
+    Just choice.value == config.reader model

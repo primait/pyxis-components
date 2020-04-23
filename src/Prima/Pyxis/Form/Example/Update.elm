@@ -42,7 +42,13 @@ update msg model =
 
         OnInput Country value ->
             model
-                |> updateCountry (Just value)
+                |> updateCountry
+                    (if String.isEmpty value then
+                        Nothing
+
+                     else
+                        Just value
+                    )
                 |> updateCountryFilter Nothing
                 |> closeCountryAutocomplete
                 |> H.withoutCmds
