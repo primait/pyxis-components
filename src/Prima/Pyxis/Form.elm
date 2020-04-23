@@ -1,7 +1,7 @@
 module Prima.Pyxis.Form exposing
     ( Form, init
     , FormField, input, inputList, autocomplete, checkbox, date, flag, radio, radioButton, select, textArea
-    , withLabel, withAppendableHtml, withFields
+    , withLabel, withAppendableHtml, withFields, withFieldsAndLegend
     , render
     )
 
@@ -20,7 +20,7 @@ module Prima.Pyxis.Form exposing
 
 ## Manipulating Form and Fields
 
-@docs withLabel, withAppendableHtml, withFields
+@docs withLabel, withAppendableHtml, withFields, withFieldsAndLegend
 
 
 ## Rendering
@@ -52,7 +52,7 @@ type Form model msg
 
 
 type alias FormConfig model msg =
-    { fields : List (List (FormField model msg))
+    { fieldsets : List (FormFieldset model msg)
     }
 
 
@@ -63,11 +63,39 @@ init =
     Form <| FormConfig []
 
 
+type alias FormFieldList model msg =
+    List (FormField model msg)
+
+
+type FormFieldset model msg
+    = WithoutLegend (FormFieldList model msg)
+    | WithLegend String (List (FormFieldList model msg))
+
+
 {-| Adds a list of field (which represents a row of the `Grid`) to the `Form`.
 -}
-withFields : List (FormField model msg) -> Form model msg -> Form model msg
+withFields : FormFieldList model msg -> Form model msg -> Form model msg
 withFields fields (Form formConfig) =
-    Form { formConfig | fields = formConfig.fields ++ [ fields ] }
+    Form
+        { formConfig
+            | fieldsets =
+                fields
+                    |> WithoutLegend
+                    |> List.singleton
+                    |> List.append formConfig.fieldsets
+        }
+
+
+withFieldsAndLegend : String -> List (FormFieldList model msg) -> Form model msg -> Form model msg
+withFieldsAndLegend legend fields (Form formConfig) =
+    Form
+        { formConfig
+            | fieldsets =
+                fields
+                    |> WithLegend legend
+                    |> List.singleton
+                    |> List.append formConfig.fieldsets
+        }
 
 
 {-| Represent the fields admitted by the `Form`.
@@ -416,16 +444,44 @@ render : model -> Form model msg -> Html msg
 render model (Form formConfig) =
     Html.div
         [ class "o-form" ]
-        (formConfig.fields
-            |> List.map (H.flip Grid.addRow Grid.create << buildGridRow model)
-            |> List.map Grid.render
+        (formConfig.fieldsets
+            |> List.map (renderFieldset model)
             |> List.concat
         )
 
 
+renderFieldset : model -> FormFieldset model msg -> List (Html msg)
+renderFieldset model fieldset =
+    case fieldset of
+        WithoutLegend fields ->
+            fields
+                |> List.singleton
+                |> List.map (H.flip Grid.addRow Grid.create << buildGridRow model)
+                |> List.map Grid.render
+                |> List.concat
+
+        WithLegend legend fields ->
+            [ Html.fieldset
+                [ class "o-form__fieldset" ]
+                (fields
+                    |> List.map (H.flip Grid.addRow Grid.create << buildGridRow model)
+                    |> List.map Grid.render
+                    |> List.concat
+                    |> (::) (renderLegend legend)
+                )
+            ]
+
+
+renderLegend : String -> Html msg
+renderLegend title =
+    Html.legend
+        [ class "o-form__fieldset__legend" ]
+        [ Html.text title ]
+
+
 {-| Internal. Create a `Grid` row.
 -}
-buildGridRow : model -> List (FormField model msg) -> Grid.Row msg
+buildGridRow : model -> FormFieldList model msg -> Grid.Row msg
 buildGridRow model fields =
     case fields of
         first :: second :: [] ->

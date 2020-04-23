@@ -30,18 +30,16 @@ appBody model =
 formConfig : Model -> Form.Form FormData Msg
 formConfig model =
     model.form
-        |> Form.withFields
-            [ Config.usernameGroupConfig
-            , Config.passwordGroupConfig
-            ]
-        |> Form.withFields
-            [ Config.usernameWithTooltipConfig model.formData.uiState.usernameTooltipVisible
-            ]
-        |> Form.withFields
-            [ Config.birthDateCompoundConfig
-            ]
-        |> Form.withFields
-            [ Config.birthDateConfig
+        |> Form.withFieldsAndLegend "User profile"
+            [ [ Config.usernameGroupConfig
+              , Config.passwordGroupConfig
+              ]
+            , [ Config.usernameWithTooltipConfig model.formData.uiState.usernameTooltipVisible
+              ]
+            , [ Config.birthDateCompoundConfig
+              ]
+            , [ Config.birthDateConfig
+              ]
             ]
         |> Form.withFields
             [ Config.fiscalCodeGroupConfig
