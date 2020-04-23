@@ -72,6 +72,15 @@ type alias DateConfig model msg =
     }
 
 
+{-| Internal. Defines the mode in which the input will be rendered. }
+This is needed because of we want an Input Text in desktop view, and an Input Date in mobile view.
+The Input Date alone cannot be used because of Firefox skin is not customizable.
+-}
+type Mode
+    = InputDate
+    | InputText
+
+
 {-| Create an `input[type="date"]` with the default options.
 -}
 date : (model -> DatePicker.Date) -> (DatePicker.Date -> msg) -> Date model msg
@@ -228,20 +237,23 @@ render model dateModel =
             (renderAppendGroup dateModel
                 [ renderDatePickerIcon <| Maybe.withDefault "" options.id
                 ]
-                :: renderDate model dateModel
+                :: renderInput InputDate model dateModel
+                :: renderInput InputText model dateModel
                 :: renderDatePicker model dateModel
                 :: renderValidationMessages model dateModel
             )
         ]
 
     else
-        renderDate model dateModel :: renderValidationMessages model dateModel
+        renderInput InputDate model dateModel
+            :: renderInput InputText model dateModel
+            :: renderValidationMessages model dateModel
 
 
-renderDate : model -> Date model msg -> Html msg
-renderDate model dateModel =
+renderInput : Mode -> model -> Date model msg -> Html msg
+renderInput mode model dateModel =
     Html.input
-        (buildAttributes model dateModel)
+        (buildAttributes mode model dateModel)
         []
 
 
@@ -430,12 +442,35 @@ sizeAttribute size =
         )
 
 
-readerAttribute : model -> Date model msg -> Html.Attribute msg
-readerAttribute model (Date config) =
+readerAttribute : Mode -> model -> Date model msg -> Html.Attribute msg
+readerAttribute mode model (Date config) =
+    let
+        format =
+            case mode of
+                InputDate ->
+                    "yyyy-MM-dd"
+
+                InputText ->
+                    "dd/MM/yyyy"
+    in
     case config.reader model of
         DatePicker.ParsedDate parsedDate ->
             parsedDate
-                |> Date.format "yyyy-MM-dd"
+                |> Date.format format
+                |> Attrs.value
+
+        DatePicker.PartialDate partialDate ->
+            partialDate
+                |> Maybe.withDefault ""
+                |> Attrs.value
+
+
+dateReaderAttribute : model -> Date model msg -> Html.Attribute msg
+dateReaderAttribute model (Date config) =
+    case config.reader model of
+        DatePicker.ParsedDate parsedDate ->
+            parsedDate
+                |> Date.format "yyyy/mm/dd"
                 |> Attrs.value
 
         DatePicker.PartialDate partialDate ->
@@ -472,6 +507,16 @@ toIsoFormat str =
         |> String.split "/"
         |> List.reverse
         |> String.join "-"
+
+
+typeAttribute : Mode -> Html.Attribute msg
+typeAttribute mode =
+    case mode of
+        InputDate ->
+            Attrs.type_ "date"
+
+        InputText ->
+            Attrs.type_ "text"
 
 
 validationAttribute : model -> Date model msg -> Html.Attribute msg
@@ -511,8 +556,8 @@ pristineAttribute model ((Date config) as dateModel) =
 
 {-| Composes all the modifiers into a set of `Html.Attribute`(s).
 -}
-buildAttributes : model -> Date model msg -> List (Html.Attribute msg)
-buildAttributes model dateModel =
+buildAttributes : Mode -> model -> Date model msg -> List (Html.Attribute msg)
+buildAttributes mode model dateModel =
     let
         options =
             computeOptions dateModel
@@ -533,12 +578,12 @@ buildAttributes model dateModel =
         |> List.filterMap identity
         |> (++) options.attributes
         |> (::) (H.classesAttribute options.classes)
-        |> (::) (readerAttribute model dateModel)
+        |> (::) (readerAttribute mode model dateModel)
         |> (::) (taggerAttribute dateModel)
         |> (::) (sizeAttribute options.size)
         |> (::) (validationAttribute model dateModel)
         |> (::) (pristineAttribute model dateModel)
-        |> (::) (Attrs.type_ "date")
+        |> (::) (typeAttribute mode)
 
 
 {-| Internal
