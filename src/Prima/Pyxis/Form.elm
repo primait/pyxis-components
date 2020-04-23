@@ -527,24 +527,24 @@ renderLegend : Legend msg -> Html msg
 renderLegend (Legend title prependableHtml appendableHtml) =
     Html.legend
         [ class "o-form__fieldset__legend" ]
-        [ Html.div
-            [ class "o-form__fieldset__legend__prepend" ]
-            prependableHtml
+        [ prependableHtml
+            |> Html.div [ class "o-form__fieldset__legend__prepend" ]
+            |> H.renderIf (List.length prependableHtml > 0)
         , Html.span
             [ class "o-form__fieldset__legend__title" ]
             [ Html.text title ]
-        , Html.div
-            [ class "o-form__fieldset__legend__append" ]
-            appendableHtml
+        , appendableHtml
+            |> Html.div [ class "o-form__fieldset__legend__append" ]
+            |> H.renderIf (List.length appendableHtml > 0)
         ]
 
 
 renderAppendableHtml : List (Html msg) -> List (Html msg)
 renderAppendableHtml content =
-    [ Html.div
-        [ class "m-form-row__item__append" ]
-        content
-    ]
+    content
+        |> Html.div [ class "m-form-row__item__append" ]
+        |> H.renderIf (List.length content > 0)
+        |> List.singleton
 
 
 renderFields : model -> List (FormFieldList model msg) -> List (Html msg)
