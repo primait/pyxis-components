@@ -10,8 +10,7 @@ module Prima.Pyxis.DownloadButton.Example exposing
     )
 
 import Browser
-import Html exposing (Html, div)
-import Html.Attributes exposing (classList)
+import Html exposing (Html)
 import Prima.Pyxis.DownloadButton as DownloadButton
 import Prima.Pyxis.Helpers as Helpers
 
@@ -33,6 +32,7 @@ init _ =
 
 type alias Model =
     { downloadButtons : List (DownloadButton.Config Msg)
+    , clicked : Maybe String
     }
 
 
@@ -40,33 +40,43 @@ initialModel : Model
 initialModel =
     Model
         []
+        Nothing
 
 
-type Msg = NoOp
+type Msg
+    = HandleEvent String
+    | NoOp
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
+        HandleEvent label ->
+            ( { model | clicked = Just label }, Cmd.none )
+
         _ ->
             ( model, Cmd.none )
 
 
 view : Model -> Browser.Document Msg
 view model =
-    Browser.Document "Download Button component" (appBody)
+    Browser.Document "Download Button component" (appBody model)
 
 
-appBody : List (Html Msg)
-appBody =
+appBody : Model -> List (Html Msg)
+appBody model =
     [ Helpers.pyxisStyle
     , DownloadButton.render myDownloadBtn
     , DownloadButton.render myDownloadBtnDisabled
+    , model.clicked
+            |> Maybe.withDefault "No button clicked"
+            |> Html.text
     ]
 
 myDownloadBtn : DownloadButton.Config Msg
 myDownloadBtn =
     DownloadButton.download "Certificato di polizza" "Scarica .pdf"
+        |> DownloadButton.withOnClick (HandleEvent "Clicked")
 
 myDownloadBtnDisabled : DownloadButton.Config Msg
 myDownloadBtnDisabled =

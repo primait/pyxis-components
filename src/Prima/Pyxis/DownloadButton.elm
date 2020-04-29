@@ -310,7 +310,7 @@ render ((Config { title, subtitle }) as config) =
             [ text title ]
         , div
               [ class "a-btn--download__subtitle" ]
-              [ text title ]
+              [ text subtitle ]
         ]
 
 
