@@ -66,10 +66,9 @@ appBody =
 
 myDownloadBtn : DownloadButton.Config Msg
 myDownloadBtn =
-    DownloadButton.default "Certificato di polizza" "Scarica .pdf"
+    DownloadButton.download "Certificato di polizza" "Scarica .pdf"
 
 myDownloadBtnDisabled : DownloadButton.Config Msg
 myDownloadBtnDisabled =
-    DownloadButton.default "Certificato di polizza" "Scarica .pdf"
-        |> DownloadButton.withTypeSubmit
+    DownloadButton.download "Certificato di polizza" "Scarica .pdf"
         |> DownloadButton.withDisabled True

@@ -1,8 +1,8 @@
 module Prima.Pyxis.DownloadButton exposing
     ( Config
-    , default
+    , download
     , render
-    , withAttribute, withClass, withDisabled, withId, withTabIndex, withTargetBlank, withTargetParent, withTargetSelf, withTargetTop, withTitle, withTypeButton, withTypeReset, withTypeSubmit
+    , withAttribute, withClass, withDisabled, withId, withTabIndex, withTargetBlank, withTargetParent, withTargetSelf, withTargetTop, withTitle
     , withOnClick, withOnMouseDown, withOnMouseUp, withOnMouseEnter, withOnMouseLeave, withOnMouseOver, withOnMouseOut
     )
 
@@ -53,14 +53,6 @@ type alias DownloadButtonConfig msg =
     }
 
 
-{-| Represents a `DownloadButton` type.
--}
-type Type_
-    = Button
-    | Submit
-    | Reset
-
-
 {-| Represents a `DownloadButton` target.
 -}
 type Target
@@ -80,7 +72,6 @@ type alias Options msg =
     , id : Maybe String
     , tabIndex : Maybe Int
     , title : Maybe String
-    , type_ : Type_
     , target : Target
     }
 
@@ -95,7 +86,6 @@ type DownloadButtonOption msg
     | TabIndex Int
     | Title String
     | Attribute (Html.Attribute msg)
-    | Type_ Type_
     | FormTarget Target
 
 
@@ -103,14 +93,13 @@ type DownloadButtonOption msg
 -}
 defaultOptions : Options msg
 defaultOptions =
-    { classes = []
+    { classes = [ "a-btn", "a-btn--download" ]
     , events = []
     , disabled = Nothing
     , id = Nothing
     , tabIndex = Nothing
     , title = Nothing
     , attributes = []
-    , type_ = Button
     , target = Self
     }
 
@@ -141,9 +130,6 @@ applyOption modifier options =
         Attribute attr ->
             { options | attributes = attr :: options.attributes }
 
-        Type_ type_ ->
-            { options | type_ = type_ }
-
         FormTarget target ->
             { options | target = target }
 
@@ -164,8 +150,8 @@ addOption option (Config buttonConfig) =
 
 {-| Create a default download button.
 -}
-default : String -> String -> Config msg
-default title subtitle =
+download : String -> String -> Config msg
+download title subtitle =
     Config (DownloadButtonConfig title subtitle [])
 
 
@@ -202,27 +188,6 @@ withTabIndex index =
 withTitle : String -> Config msg -> Config msg
 withTitle title =
     addOption (Title title)
-
-
-{-| Adds a `type` Html.Attribute to the `DownloadButton`.
--}
-withTypeButton : Config msg -> Config msg
-withTypeButton =
-    addOption (Type_ Button)
-
-
-{-| Adds a `type` Html.Attribute to the `DownloadButton`.
--}
-withTypeSubmit : Config msg -> Config msg
-withTypeSubmit =
-    addOption (Type_ Submit)
-
-
-{-| Adds a `type` Html.Attribute to the `DownloadButton`.
--}
-withTypeReset : Config msg -> Config msg
-withTypeReset =
-    addOption (Type_ Reset)
 
 
 {-| Adds a `target` Html.Attribute to the `DownloadButton`.
@@ -365,26 +330,10 @@ buildAttributes buttonConfig =
         |> Maybe.map Attrs.disabled
     ]
         |> List.filterMap identity
-        |> (::) (buildType options)
         |> (::) (buildFormTarget options)
-        |> (++) (buildClasses options)
+        |> (::) (buildClasses options)
         |> List.append options.attributes
         |> List.append options.events
-
-
-{-| Internal. Constructs the `type` attribute from the `DownloadButton` options.
--}
-buildType : Options msg -> Html.Attribute msg
-buildType options =
-    case options.type_ of
-        Button ->
-            Attrs.type_ "button"
-
-        Submit ->
-            Attrs.type_ "submit"
-
-        Reset ->
-            Attrs.type_ "reset"
 
 
 {-| Internal. Constructs the `formtarget` attribute from the `DownloadButton` options.
@@ -407,10 +356,8 @@ buildFormTarget options =
 
 {-| Internal. Merges the component configuration and options to a classes attribute.
 -}
-buildClasses : Options msg -> List (Html.Attribute msg)
+buildClasses : Options msg -> Html.Attribute msg
 buildClasses options =
-    [ Attrs.class "a-btn a-btn--download"
-    , options.classes
+    options.classes
         |> String.join " "
         |> Attrs.class
-    ]
