@@ -9,6 +9,7 @@
         "Prima.Pyxis.AtrTable",
         "Prima.Pyxis.Button",
         "Prima.Pyxis.Container",
+        "Prima.Pyxis.DownloadButton",
         "Prima.Pyxis.Form",
         "Prima.Pyxis.Form.Autocomplete",
         "Prima.Pyxis.Form.Checkbox",
