@@ -85,8 +85,8 @@ isDark =
 -}
 radioFlagLight : (model -> Maybe Bool) -> (Bool -> msg) -> RadioFlag model msg
 radioFlagLight reader tagger =
-    [ RadioFlagChoice True "Sì"
-    , RadioFlagChoice False "No"
+    [ radioFlagChoice True "Sì"
+    , radioFlagChoice False "No"
     ]
         |> RadioFlagConfig [] reader tagger Light
         |> RadioFlag
