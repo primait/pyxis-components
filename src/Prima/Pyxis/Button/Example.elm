@@ -68,7 +68,6 @@ initialModel =
 
 type Msg
     = HandleEvent String
-    | NoOp
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )

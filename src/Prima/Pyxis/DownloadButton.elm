@@ -26,7 +26,7 @@ module Prima.Pyxis.DownloadButton exposing
 
 ## Options
 
-@docs withAttribute, withClass, withDisabled, withId, withTabIndex, withTargetBlank, withTargetParent, withTargetSelf, withTargetTop, withTitle, withTypeButton, withTypeReset, withTypeSubmit
+@docs withAttribute, withClass, withDisabled, withId, withTabIndex, withTargetBlank, withTargetParent, withTargetSelf, withTargetTop, withTitle
 
 
 ## Event Options
