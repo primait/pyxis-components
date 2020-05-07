@@ -1,25 +1,36 @@
 module Prima.Pyxis.Form.RadioButton exposing
-    ( RadioButton, radioButton, radioButtonChoice, radioButtonChoiceWithSubtitle
-    , withId, withAttribute, withClass
+    ( RadioButton
+    , radioButton, radioButtonChoice, radioButtonChoiceWithSubtitle
+    , render
+    , withAttribute, withClass, withId
     , withOnBlur, withOnFocus
     , withValidation
-    , render
     )
 
 {-|
 
 
-## Types and Configuration
+## Configuration
 
-@docs RadioButton, radioButton, radioButtonChoice, radioButtonChoiceWithSubtitle
+@docs RadioButton
+
+
+## Configuration Methods
+
+@docs radioButton, radioButtonChoice, radioButtonChoiceWithSubtitle
+
+
+## Rendering
+
+@docs render
 
 
 ## Options
 
-@docs withId, withAttribute, withClass
+@docs withAttribute, withClass, withId
 
 
-## Events
+## Event Options
 
 @docs withOnBlur, withOnFocus
 
@@ -27,11 +38,6 @@ module Prima.Pyxis.Form.RadioButton exposing
 ## Validation
 
 @docs withValidation
-
-
-## Render
-
-@docs render
 
 -}
 
@@ -116,7 +122,7 @@ type alias Options model msg =
 defaultOptions : Options model msg
 defaultOptions =
     { attributes = []
-    , class = [ "a-form-field__radio-button-options__item" ]
+    , class = [ "form-radio-button" ]
     , id = Nothing
     , onFocus = Nothing
     , onBlur = Nothing
@@ -325,7 +331,7 @@ buildAttributes model radioButtonModel choice =
 render : model -> RadioButton model msg -> List (Html msg)
 render model ((RadioButton config) as radioButtonModel) =
     Html.div
-        [ Attrs.class "a-form-field__radio-button-options" ]
+        [ Attrs.class "form-radio-button-options" ]
         (List.map (renderRadioButtonChoice model radioButtonModel) config.choices)
         :: renderValidationMessages model radioButtonModel
 
@@ -365,7 +371,7 @@ renderValidationMessages model ((RadioButton _) as inputModel) =
 renderTitle : String -> Html msg
 renderTitle title =
     Html.strong
-        [ Attrs.class "a-form-field__radio-button__title" ]
+        [ Attrs.class "form-radio-button__title" ]
         [ Html.text title ]
 
 
@@ -374,7 +380,7 @@ renderTitle title =
 renderSubtitle : String -> Html msg
 renderSubtitle subtitle =
     Html.p
-        [ Attrs.class "a-form-field__radio-button__subtitle" ]
+        [ Attrs.class "form-radio-button__subtitle" ]
         [ Html.text subtitle ]
 
 

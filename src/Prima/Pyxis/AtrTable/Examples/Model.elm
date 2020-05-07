@@ -13,7 +13,7 @@ type Msg
 
 type alias Model =
     { atrDetails : List String
-    , atrTable : AtrTable.Config
+    , atrTable : AtrTable.State
     }
 
 
@@ -21,9 +21,9 @@ initialModel : Model
 initialModel =
     let
         isEditable =
-            False
+            True
     in
-    Model [] <| (Tuple.first << (AtrTable.config isEditable << List.map createAtr)) (List.range 2012 2019)
+    Model [] <| (Tuple.first << (AtrTable.state isEditable << List.map createAtr)) (List.range 2012 2019)
 
 
 createAtr : Int -> AtrTable.AtrDetail

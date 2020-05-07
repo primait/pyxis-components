@@ -31,7 +31,7 @@ createinitialConfig =
 
 createInitialState : ListChooser.State
 createInitialState =
-    ListChooser.state ListChooser.Partial
+    ListChooser.init ListChooser.Partial
         |> ListChooser.withItems finitureList
 
 

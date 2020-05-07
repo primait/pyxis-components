@@ -1,49 +1,49 @@
 module Prima.Pyxis.Form.Input exposing
-    ( Input, text, password, date, number, email
-    , withAttribute, withClass, withDefaultValue, withDisabled, withId, withName, withPlaceholder, withOverridingClass
-    , withRegularSize, withSmallSize, withLargeSize
+    ( Input
+    , text, password, date, number, email
+    , render
+    , withAttribute, withClass, withDefaultValue, withDisabled, withId, withName, withMediumSize, withSmallSize, withLargeSize, withPlaceholder, withOverridingClass
     , withPrependGroup, withAppendGroup, withGroupClass
     , withOnBlur, withOnFocus
     , withValidation
-    , render
     )
 
 {-|
 
 
-## Types and Configuration
+## Configuration
 
-@docs Input, text, password, date, number, email
-
-
-## Options
-
-@docs withAttribute, withClass, withDefaultValue, withDisabled, withId, withName, withPlaceholder, withOverridingClass
+@docs Input
 
 
-## Size
+## Configuration Methods
 
-@docs withRegularSize, withSmallSize, withLargeSize
-
-
-## InputGroup
-
-@docs withPrependGroup, withAppendGroup, withGroupClass
-
-
-## Events
-
-@docs withOnBlur, withOnFocus
-
-
-## Validations
-
-@docs withValidation
+@docs text, password, date, number, email
 
 
 ## Rendering
 
 @docs render
+
+
+## Options
+
+@docs withAttribute, withClass, withDefaultValue, withDisabled, withId, withName, withMediumSize, withSmallSize, withLargeSize, withPlaceholder, withOverridingClass
+
+
+## Group Options
+
+@docs withPrependGroup, withAppendGroup, withGroupClass
+
+
+## Event Options
+
+@docs withOnBlur, withOnFocus
+
+
+## Validation
+
+@docs withValidation
 
 -}
 
@@ -151,7 +151,7 @@ type Default
 -}
 type InputSize
     = Small
-    | Regular
+    | Medium
     | Large
 
 
@@ -254,11 +254,11 @@ withLargeSize =
     addOption (Size Large)
 
 
-{-| Adds a `size` of `Regular` to the `Input`.
+{-| Adds a `size` of `Medium` to the `Input`.
 -}
-withRegularSize : Input model msg -> Input model msg
-withRegularSize =
-    addOption (Size Regular)
+withMediumSize : Input model msg -> Input model msg
+withMediumSize =
+    addOption (Size Medium)
 
 
 {-| Sets a `size` of `Small` to the `Input`.
@@ -310,7 +310,7 @@ defaultOptions =
     , attributes = []
     , defaultValue = Indeterminate
     , disabled = Nothing
-    , classes = [ "a-form-field__input" ]
+    , classes = [ "form-input" ]
     , groupClasses = []
     , id = Nothing
     , name = Nothing
@@ -318,7 +318,7 @@ defaultOptions =
     , onBlur = Nothing
     , placeholder = Nothing
     , prependGroup = Nothing
-    , size = Regular
+    , size = Medium
     , validations = []
     }
 
@@ -406,7 +406,7 @@ sizeAttribute size =
             Small ->
                 "is-small"
 
-            Regular ->
+            Medium ->
                 "is-medium"
 
             Large ->
@@ -581,7 +581,7 @@ renderInput model inputModel =
 renderGroup : List (Html msg) -> Html msg
 renderGroup =
     Html.div
-        [ Attrs.class "m-form-input-group" ]
+        [ Attrs.class "form-input-group" ]
 
 
 {-| Internal. Renders the `InputGroup` which wraps the `Input`.
@@ -593,7 +593,7 @@ renderAppendGroup inputModel =
             computeOptions inputModel
     in
     Html.div
-        [ Attrs.class "m-form-input-group__append"
+        [ Attrs.class "form-input-group__append"
         , Attrs.class <| String.join " " options.groupClasses
         ]
 
@@ -607,7 +607,7 @@ renderPrependGroup inputModel =
             computeOptions inputModel
     in
     Html.div
-        [ Attrs.class "m-form-input-group__prepend"
+        [ Attrs.class "form-input-group__prepend"
         , Attrs.class <| String.join " " options.groupClasses
         ]
 

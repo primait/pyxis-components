@@ -1,4 +1,4 @@
-module Prima.Pyxis.Loader.Examples.Model exposing
+module Prima.Pyxis.Loader.Example.Model exposing
     ( Model
     , Msg(..)
     , initialModel

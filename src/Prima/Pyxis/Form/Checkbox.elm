@@ -1,37 +1,43 @@
 module Prima.Pyxis.Form.Checkbox exposing
-    ( Checkbox, checkbox, checkboxChoice
-    , withId, withName, withAttribute, withDisabled, withClass
+    ( Checkbox, CheckboxChoice
+    , checkbox, checkboxChoice
+    , render
+    , withAttribute, withDisabled, withClass, withId, withName
     , withOnFocus, withOnBlur
     , withValidation
-    , render
     )
 
 {-|
 
 
-## Types and Configuration
+## Configuration
 
-@docs Checkbox, CheckboxChoice, checkbox, checkboxChoice
-
-
-## Options
-
-@docs withId, withName, withChecked, withAttribute, withDisabled, withClass
+@docs Checkbox, CheckboxChoice
 
 
-## Events
+## Configuration Methods
 
-@docs withOnFocus, withOnBlur
-
-
-## Validations
-
-@docs withValidation
+@docs checkbox, checkboxChoice
 
 
 ## Rendering
 
 @docs render
+
+
+## Options
+
+@docs withAttribute, withDisabled, withClass, withId, withName
+
+
+## Event Options
+
+@docs withOnFocus, withOnBlur
+
+
+## Validation
+
+@docs withValidation
 
 -}
 
@@ -79,7 +85,7 @@ type CheckboxOption model msg
     | Validation (model -> Maybe Validation.Type)
 
 
-{-| Represent the `CheckboxChoice` configuration.
+{-| Represent a choice for the `Checkbox`.
 -}
 type alias CheckboxChoice =
     { value : String
@@ -87,7 +93,7 @@ type alias CheckboxChoice =
     }
 
 
-{-| Create the 'CheckboxChoice' configuration.
+{-| Creates a choice for the `Checkbox`.
 -}
 checkboxChoice : String -> String -> CheckboxChoice
 checkboxChoice value label =
@@ -113,7 +119,7 @@ type alias Options model msg =
 defaultOptions : Options model msg
 defaultOptions =
     { attributes = []
-    , class = [ "a-form-field__checkbox" ]
+    , class = [ "form-checkbox__input" ]
     , disabled = Nothing
     , id = Nothing
     , name = Nothing
@@ -293,48 +299,12 @@ buildAttributes model ((Checkbox _) as checkboxModel) choice =
         |> (::) (validationAttribute model checkboxModel)
 
 
-{-|
-
-
-## Renders the `Checkbox`.
-
-    import Html
-    import Prima.Pyxis.Form.Checkbox as Checkbox
-    import Prima.Pyxis.Form.Validation as Validation
-
-    ...
-
-    type Msg =
-        OnChange String
-
-    type alias Model =
-        { countryVisited: Maybe String }
-
-    ...
-
-    view : Html Msg
-    view =
-        Html.div
-            []
-            (Checkbox.checkbox .countryVisited OnChange
-                |> Checkbox.withClass "my-custom-class"
-                |> Checkbox.withValidation (Maybe.andThen validate << .countryVisited)
-            )
-
-    validate : List String -> Validation.Type
-    validate list =
-        if List.isEmpty list then
-            Just <| Validation.ErrorWithMessage "Country visited is empty".
-        else
-            Nothing
-
+{-| Renders the `Checkbox`.
 -}
 render : model -> Checkbox model msg -> List (Html msg)
 render model ((Checkbox config) as checkboxModel) =
     [ Html.div
-        [ Attrs.classList
-            [ ( "a-form-field__checkbox-options", True )
-            ]
+        [ Attrs.class "form-checkbox-options"
         , validationAttribute model checkboxModel
         ]
         (List.map (renderCheckbox model checkboxModel) config.choices)
@@ -346,7 +316,7 @@ render model ((Checkbox config) as checkboxModel) =
 renderCheckbox : model -> Checkbox model msg -> CheckboxChoice -> Html msg
 renderCheckbox model ((Checkbox config) as checkboxModel) checkboxItem =
     Html.div
-        [ Attrs.class "a-form-field__checkbox-options__item" ]
+        [ Attrs.class "form-checkbox" ]
         [ Html.input
             (buildAttributes model checkboxModel checkboxItem.value)
             []
@@ -354,7 +324,7 @@ renderCheckbox model ((Checkbox config) as checkboxModel) checkboxItem =
             |> Label.label
             |> Label.withOnClick (config.tagger checkboxItem.value)
             |> Label.withFor checkboxItem.value
-            |> Label.withOverridingClass "a-form-field__checkbox-options__item__label"
+            |> Label.withOverridingClass "form-checkbox__label"
             |> Label.render
         ]
 

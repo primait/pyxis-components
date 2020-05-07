@@ -1,5 +1,6 @@
 module Prima.Pyxis.Form.Example.Model exposing
-    ( Field(..)
+    ( BirthDateField(..)
+    , Field(..)
     , FormData
     , Model
     , Msg(..)
@@ -9,19 +10,22 @@ module Prima.Pyxis.Form.Example.Model exposing
 
 import Date
 import Prima.Pyxis.Form as Form
+import Prima.Pyxis.Form.Autocomplete as Autocomplete
 import Prima.Pyxis.Form.DatePicker as DatePicker
+import Prima.Pyxis.Form.Select as Select
 
 
 type Msg
     = OnInput Field String
     | OnCheck Field Bool
     | OnChange Field String
-    | OnFilter Field String
-    | OnToggle Field
     | OnFocus Field
     | OnDateInput Field DatePicker.Date
     | OnDatePickerUpdate Field DatePicker.Msg
+    | SelectMsg Select.Msg
+    | AutocompleteMsg Autocomplete.Msg
     | OnTodayDateReceived Date.Date
+    | ToggleTooltip
 
 
 type alias Model =
@@ -41,13 +45,20 @@ type Field
     | Password
     | Privacy
     | GuideType
-    | PowerSource
-    | Country
     | FiscalCode
-    | InsurancePolicyType
+    | InsuranceType
     | Note
     | VisitedCountries
     | BirthDate
+    | BirthDateCompound BirthDateField
+    | UserPrivacyMarketing
+    | UserPrivacyThirdPart
+
+
+type BirthDateField
+    = Day
+    | Month
+    | Year
 
 
 type alias FormData =
@@ -56,14 +67,20 @@ type alias FormData =
     , privacy : Maybe Bool
     , guideType : Maybe String
     , powerSource : Maybe String
+    , powerSourceSelect : Select.State
     , country : Maybe String
-    , countryFilter : Maybe String
+    , countryAutocomplete : Autocomplete.State
     , fiscalCode : Maybe String
     , countryVisited : List String
     , birthDate : DatePicker.Date
     , birthDateDatePicker : Maybe DatePicker.Model
-    , tipoPolizza : Maybe String
+    , birthDateDay : Maybe String
+    , birthDateMonth : Maybe String
+    , birthDateYear : Maybe String
+    , insuranceType : Maybe String
     , note : Maybe String
+    , userPrivacyMarketing : Maybe Bool
+    , userPrivacyThirdPart : Maybe Bool
     , uiState : UIState
     }
 
@@ -75,28 +92,45 @@ initialFormData =
     , privacy = Nothing
     , guideType = Nothing
     , powerSource = Nothing
+    , powerSourceSelect =
+        Select.init
+            [ Select.selectChoice "diesel" "Diesel"
+            , Select.selectChoice "petrol" "Benzina"
+            , Select.selectChoice "hybrid" "Benzina / Elettrico"
+            ]
     , country = Nothing
-    , countryFilter = Nothing
+    , countryAutocomplete =
+        Autocomplete.init
+            [ Autocomplete.autocompleteChoice "italy" "Italy"
+            , Autocomplete.autocompleteChoice "france" "France"
+            , Autocomplete.autocompleteChoice "spain" "Spain"
+            , Autocomplete.autocompleteChoice "usa" "U.S.A."
+            , Autocomplete.autocompleteChoice "germany" "Germany"
+            , Autocomplete.autocompleteChoice "uk" "U.K."
+            ]
     , fiscalCode = Nothing
     , countryVisited = [ "italia", "francia" ]
     , birthDate = DatePicker.PartialDate Nothing
     , birthDateDatePicker = Nothing
-    , tipoPolizza = Nothing
+    , birthDateDay = Nothing
+    , birthDateMonth = Nothing
+    , birthDateYear = Nothing
+    , insuranceType = Nothing
     , note = Nothing
+    , userPrivacyMarketing = Nothing
+    , userPrivacyThirdPart = Nothing
     , uiState = initialUIState
     }
 
 
 type alias UIState =
-    { countryAutocompleteOpened : Bool
-    , powerSourceSelectOpened : Bool
-    , birthDateDatePickerOpened : Bool
+    { birthDateDatePickerOpened : Bool
+    , usernameTooltipVisible : Bool
     }
 
 
 initialUIState : UIState
 initialUIState =
-    { countryAutocompleteOpened = False
-    , powerSourceSelectOpened = False
-    , birthDateDatePickerOpened = False
+    { birthDateDatePickerOpened = False
+    , usernameTooltipVisible = False
     }

@@ -1,9 +1,9 @@
-module Main exposing (main)
+module Prima.Pyxis.Loader.Example exposing (main)
 
 import Browser
-import Prima.Pyxis.Loader.Examples.Model exposing (Model, Msg, initialModel)
-import Prima.Pyxis.Loader.Examples.Update exposing (update)
-import Prima.Pyxis.Loader.Examples.View exposing (view)
+import Prima.Pyxis.Loader.Example.Model exposing (Model, Msg, initialModel)
+import Prima.Pyxis.Loader.Example.Update exposing (update)
+import Prima.Pyxis.Loader.Example.View exposing (view)
 
 
 main : Program () Model Msg

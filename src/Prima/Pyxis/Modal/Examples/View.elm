@@ -115,7 +115,7 @@ largeModal modalConfig =
             [ ( "test", True ) ]
         |> Modal.withTitleAttribute "Heavily Custom Modal"
         |> Modal.withCloseOnOverlayClick
-        |> Modal.withHeaderClass "a-containerFluid directionRow bgAlertBase"
+        |> Modal.withHeaderClass "container-fluid directionRow bgAlertBase"
         |> Modal.withHeaderClassList [ ( "test", True ) ]
         |> Modal.withHeaderContentOnly
             [ div
@@ -158,12 +158,10 @@ largeModal modalConfig =
 hideModalBtn : Msg -> Button.Config Msg
 hideModalBtn closeModalMessage =
     Button.primary "Hide modal"
-        |> Button.withColorScheme Button.Brand
         |> Button.withOnClick closeModalMessage
 
 
 printMsgBtn : String -> Button.Config Msg
 printMsgBtn message =
     Button.callOut "Show message"
-        |> Button.withColorScheme Button.Brand
         |> Button.withOnClick (PrintMsg message)

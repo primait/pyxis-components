@@ -1,49 +1,49 @@
 module Prima.Pyxis.Form.Date exposing
-    ( Date, date
-    , withAttribute, withClass, withDefaultValue, withDisabled, withId, withName, withPlaceholder
-    , withRegularSize, withSmallSize, withLargeSize
+    ( Date
+    , date
+    , render
+    , withAttribute, withClass, withDefaultValue, withDisabled, withId, withMediumSize, withSmallSize, withLargeSize, withName, withPlaceholder
     , withDatePicker, withDatePickerVisibility
     , withOnBlur, withOnFocus
     , withValidation
-    , render
     )
 
 {-|
 
 
-## Types and Configuration
+## Configuration
 
-@docs Date, date
-
-
-## Generic modifiers
-
-@docs withAttribute, withClass, withDefaultValue, withDisabled, withId, withName, withPlaceholder
+@docs Date
 
 
-## Size modifiers
+## Configuration Methods
 
-@docs withRegularSize, withSmallSize, withLargeSize
-
-
-## DatePicker modifiers
-
-@docs withDatePicker, withDatePickerVisibility
-
-
-## Events
-
-@docs withOnBlur, withOnFocus
-
-
-## Validations
-
-@docs withValidation
+@docs date
 
 
 ## Rendering
 
 @docs render
+
+
+## Options
+
+@docs withAttribute, withClass, withDefaultValue, withDisabled, withId, withMediumSize, withSmallSize, withLargeSize, withName, withPlaceholder
+
+
+## DatePicker Options
+
+@docs withDatePicker, withDatePickerVisibility
+
+
+## Event Options
+
+@docs withOnBlur, withOnFocus
+
+
+## Validation
+
+@docs withValidation
 
 -}
 
@@ -70,6 +70,15 @@ type alias DateConfig model msg =
     , reader : model -> DatePicker.Date
     , tagger : DatePicker.Date -> msg
     }
+
+
+{-| Internal. Defines the mode in which the input will be rendered. }
+This is needed because of we want an Input Text in desktop view, and an Input Date in mobile view.
+The Input Date alone cannot be used because of Firefox skin is not customizable.
+-}
+type Mode
+    = InputDate
+    | InputText
 
 
 {-| Create an `input[type="date"]` with the default options.
@@ -106,7 +115,7 @@ type Default
 -}
 type DateSize
     = Small
-    | Regular
+    | Medium
     | Large
 
 
@@ -198,9 +207,9 @@ withPlaceholder placeholder =
 
 {-| Sets a `size` to the `Date`.
 -}
-withRegularSize : Date model msg -> Date model msg
-withRegularSize =
-    addOption (Size Regular)
+withMediumSize : Date model msg -> Date model msg
+withMediumSize =
+    addOption (Size Medium)
 
 
 {-| Sets a `size` to the `Date`.
@@ -210,6 +219,8 @@ withSmallSize =
     addOption (Size Small)
 
 
+{-| Adds a `Validation` rule to the `Date`.
+-}
 withValidation : (model -> Maybe Validation.Type) -> Date model msg -> Date model msg
 withValidation validation =
     addOption (Validation validation)
@@ -228,20 +239,23 @@ render model dateModel =
             (renderAppendGroup dateModel
                 [ renderDatePickerIcon <| Maybe.withDefault "" options.id
                 ]
-                :: renderDate model dateModel
+                :: renderInput InputDate model dateModel
+                :: renderInput InputText model dateModel
                 :: renderDatePicker model dateModel
                 :: renderValidationMessages model dateModel
             )
         ]
 
     else
-        renderDate model dateModel :: renderValidationMessages model dateModel
+        renderInput InputDate model dateModel
+            :: renderInput InputText model dateModel
+            :: renderValidationMessages model dateModel
 
 
-renderDate : model -> Date model msg -> Html msg
-renderDate model dateModel =
+renderInput : Mode -> model -> Date model msg -> Html msg
+renderInput mode model dateModel =
     Html.input
-        (buildAttributes model dateModel)
+        (buildAttributes mode model dateModel)
         []
 
 
@@ -263,13 +277,13 @@ renderDatePicker model dateModel =
 
 renderDatePickerIcon : String -> Html msg
 renderDatePickerIcon fieldId =
-    Html.label [ Attrs.class "a-icon a-icon-calendar", Attrs.for fieldId ] []
+    Html.label [ Attrs.class "icon icon-calendar", Attrs.for fieldId ] []
 
 
 renderGroup : List (Html msg) -> Html msg
 renderGroup =
     Html.div
-        [ Attrs.class "m-form-input-group m-form-input-group--datepicker" ]
+        [ Attrs.class "form-input-group m-form-input-group--datepicker" ]
 
 
 renderAppendGroup : Date model msg -> List (Html msg) -> Html msg
@@ -279,7 +293,7 @@ renderAppendGroup dateModel =
             computeOptions dateModel
     in
     Html.div
-        [ Attrs.class "m-form-input-group__append"
+        [ Attrs.class "form-input-group__append"
         , Attrs.class <| String.join " " options.groupClasses
         ]
 
@@ -307,12 +321,10 @@ shouldShowDatePicker model dateModel =
         { datePickerTagger, datePickerReader } =
             computeOptions dateModel
     in
-    case ( datePickerTagger, datePickerReader model ) of
-        ( Just _, Just _ ) ->
-            True
-
-        _ ->
-            False
+    model
+        |> datePickerReader
+        |> Maybe.map2 (\_ _ -> True) datePickerTagger
+        |> Maybe.withDefault False
 
 
 {-| Internal.
@@ -357,7 +369,7 @@ defaultOptions =
     , datePickerVisibility = always False
     , defaultValue = Indeterminate
     , disabled = Nothing
-    , classes = [ "a-form-field__input", "a-form-field__datepicker" ]
+    , classes = [ "form-input", "form-datepicker" ]
     , groupClasses = []
     , id = Nothing
     , name = Nothing
@@ -365,7 +377,7 @@ defaultOptions =
     , onBlur = Nothing
     , placeholder = Nothing
     , prependGroup = Nothing
-    , size = Regular
+    , size = Medium
     , validations = []
     }
 
@@ -424,7 +436,7 @@ sizeAttribute size =
             Small ->
                 "is-small"
 
-            Regular ->
+            Medium ->
                 "is-medium"
 
             Large ->
@@ -432,12 +444,21 @@ sizeAttribute size =
         )
 
 
-readerAttribute : model -> Date model msg -> Html.Attribute msg
-readerAttribute model (Date config) =
+readerAttribute : Mode -> model -> Date model msg -> Html.Attribute msg
+readerAttribute mode model (Date config) =
+    let
+        format =
+            case mode of
+                InputDate ->
+                    "yyyy-MM-dd"
+
+                InputText ->
+                    "dd/MM/yyyy"
+    in
     case config.reader model of
         DatePicker.ParsedDate parsedDate ->
             parsedDate
-                |> Date.format "dd/MM/yyyy"
+                |> Date.format format
                 |> Attrs.value
 
         DatePicker.PartialDate partialDate ->
@@ -450,7 +471,7 @@ taggerAttribute : Date model msg -> Html.Attribute msg
 taggerAttribute (Date config) =
     Events.targetValue
         |> Json.Decode.map (config.tagger << stringToDate)
-        |> Json.Decode.map (\any -> ( any, True ))
+        |> Json.Decode.map (H.flip Tuple.pair True)
         |> Events.stopPropagationOn "input"
 
 
@@ -474,6 +495,16 @@ toIsoFormat str =
         |> String.split "/"
         |> List.reverse
         |> String.join "-"
+
+
+typeAttribute : Mode -> Html.Attribute msg
+typeAttribute mode =
+    case mode of
+        InputDate ->
+            Attrs.attribute "type" "date"
+
+        InputText ->
+            Attrs.attribute "type" "text"
 
 
 validationAttribute : model -> Date model msg -> Html.Attribute msg
@@ -513,8 +544,8 @@ pristineAttribute model ((Date config) as dateModel) =
 
 {-| Composes all the modifiers into a set of `Html.Attribute`(s).
 -}
-buildAttributes : model -> Date model msg -> List (Html.Attribute msg)
-buildAttributes model dateModel =
+buildAttributes : Mode -> model -> Date model msg -> List (Html.Attribute msg)
+buildAttributes mode model dateModel =
     let
         options =
             computeOptions dateModel
@@ -535,12 +566,12 @@ buildAttributes model dateModel =
         |> List.filterMap identity
         |> (++) options.attributes
         |> (::) (H.classesAttribute options.classes)
-        |> (::) (readerAttribute model dateModel)
+        |> (::) (readerAttribute mode model dateModel)
         |> (::) (taggerAttribute dateModel)
         |> (::) (sizeAttribute options.size)
         |> (::) (validationAttribute model dateModel)
         |> (::) (pristineAttribute model dateModel)
-        |> (::) (Attrs.type_ "text")
+        |> (::) (typeAttribute mode)
 
 
 {-| Internal

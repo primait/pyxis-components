@@ -1,25 +1,31 @@
 module Prima.Pyxis.ButtonGroup exposing
-    ( Config, Alignment(..), create
-    , withAttribute, withAlignment, withClassList, withId
+    ( Config
+    , create
     , render
+    , withAttribute, withAlignmentCentered, withAlignmentContentEnd, withAlignmentContentStart, withAlignmentCoverFluid, withAlignmentSpaceAround, withAlignmentSpaceBetween, withAlignmentSpaceEvenly, withClass, withId
     )
 
-{-| Create a `ButtonGroup` using predefined Html syntax.
+{-|
 
 
-# Types and Configuration
+## Configuration
 
-@docs Config, Alignment, create
+@docs Config
+
+
+## Configuration Methods
+
+@docs create
+
+
+## Rendering
+
+@docs render
 
 
 ## Options
 
-@docs withAttribute, withAlignment, withClassList, withFluid, withId
-
-
-# Render
-
-@docs render
+@docs withAttribute, withAlignmentCentered, withAlignmentContentEnd, withAlignmentContentStart, withAlignmentCoverFluid, withAlignmentSpaceAround, withAlignmentSpaceBetween, withAlignmentSpaceEvenly, withClass, withId
 
 -}
 
@@ -55,7 +61,7 @@ type Alignment
 {-| Internal. Represents the list of customizations for the `ButtonGroup` component.
 -}
 type alias Options msg =
-    { classList : List ( String, Bool )
+    { classes : List String
     , attributes : List (Html.Attribute msg)
     , id : Maybe String
     , alignment : Maybe Alignment
@@ -63,7 +69,7 @@ type alias Options msg =
 
 
 type ButtonGroupOption msg
-    = ClassList (List ( String, Bool ))
+    = Class String
     | Attribute (Html.Attribute msg)
     | Id String
     | Alignment Alignment
@@ -71,7 +77,7 @@ type ButtonGroupOption msg
 
 defaultOptions : Options msg
 defaultOptions =
-    { classList = []
+    { classes = []
     , attributes = []
     , id = Nothing
     , alignment = Nothing
@@ -83,8 +89,8 @@ defaultOptions =
 applyOption : ButtonGroupOption msg -> Options msg -> Options msg
 applyOption modifier options =
     case modifier of
-        ClassList list ->
-            { options | classList = List.append list options.classList }
+        Class class ->
+            { options | classes = class :: options.classes }
 
         Attribute attr ->
             { options | attributes = attr :: options.attributes }
@@ -127,18 +133,60 @@ create buttons =
     Config (ButtonGroupConfig buttons [])
 
 
-{-| Adds classes to the `classList` of the `ButtonGroup`.
+{-| Adds an alignment class to the `ButtonGroup`.
 -}
-withAlignment : Alignment -> Config msg -> Config msg
-withAlignment align =
-    addOption (Alignment align)
+withAlignmentSpaceBetween : Config msg -> Config msg
+withAlignmentSpaceBetween =
+    addOption (Alignment SpaceBetween)
 
 
-{-| Adds classes to the `classList` of the `ButtonGroup`.
+{-| Adds an alignment class to the `ButtonGroup`.
 -}
-withClassList : List ( String, Bool ) -> Config msg -> Config msg
-withClassList classList =
-    addOption (ClassList classList)
+withAlignmentSpaceEvenly : Config msg -> Config msg
+withAlignmentSpaceEvenly =
+    addOption (Alignment SpaceEvenly)
+
+
+{-| Adds an alignment class to the `ButtonGroup`.
+-}
+withAlignmentSpaceAround : Config msg -> Config msg
+withAlignmentSpaceAround =
+    addOption (Alignment SpaceAround)
+
+
+{-| Adds an alignment class to the `ButtonGroup`.
+-}
+withAlignmentCentered : Config msg -> Config msg
+withAlignmentCentered =
+    addOption (Alignment Centered)
+
+
+{-| Adds an alignment class to the `ButtonGroup`.
+-}
+withAlignmentContentStart : Config msg -> Config msg
+withAlignmentContentStart =
+    addOption (Alignment ContentStart)
+
+
+{-| Adds an alignment class to the `ButtonGroup`.
+-}
+withAlignmentContentEnd : Config msg -> Config msg
+withAlignmentContentEnd =
+    addOption (Alignment ContentEnd)
+
+
+{-| Adds an alignment class to the `ButtonGroup`.
+-}
+withAlignmentCoverFluid : Config msg -> Config msg
+withAlignmentCoverFluid =
+    addOption (Alignment CoverFluid)
+
+
+{-| Adds a class to the `ButtonGroup`.
+-}
+withClass : String -> Config msg -> Config msg
+withClass class =
+    addOption (Class class)
 
 
 {-| Adds a generic attribute to the `ButtonGroup`.
@@ -202,43 +250,38 @@ render ((Config { buttons }) as config) =
 
 {-| Internal. Transforms the alignment into the appropriate class.
 -}
-buildAlignmentClass : Maybe Alignment -> ( String, Bool )
-buildAlignmentClass alignment =
+alignmentToClass : Alignment -> String
+alignmentToClass alignment =
     case alignment of
-        Just SpaceBetween ->
-            ( "justify-content-between", True )
+        SpaceBetween ->
+            "justify-content-between"
 
-        Just SpaceEvenly ->
-            ( "justify-content-evenly", True )
+        SpaceEvenly ->
+            "justify-content-evenly"
 
-        Just SpaceAround ->
-            ( "justify-content-around", True )
+        SpaceAround ->
+            "justify-content-around"
 
-        Just Centered ->
-            ( "justify-content-center", True )
+        Centered ->
+            "justify-content-center"
 
-        Just ContentStart ->
-            ( "justify-content-start", True )
+        ContentStart ->
+            "justify-content-start"
 
-        Just ContentEnd ->
-            ( "justify-content-end", True )
+        ContentEnd ->
+            "justify-content-end"
 
-        Just CoverFluid ->
-            ( "m-btnGroup--coverFluid", True )
-
-        Nothing ->
-            ( "", False )
+        CoverFluid ->
+            "btn-group--cover-fluid"
 
 
-{-| Internal. Merges the component configuration and options to a classList attribute.
+{-| Internal. Merges the component configuration and options to a classes attribute.
 -}
-buildClassList : Options msg -> Html.Attribute msg
-buildClassList options =
-    [ ( "m-btnGroup", True )
-    , buildAlignmentClass options.alignment
+buildClasses : Options msg -> List (Html.Attribute msg)
+buildClasses options =
+    [ Attrs.class "btn-group"
+    , Attrs.class (String.join " " options.classes)
     ]
-        |> List.append options.classList
-        |> Attrs.classList
 
 
 {-| Internal. Transforms all the customizations into a list of valid Html.Attribute(s).
@@ -251,7 +294,9 @@ buildAttributes buttonConfig =
     in
     [ options.id
         |> Maybe.map Attrs.id
+    , options.alignment
+        |> Maybe.map (Attrs.class << alignmentToClass)
     ]
         |> List.filterMap identity
-        |> (::) (buildClassList options)
+        |> (++) (buildClasses options)
         |> List.append options.attributes

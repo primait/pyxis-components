@@ -1,14 +1,25 @@
 module Prima.Pyxis.Form.Validation exposing
     ( Type(..)
-    , isError, isWarning, render
+    , isError, isWarning
+    , render
     )
 
-{-| Create `Validation` model for the form.
+{-|
 
 
-# Configuration
+## Configuration
 
-@docs Type, error, warning
+@docs Type
+
+
+## Methods
+
+@docs isError, isWarning
+
+
+## Rendering
+
+@docs render
 
 -}
 
@@ -16,7 +27,7 @@ import Html exposing (Html)
 import Html.Attributes as Attrs
 
 
-{-| Represent a validation type.
+{-| Represents the available `Validation`s.
 -}
 type Type
     = Error
@@ -25,6 +36,8 @@ type Type
     | WarningWithMessage String
 
 
+{-| Checks that a `Validation.Type` is an `Error`.
+-}
 isError : Type -> Bool
 isError type_ =
     case type_ of
@@ -38,6 +51,8 @@ isError type_ =
             False
 
 
+{-| Checks that a `Validation.Type` is a `Warning`.
+-}
 isWarning : Type -> Bool
 isWarning type_ =
     case type_ of
@@ -51,17 +66,19 @@ isWarning type_ =
             False
 
 
+{-| Renders a `Validation` message.
+-}
 render : Type -> Html msg
 render type_ =
     case type_ of
         WarningWithMessage message ->
             Html.div
-                [ Attrs.class "a-form-field__warning" ]
+                [ Attrs.class "form-warning" ]
                 [ Html.text message ]
 
         ErrorWithMessage message ->
             Html.div
-                [ Attrs.class "a-form-field__error" ]
+                [ Attrs.class "form-error" ]
                 [ Html.text message ]
 
         _ ->
