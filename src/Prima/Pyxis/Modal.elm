@@ -1,6 +1,6 @@
 module Prima.Pyxis.Modal exposing
     ( Config
-    , small, medium, large
+    , small, medium, large , smallAlt, mediumAlt, largeAlt
     , render
     , hide, show, toggle
     , withAttribute, withClass, withClassList, withId, withStyle, withTitleAttribute
@@ -20,7 +20,7 @@ module Prima.Pyxis.Modal exposing
 
 ## Configuration Methods
 
-@docs small, medium, large
+@docs small, medium, large , smallAlt, mediumAlt, largeAlt
 
 
 ## Rendering
@@ -81,6 +81,7 @@ type alias ModalConfig msg =
     { closeEvent : msg
     , options : Options msg
     , size : Size
+    , kind : Kind
     , visible : Bool
     }
 
@@ -104,6 +105,21 @@ isMediumSize =
 isLargeSize : Size -> Bool
 isLargeSize =
     (==) Large
+
+
+type Kind
+    = Light
+    | Dark
+
+
+isLightKind : Kind -> Bool
+isLightKind =
+    (==) Light
+
+
+isDarkKind : Kind -> Bool
+isDarkKind =
+    (==) Dark
 
 
 {-| Internal.
@@ -281,6 +297,20 @@ small initialVisibility closeEvent =
         { closeEvent = closeEvent
         , options = Options (initialModalOptions closeEvent)
         , size = Small
+        , kind = Light
+        , visible = initialVisibility
+        }
+
+
+{-| Small size modal constructor with Dark style.
+-}
+smallAlt : Bool -> msg -> Config msg
+smallAlt initialVisibility closeEvent =
+    Config
+        { closeEvent = closeEvent
+        , options = Options (initialModalOptions closeEvent)
+        , size = Small
+        , kind = Dark
         , visible = initialVisibility
         }
 
@@ -316,6 +346,20 @@ medium initialVisibility closeEvent =
         { closeEvent = closeEvent
         , options = Options (initialModalOptions closeEvent)
         , size = Medium
+        , kind = Light
+        , visible = initialVisibility
+        }
+
+
+{-| Medium size modal constructor with Dark style.
+-}
+mediumAlt : Bool -> msg -> Config msg
+mediumAlt initialVisibility closeEvent =
+    Config
+        { closeEvent = closeEvent
+        , options = Options (initialModalOptions closeEvent)
+        , size = Medium
+        , kind = Dark
         , visible = initialVisibility
         }
 
@@ -351,6 +395,19 @@ large initialVisibility closeEvent =
         { closeEvent = closeEvent
         , options = Options (initialModalOptions closeEvent)
         , size = Large
+        , kind = Light
+        , visible = initialVisibility
+        }
+
+{-| Large size modal constructor with Dark style.
+-}
+largeAlt : Bool -> msg -> Config msg
+largeAlt initialVisibility closeEvent =
+    Config
+        { closeEvent = closeEvent
+        , options = Options (initialModalOptions closeEvent)
+        , size = Large
+        , kind = Dark
         , visible = initialVisibility
         }
 
@@ -606,31 +663,40 @@ updateOverlayOptions headerOptionsMapper modalOptions =
 render : Config msg -> Html msg
 render (Config modalConfig) =
     H.renderIf modalConfig.visible <|
-        overlay (pickOverlayOptions modalConfig)
-            [ modal (pickModalOptions modalConfig) modalConfig ]
+        overlay (pickOverlayOptions modalConfig) modalConfig
+            [ modal (pickModalOptions modalConfig)  ]
 
 
 {-| Internal.
 renders overlay
 -}
-overlay : OverlayOptions msg -> List (Html msg) -> Html msg
-overlay overlayOptions renderedModal =
+overlay : OverlayOptions msg -> ModalConfig msg -> List (Html msg) -> Html msg
+overlay overlayOptions modalConfig renderedModal =
     Html.div
-        (overlayAttributes overlayOptions)
+        (overlayAttributes overlayOptions modalConfig)
         renderedModal
 
 
 {-| Internal.
 constructs overlay attribute list from overlay options
 -}
-overlayAttributes : OverlayOptions msg -> List (Html.Attribute msg)
-overlayAttributes overlayOptions =
+overlayAttributes : OverlayOptions msg -> ModalConfig msg -> List (Html.Attribute msg)
+overlayAttributes overlayOptions modalConfig =
     [ HtmlAttributes.id overlayId
     ]
         |> List.append overlayOptions.attributes
         |> H.maybeCons overlayOptions.class
         |> H.maybeCons overlayOptions.classList
-        |> (::) (HtmlAttributes.class "a-overlay")
+        |> (::)
+            (HtmlAttributes.classList
+                [ ( "modal", True )
+                , ( "modal--small", isSmallSize modalConfig.size )
+                , ( "modal--medium", isMediumSize modalConfig.size )
+                , ( "modal--large", isLargeSize modalConfig.size )
+                , ( "modal--light", isLightKind modalConfig.kind )
+                , ( "modal--dark", isDarkKind modalConfig.kind )
+                ]
+            )
         |> List.append overlayOptions.events
         |> List.append overlayOptions.styles
 
@@ -749,10 +815,10 @@ withOverlayStyle property value (Config modalConfig) =
 {-| Internal.
 renders modal
 -}
-modal : ModalOptions msg -> ModalConfig msg -> Html msg
-modal modalOptions modalConfig =
+modal : ModalOptions msg -> Html msg
+modal modalOptions =
     Html.div
-        (modalAttributes modalOptions modalConfig)
+        (modalAttributes modalOptions)
         [ header modalOptions.headerOptions
         , body modalOptions.bodyOptions
         , footer modalOptions.footerOptions
@@ -762,20 +828,13 @@ modal modalOptions modalConfig =
 {-| Internal.
 Builds modal attribute list
 -}
-modalAttributes : ModalOptions msg -> ModalConfig msg -> List (Html.Attribute msg)
-modalAttributes modalOptions modalConfig =
+modalAttributes : ModalOptions msg -> List (Html.Attribute msg)
+modalAttributes modalOptions =
     []
         |> List.append modalOptions.attributes
         |> H.maybeCons modalOptions.classList
         |> H.maybeCons modalOptions.class
-        |> (::)
-            (HtmlAttributes.classList
-                [ ( "modal", True )
-                , ( "modal--small", isSmallSize modalConfig.size )
-                , ( "modal--medium", isMediumSize modalConfig.size )
-                , ( "modal--large", isLargeSize modalConfig.size )
-                ]
-            )
+        |> (::) (HtmlAttributes.class "modal__wrapper")
         |> List.append modalOptions.events
         |> H.maybeCons modalOptions.id
         |> List.append modalOptions.styles
@@ -1046,7 +1105,7 @@ Prints predefined modal title in its own markup
 -}
 headerTitle : String -> Html msg
 headerTitle title =
-    Html.h3 [ HtmlAttributes.class "modal__title" ]
+    Html.h3 [ HtmlAttributes.class "modal__header__title" ]
         [ Html.text title ]
 
 
@@ -1276,7 +1335,7 @@ Icon for closing modal
 headerCloseButton : msg -> Html msg
 headerCloseButton closeEvent =
     Html.i
-        [ HtmlAttributes.class "icon icon-close modal__close"
+        [ HtmlAttributes.class "modal__header__close icon icon-close"
         , HtmlAttributes.id headerCloseButtonId
         , onCloseButtonClick closeEvent
         ]
