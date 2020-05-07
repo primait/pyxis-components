@@ -6,6 +6,10 @@
     "global": "^4.4.0"
   },
   "scripts": {
-    "analyse": "node_modules/.bin/elm-analyse  src/*"
+    "analyse": "node_modules/.bin/elm-analyse  src/*",
+    "review": "node_modules/.bin/elm-review --compiler node_modules/.bin/elm"
+  },
+  "devDependencies": {
+    "elm-review": "^2.0.2"
   }
 }
