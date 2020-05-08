@@ -1335,7 +1335,7 @@ Icon for closing modal
 headerCloseButton : msg -> Html msg
 headerCloseButton closeEvent =
     Html.i
-        [ HtmlAttributes.class "modal__header__close icon icon-close"
+        [ HtmlAttributes.class "modal__header__close"
         , HtmlAttributes.id headerCloseButtonId
         , onCloseButtonClick closeEvent
         ]
