@@ -32,6 +32,6 @@ initialModel : Model
 initialModel =
     { messageToPrint = ""
     , isModalVisible = False
-    , smallModalConfig = Modal.small False (Hide Small)
+    , smallModalConfig = Modal.smallAlt False (Hide Small)
     , largeModalConfig = Modal.large False (Hide Large)
     }
