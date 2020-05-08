@@ -45,8 +45,10 @@ type Msg
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
-update _ model =
-    ( model, Cmd.none )
+update msg model =
+    case msg of
+        NoOp ->
+            ( model, Cmd.none )
 
 
 view : Model -> Browser.Document Msg

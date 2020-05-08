@@ -35,7 +35,7 @@ module Prima.Pyxis.Link exposing
 
 -}
 
-import Html exposing (Html, a, i, text)
+import Html exposing (Html, a, text)
 import Html.Attributes as Attrs
 import Html.Events as Events
 import Prima.Pyxis.Helpers as H
