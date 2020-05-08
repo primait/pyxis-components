@@ -32,33 +32,51 @@ config =
         ]
     , NoMissingTypeAnnotation.rule
     , NoUnused.CustomTypeConstructors.rule []
-    --    |> ignoreErrorsForDirectories []
-    --    |> ignoreErrorsForFiles
-    --        []
-    --, NoUnused.Dependencies.rule
-    --, NoUnused.Exports.rule
-    --    |> ignoreErrorsForDirectories
-    --        [ "src/Prima/Pyxis/" ]
-    --    |> ignoreErrorsForFiles
-    --        []
-    --, NoUnused.Modules.rule
-    --    |> ignoreErrorsForDirectories
-    --        [ "Example"
-    --        ]
-    --    |> ignoreErrorsForFiles
-    --        [ "src/Prima.Pyxis.Accordion.Example.elm"
-    --        , "src/Prima.Pyxis.AtrTable.Example.elm"
-    --        , "src/Prima.Pyxis.Button.Example.elm"
-    --        , "src/Prima.Pyxis.Container.Example.elm"
-    --        , "src/Prima.Pyxis.DownloadButton.Example.elm"
-    --        , "src/Prima.Pyxis.Form.Example.elm"
-    --        , "src/Prima.Pyxis.Link.Example.elm"
-    --        , "src/Prima.Pyxis.ListChooser.Example.elm"
-    --        , "src/Prima.Pyxis.Loader.Example.elm"
-    --        , "src/Prima.Pyxis.Message.Example.elm"
-    --        , "src/Prima.Pyxis.Modal.Example.elm"
-    --        , "src/Prima.Pyxis.Table.Example.elm"
-    --        , "src/Prima.Pyxis.Tooltip.Example.elm"
-    --        ]
-    --, NoUnused.Variables.rule
+        |> ignoreErrorsForDirectories exampleDirectories
+        |> ignoreErrorsForFiles exampleFiles
+    , NoUnused.Dependencies.rule
+    , NoUnused.Exports.rule
+       |> ignoreErrorsForDirectories
+           [ "src/Prima/Pyxis/" ]
+       |> ignoreErrorsForFiles
+           []
+    , NoUnused.Modules.rule
+       |> ignoreErrorsForDirectories exampleDirectories
+       |> ignoreErrorsForFiles exampleFiles
+    , NoUnused.Variables.rule
     ]
+
+
+exampleDirectories : List String
+exampleDirectories = 
+    [ "Accordion"
+    , "AtrTable"
+    , "Button"
+    , "Container"
+    , "DownloadButton"
+    , "Form"
+    , "Link"
+    , "ListChooser"
+    , "Loader"
+    , "Message"
+    , "Modal"
+    , "Table"
+    , "Tooltip"]
+    |> List.map (\file -> "src/Prima/Pyxis/"++  file ++"/Example")
+
+exampleFiles : List String 
+exampleFiles = 
+    [ "Accordion"
+    , "AtrTable"
+    , "Button"
+    , "Container"
+    , "DownloadButton"
+    , "Form"
+    , "Link"
+    , "ListChooser"
+    , "Loader"
+    , "Message"
+    , "Modal"
+    , "Table"
+    , "Tooltip"]
+    |> List.map (\file -> "src/Prima/Pyxis/"++  file ++"/Example.elm")

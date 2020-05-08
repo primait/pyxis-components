@@ -5,4 +5,6 @@ import Prima.Pyxis.Loader.Example.Model exposing (Model, Msg(..))
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-    ( model, Cmd.none )
+    case msg of
+        NoOp ->
+            ( model, Cmd.none )
