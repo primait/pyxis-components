@@ -25,15 +25,13 @@ import Review.Rule exposing (Rule, ignoreErrorsForDirectories, ignoreErrorsForFi
 config : List Rule
 config =
     [ NoExposingEverything.rule
-
-    --, NoImportingEverything.rule
-    --    [ "GraphQL.Request.Builder"
-    --    , "Html"
-    --    , "Html.Attribute"
-    --    , "Html.Events"
-    --    ]
-    --, NoMissingTypeAnnotation.rule
-    --, NoUnused.CustomTypeConstructors.rule []
+    , NoImportingEverything.rule
+        [ "Html"
+        , "Html.Attribute"
+        , "Html.Events"
+        ]
+    , NoMissingTypeAnnotation.rule
+    , NoUnused.CustomTypeConstructors.rule []
     --    |> ignoreErrorsForDirectories []
     --    |> ignoreErrorsForFiles
     --        []

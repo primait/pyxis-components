@@ -45,7 +45,6 @@ initialModel =
 
 type Msg
     = HandleEvent String
-    | NoOp
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -53,9 +52,6 @@ update msg model =
     case msg of
         HandleEvent label ->
             ( { model | clicked = Just label }, Cmd.none )
-
-        _ ->
-            ( model, Cmd.none )
 
 
 view : Model -> Browser.Document Msg
@@ -70,14 +66,16 @@ appBody model =
     , DownloadButton.render myDownloadBtn
     , DownloadButton.render myDownloadBtnDisabled
     , model.clicked
-            |> Maybe.withDefault "No button clicked"
-            |> Html.text
+        |> Maybe.withDefault "No button clicked"
+        |> Html.text
     ]
+
 
 myDownloadBtn : DownloadButton.Config Msg
 myDownloadBtn =
     DownloadButton.download "Certificato di polizza" "Scarica .pdf"
         |> DownloadButton.withOnClick (HandleEvent "Clicked")
+
 
 myDownloadBtnDisabled : DownloadButton.Config Msg
 myDownloadBtnDisabled =

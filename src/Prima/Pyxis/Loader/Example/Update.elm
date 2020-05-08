@@ -4,5 +4,5 @@ import Prima.Pyxis.Loader.Example.Model exposing (Model, Msg(..))
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
-update _ model =
+update msg model =
     ( model, Cmd.none )

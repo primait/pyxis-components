@@ -526,10 +526,10 @@ elm-review@^2.0.2:
     which "^2.0.2"
     wrap-ansi "^6.2.0"
 
-elm@^0.19.1:
-  version "0.19.1"
-  resolved "https://registry.yarnpkg.com/elm/-/elm-0.19.1.tgz#66461c49146099b866fdaf8af681331e5bec703d"
-  integrity sha512-rehOtJKZvoYDddlrd7AX5NAf0H+LUllnBg3AHaeaIOKWzw4W316d7Bkhlbo7aSG+hVUVWP2ihKwyYkDi589TfA==
+elm@^0.19.1-3:
+  version "0.19.1-3"
+  resolved "https://registry.yarnpkg.com/elm/-/elm-0.19.1-3.tgz#2382aa1943bc79974b5d95b0a6acbe010ee16909"
+  integrity sha512-6y36ewCcVmTOx8lj7cKJs3bhI5qMfoVEigePZ9PhEUNKpwjjML/pU2u2YSpHVAznuCcojoF6KIsrS1Ci7GtVaQ==
   dependencies:
     request "^2.88.0"
 
