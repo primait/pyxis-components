@@ -42,7 +42,7 @@ config =
            []
     , NoUnused.Modules.rule
        |> ignoreErrorsForDirectories exampleDirectories
-       |> ignoreErrorsForFiles exampleFiles
+       |> ignoreErrorsForFiles (coreFiles ++ exampleFiles)
     , NoUnused.Variables.rule
     ]
 
@@ -80,3 +80,36 @@ exampleFiles =
     , "Table"
     , "Tooltip"]
     |> List.map (\file -> "src/Prima/Pyxis/"++  file ++"/Example.elm")
+
+coreFiles : List String 
+coreFiles = 
+ [ "Accordion",
+    "AtrTable",
+    "Button",
+    "Container",
+    "DownloadButton",
+    "Form",
+    "Form.Autocomplete",
+    "Form.Checkbox",
+    "Form.CheckboxFlag",
+    "Form.Date",
+    "Form.DatePicker",
+    "Form.Grid",
+    "Form.Input",
+    "Form.Label",
+    "Form.Radio",
+    "Form.RadioFlag",
+    "Form.RadioButton",
+    "Form.Select",
+    "Form.TextArea",
+    "Form.Validation",
+    "Link",
+    "ListChooser",
+    "Loader",
+    "Message",
+    "Modal",
+    "Shared/InterceptedEvents",
+    "Table",
+        "Tooltip"
+    ]
+    |> List.map (\file -> "src/Prima/Pyxis/"++  file ++".elm")
