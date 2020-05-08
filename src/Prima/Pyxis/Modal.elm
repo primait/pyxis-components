@@ -663,25 +663,28 @@ updateOverlayOptions headerOptionsMapper modalOptions =
 render : Config msg -> Html msg
 render (Config modalConfig) =
     H.renderIf modalConfig.visible <|
-        overlay (pickOverlayOptions modalConfig) modalConfig
+        overlay modalConfig
             [ modal (pickModalOptions modalConfig)  ]
 
 
 {-| Internal.
 renders overlay
 -}
-overlay : OverlayOptions msg -> ModalConfig msg -> List (Html msg) -> Html msg
-overlay overlayOptions modalConfig renderedModal =
+overlay : ModalConfig msg -> List (Html msg) -> Html msg
+overlay modalConfig renderedModal =
     Html.div
-        (overlayAttributes overlayOptions modalConfig)
+        (overlayAttributes modalConfig)
         renderedModal
 
 
 {-| Internal.
 constructs overlay attribute list from overlay options
 -}
-overlayAttributes : OverlayOptions msg -> ModalConfig msg -> List (Html.Attribute msg)
-overlayAttributes overlayOptions modalConfig =
+overlayAttributes : ModalConfig msg -> List (Html.Attribute msg)
+overlayAttributes modalConfig =
+    let
+        overlayOptions = pickOverlayOptions modalConfig
+    in
     [ HtmlAttributes.id overlayId
     ]
         |> List.append overlayOptions.attributes
