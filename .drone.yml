@@ -39,6 +39,7 @@ steps:
       YARN_CACHE_FOLDER: /drone/src/.cache
     commands:
       - ./node_modules/.bin/elm-analyse
+      - ./node_modules/.bin/elm-review --compiler ./node_modules/.bin/elm
     depends_on:
       - init
 
