@@ -277,7 +277,7 @@ renderDatePicker model dateModel =
 
 renderDatePickerIcon : String -> Html msg
 renderDatePickerIcon fieldId =
-    Html.label [ Attrs.class "form-input-group__append__datepicker-icon", Attrs.for fieldId ] []
+    Html.label [ Attrs.class "form-input-group--datepicker__icon", Attrs.for fieldId ] []
 
 
 renderGroup : List (Html msg) -> Html msg
