@@ -46,7 +46,7 @@ usernameGroupConfig =
             "username"
 
         userIcon =
-            Html.i [ Attrs.class "icon icon-people" ] []
+            Html.i [ Attrs.class "form-input-group__append__icon icon icon-people" ] []
     in
     Input.text .username (OnInput Username)
         |> Input.withId slug
@@ -68,7 +68,7 @@ usernameWithTooltipConfig showTooltip =
             "username"
 
         icon =
-            Html.i [ Attrs.class "icon icon-info", Events.onClick ToggleTooltip ] []
+            Html.i [ Attrs.class "icon icon-info fs-large", Events.onClick ToggleTooltip ] []
 
         tooltip =
             Tooltip.top [ Html.text H.loremIpsum ]
@@ -96,7 +96,7 @@ passwordGroupConfig =
             "password"
 
         lockIcon =
-            Html.i [ Attrs.class "icon icon-lock" ] []
+            Html.i [ Attrs.class "form-input-group__prepend__icon icon icon-lock" ] []
     in
     Input.password .password (OnInput Password)
         |> Input.withId slug
