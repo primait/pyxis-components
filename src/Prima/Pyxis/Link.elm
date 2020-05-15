@@ -410,7 +410,7 @@ buildClassList : Config msg -> Options msg -> Html.Attribute msg
 buildClassList (Config { type_, icon }) options =
     [ ( "link", True )
     , ( "link--standalone", isStandalone type_ )
-    , ( "link--icon", H.isJust icon )
+    , ( "link--with-icon", H.isJust icon )
     ]
         |> List.append options.classList
         |> List.append (List.map (H.flip Tuple.pair True) options.classes)
