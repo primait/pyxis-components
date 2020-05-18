@@ -38,6 +38,7 @@ module Prima.Pyxis.Link exposing
 import Html exposing (Html, a, text)
 import Html.Attributes as Attrs
 import Html.Events as Events
+import Maybe.Extra as ME
 import Prima.Pyxis.Helpers as H
 
 
@@ -360,12 +361,8 @@ render ((Config { label, icon, href }) as config) =
                 |> List.filterMap identity
     in
     a
-        (maybeHref
-            |> List.append (buildAttributes config)
-        )
-        [ icon
-            |> Maybe.map renderIcon
-            |> Maybe.withDefault (text "")
+        (List.append (buildAttributes config) maybeHref)
+        [ ME.unwrap (text "") renderIcon icon
         , text label
         ]
 

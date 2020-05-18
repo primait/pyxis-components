@@ -53,6 +53,7 @@ import Html exposing (Attribute, Html, text)
 import Html.Attributes as Attrs exposing (class, id, value)
 import Html.Events as Events
 import Json.Decode
+import Maybe.Extra as ME
 import Prima.Pyxis.Form.Commons.KeyboardEvents as KeyboardEvents
 import Prima.Pyxis.Form.Validation as Validation
 import Prima.Pyxis.Helpers as H
@@ -653,8 +654,7 @@ pickFocusedItemIndex (State { focused, choices }) =
         |> List.indexedMap Tuple.pair
         |> List.filter ((==) focused << Just << .value << Tuple.second)
         |> List.head
-        |> Maybe.map Tuple.first
-        |> Maybe.withDefault 0
+        |> ME.unwrap 0 Tuple.first
 
 
 {-| Internal. Returns the `SelectChoice` found by index.

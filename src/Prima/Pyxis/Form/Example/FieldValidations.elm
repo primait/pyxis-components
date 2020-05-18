@@ -8,6 +8,7 @@ module Prima.Pyxis.Form.Example.FieldValidations exposing
     , userPrivacyAcceptedValidation
     )
 
+import Maybe.Extra as ME
 import Prima.Pyxis.Form.Example.Model exposing (FormData)
 import Prima.Pyxis.Form.Validation as Validation
 import Prima.Pyxis.Helpers as H
@@ -24,7 +25,7 @@ notEmptyValidation mapper formData =
 
 atLeastTwoCharsValidation : (FormData -> Maybe String) -> FormData -> Maybe Validation.Type
 atLeastTwoCharsValidation mapper formData =
-    if (Maybe.withDefault False << Maybe.map ((>) 2 << String.length) << mapper) formData then
+    if (ME.unwrap False ((>) 2 << String.length) << mapper) formData then
         Just <| Validation.ErrorWithMessage "Insert at least 2 characters."
 
     else
@@ -33,7 +34,7 @@ atLeastTwoCharsValidation mapper formData =
 
 privacyValidation : FormData -> Maybe Validation.Type
 privacyValidation { privacy } =
-    if Maybe.withDefault True <| Maybe.map not privacy then
+    if ME.unwrap True not privacy then
         Just <| Validation.ErrorWithMessage "You must accept the privacy."
 
     else
@@ -42,7 +43,7 @@ privacyValidation { privacy } =
 
 powerSourceNotDieselValidation : FormData -> Maybe Validation.Type
 powerSourceNotDieselValidation { powerSource } =
-    if Maybe.withDefault False <| Maybe.map ((==) "diesel") powerSource then
+    if ME.unwrap False ((==) "diesel") powerSource then
         Just <| Validation.ErrorWithMessage "Cannot be Diesel"
 
     else
@@ -51,7 +52,7 @@ powerSourceNotDieselValidation { powerSource } =
 
 countryNotItalyValidation : FormData -> Maybe Validation.Type
 countryNotItalyValidation { country } =
-    if Maybe.withDefault False <| Maybe.map (not << (==) "italy") country then
+    if ME.unwrap False (not << (==) "italy") country then
         Just <| Validation.ErrorWithMessage "You must choose Italy"
 
     else

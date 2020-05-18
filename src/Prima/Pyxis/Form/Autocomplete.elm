@@ -53,6 +53,7 @@ import Html exposing (Html)
 import Html.Attributes as Attrs
 import Html.Events as Events
 import Json.Decode
+import Maybe.Extra as ME
 import Prima.Pyxis.Form.Commons.KeyboardEvents as KeyboardEvents
 import Prima.Pyxis.Form.Validation as Validation
 import Prima.Pyxis.Helpers as H
@@ -577,7 +578,8 @@ render model ((State stateConfig) as stateModel) autocompleteModel =
             (buildAttributes model stateModel autocompleteModel)
             []
         , Html.i
-            [ Attrs.class "form-autocomplete__search-icon" ] []
+            [ Attrs.class "form-autocomplete__search-icon" ]
+            []
         , Html.ul
             [ Attrs.class "form-autocomplete__list" ]
             (if List.length (filterChoices stateModel) > 0 then
@@ -710,10 +712,7 @@ filterChoices (State { choices, filter }) =
             (.label
                 >> String.toLower
                 >> String.contains
-                    (filter
-                        |> Maybe.map String.toLower
-                        |> Maybe.withDefault ""
-                    )
+                    (ME.unwrap "" String.toLower filter)
             )
 
 
@@ -726,8 +725,7 @@ hasReachedThreshold (State { filter }) autocompleteModel =
             computeOptions autocompleteModel
     in
     filter
-        |> Maybe.map String.length
-        |> Maybe.withDefault 0
+        |> ME.unwrap 0 String.length
         |> (<=) options.threshold
 
 
@@ -750,8 +748,7 @@ pickFocusedItemIndex ((State { focused }) as stateModel) =
         |> List.indexedMap Tuple.pair
         |> List.filter ((==) focused << Just << .value << Tuple.second)
         |> List.head
-        |> Maybe.map Tuple.first
-        |> Maybe.withDefault 0
+        |> ME.unwrap 0 Tuple.first
 
 
 {-| Internal. Returns the `AutocompleteChoice` found by index.
