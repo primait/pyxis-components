@@ -602,7 +602,7 @@ buildClasses (Config { emphasis, size }) options =
         , ( "btn--loading", isLoading emphasis )
         , ( "btn--small", isSmall size )
         , ( "btn--tiny", isTiny size )
-        , ( "btn--Medium", isMedium size )
+        , ( "btn--medium", isMedium size )
         ]
     , options.classes
         |> String.join " "

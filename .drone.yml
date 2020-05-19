@@ -33,13 +33,30 @@ steps:
     depends_on:
       - cache-restore
 
+  - name: analyse
+    image: node:10
+    environment:
+      YARN_CACHE_FOLDER: /drone/src/.cache
+    commands:
+      - yarn elm-analyse
+    depends_on:
+      - init
+
+  - name: review
+    image: node:10
+    environment:
+      YARN_CACHE_FOLDER: /drone/src/.cache
+    commands:
+      - yarn elm-review
+    depends_on:
+      - init
+
   - name: test
     image: node:10
     environment:
       YARN_CACHE_FOLDER: /drone/src/.cache
     commands:
-      - ./node_modules/.bin/elm-analyse
-      - ./node_modules/.bin/elm-review --compiler ./node_modules/.bin/elm
+      - yarn elm-test
     depends_on:
       - init
 
@@ -55,6 +72,8 @@ steps:
       - cache-save .cache node_modules
     depends_on:
       - test
+      - analyse
+      - review
     when:
       branch:
         - master
