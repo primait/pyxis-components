@@ -35,6 +35,7 @@ import Html.Attributes exposing (attribute, class, classList, colspan)
 import Html.Events
 import Json.Decode as JD
 import List.Extra as LE
+import Maybe.Extra as ME
 import Prima.Pyxis.Helpers as H
 
 
@@ -412,8 +413,7 @@ type alias ColSpan =
 sortRows : Options msg -> Int -> List (Row msg) -> List (Row msg)
 sortRows options columnIndex rows =
     List.sortBy
-        (Maybe.withDefault ""
-            << Maybe.map (columnToComparable options)
+        (ME.unwrap "" (columnToComparable options)
             << Array.get columnIndex
             << Array.fromList
             << pickColumnsFromRow

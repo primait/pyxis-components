@@ -6,9 +6,8 @@ module Prima.Pyxis.Helpers exposing
     , isNothing
     , loremIpsum
     , maybeCons
-    , maybeSingleton
-    , pyxisStyle
     , pyxisIconSetStyle
+    , pyxisStyle
     , renderIf
     , renderListIf
     , renderMaybe
@@ -28,9 +27,11 @@ pyxisStyle : Html msg
 pyxisStyle =
     Html.node "link" [ href "http://localhost:8080/pyxis.css", rel "stylesheet" ] []
 
+
 pyxisIconSetStyle : Html msg
 pyxisIconSetStyle =
     Html.node "link" [ href "https://s3.amazonaws.com/icomoon.io/98538/PyxisIconset30/style.css?226kae", rel "stylesheet" ] []
+
 
 loremIpsum : String
 loremIpsum =
@@ -118,13 +119,6 @@ classesAttribute =
 stopEvt : String -> msg -> Html.Attribute msg
 stopEvt eventType msg =
     Evt.custom eventType (JD.succeed { message = msg, stopPropagation = True, preventDefault = True })
-
-
-{-| A List.singleton implementation that accepts also maybe
--}
-maybeSingleton : Maybe a -> List a
-maybeSingleton =
-    Maybe.withDefault [] << Maybe.map List.singleton
 
 
 {-| Cons a maybe in a list if is Just

@@ -49,6 +49,7 @@ module Prima.Pyxis.Form exposing
 
 import Html exposing (Html)
 import Html.Attributes exposing (class)
+import Maybe.Extra as ME
 import Prima.Pyxis.Form.Autocomplete as Autocomplete
 import Prima.Pyxis.Form.Checkbox as Checkbox
 import Prima.Pyxis.Form.CheckboxFlag as CheckboxFlag
@@ -481,8 +482,7 @@ renderLabel : FormField model msg -> List (Html msg)
 renderLabel formField =
     formField
         |> pickLabel
-        |> Maybe.map (List.singleton << Label.render)
-        |> Maybe.withDefault []
+        |> ME.unwrap [] (List.singleton << Label.render)
 
 
 {-| Internal. Transforms a `FormField` into Html.

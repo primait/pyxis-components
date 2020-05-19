@@ -32,6 +32,7 @@ module Prima.Pyxis.AtrTable exposing
 import Html exposing (Html, option, select, text)
 import Html.Attributes exposing (selected, value)
 import Html.Events exposing (onInput)
+import Maybe.Extra as ME
 import Prima.Pyxis.Helpers as H
 import Prima.Pyxis.Table as Table
 
@@ -420,7 +421,7 @@ buildSelectOption atrType atrConfig optionValue =
     in
     option
         [ value optionValue
-        , (selected << Maybe.withDefault False << Maybe.map ((==) optionValue)) atrDetailsAccidents
+        , (selected << ME.unwrap False ((==) optionValue)) atrDetailsAccidents
         ]
         [ text optionValue
         ]

@@ -31,6 +31,7 @@ module Prima.Pyxis.Loader exposing
 
 import Html exposing (Html, div)
 import Html.Attributes as HA
+import Maybe.Extra as ME
 import Svg as Svg
 import Svg.Attributes as SA
 
@@ -122,7 +123,7 @@ render (Config { size, type_, text }) =
 
             Vehicle ->
                 renderVehicle
-        , (Maybe.withDefault (Html.text "") << Maybe.map renderText) text
+        , ME.unwrap (Html.text "") renderText text
         ]
 
 

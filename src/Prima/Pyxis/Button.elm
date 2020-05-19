@@ -38,6 +38,7 @@ module Prima.Pyxis.Button exposing
 import Html exposing (Html, button, span, text)
 import Html.Attributes as Attrs
 import Html.Events as Events
+import Maybe.Extra as ME
 
 
 {-| Represent the configuration of the `Button`.
@@ -512,9 +513,7 @@ render ((Config { label, icon }) as config) =
     button
         (buildAttributes config)
         [ span [ Attrs.class "btn__text" ] [ text label ]
-        , icon
-            |> Maybe.map renderIcon
-            |> Maybe.withDefault (text "")
+        , ME.unwrap (text "") renderIcon icon
         ]
 
 

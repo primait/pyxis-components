@@ -1,6 +1,7 @@
 module Prima.Pyxis.Form.Example.Update exposing (update)
 
 import Date
+import Maybe.Extra as ME
 import Prima.Pyxis.Form.Autocomplete as Autocomplete
 import Prima.Pyxis.Form.DatePicker as DatePicker
 import Prima.Pyxis.Form.Example.Model exposing (BirthDateField(..), Field(..), FormData, Model, Msg(..), UIState)
@@ -205,9 +206,7 @@ updateBirthDateDatePicker dpMsg model =
             (\fd ->
                 { fd
                     | birthDate =
-                        fd.birthDateDatePicker
-                            |> Maybe.map DatePicker.selectedDate
-                            |> Maybe.withDefault fd.birthDate
+                        ME.unwrap fd.birthDate DatePicker.selectedDate fd.birthDateDatePicker
                 }
             )
 
