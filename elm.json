@@ -45,5 +45,7 @@
         "elm-community/maybe-extra": "5.2.0 <= v < 6.0.0",
         "justinmimbs/date": "3.1.2 <= v < 4.0.0"
     },
-    "test-dependencies": {}
+    "test-dependencies": {
+        "elm-explorations/test": "1.2.2 <= v < 2.0.0"
+    }
 }
