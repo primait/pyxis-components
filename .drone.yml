@@ -54,7 +54,7 @@ steps:
     ELM_HOME: /drone/src/.cache/elm
     YARN_CACHE_FOLDER: /drone/src/.cache/yarn
   depends_on:
-  - cache-restore
+  - build-image
 
 - name: elm-analyse
   image: prima/pyxis-components-ci:1
@@ -151,6 +151,6 @@ depends_on:
 
 ---
 kind: signature
-hmac: 02408365565334bf8404027b8fd591c711d949146e162f1b6140d29571d60ec7
+hmac: c8855a8a3d228584311d0e1eff5288399de6de32a056049699d0381dc0a9ea5a
 
 ...
