@@ -47,7 +47,7 @@ steps:
   - cache-restore
 
 - name: dependencies
-  image: node:10
+  image: prima/pyxis-components-ci:1
   commands:
   - yarn
   environment:
@@ -57,7 +57,7 @@ steps:
   - cache-restore
 
 - name: elm-analyse
-  image: node:10
+  image: prima/pyxis-components-ci:1
   commands:
   - yarn elm-analyse
   environment:
@@ -67,7 +67,7 @@ steps:
   - dependencies
 
 - name: elm-review
-  image: node:10
+  image: prima/pyxis-components-ci:1
   commands:
   - yarn elm-review
   environment:
@@ -77,7 +77,7 @@ steps:
   - dependencies
 
 - name: test
-  image: node:10
+  image: prima/pyxis-components-ci:1
   commands:
   - yarn elm-test
   environment:
@@ -151,6 +151,6 @@ depends_on:
 
 ---
 kind: signature
-hmac: 7137ad5600a8dd386801331c1a8289207a7afb5c854be650ed9e50169c5c0495
+hmac: 02408365565334bf8404027b8fd591c711d949146e162f1b6140d29571d60ec7
 
 ...
