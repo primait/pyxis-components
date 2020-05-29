@@ -537,7 +537,7 @@ elm-json@^0.2.6:
   dependencies:
     binwrap "^0.2.2"
 
-elm-review@^2.0.2:
+elm-review@^2.1.0:
   version "2.1.1"
   resolved "https://registry.yarnpkg.com/elm-review/-/elm-review-2.1.1.tgz#f8a4ec4cb739535e4749c9c542b82f1e0b450b1e"
   integrity sha512-fkzUjYCnTEd5A6aZjcuDoo+zYU3jDvIPZKOk8zmz2lZFOoeftDeQwpVfdDFEuTzXiucHUaf13yjry/K1vDmSXQ==
