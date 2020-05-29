@@ -32,7 +32,7 @@ module Prima.Pyxis.Loader exposing
 import Html exposing (Html, div)
 import Html.Attributes as HA
 import Maybe.Extra as ME
-import Svg as Svg
+import Svg
 import Svg.Attributes as SA
 
 
