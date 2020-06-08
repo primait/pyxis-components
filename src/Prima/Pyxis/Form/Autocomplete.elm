@@ -6,6 +6,7 @@ module Prima.Pyxis.Form.Autocomplete exposing
     , withAttribute, withClass, withDefaultValue, withDisabled, withId, withName, withMediumSize, withSmallSize, withLargeSize, withPlaceholder, withThreshold, withOverridingClass
     , withOnBlur, withOnFocus
     , withValidation
+    , updateChoices, updateWithModel, updateWithModelAndCmd
     )
 
 {-|
@@ -66,6 +67,7 @@ type Msg
     | OnFilter String
     | OnSelect String
     | OnReset
+    | OnInput String
 
 
 {-| Represent the opaque `Autocomplete` configuration.
@@ -110,6 +112,9 @@ init choices =
 update : Msg -> State -> State
 update msg ((State state) as stateModel) =
     case msg of
+        OnInput value ->
+            updateOnInput (Just value) stateModel
+
         OnFilter value ->
             updateOnFilter (Just value) stateModel
 
@@ -130,6 +135,28 @@ update msg ((State state) as stateModel) =
 
         OnKeyPress Nothing ->
             stateModel
+
+
+updateWithModel : (Maybe String -> Cmd msg) -> (model -> State) -> model -> ( model, Cmd msg )
+updateWithModel fetch mapper model =
+    ( model, fetch <| filterValue <| mapper model )
+
+
+updateWithModelAndCmd : (Maybe String -> Cmd msg) -> (model -> State) -> ( model, Cmd msg ) -> ( model, Cmd msg )
+updateWithModelAndCmd fetch mapper ( model, cmd ) =
+    ( model, Cmd.batch [ cmd, fetch <| filterValue <| mapper model ] )
+
+
+updateChoices : List AutocompleteChoice -> State -> State
+updateChoices choices (State state) =
+    State { state | choices = choices }
+
+
+{-| Internal.
+-}
+updateOnInput : Maybe String -> State -> State
+updateOnInput value (State state) =
+    State { state | filter = value, isMenuOpen = True }
 
 
 {-| Internal.
@@ -548,7 +575,7 @@ filterReaderAttribute (State stateConfig) =
 -}
 filterTaggerAttribute : Html.Attribute Msg
 filterTaggerAttribute =
-    Events.onInput OnFilter
+    Events.onInput OnInput
 
 
 {-| Renders the `Autocomplete`.
