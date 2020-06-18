@@ -652,7 +652,6 @@ filterReaderAttribute (State stateConfig) =
         ( stateConfig.selected
         , stateConfig.isMenuOpen
         )
-            |> Debug.log "result"
     of
         ( Just currentValue, False ) ->
             stateConfig
