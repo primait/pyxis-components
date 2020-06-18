@@ -12,6 +12,6 @@
     "test": "./node_modules/.bin/elm-test"
   },
   "devDependencies": {
-    "elm-review": "^2.0.2"
+    "elm-review": "^2.1.0"
   }
 }
