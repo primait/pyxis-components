@@ -26,6 +26,7 @@ type Msg
     | AutocompleteMsg Autocomplete.Msg
     | OnTodayDateReceived Date.Date
     | ToggleTooltip
+    | GotCountries (List Autocomplete.AutocompleteChoice)
 
 
 type alias Model =
@@ -101,13 +102,8 @@ initialFormData =
     , country = Nothing
     , countryAutocomplete =
         Autocomplete.init
-            [ Autocomplete.autocompleteChoice "italy" "Italy"
-            , Autocomplete.autocompleteChoice "france" "France"
-            , Autocomplete.autocompleteChoice "spain" "Spain"
-            , Autocomplete.autocompleteChoice "usa" "U.S.A."
-            , Autocomplete.autocompleteChoice "germany" "Germany"
-            , Autocomplete.autocompleteChoice "uk" "U.K."
-            ]
+            |> Autocomplete.withThreshold 1
+            |> Autocomplete.withDebouncer 0.5
     , fiscalCode = Nothing
     , countryVisited = [ "italia", "francia" ]
     , birthDate = DatePicker.PartialDate Nothing

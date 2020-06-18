@@ -234,7 +234,6 @@ countryConfig state =
     in
     Autocomplete.autocomplete
         |> Autocomplete.withLargeSize
-        |> Autocomplete.withThreshold 1
         |> Autocomplete.withId slug
         |> Autocomplete.withValidation Validation.countryNotItalyValidation
         |> Form.autocomplete AutocompleteMsg state

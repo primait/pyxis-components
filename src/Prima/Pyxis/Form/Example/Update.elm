@@ -7,14 +7,25 @@ import Prima.Pyxis.Form.DatePicker as DatePicker
 import Prima.Pyxis.Form.Example.Model exposing (BirthDateField(..), Field(..), FormData, Model, Msg(..), UIState)
 import Prima.Pyxis.Form.Select as Select
 import Prima.Pyxis.Helpers as H
+import Task
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         AutocompleteMsg subMsg ->
+            let
+                ( autocompleteState, autocompleteCmd, filter ) =
+                    Autocomplete.update subMsg model.formData.countryAutocomplete
+            in
             model
-                |> updateAutocomplete subMsg
+                |> updateAutocomplete autocompleteState
+                |> H.withCmds [ Cmd.map AutocompleteMsg autocompleteCmd ]
+                |> applyAutocompleteCountryFilter filter
+
+        GotCountries choices ->
+            model
+                |> updateChoices choices
                 |> H.withoutCmds
 
         SelectMsg subMsg ->
@@ -113,9 +124,14 @@ update msg model =
             H.withoutCmds model
 
 
-updateAutocomplete : Autocomplete.Msg -> Model -> Model
-updateAutocomplete autocompleteMsg =
-    updateFormData (\f -> { f | countryAutocomplete = Autocomplete.update autocompleteMsg f.countryAutocomplete })
+updateChoices : List Autocomplete.AutocompleteChoice -> Model -> Model
+updateChoices choices =
+    updateFormData (\f -> { f | countryAutocomplete = Autocomplete.updateChoices choices f.countryAutocomplete })
+
+
+updateAutocomplete : Autocomplete.State -> Model -> Model
+updateAutocomplete autocompleteState =
+    updateFormData (\f -> { f | countryAutocomplete = autocompleteState })
         >> updateFormData (\f -> { f | country = Autocomplete.selectedValue f.countryAutocomplete })
 
 
@@ -267,3 +283,31 @@ updateUserPrivacyMarketing value =
 updateUserPrivacyThirdPart : Bool -> Model -> Model
 updateUserPrivacyThirdPart value =
     updateFormData (\f -> { f | userPrivacyThirdPart = Just value })
+
+
+applyAutocompleteCountryFilter : Maybe String -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
+applyAutocompleteCountryFilter filter ( model, cmd ) =
+    case filter of
+        Just value ->
+            ( model
+            , Cmd.batch [ cmd, fakeCallServerForAutocomplete value ]
+            )
+
+        Nothing ->
+            ( model, cmd )
+
+
+fakeCallServerForAutocomplete : String -> Cmd Msg
+fakeCallServerForAutocomplete filter =
+    List.filter (\( slug, _ ) -> String.contains filter slug)
+        [ ( "italy", "Italy" )
+        , ( "france", "France" )
+        , ( "spain", "Spain" )
+        , ( "usa", "U.S.A." )
+        , ( "germany", "Germany" )
+        , ( "uk", "U.K." )
+        ]
+        |> List.map (\( slug, label ) -> Autocomplete.AutocompleteChoice slug label)
+        |> GotCountries
+        |> Task.succeed
+        |> Task.perform identity
