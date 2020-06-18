@@ -144,7 +144,7 @@ update msg ((State state) as stateModel) =
             stateModel
                 |> updateOnInput (Just value)
                 |> H.withCmds [ send <| Debounce (Debouncer.provideInput OnFilter) ]
-                |> withoutFilter
+                |> addNoFilter
 
         Debounce subMsg ->
             let
@@ -168,7 +168,7 @@ update msg ((State state) as stateModel) =
                 Nothing ->
                     updatedState
                         |> H.withCmds [ mappedCmd ]
-                        |> withoutFilter
+                        |> addNoFilter
 
         OnFilter ->
             stateModel
@@ -178,32 +178,32 @@ update msg ((State state) as stateModel) =
         OnSelect value ->
             updateOnSelect (Just value) stateModel
                 |> H.withoutCmds
-                |> withoutFilter
+                |> addNoFilter
 
         OnReset ->
             updateOnReset stateModel
                 |> H.withoutCmds
-                |> withoutFilter
+                |> addNoFilter
 
         OnKeyPress (Just KeyboardEvents.UpKey) ->
             updateOnKeyUp stateModel
                 |> H.withoutCmds
-                |> withoutFilter
+                |> addNoFilter
 
         OnKeyPress (Just KeyboardEvents.DownKey) ->
             updateOnKeyDown stateModel
                 |> H.withoutCmds
-                |> withoutFilter
+                |> addNoFilter
 
         OnKeyPress (Just KeyboardEvents.EnterKey) ->
             updateOnSelect state.focused stateModel
                 |> H.withoutCmds
-                |> withoutFilter
+                |> addNoFilter
 
         OnKeyPress Nothing ->
             stateModel
                 |> H.withoutCmds
-                |> withoutFilter
+                |> addNoFilter
 
 
 {-| Internal. Convert `Msg` into `Cmd Msg`, useful to chain updates.
@@ -890,15 +890,15 @@ subscription =
 
 {-| Internal.
 -}
-withoutFilter : ( State, Cmd Msg ) -> ( State, Cmd Msg, Filter )
-withoutFilter =
-    withFilter Nothing
+addNoFilter : ( State, Cmd Msg ) -> ( State, Cmd Msg, Filter )
+addNoFilter =
+    addFilter Nothing
 
 
 {-| Internal.
 -}
-withFilter : Filter -> ( State, Cmd Msg ) -> ( State, Cmd Msg, Filter )
-withFilter filter ( state, cmd ) =
+addFilter : Filter -> ( State, Cmd Msg ) -> ( State, Cmd Msg, Filter )
+addFilter filter ( state, cmd ) =
     ( state, cmd, filter )
 
 
