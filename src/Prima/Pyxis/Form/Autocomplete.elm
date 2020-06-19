@@ -108,7 +108,7 @@ type alias StateConfig =
     , filter : Maybe String
     , isMenuOpen : Bool
     , choices : ChoicesStatus
-    , debouncerConfig : Debouncer.Debouncer Msg Msg
+    , debouncerState : Debouncer.Debouncer Msg Msg
     , threshold : Int
     }
 
@@ -142,22 +142,22 @@ update msg ((State state) as stateModel) =
 
         Debounce subMsg ->
             let
-                ( subModel, subCmd, emittedMsg ) =
-                    Debouncer.update subMsg state.debouncerConfig
+                ( debouncerState, debouncerCmd, emittedMsg ) =
+                    Debouncer.update subMsg state.debouncerState
 
                 mappedCmd : Cmd Msg
                 mappedCmd =
-                    Cmd.map Debounce subCmd
+                    Cmd.map Debounce debouncerCmd
 
                 updatedState : State
                 updatedState =
                     stateModel
-                        |> updateDebouncer subModel
+                        |> updateDebouncer debouncerState
             in
             case emittedMsg of
                 Just emitted ->
                     update emitted updatedState
-                        |> (\( state_, cmd, filter ) -> ( state_, Cmd.batch [ cmd, mappedCmd ], filter ))
+                        |> addCommands [ mappedCmd ]
 
                 Nothing ->
                     updatedState
@@ -244,8 +244,8 @@ withDebouncer secondsDebounce state =
 {-| Internal.
 -}
 updateDebouncer : Debouncer.Debouncer Msg Msg -> State -> State
-updateDebouncer debouncerConfig (State state) =
-    State { state | debouncerConfig = debouncerConfig }
+updateDebouncer debouncerState (State state) =
+    State { state | debouncerState = debouncerState }
 
 
 {-| Update the `AutocompleteChoice`
@@ -693,21 +693,29 @@ render model ((State stateConfig) as stateModel) autocompleteModel =
         , pristineAttribute stateModel autocompleteModel
         ]
         [ Html.input
-            (List.append (buildAttributes model stateModel autocompleteModel) [ Attrs.autocomplete False ])
+            (buildAttributes model stateModel autocompleteModel)
             []
         , Html.i
-            [ Attrs.class "form-autocomplete__search-icon" ]
+            [ Attrs.class <|
+                case stateConfig.choices of
+                    Loading ->
+                        "form-autocomplete__spinner-icon"
+
+                    _ ->
+                        "form-autocomplete__search-icon"
+            ]
             []
         , Html.ul
             [ Attrs.class "form-autocomplete__list" ]
-            (if isChoicesLoading stateConfig then
-                renderAutocompleteLoading
+            (case ( stateConfig.choices, hasReachedThreshold stateModel ) of
+                ( Loaded [], True ) ->
+                    renderAutocompleteNoResults
 
-             else if currentChoicesLength stateConfig > 0 && hasReachedThreshold stateModel then
-                List.map (renderAutocompleteChoice stateModel) (currentChoices stateConfig)
+                ( Loaded _, True ) ->
+                    List.map (renderAutocompleteChoice stateModel) (currentChoices stateConfig)
 
-             else
-                renderAutocompleteNoResults
+                _ ->
+                    []
             )
         , renderResetIcon
             |> H.renderIf hasSelectedAnyChoice
@@ -926,3 +934,10 @@ isChoicesLoading state =
 
         _ ->
             False
+
+
+{-| Internal.
+-}
+addCommands : List (Cmd Msg) -> ( State, Cmd Msg, Maybe String ) -> ( State, Cmd Msg, Maybe String )
+addCommands cmds ( state, cmd, filter ) =
+    ( state, Cmd.batch <| [ cmd ] ++ cmds, filter )
