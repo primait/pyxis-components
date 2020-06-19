@@ -1,12 +1,12 @@
 module Prima.Pyxis.Form.Autocomplete exposing
     ( Autocomplete, State, Msg, AutocompleteChoice
-    , autocomplete, init, update, autocompleteChoice
+    , autocomplete, init, update, autocompleteChoice, withThreshold, withDebouncer
     , render
     , selectedValue, filterValue, subscription
-    , withAttribute, withClass, withDefaultValue, withDisabled, withId, withName, withMediumSize, withSmallSize, withLargeSize, withPlaceholder, withThreshold, withOverridingClass
+    , withAttribute, withClass, withDefaultValue, withDisabled, withId, withName, withMediumSize, withSmallSize, withLargeSize, withPlaceholder, withOverridingClass
     , withOnBlur, withOnFocus
     , withValidation
-    , updateChoices, withDebouncer
+    , updateChoices
     )
 
 {-|
@@ -19,7 +19,7 @@ module Prima.Pyxis.Form.Autocomplete exposing
 
 ## Configuration Methods
 
-@docs autocomplete, init, update, autocompleteChoice
+@docs autocomplete, init, update, autocompleteChoice, withThreshold, withDebouncer
 
 
 ## Rendering
@@ -34,7 +34,7 @@ module Prima.Pyxis.Form.Autocomplete exposing
 
 ## Options
 
-@docs withAttribute, withClass, withDefaultValue, withDisabled, withId, withName, withMediumSize, withSmallSize, withLargeSize, withPlaceholder, withThreshold, withOverridingClass
+@docs withAttribute, withClass, withDefaultValue, withDisabled, withId, withName, withMediumSize, withSmallSize, withLargeSize, withPlaceholder, withOverridingClass
 
 
 ## Event Options
@@ -85,12 +85,6 @@ type alias AutocompleteConfig model =
     List (AutocompleteOption model)
 
 
-{-| Internal. Filter alias.
--}
-type alias Filter =
-    Maybe String
-
-
 {-| Internal. The `State` of the `AutocompleteChoice` list
 -}
 type ChoicesStatus
@@ -111,7 +105,7 @@ The configuration of the `Autocomplete`'s `State`.
 type alias StateConfig =
     { focused : Maybe String
     , selected : Maybe String
-    , filter : Filter
+    , filter : Maybe String
     , isMenuOpen : Bool
     , choices : ChoicesStatus
     , quiteFor100ms : Debouncer.Debouncer Msg Msg
@@ -137,7 +131,7 @@ initDebouncer secondsDebounce =
 
 {-| Updates the `Autocomplete`'s `State`.
 -}
-update : Msg -> State -> ( State, Cmd Msg, Filter )
+update : Msg -> State -> ( State, Cmd Msg, Maybe String )
 update msg ((State state) as stateModel) =
     case msg of
         OnInput value ->
@@ -216,7 +210,7 @@ send msg =
 
 {-| Internal. Append `Filter`, alias of `Maybe String`, to tell parent when update the choices and with which string.
 -}
-maybeWithFilter : Filter -> ( State, Cmd Msg ) -> ( State, Cmd Msg, Filter )
+maybeWithFilter : Maybe String -> ( State, Cmd Msg ) -> ( State, Cmd Msg, Maybe String )
 maybeWithFilter filter ( state, cmd ) =
     ( state
     , cmd
@@ -890,14 +884,14 @@ subscription =
 
 {-| Internal.
 -}
-addNoFilter : ( State, Cmd Msg ) -> ( State, Cmd Msg, Filter )
+addNoFilter : ( State, Cmd Msg ) -> ( State, Cmd Msg, Maybe String )
 addNoFilter =
     addFilter Nothing
 
 
 {-| Internal.
 -}
-addFilter : Filter -> ( State, Cmd Msg ) -> ( State, Cmd Msg, Filter )
+addFilter : Maybe String -> ( State, Cmd Msg ) -> ( State, Cmd Msg, Maybe String )
 addFilter filter ( state, cmd ) =
     ( state, cmd, filter )
 
