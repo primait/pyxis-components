@@ -108,7 +108,7 @@ type alias StateConfig =
     , filter : Maybe String
     , isMenuOpen : Bool
     , choices : ChoicesStatus
-    , quiteFor100ms : Debouncer.Debouncer Msg Msg
+    , debouncerConfig : Debouncer.Debouncer Msg Msg
     , threshold : Int
     }
 
@@ -143,7 +143,7 @@ update msg ((State state) as stateModel) =
         Debounce subMsg ->
             let
                 ( subModel, subCmd, emittedMsg ) =
-                    Debouncer.update subMsg state.quiteFor100ms
+                    Debouncer.update subMsg state.debouncerConfig
 
                 mappedCmd : Cmd Msg
                 mappedCmd =
@@ -244,8 +244,8 @@ withDebouncer secondsDebounce state =
 {-| Internal.
 -}
 updateDebouncer : Debouncer.Debouncer Msg Msg -> State -> State
-updateDebouncer debounceModel (State state) =
-    State { state | quiteFor100ms = debounceModel }
+updateDebouncer debouncerConfig (State state) =
+    State { state | debouncerConfig = debouncerConfig }
 
 
 {-| Update the `AutocompleteChoice`
