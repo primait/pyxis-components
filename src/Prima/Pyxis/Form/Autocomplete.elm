@@ -59,6 +59,7 @@ import Maybe.Extra as ME
 import Prima.Pyxis.Form.Commons.KeyboardEvents as KeyboardEvents
 import Prima.Pyxis.Form.Validation as Validation
 import Prima.Pyxis.Helpers as H
+import Prima.Pyxis.Loader as Loader
 import Task
 
 
@@ -699,7 +700,7 @@ render model ((State stateConfig) as stateModel) autocompleteModel =
             [ Attrs.class <|
                 case stateConfig.choices of
                     Loading ->
-                        "loader__spinner"
+                        "form-autocomplete__spinner-icon"
 
                     _ ->
                         "form-autocomplete__search-icon"
