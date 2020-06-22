@@ -2,7 +2,8 @@ module Prima.Pyxis.Form.Example.FieldConfig exposing
     ( birthDateCompoundConfig
     , birthDateConfig
     , checkboxConfig
-    , countryConfig
+    , countryAutocompleteConfig
+    , countrySelectConfig
     , fiscalCodeGroupConfig
     , guideTypeConfig
     , passwordGroupConfig
@@ -33,6 +34,7 @@ import Prima.Pyxis.Form.Radio as Radio
 import Prima.Pyxis.Form.RadioButton as RadioButton
 import Prima.Pyxis.Form.RadioFlag as RadioFlag
 import Prima.Pyxis.Form.Select as Select
+import Prima.Pyxis.Form.SelectWithFilter as SelectWithFilter
 import Prima.Pyxis.Form.TextArea as TextArea
 import Prima.Pyxis.Helpers as H
 import Prima.Pyxis.Link as Link
@@ -226,8 +228,8 @@ powerSourceConfig state =
             )
 
 
-countryConfig : Autocomplete.State -> Form.FormField FormData Msg
-countryConfig state =
+countryAutocompleteConfig : Autocomplete.State -> Form.FormField FormData Msg
+countryAutocompleteConfig state =
     let
         slug =
             "country-test"
@@ -237,6 +239,24 @@ countryConfig state =
         |> Autocomplete.withId slug
         |> Autocomplete.withValidation Validation.countryNotItalyValidation
         |> Form.autocomplete AutocompleteMsg state
+        |> Form.withLabel
+            ("Paese di nascita"
+                |> Label.label
+                |> Label.withFor slug
+            )
+
+
+countrySelectConfig : SelectWithFilter.State -> Form.FormField FormData Msg
+countrySelectConfig state =
+    let
+        slug =
+            "country-test2"
+    in
+    SelectWithFilter.selectWithFilter
+        |> SelectWithFilter.withLargeSize
+        |> SelectWithFilter.withId slug
+        |> SelectWithFilter.withValidation Validation.countryNotItalyValidation
+        |> Form.selectWithFilter SelectWithFilterMsg state
         |> Form.withLabel
             ("Paese di nascita"
                 |> Label.label

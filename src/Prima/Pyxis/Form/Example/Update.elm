@@ -6,6 +6,7 @@ import Prima.Pyxis.Form.Autocomplete as Autocomplete
 import Prima.Pyxis.Form.DatePicker as DatePicker
 import Prima.Pyxis.Form.Example.Model exposing (BirthDateField(..), Field(..), FormData, Model, Msg(..), UIState)
 import Prima.Pyxis.Form.Select as Select
+import Prima.Pyxis.Form.SelectWithFilter as SelectWithFilter
 import Prima.Pyxis.Helpers as H
 import Task
 
@@ -22,6 +23,11 @@ update msg model =
                 |> updateAutocomplete autocompleteState
                 |> H.withCmds [ Cmd.map AutocompleteMsg autocompleteCmd ]
                 |> applyAutocompleteCountryFilter filter
+
+        SelectWithFilterMsg subMsg ->
+            model
+                |> updateSelectWithFilter (SelectWithFilter.update subMsg model.formData.countrySelectWithFilter)
+                |> H.withoutCmds
 
         GotCountries choices ->
             model
@@ -133,6 +139,12 @@ updateAutocomplete : Autocomplete.State -> Model -> Model
 updateAutocomplete autocompleteState =
     updateFormData (\f -> { f | countryAutocomplete = autocompleteState })
         >> updateFormData (\f -> { f | country = Autocomplete.selectedValue f.countryAutocomplete })
+
+
+updateSelectWithFilter : SelectWithFilter.State -> Model -> Model
+updateSelectWithFilter selectWithFilterState =
+    updateFormData (\f -> { f | countrySelectWithFilter = selectWithFilterState })
+        >> updateFormData (\f -> { f | country = SelectWithFilter.selectedValue f.countrySelectWithFilter })
 
 
 updateSelect : Select.Msg -> Model -> Model

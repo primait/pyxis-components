@@ -12,6 +12,7 @@
         "Prima.Pyxis.DownloadButton",
         "Prima.Pyxis.Form",
         "Prima.Pyxis.Form.Autocomplete",
+        "Prima.Pyxis.Form.SelectWithFilter",
         "Prima.Pyxis.Form.Checkbox",
         "Prima.Pyxis.Form.CheckboxFlag",
         "Prima.Pyxis.Form.Date",

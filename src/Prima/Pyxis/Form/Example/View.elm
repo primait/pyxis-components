@@ -80,7 +80,10 @@ formConfig model =
             [ Config.powerSourceConfig model.formData.powerSourceSelect
             ]
         |> Form.withFields
-            [ Config.countryConfig model.formData.countryAutocomplete
+            [ Config.countryAutocompleteConfig model.formData.countryAutocomplete
+            ]
+        |> Form.withFields
+            [ Config.countrySelectConfig model.formData.countrySelectWithFilter
             ]
         |> Form.withFields
             [ Config.checkboxConfig

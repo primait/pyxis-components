@@ -13,6 +13,7 @@ import Prima.Pyxis.Form as Form
 import Prima.Pyxis.Form.Autocomplete as Autocomplete
 import Prima.Pyxis.Form.DatePicker as DatePicker
 import Prima.Pyxis.Form.Select as Select
+import Prima.Pyxis.Form.SelectWithFilter as SelectWithFilter
 
 
 type Msg
@@ -24,6 +25,7 @@ type Msg
     | OnDatePickerUpdate Field DatePicker.Msg
     | SelectMsg Select.Msg
     | AutocompleteMsg Autocomplete.Msg
+    | SelectWithFilterMsg SelectWithFilter.Msg
     | OnTodayDateReceived Date.Date
     | ToggleTooltip
     | GotCountries (List Autocomplete.AutocompleteChoice)
@@ -71,6 +73,7 @@ type alias FormData =
     , powerSourceSelect : Select.State
     , country : Maybe String
     , countryAutocomplete : Autocomplete.State
+    , countrySelectWithFilter : SelectWithFilter.State
     , fiscalCode : Maybe String
     , countryVisited : List String
     , birthDate : DatePicker.Date
@@ -104,6 +107,15 @@ initialFormData =
         Autocomplete.init
             |> Autocomplete.withThreshold 1
             |> Autocomplete.withDebouncer 0.5
+    , countrySelectWithFilter =
+        SelectWithFilter.init
+            [ SelectWithFilter.selectWithFilterChoice "italy" "Italy"
+            , SelectWithFilter.selectWithFilterChoice "france" "France"
+            , SelectWithFilter.selectWithFilterChoice "spain" "Spain"
+            , SelectWithFilter.selectWithFilterChoice "usa" "U.S.A."
+            , SelectWithFilter.selectWithFilterChoice "germany" "Germany"
+            , SelectWithFilter.selectWithFilterChoice "uk" "U.K."
+            ]
     , fiscalCode = Nothing
     , countryVisited = [ "italia", "francia" ]
     , birthDate = DatePicker.PartialDate Nothing

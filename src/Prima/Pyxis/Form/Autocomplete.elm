@@ -145,8 +145,8 @@ update msg ((State state) as stateModel) =
                 ( debouncerState, debouncerCmd, emittedMsg ) =
                     Debouncer.update subMsg state.debouncerState
 
-                mappedCmd : Cmd Msg
-                mappedCmd =
+                debounceCmd : Cmd Msg
+                debounceCmd =
                     Cmd.map Debounce debouncerCmd
 
                 updatedState : State
@@ -157,11 +157,11 @@ update msg ((State state) as stateModel) =
             case emittedMsg of
                 Just emitted ->
                     update emitted updatedState
-                        |> addCommands [ mappedCmd ]
+                        |> addCommands [ debounceCmd ]
 
                 Nothing ->
                     updatedState
-                        |> H.withCmds [ mappedCmd ]
+                        |> H.withCmds [ debounceCmd ]
                         |> addNoFilter
 
         OnFilter ->
@@ -914,26 +914,6 @@ currentChoices state =
 
         _ ->
             []
-
-
-{-| Internal.
--}
-currentChoicesLength : StateConfig -> Int
-currentChoicesLength =
-    currentChoices
-        >> List.length
-
-
-{-| Internal.
--}
-isChoicesLoading : StateConfig -> Bool
-isChoicesLoading state =
-    case state.choices of
-        Loading ->
-            True
-
-        _ ->
-            False
 
 
 {-| Internal.
