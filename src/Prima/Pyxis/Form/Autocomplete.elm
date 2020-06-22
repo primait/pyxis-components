@@ -699,7 +699,7 @@ render model ((State stateConfig) as stateModel) autocompleteModel =
             [ Attrs.class <|
                 case stateConfig.choices of
                     Loading ->
-                        "form-autocomplete__spinner-icon"
+                        "loader__spinner"
 
                     _ ->
                         "form-autocomplete__search-icon"
@@ -742,16 +742,6 @@ renderAutocompleteNoResults =
     [ Html.li
         [ Attrs.class "form-autocomplete__list--no-results" ]
         [ Html.text "Nessun risultato." ]
-    ]
-
-
-{-| Internal. Renders the `AutocompleteChoice` list loading.
--}
-renderAutocompleteLoading : List (Html Msg)
-renderAutocompleteLoading =
-    [ Html.li
-        [ Attrs.class "form-autocomplete__list--no-results" ]
-        [ Html.text "Aggiornamento..." ]
     ]
 
 
