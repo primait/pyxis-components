@@ -59,7 +59,6 @@ import Maybe.Extra as ME
 import Prima.Pyxis.Form.Commons.KeyboardEvents as KeyboardEvents
 import Prima.Pyxis.Form.Validation as Validation
 import Prima.Pyxis.Helpers as H
-import Prima.Pyxis.Loader as Loader
 import Task
 
 
