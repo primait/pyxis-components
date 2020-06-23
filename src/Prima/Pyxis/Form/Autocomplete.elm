@@ -258,12 +258,12 @@ updateChoices choices (State state) =
 {-| Internal.
 -}
 updateOnFilter : ( State, Cmd Msg, Maybe String ) -> ( State, Cmd Msg, Maybe String )
-updateOnFilter ( State state, cmd, filter ) =
-    ( filter
-        |> ME.unwrap (State state) (always (State { state | choices = Loading }))
-    , cmd
-    , filter
-    )
+updateOnFilter (( State state, cmd, filter ) as stateCmdFilter) =
+    if ME.isJust filter then
+        ( State { state | choices = Loading }, cmd, filter )
+
+    else
+        stateCmdFilter
 
 
 {-| Internal.
