@@ -1,12 +1,11 @@
 module Prima.Pyxis.Form.FilterableSelect exposing
     ( FilterableSelect, State, Msg
-    , init, update, filterableSelectChoice
+    , filterableSelect, init, update, filterableSelectChoice
     , render
     , selectedValue, filterValue, subscription
     , withAttribute, withClass, withDefaultValue, withDisabled, withId, withName, withMediumSize, withSmallSize, withLargeSize, withPlaceholder, withOverridingClass
     , withOnBlur, withOnFocus
     , withValidation
-    , filterableSelect
     )
 
 {-|
@@ -19,7 +18,7 @@ module Prima.Pyxis.Form.FilterableSelect exposing
 
 ## Configuration Methods
 
-@docs autocomplete, init, update, filterableSelectChoice
+@docs filterableSelect, init, update, filterableSelectChoice
 
 
 ## Rendering
@@ -166,7 +165,7 @@ filterValue =
     Autocomplete.filterValue
 
 
-{-| Needed to wire keyboard events to the `Autocomplete`.
+{-| Needed to wire keyboard events to the `FilterableSelect`.
 -}
 subscription : Sub Autocomplete.Msg
 subscription =

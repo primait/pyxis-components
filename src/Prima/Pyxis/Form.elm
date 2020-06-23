@@ -3,10 +3,9 @@ module Prima.Pyxis.Form exposing
     , init
     , withFields, withFieldsAndLegend
     , legend, legendWithPrependableHtml, legendWithAppendableHtml
-    , input, inputList, autocomplete, checkbox, date, flag, radio, radioFlag, radioButton, select, textArea
+    , input, inputList, autocomplete, checkbox, date, filterableSelect, flag, radio, radioFlag, radioButton, select, textArea
     , withLabel, withAppendableHtml
     , render
-    , filterableSelect
     )
 
 {-|
@@ -34,7 +33,7 @@ module Prima.Pyxis.Form exposing
 
 ## Defining Fields
 
-@docs input, inputList, autocomplete, checkbox, date, flag, radio, radioFlag, radioButton, select, textArea
+@docs input, inputList, autocomplete, checkbox, date, filterableSelect, flag, radio, radioFlag, radioButton, select, textArea
 
 
 ## Manipulating Fields
