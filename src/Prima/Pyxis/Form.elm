@@ -3,7 +3,7 @@ module Prima.Pyxis.Form exposing
     , init
     , withFields, withFieldsAndLegend
     , legend, legendWithPrependableHtml, legendWithAppendableHtml
-    , input, inputList, autocomplete, checkbox, date, flag, radio, radioFlag, radioButton, select, textArea
+    , input, inputList, autocomplete, checkbox, date, filterableSelect, flag, radio, radioFlag, radioButton, select, textArea
     , withLabel, withAppendableHtml
     , render
     )
@@ -33,7 +33,7 @@ module Prima.Pyxis.Form exposing
 
 ## Defining Fields
 
-@docs input, inputList, autocomplete, checkbox, date, flag, radio, radioFlag, radioButton, select, textArea
+@docs input, inputList, autocomplete, checkbox, date, filterableSelect, flag, radio, radioFlag, radioButton, select, textArea
 
 
 ## Manipulating Fields
@@ -54,6 +54,7 @@ import Prima.Pyxis.Form.Autocomplete as Autocomplete
 import Prima.Pyxis.Form.Checkbox as Checkbox
 import Prima.Pyxis.Form.CheckboxFlag as CheckboxFlag
 import Prima.Pyxis.Form.Date as Date
+import Prima.Pyxis.Form.FilterableSelect as FilterableSelect
 import Prima.Pyxis.Form.Grid as Grid
 import Prima.Pyxis.Form.Input as Input
 import Prima.Pyxis.Form.Label as Label
@@ -164,6 +165,7 @@ type FormField model msg
     | SelectField (SelectFieldConfig model msg)
     | DateField (DateFieldConfig model msg)
     | AutocompleteField (AutocompleteFieldConfig model msg)
+    | FilterableSelectField (FilterableSelectFieldConfig model msg)
     | CheckboxField (CheckboxFieldConfig model msg)
     | CheckboxFlagField (CheckboxFlagFieldConfig model msg)
     | RadioButtonField (RadioButtonFieldConfig model msg)
@@ -216,6 +218,9 @@ pickLabel formField =
             label
 
         DateField { label } ->
+            label
+
+        FilterableSelectField { label } ->
             label
 
 
@@ -347,6 +352,24 @@ autocomplete msgMapper state config =
     AutocompleteField <| AutocompleteFieldConfig msgMapper state config Nothing []
 
 
+{-| Internal. Represent the configuration of a `FormField` which holds an `FilterableSelect` component.
+-}
+type alias FilterableSelectFieldConfig model msg =
+    { msgMapper : FilterableSelect.Msg -> msg
+    , state : FilterableSelect.State
+    , config : FilterableSelect.FilterableSelect model
+    , label : Maybe (Label.Label msg)
+    , appendableHtml : List (Html msg)
+    }
+
+
+{-| Transforms an `FilterableSelect` component into a `FormField`.
+-}
+filterableSelect : (FilterableSelect.Msg -> msg) -> FilterableSelect.State -> FilterableSelect.FilterableSelect model -> FormField model msg
+filterableSelect msgMapper state config =
+    FilterableSelectField <| FilterableSelectFieldConfig msgMapper state config Nothing []
+
+
 {-| Internal. Represent the configuration of a `FormField` which holds a `Date` component.
 -}
 type alias DateFieldConfig model msg =
@@ -436,6 +459,9 @@ withLabel lbl formField =
         DateField fieldConfig ->
             DateField { fieldConfig | label = Just lbl }
 
+        FilterableSelectField fieldConfig ->
+            FilterableSelectField { fieldConfig | label = Just lbl }
+
 
 {-| Adds a list of `Html` to a `FormField`. They will be printed after the component tag and it's wrapper.
 -}
@@ -474,6 +500,9 @@ withAppendableHtml html formField =
 
         DateField fieldConfig ->
             DateField { fieldConfig | appendableHtml = html }
+
+        FilterableSelectField fieldConfig ->
+            FilterableSelectField { fieldConfig | appendableHtml = html }
 
 
 {-| Internal. Transforms a `FormField` label into Html.
@@ -530,6 +559,12 @@ renderField model formField =
 
         DateField { config, appendableHtml } ->
             Date.render model config ++ renderAppendableHtml appendableHtml
+
+        FilterableSelectField { msgMapper, state, config, appendableHtml } ->
+            config
+                |> FilterableSelect.render model state.autocompleteState
+                |> List.map (Html.map msgMapper)
+                |> H.flip List.append (renderAppendableHtml appendableHtml)
 
 
 {-| Renders the form with all his fields.

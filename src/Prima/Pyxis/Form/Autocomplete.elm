@@ -3,9 +3,10 @@ module Prima.Pyxis.Form.Autocomplete exposing
     , autocomplete, init, update, autocompleteChoice
     , render
     , selectedValue, filterValue, subscription
-    , withAttribute, withClass, withDefaultValue, withDisabled, withId, withName, withMediumSize, withSmallSize, withLargeSize, withPlaceholder, withThreshold, withOverridingClass
+    , withAttribute, withClass, withDebouncer, withDefaultValue, withDisabled, withId, withLargeSize, withMediumSize, withName, withOverridingClass, withPlaceholder, withSmallSize, withThreshold
     , withOnBlur, withOnFocus
     , withValidation
+    , updateChoices
     )
 
 {-|
@@ -33,7 +34,7 @@ module Prima.Pyxis.Form.Autocomplete exposing
 
 ## Options
 
-@docs withAttribute, withClass, withDefaultValue, withDisabled, withId, withName, withMediumSize, withSmallSize, withLargeSize, withPlaceholder, withThreshold, withOverridingClass
+@docs withAttribute, withClass, withDebouncer, withDefaultValue, withDisabled, withId, withLargeSize, withMediumSize, withName, withOverridingClass, withPlaceholder, withSmallSize, withThreshold
 
 
 ## Event Options
@@ -49,6 +50,7 @@ module Prima.Pyxis.Form.Autocomplete exposing
 
 import Array
 import Browser.Events
+import Debouncer.Basic as Debouncer
 import Html exposing (Html)
 import Html.Attributes as Attrs
 import Html.Events as Events
@@ -57,15 +59,18 @@ import Maybe.Extra as ME
 import Prima.Pyxis.Form.Commons.KeyboardEvents as KeyboardEvents
 import Prima.Pyxis.Form.Validation as Validation
 import Prima.Pyxis.Helpers as H
+import Task
 
 
 {-| Represents the Msg of the `Autocomplete`.
 -}
 type Msg
     = OnKeyPress (Maybe KeyboardEvents.KeyCode)
-    | OnFilter String
+    | OnFilter
     | OnSelect String
     | OnReset
+    | OnInput String
+    | Debounce (Debouncer.Msg Msg)
 
 
 {-| Represent the opaque `Autocomplete` configuration.
@@ -78,6 +83,14 @@ type Autocomplete model
 -}
 type alias AutocompleteConfig model =
     List (AutocompleteOption model)
+
+
+{-| Internal. The `State` of the `AutocompleteChoice` list
+-}
+type ChoicesStatus
+    = Loaded (List AutocompleteChoice)
+    | Loading
+    | Pristine
 
 
 {-| The `State` of the `Autocomplete`
@@ -94,48 +107,165 @@ type alias StateConfig =
     , selected : Maybe String
     , filter : Maybe String
     , isMenuOpen : Bool
-    , choices : List AutocompleteChoice
+    , choices : ChoicesStatus
+    , debouncerState : Debouncer.Debouncer Msg Msg
+    , threshold : Int
     }
 
 
 {-| Initializes the `Autocomplete`'s `State`.
 -}
-init : List AutocompleteChoice -> State
-init choices =
-    State <| StateConfig Nothing Nothing Nothing False choices
+init : State
+init =
+    State <| StateConfig Nothing Nothing Nothing False Pristine (initDebouncer 0) 1
+
+
+{-| Internal. Debouncer initializer
+-}
+initDebouncer : Float -> Debouncer.Debouncer o o
+initDebouncer secondsDebounce =
+    Debouncer.manual
+        |> Debouncer.settleWhenQuietFor (Just <| Debouncer.fromSeconds secondsDebounce)
+        |> Debouncer.toDebouncer
 
 
 {-| Updates the `Autocomplete`'s `State`.
 -}
-update : Msg -> State -> State
+update : Msg -> State -> ( State, Cmd Msg, Maybe String )
 update msg ((State state) as stateModel) =
     case msg of
-        OnFilter value ->
-            updateOnFilter (Just value) stateModel
+        OnInput value ->
+            stateModel
+                |> updateOnInput (Just value)
+                |> H.withCmds [ send <| Debounce (Debouncer.provideInput OnFilter) ]
+                |> addReturningFilter Nothing
+
+        Debounce subMsg ->
+            let
+                ( debouncerState, debouncerCmd, emittedMsg ) =
+                    Debouncer.update subMsg state.debouncerState
+
+                debounceCmd : Cmd Msg
+                debounceCmd =
+                    Cmd.map Debounce debouncerCmd
+
+                updatedState : State
+                updatedState =
+                    stateModel
+                        |> updateDebouncer debouncerState
+            in
+            case emittedMsg of
+                Just emitted ->
+                    update emitted updatedState
+                        |> addCommands [ debounceCmd ]
+
+                Nothing ->
+                    updatedState
+                        |> H.withCmds [ debounceCmd ]
+                        |> addReturningFilter Nothing
+
+        OnFilter ->
+            stateModel
+                |> updateOnFilter
+                |> H.withoutCmds
+                |> maybeWithFilter state.filter
 
         OnSelect value ->
             updateOnSelect (Just value) stateModel
+                |> H.withoutCmds
+                |> addReturningFilter Nothing
 
         OnReset ->
             updateOnReset stateModel
+                |> H.withoutCmds
+                |> addReturningFilter Nothing
 
         OnKeyPress (Just KeyboardEvents.UpKey) ->
             updateOnKeyUp stateModel
+                |> H.withoutCmds
+                |> addReturningFilter Nothing
 
         OnKeyPress (Just KeyboardEvents.DownKey) ->
             updateOnKeyDown stateModel
+                |> H.withoutCmds
+                |> addReturningFilter Nothing
 
         OnKeyPress (Just KeyboardEvents.EnterKey) ->
             updateOnSelect state.focused stateModel
+                |> H.withoutCmds
+                |> addReturningFilter Nothing
 
         OnKeyPress Nothing ->
             stateModel
+                |> H.withoutCmds
+                |> addReturningFilter Nothing
+
+
+{-| Internal. Convert `Msg` into `Cmd Msg`, useful to chain updates.
+-}
+send : Msg -> Cmd Msg
+send =
+    Task.perform identity << Task.succeed
+
+
+{-| Internal. Append `Maybe String` to tell parent when update the choices and with which string.
+-}
+maybeWithFilter : Maybe String -> ( State, Cmd Msg ) -> ( State, Cmd Msg, Maybe String )
+maybeWithFilter filter ( state, cmd ) =
+    ( state
+    , cmd
+    , filter
+        |> Maybe.andThen
+            (\value ->
+                if hasReachedThreshold state then
+                    Just value
+
+                else
+                    Nothing
+            )
+    )
+
+
+{-| Set the threshold for the filter application.
+-}
+withThreshold : Int -> State -> State
+withThreshold threshold (State state) =
+    State { state | threshold = threshold }
+
+
+{-| Set the seconds for the debounce.
+-}
+withDebouncer : Float -> State -> State
+withDebouncer secondsDebounce state =
+    state
+        |> updateDebouncer (initDebouncer secondsDebounce)
 
 
 {-| Internal.
 -}
-updateOnFilter : Maybe String -> State -> State
-updateOnFilter value (State state) =
+updateDebouncer : Debouncer.Debouncer Msg Msg -> State -> State
+updateDebouncer debouncerState (State state) =
+    State { state | debouncerState = debouncerState }
+
+
+{-| Update the `AutocompleteChoice`
+-}
+updateChoices : List AutocompleteChoice -> State -> State
+updateChoices choices (State state) =
+    State { state | choices = Loaded choices }
+
+
+{-| Internal.
+-}
+updateOnFilter : State -> State
+updateOnFilter (State state) =
+    State { state | choices = Loading }
+
+
+{-| Internal.
+-}
+updateOnInput : Maybe String -> State -> State
+updateOnInput value (State state) =
     State { state | filter = value, isMenuOpen = True }
 
 
@@ -164,7 +294,7 @@ updateOnKeyUp ((State state) as stateModel) =
     State
         { state
             | focused =
-                stateModel
+                state
                     |> pickChoiceByIndex
                         (if KeyboardEvents.wentTooHigh focusedItemIndex then
                             focusedItemIndex
@@ -188,12 +318,19 @@ updateOnKeyDown ((State state) as stateModel) =
             Nothing == state.focused
 
         wentTooLow =
-            KeyboardEvents.wentTooLow focusedItemIndex (filterChoices stateModel)
+            KeyboardEvents.wentTooLow focusedItemIndex
+                (case state.choices of
+                    Loaded choices ->
+                        choices
+
+                    _ ->
+                        []
+                )
     in
     State
         { state
             | focused =
-                stateModel
+                state
                     |> pickChoiceByIndex
                         (if thereIsNoFocusedItem || wentTooLow then
                             0
@@ -255,7 +392,6 @@ type AutocompleteOption model
     | OverridingClass String
     | Placeholder String
     | Size AutocompleteSize
-    | Threshold Int
     | Validation (model -> Maybe Validation.Type)
 
 
@@ -381,13 +517,6 @@ withSmallSize =
     addOption (Size Small)
 
 
-{-| Adds a `threshold` on the filter to the `Autocomplete`.
--}
-withThreshold : Int -> Autocomplete model -> Autocomplete model
-withThreshold threshold =
-    addOption (Threshold threshold)
-
-
 {-| Adds a `Validation` rule to the `Autocomplete`.
 -}
 withValidation : (model -> Maybe Validation.Type) -> Autocomplete model -> Autocomplete model
@@ -415,7 +544,6 @@ type alias Options model =
     , onBlur : Maybe Msg
     , placeholder : Maybe String
     , size : AutocompleteSize
-    , threshold : Int
     , validations : List (model -> Maybe Validation.Type)
     }
 
@@ -434,7 +562,6 @@ defaultOptions =
     , onBlur = Nothing
     , placeholder = Nothing
     , size = Medium
-    , threshold = 1
     , validations = []
     }
 
@@ -476,9 +603,6 @@ applyOption modifier options =
 
         Size size ->
             { options | size = size }
-
-        Threshold threshold ->
-            { options | threshold = threshold }
 
         Validation validation ->
             { options | validations = validation :: options.validations }
@@ -531,7 +655,8 @@ filterReaderAttribute (State stateConfig) =
         )
     of
         ( Just currentValue, False ) ->
-            stateConfig.choices
+            stateConfig
+                |> pickChoices
                 |> List.filter ((==) currentValue << .value)
                 |> List.map .label
                 |> List.head
@@ -548,7 +673,7 @@ filterReaderAttribute (State stateConfig) =
 -}
 filterTaggerAttribute : Html.Attribute Msg
 filterTaggerAttribute =
-    Events.onInput OnFilter
+    Events.onInput OnInput
 
 
 {-| Renders the `Autocomplete`.
@@ -560,12 +685,14 @@ render model ((State stateConfig) as stateModel) autocompleteModel =
             computeOptions autocompleteModel
 
         hasSelectedAnyChoice =
-            List.any (isChoiceSelected stateModel) stateConfig.choices
+            stateConfig
+                |> pickChoices
+                |> List.any (isChoiceSelected stateModel)
     in
     Html.div
         [ Attrs.classList
             [ ( "form-autocomplete", True )
-            , ( "is-open", hasReachedThreshold stateModel autocompleteModel && stateConfig.isMenuOpen )
+            , ( "is-open", hasReachedThreshold stateModel && stateConfig.isMenuOpen )
             , ( "has-selected-choice", hasSelectedAnyChoice )
             , ( "is-small", isSmall options.size )
             , ( "is-medium", isMedium options.size )
@@ -578,17 +705,23 @@ render model ((State stateConfig) as stateModel) autocompleteModel =
             (buildAttributes model stateModel autocompleteModel)
             []
         , Html.i
-            [ Attrs.class "form-autocomplete__search-icon" ]
+            [ Attrs.classList
+                [ ( "form-autocomplete__loader-icon", stateConfig.choices == Loading )
+                , ( "form-autocomplete__search-icon", stateConfig.choices /= Loading )
+                ]
+            ]
             []
         , Html.ul
             [ Attrs.class "form-autocomplete__list" ]
-            (if List.length (filterChoices stateModel) > 0 then
-                stateModel
-                    |> filterChoices
-                    |> List.map (renderAutocompleteChoice stateModel)
+            (case ( stateConfig.choices, hasReachedThreshold stateModel ) of
+                ( Loaded [], True ) ->
+                    renderAutocompleteNoResults
 
-             else
-                renderAutocompleteNoResults
+                ( Loaded _, True ) ->
+                    List.map (renderAutocompleteChoice stateModel) (pickChoices stateConfig)
+
+                _ ->
+                    []
             )
         , renderResetIcon
             |> H.renderIf hasSelectedAnyChoice
@@ -703,30 +836,13 @@ errorsValidations model options =
         |> List.filter Validation.isError
 
 
-{-| Internal. Filter `AutocompleteChoice`s by the current filter.
--}
-filterChoices : State -> List AutocompleteChoice
-filterChoices (State { choices, filter }) =
-    choices
-        |> List.filter
-            (.label
-                >> String.toLower
-                >> String.contains
-                    (ME.unwrap "" String.toLower filter)
-            )
-
-
 {-| Internal. Checks if the min amount of chars has been reached.
 -}
-hasReachedThreshold : State -> Autocomplete model -> Bool
-hasReachedThreshold (State { filter }) autocompleteModel =
-    let
-        options =
-            computeOptions autocompleteModel
-    in
+hasReachedThreshold : State -> Bool
+hasReachedThreshold (State { filter, threshold }) =
     filter
         |> ME.unwrap 0 String.length
-        |> (<=) options.threshold
+        |> (<=) threshold
 
 
 isChoiceSelected : State -> AutocompleteChoice -> Bool
@@ -742,20 +858,20 @@ isChoiceFocused (State stateConfig) choice =
 {-| Internal. Returns the focusedItem index or zero.
 -}
 pickFocusedItemIndex : State -> Int
-pickFocusedItemIndex ((State { focused }) as stateModel) =
-    stateModel
-        |> filterChoices
+pickFocusedItemIndex (State stateConfig) =
+    stateConfig
+        |> pickChoices
         |> List.indexedMap Tuple.pair
-        |> List.filter ((==) focused << Just << .value << Tuple.second)
+        |> List.filter ((==) stateConfig.focused << Just << .value << Tuple.second)
         |> List.head
         |> ME.unwrap 0 Tuple.first
 
 
 {-| Internal. Returns the `AutocompleteChoice` found by index.
 -}
-pickChoiceByIndex : Int -> State -> Maybe AutocompleteChoice
+pickChoiceByIndex : Int -> StateConfig -> Maybe AutocompleteChoice
 pickChoiceByIndex index =
-    filterChoices
+    pickChoices
         >> Array.fromList
         >> Array.get index
 
@@ -768,3 +884,29 @@ subscription =
         |> Json.Decode.map KeyboardEvents.toKeyCode
         |> Json.Decode.map OnKeyPress
         |> Browser.Events.onKeyDown
+
+
+{-| Internal.
+-}
+addReturningFilter : Maybe String -> ( State, Cmd Msg ) -> ( State, Cmd Msg, Maybe String )
+addReturningFilter filter ( state, cmd ) =
+    ( state, cmd, filter )
+
+
+{-| Internal.
+-}
+pickChoices : StateConfig -> List AutocompleteChoice
+pickChoices state =
+    case state.choices of
+        Loaded autocompleteChoices ->
+            autocompleteChoices
+
+        _ ->
+            []
+
+
+{-| Internal.
+-}
+addCommands : List (Cmd Msg) -> ( State, Cmd Msg, Maybe String ) -> ( State, Cmd Msg, Maybe String )
+addCommands cmds ( state, cmd, filter ) =
+    ( state, Cmd.batch <| [ cmd ] ++ cmds, filter )

@@ -12,6 +12,7 @@ import Date
 import Prima.Pyxis.Form as Form
 import Prima.Pyxis.Form.Autocomplete as Autocomplete
 import Prima.Pyxis.Form.DatePicker as DatePicker
+import Prima.Pyxis.Form.FilterableSelect as FilterableSelect
 import Prima.Pyxis.Form.Select as Select
 
 
@@ -24,8 +25,10 @@ type Msg
     | OnDatePickerUpdate Field DatePicker.Msg
     | SelectMsg Select.Msg
     | AutocompleteMsg Autocomplete.Msg
+    | FilterableSelectMsg FilterableSelect.Msg
     | OnTodayDateReceived Date.Date
     | ToggleTooltip
+    | GotCountries (List Autocomplete.AutocompleteChoice)
 
 
 type alias Model =
@@ -70,6 +73,7 @@ type alias FormData =
     , powerSourceSelect : Select.State
     , country : Maybe String
     , countryAutocomplete : Autocomplete.State
+    , countryFilterableSelect : FilterableSelect.State
     , fiscalCode : Maybe String
     , countryVisited : List String
     , birthDate : DatePicker.Date
@@ -101,12 +105,16 @@ initialFormData =
     , country = Nothing
     , countryAutocomplete =
         Autocomplete.init
-            [ Autocomplete.autocompleteChoice "italy" "Italy"
-            , Autocomplete.autocompleteChoice "france" "France"
-            , Autocomplete.autocompleteChoice "spain" "Spain"
-            , Autocomplete.autocompleteChoice "usa" "U.S.A."
-            , Autocomplete.autocompleteChoice "germany" "Germany"
-            , Autocomplete.autocompleteChoice "uk" "U.K."
+            |> Autocomplete.withThreshold 1
+            |> Autocomplete.withDebouncer 0.5
+    , countryFilterableSelect =
+        FilterableSelect.init
+            [ FilterableSelect.filterableSelectChoice "italy" "Italy"
+            , FilterableSelect.filterableSelectChoice "france" "France"
+            , FilterableSelect.filterableSelectChoice "spain" "Spain"
+            , FilterableSelect.filterableSelectChoice "usa" "U.S.A."
+            , FilterableSelect.filterableSelectChoice "germany" "Germany"
+            , FilterableSelect.filterableSelectChoice "uk" "U.K."
             ]
     , fiscalCode = Nothing
     , countryVisited = [ "italia", "francia" ]

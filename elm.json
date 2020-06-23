@@ -12,6 +12,7 @@
         "Prima.Pyxis.DownloadButton",
         "Prima.Pyxis.Form",
         "Prima.Pyxis.Form.Autocomplete",
+        "Prima.Pyxis.Form.FilterableSelect",
         "Prima.Pyxis.Form.Checkbox",
         "Prima.Pyxis.Form.CheckboxFlag",
         "Prima.Pyxis.Form.Date",
@@ -35,6 +36,7 @@
     ],
     "elm-version": "0.19.0 <= v < 0.20.0",
     "dependencies": {
+        "Gizra/elm-debouncer": "2.0.0 <= v < 3.0.0",
         "elm/browser": "1.0.0 <= v < 2.0.0",
         "elm/core": "1.0.0 <= v < 2.0.0",
         "elm/html": "1.0.0 <= v < 2.0.0",
