@@ -166,9 +166,9 @@ update msg ((State state) as stateModel) =
 
         OnFilter ->
             stateModel
-                |> updateOnFilter
                 |> H.withoutCmds
                 |> maybeWithFilter state.filter
+                |> updateOnFilter
 
         OnSelect value ->
             updateOnSelect (Just value) stateModel
@@ -257,9 +257,13 @@ updateChoices choices (State state) =
 
 {-| Internal.
 -}
-updateOnFilter : State -> State
-updateOnFilter (State state) =
-    State { state | choices = Loading }
+updateOnFilter : ( State, Cmd Msg, Maybe String ) -> ( State, Cmd Msg, Maybe String )
+updateOnFilter ( State state, cmd, filter ) =
+    ( filter
+        |> ME.unwrap (State state) (always (State { state | choices = Loading }))
+    , cmd
+    , filter
+    )
 
 
 {-| Internal.
