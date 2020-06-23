@@ -166,6 +166,7 @@ update msg ((State state) as stateModel) =
 
         OnFilter ->
             stateModel
+                |> updateOnFilter
                 |> H.withoutCmds
                 |> maybeWithFilter state.filter
 
@@ -257,9 +258,16 @@ updateChoices choices (State state) =
 
 {-| Internal.
 -}
+updateOnFilter : State -> State
+updateOnFilter (State state) =
+    State { state | choices = Loading }
+
+
+{-| Internal.
+-}
 updateOnInput : Maybe String -> State -> State
 updateOnInput value (State state) =
-    State { state | filter = value, isMenuOpen = True, choices = Loading }
+    State { state | filter = value, isMenuOpen = True }
 
 
 {-| Internal.
@@ -699,7 +707,7 @@ render model ((State stateConfig) as stateModel) autocompleteModel =
             [ Attrs.class <|
                 case stateConfig.choices of
                     Loading ->
-                        "form-autocomplete__spinner-icon"
+                        "form-autocomplete__loader-icon"
 
                     _ ->
                         "form-autocomplete__search-icon"

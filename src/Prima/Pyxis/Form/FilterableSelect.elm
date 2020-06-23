@@ -1,12 +1,12 @@
-module Prima.Pyxis.Form.SelectWithFilter exposing
-    ( SelectWithFilter, State, Msg
-    , init, update, selectWithFilterChoice
+module Prima.Pyxis.Form.FilterableSelect exposing
+    ( FilterableSelect, State, Msg
+    , init, update, filterableSelectChoice
     , render
     , selectedValue, filterValue, subscription
     , withAttribute, withClass, withDefaultValue, withDisabled, withId, withName, withMediumSize, withSmallSize, withLargeSize, withPlaceholder, withOverridingClass
     , withOnBlur, withOnFocus
     , withValidation
-    , selectWithFilter
+    , filterableSelect
     )
 
 {-|
@@ -14,12 +14,12 @@ module Prima.Pyxis.Form.SelectWithFilter exposing
 
 ## Configuration
 
-@docs SelectWithFilter, State, Msg, SelectWithFilterChoice
+@docs FilterableSelect, State, Msg, FilterableSelectChoice
 
 
 ## Configuration Methods
 
-@docs autocomplete, init, update, selectWithFilterChoice
+@docs autocomplete, init, update, filterableSelectChoice
 
 
 ## Rendering
@@ -53,54 +53,54 @@ import Prima.Pyxis.Form.Autocomplete as Autocomplete
 import Prima.Pyxis.Form.Validation as Validation
 
 
-{-| Represents the Msg of the `SelectWithFilter`.
+{-| Represents the Msg of the `FilterableSelect`.
 -}
 type Msg
-    = SelectWithFilterMsg Autocomplete.Msg
+    = FilterableSelectMsg Autocomplete.Msg
 
 
-{-| Represent the opaque `SelectWithFilter` configuration.
+{-| Represent the opaque `FilterableSelect` configuration.
 -}
-type alias SelectWithFilter model =
+type alias FilterableSelect model =
     Autocomplete.Autocomplete model
 
 
-{-| The `State` of the `SelectWithFilter`
+{-| The `State` of the `FilterableSelect`
 -}
 type alias State =
     { autocompleteState : Autocomplete.State
-    , choices : List SelectWithFilterChoice
+    , choices : List FilterableSelectChoice
     }
 
 
-{-| Represent the `SelectWithFilterChoice` configuration.
+{-| Represent the `FilterableSelectChoice` configuration.
 -}
-type alias SelectWithFilterChoice =
+type alias FilterableSelectChoice =
     Autocomplete.AutocompleteChoice
 
 
 {-| Creates an select with a filter input.
 -}
-selectWithFilter : SelectWithFilter model
-selectWithFilter =
+filterableSelect : FilterableSelect model
+filterableSelect =
     Autocomplete.autocomplete
 
 
-{-| Initializes the `SelectWithFilter`'s `State`.
+{-| Initializes the `FilterableSelect`'s `State`.
 -}
-init : List SelectWithFilterChoice -> State
+init : List FilterableSelectChoice -> State
 init choices =
     { choices = choices
     , autocompleteState = Autocomplete.init
     }
 
 
-{-| Updates the `SelectWithFilter`'s `State`.
+{-| Updates the `FilterableSelect`'s `State`.
 -}
 update : Msg -> State -> State
 update msg state =
     case msg of
-        SelectWithFilterMsg autocompleteMsg ->
+        FilterableSelectMsg autocompleteMsg ->
             let
                 ( autocompleteState, _, _ ) =
                     Autocomplete.update autocompleteMsg state.autocompleteState
@@ -112,7 +112,7 @@ update msg state =
 
 {-| Internal. Check if the choice contains the string.
 -}
-choiceContainsFilter : Maybe String -> SelectWithFilterChoice -> Bool
+choiceContainsFilter : Maybe String -> FilterableSelectChoice -> Bool
 choiceContainsFilter maybeFilter { value, label } =
     maybeFilter
         |> Maybe.map (\filter -> String.contains filter label || String.contains filter value)
@@ -121,13 +121,13 @@ choiceContainsFilter maybeFilter { value, label } =
 
 {-| Internal. Filter the choices using the filter string
 -}
-filterChoices : State -> List SelectWithFilterChoice
+filterChoices : State -> List FilterableSelectChoice
 filterChoices { choices, autocompleteState } =
     choices
         |> List.filter (choiceContainsFilter (filterValue autocompleteState))
 
 
-{-| Update the `SelectWithFilterChoice` inside `Autocomplete`'s state
+{-| Update the `FilterableSelectChoice` inside `Autocomplete`'s state
 -}
 updateChoices : State -> State
 updateChoices state =
@@ -145,14 +145,14 @@ updateAutocompleteState autocompleteState state =
     { state | autocompleteState = autocompleteState }
 
 
-{-| Create the SelectWithFilterChoice configuration.
+{-| Create the FilterableSelectChoice configuration.
 -}
-selectWithFilterChoice : String -> String -> SelectWithFilterChoice
-selectWithFilterChoice =
+filterableSelectChoice : String -> String -> FilterableSelectChoice
+filterableSelectChoice =
     Autocomplete.autocompleteChoice
 
 
-{-| Returns the current `SelectWithFilterChoice.value` selected by the user.
+{-| Returns the current `FilterableSelectChoice.value` selected by the user.
 -}
 selectedValue : State -> Maybe String
 selectedValue { autocompleteState } =
@@ -173,16 +173,16 @@ subscription =
     Autocomplete.subscription
 
 
-{-| Adds a generic Html.Attribute to the `SelectWithFilter`.
+{-| Adds a generic Html.Attribute to the `FilterableSelect`.
 -}
-withAttribute : Html.Attribute Autocomplete.Msg -> Autocomplete.Autocomplete model -> SelectWithFilter model
+withAttribute : Html.Attribute Autocomplete.Msg -> Autocomplete.Autocomplete model -> FilterableSelect model
 withAttribute =
     Autocomplete.withAttribute
 
 
-{-| Adds a `class` to the `SelectWithFilter`.
+{-| Adds a `class` to the `FilterableSelect`.
 -}
-withClass : String -> SelectWithFilter model -> SelectWithFilter model
+withClass : String -> FilterableSelect model -> FilterableSelect model
 withClass =
     Autocomplete.withClass
 
@@ -190,91 +190,91 @@ withClass =
 {-| Adds a default value to the `Input`.
 Useful to teach the component about it's `pristine/touched` state.
 -}
-withDefaultValue : Maybe String -> SelectWithFilter model -> SelectWithFilter model
+withDefaultValue : Maybe String -> FilterableSelect model -> FilterableSelect model
 withDefaultValue =
     Autocomplete.withDefaultValue
 
 
-{-| Adds a `disabled` Html.Attribute to the `SelectWithFilter`.
+{-| Adds a `disabled` Html.Attribute to the `FilterableSelect`.
 -}
-withDisabled : Bool -> SelectWithFilter model -> SelectWithFilter model
+withDisabled : Bool -> FilterableSelect model -> FilterableSelect model
 withDisabled =
     Autocomplete.withDisabled
 
 
-{-| Adds an `id` Html.Attribute to the `SelectWithFilter`.
+{-| Adds an `id` Html.Attribute to the `FilterableSelect`.
 -}
-withId : String -> SelectWithFilter model -> SelectWithFilter model
+withId : String -> FilterableSelect model -> FilterableSelect model
 withId =
     Autocomplete.withId
 
 
-{-| Adds a `name` Html.Attribute to the `SelectWithFilter`.
+{-| Adds a `name` Html.Attribute to the `FilterableSelect`.
 -}
-withName : String -> SelectWithFilter model -> SelectWithFilter model
+withName : String -> FilterableSelect model -> FilterableSelect model
 withName =
     Autocomplete.withName
 
 
-{-| Adds a `size` of `Medium` to the `SelectWithFilter`.
+{-| Adds a `size` of `Medium` to the `FilterableSelect`.
 -}
-withMediumSize : SelectWithFilter model -> SelectWithFilter model
+withMediumSize : FilterableSelect model -> FilterableSelect model
 withMediumSize =
     Autocomplete.withMediumSize
 
 
-{-| Adds a `size` of `Small` to the `SelectWithFilter`.
+{-| Adds a `size` of `Small` to the `FilterableSelect`.
 -}
-withSmallSize : SelectWithFilter model -> SelectWithFilter model
+withSmallSize : FilterableSelect model -> FilterableSelect model
 withSmallSize =
     Autocomplete.withSmallSize
 
 
-{-| Adds a `size` of `Large` to the `SelectWithFilter`.
+{-| Adds a `size` of `Large` to the `FilterableSelect`.
 -}
-withLargeSize : SelectWithFilter model -> SelectWithFilter model
+withLargeSize : FilterableSelect model -> FilterableSelect model
 withLargeSize =
     Autocomplete.withLargeSize
 
 
-{-| Adds a `placeholder` Html.Attribute to the `SelectWithFilter`.
+{-| Adds a `placeholder` Html.Attribute to the `FilterableSelect`.
 -}
-withPlaceholder : String -> SelectWithFilter model -> SelectWithFilter model
+withPlaceholder : String -> FilterableSelect model -> FilterableSelect model
 withPlaceholder =
     Autocomplete.withPlaceholder
 
 
-{-| Adds a `class` to the `SelectWithFilter` which overrides all the previous.
+{-| Adds a `class` to the `FilterableSelect` which overrides all the previous.
 -}
-withOverridingClass : String -> SelectWithFilter model -> SelectWithFilter model
+withOverridingClass : String -> FilterableSelect model -> FilterableSelect model
 withOverridingClass =
     Autocomplete.withOverridingClass
 
 
-{-| Renders the `SelectWithFilter`.
+{-| Renders the `FilterableSelect`.
 -}
 render : model -> Autocomplete.State -> Autocomplete.Autocomplete model -> List (Html Msg)
 render model autocompleteState autocompleteModel =
     Autocomplete.render model autocompleteState autocompleteModel
-        |> List.map (Html.map (\msg -> SelectWithFilterMsg msg))
+        |> List.map (Html.map (\msg -> FilterableSelectMsg msg))
 
 
-{-| Attaches the `onBlur` event to the `SelectWithFilter`.
+{-| Attaches the `onBlur` event to the `FilterableSelect`.
 -}
-withOnBlur : Autocomplete.Msg -> SelectWithFilter model -> SelectWithFilter model
+withOnBlur : Autocomplete.Msg -> FilterableSelect model -> FilterableSelect model
 withOnBlur =
     Autocomplete.withOnBlur
 
 
-{-| Attaches the `onFocus` event to the `SelectWithFilter`.
+{-| Attaches the `onFocus` event to the `FilterableSelect`.
 -}
-withOnFocus : Autocomplete.Msg -> SelectWithFilter model -> SelectWithFilter model
+withOnFocus : Autocomplete.Msg -> FilterableSelect model -> FilterableSelect model
 withOnFocus =
     Autocomplete.withOnFocus
 
 
-{-| Adds a `Validation` rule to the `SelectWithFilter`.
+{-| Adds a `Validation` rule to the `FilterableSelect`.
 -}
-withValidation : (model -> Maybe Validation.Type) -> SelectWithFilter model -> SelectWithFilter model
+withValidation : (model -> Maybe Validation.Type) -> FilterableSelect model -> FilterableSelect model
 withValidation =
     Autocomplete.withValidation

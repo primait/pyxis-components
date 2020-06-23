@@ -5,8 +5,8 @@ import Maybe.Extra as ME
 import Prima.Pyxis.Form.Autocomplete as Autocomplete
 import Prima.Pyxis.Form.DatePicker as DatePicker
 import Prima.Pyxis.Form.Example.Model exposing (BirthDateField(..), Field(..), FormData, Model, Msg(..), UIState)
+import Prima.Pyxis.Form.FilterableSelect as FilterableSelect
 import Prima.Pyxis.Form.Select as Select
-import Prima.Pyxis.Form.SelectWithFilter as SelectWithFilter
 import Prima.Pyxis.Helpers as H
 import Task
 
@@ -24,9 +24,9 @@ update msg model =
                 |> H.withCmds [ Cmd.map AutocompleteMsg autocompleteCmd ]
                 |> applyAutocompleteCountryFilter filter
 
-        SelectWithFilterMsg subMsg ->
+        FilterableSelectMsg subMsg ->
             model
-                |> updateSelectWithFilter (SelectWithFilter.update subMsg model.formData.countrySelectWithFilter)
+                |> updateFilterableSelect (FilterableSelect.update subMsg model.formData.countryFilterableSelect)
                 |> H.withoutCmds
 
         GotCountries choices ->
@@ -141,10 +141,10 @@ updateAutocomplete autocompleteState =
         >> updateFormData (\f -> { f | country = Autocomplete.selectedValue f.countryAutocomplete })
 
 
-updateSelectWithFilter : SelectWithFilter.State -> Model -> Model
-updateSelectWithFilter selectWithFilterState =
-    updateFormData (\f -> { f | countrySelectWithFilter = selectWithFilterState })
-        >> updateFormData (\f -> { f | country = SelectWithFilter.selectedValue f.countrySelectWithFilter })
+updateFilterableSelect : FilterableSelect.State -> Model -> Model
+updateFilterableSelect filterableSelectState =
+    updateFormData (\f -> { f | countryFilterableSelect = filterableSelectState })
+        >> updateFormData (\f -> { f | country = FilterableSelect.selectedValue f.countryFilterableSelect })
 
 
 updateSelect : Select.Msg -> Model -> Model

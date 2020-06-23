@@ -12,8 +12,8 @@ import Date
 import Prima.Pyxis.Form as Form
 import Prima.Pyxis.Form.Autocomplete as Autocomplete
 import Prima.Pyxis.Form.DatePicker as DatePicker
+import Prima.Pyxis.Form.FilterableSelect as FilterableSelect
 import Prima.Pyxis.Form.Select as Select
-import Prima.Pyxis.Form.SelectWithFilter as SelectWithFilter
 
 
 type Msg
@@ -25,7 +25,7 @@ type Msg
     | OnDatePickerUpdate Field DatePicker.Msg
     | SelectMsg Select.Msg
     | AutocompleteMsg Autocomplete.Msg
-    | SelectWithFilterMsg SelectWithFilter.Msg
+    | FilterableSelectMsg FilterableSelect.Msg
     | OnTodayDateReceived Date.Date
     | ToggleTooltip
     | GotCountries (List Autocomplete.AutocompleteChoice)
@@ -73,7 +73,7 @@ type alias FormData =
     , powerSourceSelect : Select.State
     , country : Maybe String
     , countryAutocomplete : Autocomplete.State
-    , countrySelectWithFilter : SelectWithFilter.State
+    , countryFilterableSelect : FilterableSelect.State
     , fiscalCode : Maybe String
     , countryVisited : List String
     , birthDate : DatePicker.Date
@@ -107,14 +107,14 @@ initialFormData =
         Autocomplete.init
             |> Autocomplete.withThreshold 1
             |> Autocomplete.withDebouncer 0.5
-    , countrySelectWithFilter =
-        SelectWithFilter.init
-            [ SelectWithFilter.selectWithFilterChoice "italy" "Italy"
-            , SelectWithFilter.selectWithFilterChoice "france" "France"
-            , SelectWithFilter.selectWithFilterChoice "spain" "Spain"
-            , SelectWithFilter.selectWithFilterChoice "usa" "U.S.A."
-            , SelectWithFilter.selectWithFilterChoice "germany" "Germany"
-            , SelectWithFilter.selectWithFilterChoice "uk" "U.K."
+    , countryFilterableSelect =
+        FilterableSelect.init
+            [ FilterableSelect.filterableSelectChoice "italy" "Italy"
+            , FilterableSelect.filterableSelectChoice "france" "France"
+            , FilterableSelect.filterableSelectChoice "spain" "Spain"
+            , FilterableSelect.filterableSelectChoice "usa" "U.S.A."
+            , FilterableSelect.filterableSelectChoice "germany" "Germany"
+            , FilterableSelect.filterableSelectChoice "uk" "U.K."
             ]
     , fiscalCode = Nothing
     , countryVisited = [ "italia", "francia" ]

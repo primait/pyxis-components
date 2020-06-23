@@ -28,13 +28,13 @@ import Prima.Pyxis.Form.CheckboxFlag as CheckboxFlag
 import Prima.Pyxis.Form.Date as Date
 import Prima.Pyxis.Form.Example.FieldValidations as Validation
 import Prima.Pyxis.Form.Example.Model exposing (BirthDateField(..), Field(..), FormData, Msg(..))
+import Prima.Pyxis.Form.FilterableSelect as FilterableSelect
 import Prima.Pyxis.Form.Input as Input
 import Prima.Pyxis.Form.Label as Label
 import Prima.Pyxis.Form.Radio as Radio
 import Prima.Pyxis.Form.RadioButton as RadioButton
 import Prima.Pyxis.Form.RadioFlag as RadioFlag
 import Prima.Pyxis.Form.Select as Select
-import Prima.Pyxis.Form.SelectWithFilter as SelectWithFilter
 import Prima.Pyxis.Form.TextArea as TextArea
 import Prima.Pyxis.Helpers as H
 import Prima.Pyxis.Link as Link
@@ -246,17 +246,17 @@ countryAutocompleteConfig state =
             )
 
 
-countrySelectConfig : SelectWithFilter.State -> Form.FormField FormData Msg
+countrySelectConfig : FilterableSelect.State -> Form.FormField FormData Msg
 countrySelectConfig state =
     let
         slug =
             "country-test2"
     in
-    SelectWithFilter.selectWithFilter
-        |> SelectWithFilter.withLargeSize
-        |> SelectWithFilter.withId slug
-        |> SelectWithFilter.withValidation Validation.countryNotItalyValidation
-        |> Form.selectWithFilter SelectWithFilterMsg state
+    FilterableSelect.filterableSelect
+        |> FilterableSelect.withLargeSize
+        |> FilterableSelect.withId slug
+        |> FilterableSelect.withValidation Validation.countryNotItalyValidation
+        |> Form.filterableSelect FilterableSelectMsg state
         |> Form.withLabel
             ("Paese di nascita"
                 |> Label.label

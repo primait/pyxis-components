@@ -83,7 +83,7 @@ formConfig model =
             [ Config.countryAutocompleteConfig model.formData.countryAutocomplete
             ]
         |> Form.withFields
-            [ Config.countrySelectConfig model.formData.countrySelectWithFilter
+            [ Config.countrySelectConfig model.formData.countryFilterableSelect
             ]
         |> Form.withFields
             [ Config.checkboxConfig
