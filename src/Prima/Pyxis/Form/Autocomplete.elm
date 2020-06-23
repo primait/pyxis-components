@@ -138,7 +138,7 @@ update msg ((State state) as stateModel) =
             stateModel
                 |> updateOnInput (Just value)
                 |> H.withCmds [ send <| Debounce (Debouncer.provideInput OnFilter) ]
-                |> addNoFilter
+                |> addReturningFilter Nothing
 
         Debounce subMsg ->
             let
@@ -162,7 +162,7 @@ update msg ((State state) as stateModel) =
                 Nothing ->
                     updatedState
                         |> H.withCmds [ debounceCmd ]
-                        |> addNoFilter
+                        |> addReturningFilter Nothing
 
         OnFilter ->
             stateModel
@@ -173,43 +173,42 @@ update msg ((State state) as stateModel) =
         OnSelect value ->
             updateOnSelect (Just value) stateModel
                 |> H.withoutCmds
-                |> addNoFilter
+                |> addReturningFilter Nothing
 
         OnReset ->
             updateOnReset stateModel
                 |> H.withoutCmds
-                |> addNoFilter
+                |> addReturningFilter Nothing
 
         OnKeyPress (Just KeyboardEvents.UpKey) ->
             updateOnKeyUp stateModel
                 |> H.withoutCmds
-                |> addNoFilter
+                |> addReturningFilter Nothing
 
         OnKeyPress (Just KeyboardEvents.DownKey) ->
             updateOnKeyDown stateModel
                 |> H.withoutCmds
-                |> addNoFilter
+                |> addReturningFilter Nothing
 
         OnKeyPress (Just KeyboardEvents.EnterKey) ->
             updateOnSelect state.focused stateModel
                 |> H.withoutCmds
-                |> addNoFilter
+                |> addReturningFilter Nothing
 
         OnKeyPress Nothing ->
             stateModel
                 |> H.withoutCmds
-                |> addNoFilter
+                |> addReturningFilter Nothing
 
 
 {-| Internal. Convert `Msg` into `Cmd Msg`, useful to chain updates.
 -}
 send : Msg -> Cmd Msg
-send msg =
-    Task.succeed msg
-        |> Task.perform identity
+send =
+    Task.perform identity << Task.succeed
 
 
-{-| Internal. Append `Filter`, alias of `Maybe String`, to tell parent when update the choices and with which string.
+{-| Internal. Append `Maybe String` to tell parent when update the choices and with which string.
 -}
 maybeWithFilter : Maybe String -> ( State, Cmd Msg ) -> ( State, Cmd Msg, Maybe String )
 maybeWithFilter filter ( state, cmd ) =
@@ -657,7 +656,7 @@ filterReaderAttribute (State stateConfig) =
     of
         ( Just currentValue, False ) ->
             stateConfig
-                |> currentChoices
+                |> pickChoices
                 |> List.filter ((==) currentValue << .value)
                 |> List.map .label
                 |> List.head
@@ -686,7 +685,9 @@ render model ((State stateConfig) as stateModel) autocompleteModel =
             computeOptions autocompleteModel
 
         hasSelectedAnyChoice =
-            List.any (isChoiceSelected stateModel) (currentChoices stateConfig)
+            stateConfig
+                |> pickChoices
+                |> List.any (isChoiceSelected stateModel)
     in
     Html.div
         [ Attrs.classList
@@ -704,13 +705,10 @@ render model ((State stateConfig) as stateModel) autocompleteModel =
             (buildAttributes model stateModel autocompleteModel)
             []
         , Html.i
-            [ Attrs.class <|
-                case stateConfig.choices of
-                    Loading ->
-                        "form-autocomplete__loader-icon"
-
-                    _ ->
-                        "form-autocomplete__search-icon"
+            [ Attrs.classList
+                [ ( "form-autocomplete__loader-icon", stateConfig.choices == Loading )
+                , ( "form-autocomplete__search-icon", stateConfig.choices /= Loading )
+                ]
             ]
             []
         , Html.ul
@@ -720,7 +718,7 @@ render model ((State stateConfig) as stateModel) autocompleteModel =
                     renderAutocompleteNoResults
 
                 ( Loaded _, True ) ->
-                    List.map (renderAutocompleteChoice stateModel) (currentChoices stateConfig)
+                    List.map (renderAutocompleteChoice stateModel) (pickChoices stateConfig)
 
                 _ ->
                     []
@@ -862,7 +860,7 @@ isChoiceFocused (State stateConfig) choice =
 pickFocusedItemIndex : State -> Int
 pickFocusedItemIndex (State stateConfig) =
     stateConfig
-        |> currentChoices
+        |> pickChoices
         |> List.indexedMap Tuple.pair
         |> List.filter ((==) stateConfig.focused << Just << .value << Tuple.second)
         |> List.head
@@ -873,7 +871,7 @@ pickFocusedItemIndex (State stateConfig) =
 -}
 pickChoiceByIndex : Int -> StateConfig -> Maybe AutocompleteChoice
 pickChoiceByIndex index =
-    currentChoices
+    pickChoices
         >> Array.fromList
         >> Array.get index
 
@@ -890,22 +888,15 @@ subscription =
 
 {-| Internal.
 -}
-addNoFilter : ( State, Cmd Msg ) -> ( State, Cmd Msg, Maybe String )
-addNoFilter =
-    addFilter Nothing
-
-
-{-| Internal.
--}
-addFilter : Maybe String -> ( State, Cmd Msg ) -> ( State, Cmd Msg, Maybe String )
-addFilter filter ( state, cmd ) =
+addReturningFilter : Maybe String -> ( State, Cmd Msg ) -> ( State, Cmd Msg, Maybe String )
+addReturningFilter filter ( state, cmd ) =
     ( state, cmd, filter )
 
 
 {-| Internal.
 -}
-currentChoices : StateConfig -> List AutocompleteChoice
-currentChoices state =
+pickChoices : StateConfig -> List AutocompleteChoice
+pickChoices state =
     case state.choices of
         Loaded autocompleteChoices ->
             autocompleteChoices
