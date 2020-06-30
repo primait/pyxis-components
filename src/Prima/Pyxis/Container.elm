@@ -259,10 +259,10 @@ flowTypeToClass : FlowType -> Html.Attribute msg
 flowTypeToClass flowType =
     case flowType of
         DirectionRow ->
-            HtmlAttributes.class "direction-row"
+            HtmlAttributes.class "flex-direction-row"
 
         DirectionColumn ->
-            HtmlAttributes.class "direction-column"
+            HtmlAttributes.class "flex-direction-column"
 
 
 {-| Internal.
