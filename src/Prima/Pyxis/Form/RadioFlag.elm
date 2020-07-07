@@ -1,5 +1,5 @@
 module Prima.Pyxis.Form.RadioFlag exposing
-    ( RadioFlag
+    ( RadioFlag, RadioFlagChoice
     , radioFlagLight, radioFlagDark
     , render
     , withAttribute, withClass, withDisabled, withId, withName
@@ -12,7 +12,7 @@ module Prima.Pyxis.Form.RadioFlag exposing
 
 ## Configuration
 
-@docs RadioFlag
+@docs RadioFlag, RadioFlagChoice
 
 
 ## Configuration Methods
