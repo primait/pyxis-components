@@ -1,5 +1,5 @@
 module Prima.Pyxis.Form.RadioButton exposing
-    ( RadioButton
+    ( RadioButton, RadioButtonChoice
     , radioButton, radioButtonChoice, radioButtonChoiceWithSubtitle
     , render
     , withAttribute, withClass, withId
@@ -12,7 +12,7 @@ module Prima.Pyxis.Form.RadioButton exposing
 
 ## Configuration
 
-@docs RadioButton
+@docs RadioButton, RadioButtonChoice
 
 
 ## Configuration Methods
