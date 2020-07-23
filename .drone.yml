@@ -8,18 +8,67 @@ platform:
 
 clone:
   depth: 1
+  disable: true
 
+environment:
+  CARGO_HTTP_CAINFO: /drone/src/certs/sys/proxy_deps_ca.pem
+  CURL_CA_BUNDLE: /drone/src/certs/sys/proxy_deps_ca.pem
+  GIT_SSL_CAINFO: /drone/src/certs/sys/proxy_deps_ca.pem
+  HEX_CACERTS_PATH: /drone/src/certs/sys/proxy_deps_ca.pem
+  NODE_EXTRA_CA_CERTS: /drone/src/certs/sys/proxy_deps_ca.pem
+  REQUESTS_CA_BUNDLE: /drone/src/certs/sys/proxy_deps_ca.pem
+  SYSTEM_CERTIFICATE_PATH: /drone/src/certs/sys/proxy_deps_ca.pem
+  http_proxy: http://mitmproxy.servicediscovery.prima:8080
+  https_proxy: http://mitmproxy.servicediscovery.prima:8080
+  no_proxy: localhost,redis,rabbit,aws,statsd,postgres,mysql,web,e2e-backend,127.0.0.1,elasticsearch,db,kibana,mock
 steps:
+- name: clone
+  image: drone/git
+  environment:
+    CARGO_HTTP_CAINFO: ""
+    CURL_CA_BUNDLE: ""
+    GIT_SSL_CAINFO: ""
+    HEX_CACERTS_PATH: ""
+    NODE_EXTRA_CA_CERTS: ""
+    REQUESTS_CA_BUNDLE: ""
+    SYSTEM_CERTIFICATE_PATH: ""
+    http_proxy: ""
+    https_proxy: ""
+
 - name: pre-start
-  image: prima/drone-tools:1.17.6
+  image: prima/drone-tools:1.17.8
   commands:
+  - . /etc/profile.d/ecs-credentials-endpoint
   - pre-start-scripts
+  environment:
+    CARGO_HTTP_CAINFO: ""
+    CURL_CA_BUNDLE: ""
+    GIT_SSL_CAINFO: ""
+    HEX_CACERTS_PATH: ""
+    NODE_EXTRA_CA_CERTS: ""
+    REQUESTS_CA_BUNDLE: ""
+    SYSTEM_CERTIFICATE_PATH: ""
+    http_proxy: ""
+    https_proxy: ""
+  volumes:
+  - name: ecs
+    path: /etc/profile.d/ecs-credentials-endpoint
 
 - name: cache-restore
-  image: prima/drone-tools:1.17.6
+  image: prima/drone-tools:1.17.8
   commands:
   - . /etc/profile.d/ecs-credentials-endpoint
   - cache-restore
+  environment:
+    CARGO_HTTP_CAINFO: ""
+    CURL_CA_BUNDLE: ""
+    GIT_SSL_CAINFO: ""
+    HEX_CACERTS_PATH: ""
+    NODE_EXTRA_CA_CERTS: ""
+    REQUESTS_CA_BUNDLE: ""
+    SYSTEM_CERTIFICATE_PATH: ""
+    http_proxy: ""
+    https_proxy: ""
   volumes:
   - name: ecs
     path: /etc/profile.d/ecs-credentials-endpoint
@@ -27,33 +76,61 @@ steps:
     path: /var/run/docker.sock
 
 - name: check-secrets
-  image: prima/drone-tools:1.17.6
+  image: prima/drone-tools:1.17.8
   commands:
   - . /etc/profile.d/ecs-credentials-endpoint
   - check-secrets-grants
+  environment:
+    CARGO_HTTP_CAINFO: ""
+    CURL_CA_BUNDLE: ""
+    GIT_SSL_CAINFO: ""
+    HEX_CACERTS_PATH: ""
+    NODE_EXTRA_CA_CERTS: ""
+    REQUESTS_CA_BUNDLE: ""
+    SYSTEM_CERTIFICATE_PATH: ""
+    http_proxy: ""
+    https_proxy: ""
   volumes:
   - name: ecs
     path: /etc/profile.d/ecs-credentials-endpoint
 
 - name: build-image
-  image: prima/drone-tools:1.17.6
+  image: prima/drone-tools:1.17.8
   commands:
   - sed -i 's/USER node/USER root/g' ./Dockerfile
   - docker build -t prima/pyxis-components-ci:1 ./
+  environment:
+    CARGO_HTTP_CAINFO: ""
+    CURL_CA_BUNDLE: ""
+    GIT_SSL_CAINFO: ""
+    HEX_CACERTS_PATH: ""
+    NODE_EXTRA_CA_CERTS: ""
+    REQUESTS_CA_BUNDLE: ""
+    SYSTEM_CERTIFICATE_PATH: ""
+    http_proxy: ""
+    https_proxy: ""
   volumes:
   - name: docker
     path: /var/run/docker.sock
   depends_on:
   - cache-restore
+  - clone
 
 - name: dependencies
   image: prima/pyxis-components-ci:1
   commands:
   - yarn
   environment:
+    CURL_CA_BUNDLE: /drone/src/certs/sys/proxy_deps_ca.pem
     ELM_HOME: /drone/src/.cache/elm
+    GIT_SSL_CAINFO: /drone/src/certs/sys/proxy_deps_ca.pem
+    NODE_EXTRA_CA_CERTS: /drone/src/certs/sys/proxy_deps_ca.pem
+    SYSTEM_CERTIFICATE_PATH: /drone/src/certs/sys/proxy_deps_ca.pem
     YARN_CACHE_FOLDER: /drone/src/.cache/yarn
+    http_proxy: http://mitmproxy.servicediscovery.prima:8080
+    https_proxy: http://mitmproxy.servicediscovery.prima:8080
   depends_on:
+  - pre-start
   - build-image
 
 - name: elm-analyse
@@ -71,8 +148,14 @@ steps:
   commands:
   - yarn elm-review
   environment:
+    CURL_CA_BUNDLE: ""
     ELM_HOME: /drone/src/.cache/elm
+    GIT_SSL_CAINFO: ""
+    NODE_EXTRA_CA_CERTS: ""
+    SYSTEM_CERTIFICATE_PATH: ""
     YARN_CACHE_FOLDER: /drone/src/.cache/yarn
+    http_proxy: ""
+    https_proxy: ""
   depends_on:
   - dependencies
 
@@ -87,10 +170,20 @@ steps:
   - dependencies
 
 - name: cache-save
-  image: prima/drone-tools:1.17.6
+  image: prima/drone-tools:1.17.8
   commands:
   - . /etc/profile.d/ecs-credentials-endpoint
   - cache-save .cache node_modules elm-stuff
+  environment:
+    CARGO_HTTP_CAINFO: ""
+    CURL_CA_BUNDLE: ""
+    GIT_SSL_CAINFO: ""
+    HEX_CACERTS_PATH: ""
+    NODE_EXTRA_CA_CERTS: ""
+    REQUESTS_CA_BUNDLE: ""
+    SYSTEM_CERTIFICATE_PATH: ""
+    http_proxy: ""
+    https_proxy: ""
   volumes:
   - name: ecs
     path: /etc/profile.d/ecs-credentials-endpoint
@@ -151,6 +244,6 @@ depends_on:
 
 ---
 kind: signature
-hmac: c8855a8a3d228584311d0e1eff5288399de6de32a056049699d0381dc0a9ea5a
+hmac: 375a385c943102c609263fdfe496007729beecdfe5bbfdd1b7bafd70ae9e839b
 
 ...
