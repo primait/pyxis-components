@@ -1,6 +1,6 @@
 module Prima.Pyxis.Form.Select exposing
     ( Select, State, Msg, SelectChoice
-    , select, init, update, selectChoice
+    , select, init, update, selectChoice, open, close
     , selectedValue, subscription
     , render
     , withAttribute, withId, withDefaultValue, withDisabled, withClass, withLargeSize, withMediumSize, withOverridingClass, withPlaceholder, withSmallSize
@@ -18,7 +18,7 @@ module Prima.Pyxis.Form.Select exposing
 
 ## Configuration Methods
 
-@docs select, init, update, selectChoice
+@docs select, init, update, selectChoice, open, close
 
 
 ## Methods
@@ -180,6 +180,20 @@ updateOnKeyDown ((State state) as stateModel) =
                     |> pickChoiceByIndex index
                     |> Maybe.map .value
         }
+
+
+{-| Show the available options for the select.
+-}
+open : State -> State
+open (State state) =
+    State { state | isMenuOpen = True }
+
+
+{-| Hide the available options for the select.
+-}
+close : State -> State
+close (State state) =
+    State { state | isMenuOpen = False }
 
 
 {-| Returns the current `SelectChoice.value` selected by the user.

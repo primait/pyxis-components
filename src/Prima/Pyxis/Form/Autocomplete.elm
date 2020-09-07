@@ -1,6 +1,6 @@
 module Prima.Pyxis.Form.Autocomplete exposing
     ( Autocomplete, State, Msg, AutocompleteChoice
-    , autocomplete, init, update, autocompleteChoice
+    , autocomplete, init, update, autocompleteChoice, open, close
     , render
     , selectedValue, filterValue, subscription
     , withAttribute, withClass, withDebouncer, withDefaultValue, withDisabled, withId, withLargeSize, withMediumSize, withName, withOverridingClass, withPlaceholder, withSmallSize, withThreshold
@@ -19,7 +19,7 @@ module Prima.Pyxis.Form.Autocomplete exposing
 
 ## Configuration Methods
 
-@docs autocomplete, init, update, autocompleteChoice
+@docs autocomplete, init, update, autocompleteChoice, open, close
 
 
 ## Rendering
@@ -199,6 +199,20 @@ update msg ((State state) as stateModel) =
             stateModel
                 |> H.withoutCmds
                 |> addReturningFilter Nothing
+
+
+{-| Show the available options for the autocomplete.
+-}
+open : State -> State
+open (State state) =
+    State { state | isMenuOpen = True }
+
+
+{-| Hide the available options for the autocomplete.
+-}
+close : State -> State
+close (State state) =
+    State { state | isMenuOpen = False }
 
 
 {-| Internal. Convert `Msg` into `Cmd Msg`, useful to chain updates.

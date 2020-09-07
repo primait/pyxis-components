@@ -1,6 +1,6 @@
 module Prima.Pyxis.Form.FilterableSelect exposing
     ( FilterableSelect, State, Msg
-    , filterableSelect, init, update, filterableSelectChoice
+    , filterableSelect, init, update, filterableSelectChoice, open, close
     , render
     , selectedValue, filterValue, subscription
     , withAttribute, withClass, withDefaultValue, withDisabled, withId, withName, withMediumSize, withSmallSize, withLargeSize, withPlaceholder, withOverridingClass
@@ -18,7 +18,7 @@ module Prima.Pyxis.Form.FilterableSelect exposing
 
 ## Configuration Methods
 
-@docs filterableSelect, init, update, filterableSelectChoice
+@docs filterableSelect, init, update, filterableSelectChoice, open, close
 
 
 ## Rendering
@@ -107,6 +107,20 @@ update msg state =
             state
                 |> updateAutocompleteState autocompleteState
                 |> updateChoices
+
+
+{-| Show the available options for the filterable select.
+-}
+open : State -> State
+open ({ autocompleteState } as state) =
+    { state | autocompleteState = Autocomplete.open autocompleteState }
+
+
+{-| Hide the available options for the filterable select.
+-}
+close : State -> State
+close ({ autocompleteState } as state) =
+    { state | autocompleteState = Autocomplete.close autocompleteState }
 
 
 {-| Internal. Check if the choice contains the string.
