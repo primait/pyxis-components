@@ -1,8 +1,8 @@
 module Prima.Pyxis.Form.FilterableSelect exposing
     ( FilterableSelect, State, Msg
-    , filterableSelect, init, update, filterableSelectChoice, open, close
+    , filterableSelect, init, update, filterableSelectChoice
     , render
-    , selectedValue, filterValue, subscription
+    , selectedValue, filterValue, subscription, open, close
     , withAttribute, withClass, withDefaultValue, withDisabled, withId, withName, withMediumSize, withSmallSize, withLargeSize, withPlaceholder, withOverridingClass
     , withOnBlur, withOnFocus
     , withValidation
@@ -18,7 +18,7 @@ module Prima.Pyxis.Form.FilterableSelect exposing
 
 ## Configuration Methods
 
-@docs filterableSelect, init, update, filterableSelectChoice, open, close
+@docs filterableSelect, init, update, filterableSelectChoice
 
 
 ## Rendering
@@ -28,7 +28,7 @@ module Prima.Pyxis.Form.FilterableSelect exposing
 
 ## Methods
 
-@docs selectedValue, filterValue, subscription
+@docs selectedValue, filterValue, subscription, open, close
 
 
 ## Options

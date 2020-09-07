@@ -1,8 +1,8 @@
 module Prima.Pyxis.Form.Autocomplete exposing
     ( Autocomplete, State, Msg, AutocompleteChoice
-    , autocomplete, init, update, autocompleteChoice, open, close
+    , autocomplete, init, update, autocompleteChoice
     , render
-    , selectedValue, filterValue, subscription
+    , selectedValue, filterValue, subscription, open, close
     , withAttribute, withClass, withDebouncer, withDefaultValue, withDisabled, withId, withLargeSize, withMediumSize, withName, withOverridingClass, withPlaceholder, withSmallSize, withThreshold
     , withOnBlur, withOnFocus
     , withValidation
@@ -19,7 +19,7 @@ module Prima.Pyxis.Form.Autocomplete exposing
 
 ## Configuration Methods
 
-@docs autocomplete, init, update, autocompleteChoice, open, close
+@docs autocomplete, init, update, autocompleteChoice
 
 
 ## Rendering
@@ -29,7 +29,7 @@ module Prima.Pyxis.Form.Autocomplete exposing
 
 ## Methods
 
-@docs selectedValue, filterValue, subscription
+@docs selectedValue, filterValue, subscription, open, close
 
 
 ## Options

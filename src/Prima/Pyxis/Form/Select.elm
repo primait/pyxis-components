@@ -1,7 +1,7 @@
 module Prima.Pyxis.Form.Select exposing
     ( Select, State, Msg, SelectChoice
-    , select, init, update, selectChoice, open, close
-    , selectedValue, subscription
+    , select, init, update, selectChoice
+    , selectedValue, subscription, open, close
     , render
     , withAttribute, withId, withDefaultValue, withDisabled, withClass, withLargeSize, withMediumSize, withOverridingClass, withPlaceholder, withSmallSize
     , withOnBlur, withOnFocus
@@ -18,12 +18,12 @@ module Prima.Pyxis.Form.Select exposing
 
 ## Configuration Methods
 
-@docs select, init, update, selectChoice, open, close
+@docs select, init, update, selectChoice
 
 
 ## Methods
 
-@docs selectedValue, subscription
+@docs selectedValue, subscription, open, close
 
 
 ## Rendering
