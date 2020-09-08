@@ -2,7 +2,7 @@ module Prima.Pyxis.Form.Autocomplete exposing
     ( Autocomplete, State, Msg, AutocompleteChoice
     , autocomplete, init, update, autocompleteChoice
     , render
-    , selectedValue, filterValue, subscription, open, close
+    , selectedValue, filterValue, subscription, open, close, isOpen, toggleMenu
     , withAttribute, withClass, withDebouncer, withDefaultValue, withDisabled, withId, withLargeSize, withMediumSize, withName, withOverridingClass, withPlaceholder, withSmallSize, withThreshold
     , withOnBlur, withOnFocus
     , withValidation
@@ -29,7 +29,7 @@ module Prima.Pyxis.Form.Autocomplete exposing
 
 ## Methods
 
-@docs selectedValue, filterValue, subscription, open, close
+@docs selectedValue, filterValue, subscription, open, close, isOpen, toggleMenu
 
 
 ## Options
@@ -213,6 +213,21 @@ open (State state) =
 close : State -> State
 close (State state) =
     State { state | isMenuOpen = False }
+
+
+{-| Toggle the menu openness.
+-}
+toggleMenu : State -> State
+toggleMenu (State state) =
+    State { state | isMenuOpen = not state.isMenuOpen }
+
+
+{-| Returns whether the menu is open or not.
+-}
+isOpen : State -> Bool
+isOpen (State state) =
+    state
+        |> .isMenuOpen
 
 
 {-| Internal. Convert `Msg` into `Cmd Msg`, useful to chain updates.

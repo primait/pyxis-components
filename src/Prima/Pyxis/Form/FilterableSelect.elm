@@ -28,7 +28,7 @@ module Prima.Pyxis.Form.FilterableSelect exposing
 
 ## Methods
 
-@docs selectedValue, filterValue, subscription, open, close
+@docs selectedValue, filterValue, subscription, open, close, isOpen, toggleMenu
 
 
 ## Options
@@ -121,6 +121,20 @@ open ({ autocompleteState } as state) =
 close : State -> State
 close ({ autocompleteState } as state) =
     { state | autocompleteState = Autocomplete.close autocompleteState }
+
+
+{-| Toggle the menu openness.
+-}
+toggleMenu : State -> State
+toggleMenu state =
+    { state | autocompleteState = Autocomplete.toggleMenu state.autocompleteState }
+
+
+{-| Returns whether the menu is open or not.
+-}
+isOpen : State -> Bool
+isOpen { autocompleteState } =
+    Autocomplete.isOpen autocompleteState
 
 
 {-| Internal. Check if the choice contains the string.
