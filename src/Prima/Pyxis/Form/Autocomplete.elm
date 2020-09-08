@@ -226,8 +226,7 @@ toggleMenu (State state) =
 -}
 isOpen : State -> Bool
 isOpen (State state) =
-    state
-        |> .isMenuOpen
+    state.isMenuOpen
 
 
 {-| Internal. Convert `Msg` into `Cmd Msg`, useful to chain updates.

@@ -207,8 +207,7 @@ toggleMenu (State state) =
 -}
 isOpen : State -> Bool
 isOpen (State state) =
-    state
-        |> .isMenuOpen
+    state.isMenuOpen
 
 
 {-| Returns the current `SelectChoice.value` selected by the user.
