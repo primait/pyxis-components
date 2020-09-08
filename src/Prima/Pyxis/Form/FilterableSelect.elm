@@ -2,7 +2,7 @@ module Prima.Pyxis.Form.FilterableSelect exposing
     ( FilterableSelect, State, Msg
     , filterableSelect, init, update, filterableSelectChoice
     , render
-    , selectedValue, filterValue, subscription, open, close
+    , selectedValue, filterValue, subscription, open, close, isOpen, toggleMenu
     , withAttribute, withClass, withDefaultValue, withDisabled, withId, withName, withMediumSize, withSmallSize, withLargeSize, withPlaceholder, withOverridingClass
     , withOnBlur, withOnFocus
     , withValidation
