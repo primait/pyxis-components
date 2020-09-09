@@ -484,7 +484,7 @@ withAppendableHtml html formField =
             InputListField <|
                 List.indexedMap
                     (\i x ->
-                        if i == (-) (List.length fieldConfig) 1 then
+                        if i == (List.length fieldConfig - 1) then
                             { x | appendableHtml = html }
 
                         else
