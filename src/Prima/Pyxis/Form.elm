@@ -480,8 +480,17 @@ withAppendableHtml html formField =
         InputField fieldConfig ->
             InputField { fieldConfig | appendableHtml = html }
 
-        InputListField _ ->
-            formField
+        InputListField fieldConfig ->
+            InputListField <|
+                List.indexedMap
+                    (\i x ->
+                        if i == (-) (List.length fieldConfig) 1 then
+                            { x | appendableHtml = html }
+
+                        else
+                            x
+                    )
+                    fieldConfig
 
         SelectField fieldConfig ->
             SelectField { fieldConfig | appendableHtml = html }
