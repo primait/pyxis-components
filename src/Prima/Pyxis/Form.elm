@@ -482,15 +482,12 @@ withAppendableHtml html formField =
 
         InputListField fieldConfig ->
             InputListField <|
-                List.indexedMap
-                    (\i x ->
-                        if i == (List.length fieldConfig - 1) then
-                            { x | appendableHtml = html }
+                case List.reverse fieldConfig of
+                    head :: tail ->
+                        List.reverse ({ head | appendableHtml = html } :: tail)
 
-                        else
-                            x
-                    )
-                    fieldConfig
+                    _ ->
+                        fieldConfig
 
         SelectField fieldConfig ->
             SelectField { fieldConfig | appendableHtml = html }
