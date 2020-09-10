@@ -480,8 +480,14 @@ withAppendableHtml html formField =
         InputField fieldConfig ->
             InputField { fieldConfig | appendableHtml = html }
 
-        InputListField _ ->
-            formField
+        InputListField fieldConfig ->
+            InputListField <|
+                case List.reverse fieldConfig of
+                    head :: tail ->
+                        List.reverse ({ head | appendableHtml = html } :: tail)
+
+                    _ ->
+                        fieldConfig
 
         SelectField fieldConfig ->
             SelectField { fieldConfig | appendableHtml = html }
