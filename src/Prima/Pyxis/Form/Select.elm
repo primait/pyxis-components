@@ -544,9 +544,17 @@ render model stateModel selectModel =
 
 renderSelect : model -> State -> Select model -> Html Msg
 renderSelect model ((State { choices }) as stateModel) selectModel =
+    let
+        options =
+            computeOptions selectModel
+    in
     Html.select
         (buildAttributes model stateModel selectModel)
-        (List.map (renderSelectChoice stateModel) choices)
+        (options.placeholder
+            |> SelectChoice ""
+            |> H.flip (::) choices
+            |> List.map (renderSelectChoice stateModel)
+        )
 
 
 renderSelectChoice : State -> SelectChoice -> Html Msg
