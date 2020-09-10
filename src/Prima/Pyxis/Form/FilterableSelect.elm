@@ -2,7 +2,7 @@ module Prima.Pyxis.Form.FilterableSelect exposing
     ( FilterableSelect, State, Msg
     , filterableSelect, init, update, filterableSelectChoice
     , render
-    , selectedValue, filterValue, subscription
+    , selectedValue, filterValue, subscription, open, close, isOpen, toggle
     , withAttribute, withClass, withDefaultValue, withDisabled, withId, withName, withMediumSize, withSmallSize, withLargeSize, withPlaceholder, withOverridingClass
     , withOnBlur, withOnFocus
     , withValidation
@@ -28,7 +28,7 @@ module Prima.Pyxis.Form.FilterableSelect exposing
 
 ## Methods
 
-@docs selectedValue, filterValue, subscription
+@docs selectedValue, filterValue, subscription, open, close, isOpen, toggle
 
 
 ## Options
@@ -107,6 +107,34 @@ update msg state =
             state
                 |> updateAutocompleteState autocompleteState
                 |> updateChoices
+
+
+{-| Show the available options for the filterable select.
+-}
+open : State -> State
+open ({ autocompleteState } as state) =
+    { state | autocompleteState = Autocomplete.open autocompleteState }
+
+
+{-| Hide the available options for the filterable select.
+-}
+close : State -> State
+close ({ autocompleteState } as state) =
+    { state | autocompleteState = Autocomplete.close autocompleteState }
+
+
+{-| Toggle the menu openness.
+-}
+toggle : State -> State
+toggle state =
+    { state | autocompleteState = Autocomplete.toggle state.autocompleteState }
+
+
+{-| Returns whether the menu is open or not.
+-}
+isOpen : State -> Bool
+isOpen { autocompleteState } =
+    Autocomplete.isOpen autocompleteState
 
 
 {-| Internal. Check if the choice contains the string.
