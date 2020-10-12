@@ -1,12 +1,11 @@
 module Prima.Pyxis.Form.Autocomplete exposing
     ( Autocomplete, State, Msg, AutocompleteChoice
-    , autocomplete, init, update, autocompleteChoice
+    , autocomplete, init, initWithDefault, update, autocompleteChoice
     , render
-    , selectedValue, filterValue, subscription, open, close, isOpen, toggle
+    , selectedValue, filterValue, subscription, open, close, isOpen, toggle, updateChoices
     , withAttribute, withClass, withDebouncer, withDefaultValue, withDisabled, withId, withLargeSize, withMediumSize, withName, withOverridingClass, withPlaceholder, withSmallSize, withThreshold
     , withOnBlur, withOnFocus
     , withValidation
-    , updateChoices
     )
 
 {-|
@@ -19,7 +18,7 @@ module Prima.Pyxis.Form.Autocomplete exposing
 
 ## Configuration Methods
 
-@docs autocomplete, init, update, autocompleteChoice
+@docs autocomplete, init, initWithDefault, update, autocompleteChoice
 
 
 ## Rendering
@@ -29,7 +28,7 @@ module Prima.Pyxis.Form.Autocomplete exposing
 
 ## Methods
 
-@docs selectedValue, filterValue, subscription, open, close, isOpen, toggle
+@docs selectedValue, filterValue, subscription, open, close, isOpen, toggle, updateChoices
 
 
 ## Options
@@ -118,6 +117,21 @@ type alias StateConfig =
 init : State
 init =
     State <| StateConfig Nothing Nothing Nothing False Pristine (initDebouncer 0) 1
+
+
+{-| Initializes the `Autocomplete`'s `State` with a default selected value.
+-}
+initWithDefault : String -> State
+initWithDefault defaultSelectedValue =
+    State <|
+        StateConfig
+            (Just defaultSelectedValue)
+            (Just defaultSelectedValue)
+            Nothing
+            False
+            (Loaded [ { value = defaultSelectedValue, label = defaultSelectedValue } ])
+            (initDebouncer 0)
+            1
 
 
 {-| Internal. Debouncer initializer
