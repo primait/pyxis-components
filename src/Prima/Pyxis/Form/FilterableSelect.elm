@@ -1,6 +1,6 @@
 module Prima.Pyxis.Form.FilterableSelect exposing
     ( FilterableSelect, State, Msg
-    , filterableSelect, init, update, filterableSelectChoice
+    , filterableSelect, init, initWithDefault, update, filterableSelectChoice
     , render
     , selectedValue, filterValue, subscription, open, close, isOpen, toggle
     , withAttribute, withClass, withDefaultValue, withDisabled, withId, withName, withMediumSize, withSmallSize, withLargeSize, withPlaceholder, withOverridingClass
@@ -18,7 +18,7 @@ module Prima.Pyxis.Form.FilterableSelect exposing
 
 ## Configuration Methods
 
-@docs filterableSelect, init, update, filterableSelectChoice
+@docs filterableSelect, init, initWithDefault, update, filterableSelectChoice
 
 
 ## Rendering
@@ -91,6 +91,15 @@ init : List FilterableSelectChoice -> State
 init choices =
     { choices = choices
     , autocompleteState = Autocomplete.init
+    }
+
+
+{-| Initializes the `Autocomplete`'s `State` with a default selected value.
+-}
+initWithDefault : String -> List FilterableSelectChoice -> State
+initWithDefault defaultSelectedValue choices =
+    { choices = choices
+    , autocompleteState = Autocomplete.initWithDefault defaultSelectedValue
     }
 
 

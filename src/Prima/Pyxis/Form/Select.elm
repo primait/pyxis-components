@@ -1,6 +1,6 @@
 module Prima.Pyxis.Form.Select exposing
     ( Select, State, Msg, SelectChoice
-    , select, init, update, selectChoice
+    , select, init, initWithDefault, update, selectChoice
     , selectedValue, subscription, open, close, isOpen, toggle
     , render
     , withAttribute, withId, withDefaultValue, withDisabled, withClass, withLargeSize, withMediumSize, withOverridingClass, withPlaceholder, withSmallSize
@@ -18,7 +18,7 @@ module Prima.Pyxis.Form.Select exposing
 
 ## Configuration Methods
 
-@docs select, init, update, selectChoice
+@docs select, init, initWithDefault, update, selectChoice
 
 
 ## Methods
@@ -89,6 +89,13 @@ type alias StateConfig =
 init : List SelectChoice -> State
 init choices =
     State <| StateConfig Nothing Nothing False choices
+
+
+{-| Initializes the `Select`'s `State` with a default value.
+-}
+initWithDefault : String -> List SelectChoice -> State
+initWithDefault defaultSelectedValue choices =
+    State <| StateConfig (Just defaultSelectedValue) (Just defaultSelectedValue) False choices
 
 
 {-| Updates the `Select`'s `State`.
