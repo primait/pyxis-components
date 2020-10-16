@@ -96,10 +96,10 @@ init choices =
 
 {-| Initializes the `Autocomplete`'s `State` with a default selected value.
 -}
-initWithDefault : String -> List FilterableSelectChoice -> State
-initWithDefault defaultSelectedValue choices =
+initWithDefault : String -> String -> List FilterableSelectChoice -> State
+initWithDefault defaultSelectedLabel defaultSelectedValue choices =
     { choices = choices
-    , autocompleteState = Autocomplete.initWithDefault defaultSelectedValue
+    , autocompleteState = Autocomplete.initWithDefault defaultSelectedLabel defaultSelectedValue
     }
 
 

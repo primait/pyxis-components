@@ -121,15 +121,15 @@ init =
 
 {-| Initializes the `Autocomplete`'s `State` with a default selected value.
 -}
-initWithDefault : String -> State
-initWithDefault defaultSelectedValue =
+initWithDefault : String -> String -> State
+initWithDefault defaultSelectedLabel defaultSelectedValue =
     State <|
         StateConfig
             (Just defaultSelectedValue)
             (Just defaultSelectedValue)
             Nothing
             False
-            (Loaded [ { value = defaultSelectedValue, label = defaultSelectedValue } ])
+            (Loaded [ { value = defaultSelectedValue, label = defaultSelectedLabel } ])
             (initDebouncer 0)
             1
 
