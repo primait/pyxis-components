@@ -283,7 +283,7 @@ renderDatePicker model dateModel =
 renderDatePickerIcon : Date model msg -> Html msg
 renderDatePickerIcon dateModel =
     let
-        { id, onIconClick } =
+        { onIconClick } =
             computeOptions dateModel
 
         iconAttrs : List (Html.Attribute msg)
