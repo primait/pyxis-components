@@ -292,7 +292,7 @@ renderDatePickerIcon dateModel =
                 :: ME.unwrap [] (Attrs.for >> List.singleton) id
                 ++ ME.unwrap [] (Events.onClick >> List.singleton) onIconClick
     in
-    Html.label iconAttrs []
+    Html.i iconAttrs []
 
 
 renderGroup : List (Html msg) -> Html msg
