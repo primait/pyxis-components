@@ -289,8 +289,7 @@ renderDatePickerIcon dateModel =
         iconAttrs : List (Html.Attribute msg)
         iconAttrs =
             Attrs.class "form-input-group--datepicker__icon"
-                :: ME.unwrap [] (Attrs.for >> List.singleton) id
-                ++ ME.unwrap [] (Events.onClick >> List.singleton) onIconClick
+                :: ME.unwrap [] (Events.onClick >> List.singleton) onIconClick
     in
     Html.i iconAttrs []
 
