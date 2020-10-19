@@ -126,6 +126,11 @@ update msg model =
                 |> toggleTooltip
                 |> H.withoutCmds
 
+        OnClick BirthDate ->
+            model
+                |> openBirthDateDatePicker
+                |> H.withoutCmds
+
         _ ->
             H.withoutCmds model
 

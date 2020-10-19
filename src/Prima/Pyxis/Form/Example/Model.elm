@@ -29,6 +29,7 @@ type Msg
     | OnTodayDateReceived Date.Date
     | ToggleTooltip
     | GotCountries (List Autocomplete.AutocompleteChoice)
+    | OnClick Field
 
 
 type alias Model =

@@ -333,6 +333,8 @@ birthDateConfig =
         |> Date.withOnFocus (OnFocus BirthDate)
         |> Date.withDatePicker .birthDateDatePicker (OnDatePickerUpdate BirthDate)
         |> Date.withDatePickerVisibility (.birthDateDatePickerOpened << .uiState)
+        |> Date.withOnIconClick (OnClick BirthDate)
+        |> Date.withAttribute (Attrs.autocomplete False)
         |> Form.date
         |> Form.withLabel
             ("Data di nascita"
