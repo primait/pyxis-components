@@ -167,11 +167,15 @@ updateSelectedYear year model =
 shiftToPreviousMonth : Model -> Model
 shiftToPreviousMonth model =
     let
+        ( newMonth, newYear ) =
+            prevMonth (Date.month model.date) (Date.year model.date)
+
         newDate : Date.Date
         newDate =
-            Date.fromCalendarDate (Date.year model.date) (prevMonth <| Date.month model.date) (Date.day model.date)
+            Date.fromCalendarDate newYear newMonth (Date.day model.date)
     in
     updateModelIfValid ValidMonth newDate model
+
 
 
 shiftToNextMonth : Model -> Model
@@ -561,44 +565,44 @@ nextMonth month year =
             ( Jan, year + 1 )
 
 
-prevMonth : Month -> Month
-prevMonth month =
+prevMonth : Month -> Int -> ( Month, Int )
+prevMonth month year =
     case month of
         Jan ->
-            Dec
+            ( Dec, year - 1 )
 
         Feb ->
-            Jan
+            ( Jan, year )
 
         Mar ->
-            Feb
+            (Feb, year )
 
         Apr ->
-            Mar
+            ( Mar, year )
 
         May ->
-            Apr
+            ( Apr, year )
 
         Jun ->
-            May
+            ( May, year )
 
         Jul ->
-            Jun
+            ( Jun, year )
 
         Aug ->
-            Jul
+            ( Jul, year )
 
         Sep ->
-            Aug
+            ( Aug, year )
 
         Oct ->
-            Sep
+            ( Sep, year )
 
         Nov ->
-            Oct
+            ( Oct, year )
 
         Dec ->
-            Nov
+            ( Nov, year )
 
 
 getDaysInMonth : Int -> Month -> Int
