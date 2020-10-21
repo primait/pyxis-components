@@ -299,8 +299,9 @@ renderAppendGroup dateModel =
 
         groupAttrs : List (Html.Attribute msg)
         groupAttrs =
-            Attrs.class "form-input-group__append"
-                :: [ Attrs.class <| String.join " " groupClasses ]
+            [ Attrs.class "form-input-group__append"
+            , Attrs.class <| String.join " " groupClasses
+            ]
                 ++ ME.unwrap [] (Events.onClick >> List.singleton) onIconClick
     in
     Html.div groupAttrs
