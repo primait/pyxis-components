@@ -4,7 +4,7 @@ module Prima.Pyxis.Form.Date exposing
     , render
     , withAttribute, withClass, withDefaultValue, withDisabled, withId, withMediumSize, withSmallSize, withLargeSize, withName, withPlaceholder
     , withDatePicker, withDatePickerVisibility
-    , withOnBlur, withOnFocus
+    , withOnBlur, withOnFocus, withOnIconClick
     , withValidation
     )
 
@@ -38,7 +38,7 @@ module Prima.Pyxis.Form.Date exposing
 
 ## Event Options
 
-@docs withOnBlur, withOnFocus
+@docs withOnBlur, withOnFocus, withOnIconClick
 
 
 ## Validation
@@ -52,6 +52,7 @@ import Html exposing (Html)
 import Html.Attributes as Attrs
 import Html.Events as Events
 import Json.Decode
+import Maybe.Extra as ME
 import Prima.Pyxis.Form.DatePicker as DatePicker
 import Prima.Pyxis.Form.Validation as Validation
 import Prima.Pyxis.Helpers as H
@@ -101,6 +102,7 @@ type DateOption model msg
     | Name String
     | OnBlur msg
     | OnFocus msg
+    | OnIconClick msg
     | Placeholder String
     | Size DateSize
     | Validation (model -> Maybe Validation.Type)
@@ -198,6 +200,13 @@ withOnFocus tagger =
     addOption (OnFocus tagger)
 
 
+{-| Sets an `onClick event` to the `Date icon`.
+-}
+withOnIconClick : msg -> Date model msg -> Date model msg
+withOnIconClick tagger =
+    addOption (OnIconClick tagger)
+
+
 {-| Sets a `placeholder` to the `Date`.
 -}
 withPlaceholder : String -> Date model msg -> Date model msg
@@ -230,14 +239,10 @@ withValidation validation =
 -}
 render : model -> Date model msg -> List (Html msg)
 render model dateModel =
-    let
-        options =
-            computeOptions dateModel
-    in
     if shouldShowDatePicker model dateModel then
         [ renderGroup
             (renderAppendGroup dateModel
-                [ renderDatePickerIcon <| Maybe.withDefault "" options.id
+                [ renderDatePickerIcon dateModel
                 ]
                 :: renderInput InputDate model dateModel
                 :: renderInput InputText model dateModel
@@ -275,9 +280,18 @@ renderDatePicker model dateModel =
             Html.text ""
 
 
-renderDatePickerIcon : String -> Html msg
-renderDatePickerIcon fieldId =
-    Html.label [ Attrs.class "form-input-group--datepicker__icon", Attrs.for fieldId ] []
+renderDatePickerIcon : Date model msg -> Html msg
+renderDatePickerIcon dateModel =
+    let
+        { onIconClick } =
+            computeOptions dateModel
+
+        iconAttrs : List (Html.Attribute msg)
+        iconAttrs =
+            Attrs.class "form-input-group--datepicker__icon"
+                :: ME.unwrap [] (Events.onClick >> List.singleton) onIconClick
+    in
+    Html.i iconAttrs []
 
 
 renderGroup : List (Html msg) -> Html msg
@@ -351,6 +365,7 @@ type alias Options model msg =
     , name : Maybe String
     , onFocus : Maybe msg
     , onBlur : Maybe msg
+    , onIconClick : Maybe msg
     , placeholder : Maybe String
     , prependGroup : Maybe (List (Html msg))
     , size : DateSize
@@ -375,6 +390,7 @@ defaultOptions =
     , name = Nothing
     , onFocus = Nothing
     , onBlur = Nothing
+    , onIconClick = Nothing
     , placeholder = Nothing
     , prependGroup = Nothing
     , size = Medium
@@ -425,6 +441,9 @@ applyOption modifier options =
 
         Validation validation ->
             { options | validations = validation :: options.validations }
+
+        OnIconClick onIconClick ->
+            { options | onIconClick = Just onIconClick }
 
 
 {-| Transforms an `DateSize` into a valid `Html.Attribute`.
