@@ -242,7 +242,7 @@ render model dateModel =
     if shouldShowDatePicker model dateModel then
         [ renderGroup
             (renderAppendGroup dateModel
-                [ renderDatePickerIcon dateModel
+                [ renderDatePickerIcon
                 ]
                 :: renderInput InputDate model dateModel
                 :: renderInput InputText model dateModel
@@ -280,18 +280,9 @@ renderDatePicker model dateModel =
             Html.text ""
 
 
-renderDatePickerIcon : Date model msg -> Html msg
-renderDatePickerIcon dateModel =
-    let
-        { onIconClick } =
-            computeOptions dateModel
-
-        iconAttrs : List (Html.Attribute msg)
-        iconAttrs =
-            Attrs.class "form-input-group--datepicker__icon"
-                :: ME.unwrap [] (Events.onClick >> List.singleton) onIconClick
-    in
-    Html.i iconAttrs []
+renderDatePickerIcon : Html msg
+renderDatePickerIcon =
+    Html.i [ Attrs.class "form-input-group--datepicker__icon" ] []
 
 
 renderGroup : List (Html msg) -> Html msg
@@ -303,13 +294,17 @@ renderGroup =
 renderAppendGroup : Date model msg -> List (Html msg) -> Html msg
 renderAppendGroup dateModel =
     let
-        options =
+        { onIconClick, groupClasses } =
             computeOptions dateModel
+
+        groupAttrs : List (Html.Attribute msg)
+        groupAttrs =
+            [ Attrs.class "form-input-group__append"
+            , Attrs.class <| String.join " " groupClasses
+            ]
+                ++ ME.unwrap [] (Events.onClick >> List.singleton) onIconClick
     in
-    Html.div
-        [ Attrs.class "form-input-group__append"
-        , Attrs.class <| String.join " " options.groupClasses
-        ]
+    Html.div groupAttrs
 
 
 renderValidationMessages : model -> Date model msg -> List (Html msg)
