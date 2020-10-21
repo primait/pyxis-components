@@ -32,7 +32,6 @@ module Prima.Pyxis.Form.DatePicker exposing
 import Date
 import Html exposing (Html)
 import Html.Attributes as Attrs
-import Html.Events as Events
 import Prima.Pyxis.Helpers as H
 import Time exposing (Month(..), Weekday(..))
 
@@ -247,7 +246,7 @@ header ({ date, selectingYear } as model) =
                 [ ( "datepicker__header__year", True )
                 , ( "is-selected", selectingYear )
                 ]
-            , Events.onClick
+            , H.stopEvt "click"
                 (if selectingYear then
                     DaySelection
 
@@ -262,7 +261,7 @@ header ({ date, selectingYear } as model) =
                 [ ( "datepicker__header__day", True )
                 , ( "is-selected", not selectingYear )
                 ]
-            , Events.onClick DaySelection
+            , H.stopEvt "click" DaySelection
             ]
             [ (Html.text << formattedDay) model
             ]
@@ -370,7 +369,7 @@ dayCell dayNumber currentDay disabled =
                 , ( "is-selected", dayNumber == currentDay )
                 , ( "is-disabled", disabled )
                 ]
-            , (Events.onClick << SelectDay) dayNumber
+            , (H.stopEvt "click" << SelectDay) dayNumber
             ]
             [ (Html.text << String.fromInt) dayNumber
             ]
@@ -389,7 +388,7 @@ picker model =
             [ Attrs.class "datepicker__picker__header" ]
             [ Html.span
                 [ Attrs.class "datepicker__picker__header__arrow datepicker__picker__header__arrow--prev"
-                , Events.onClick PrevMonth
+                , H.stopEvt "click" PrevMonth
                 ]
                 []
             , Html.div
@@ -398,7 +397,7 @@ picker model =
                 ]
             , Html.span
                 [ Attrs.class "datepicker__picker__header__arrow datepicker__picker__header__arrow--next"
-                , Events.onClick NextMonth
+                , H.stopEvt "click" NextMonth
                 ]
                 []
             ]
@@ -431,7 +430,7 @@ yearButton year currentYear =
             [ ( "datepicker__year-picker__scroller__item", True )
             , ( "is-selected", year == currentYear )
             ]
-        , (Events.onClick << SelectYear) year
+        , (H.stopEvt "click" << SelectYear) year
         ]
         [ (Html.text << String.fromInt) year
         ]
