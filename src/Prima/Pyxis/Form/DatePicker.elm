@@ -3,7 +3,7 @@ module Prima.Pyxis.Form.DatePicker exposing
     , init, update
     , render
     , selectedDate, setDate
-    )
+    , isParsedDate, isPartialDate)
 
 {-|
 
@@ -656,3 +656,17 @@ isLeapYear year =
 updateToLastDayOfMonth : Date.Date -> Date.Date
 updateToLastDayOfMonth date =
     Date.fromCalendarDate (Date.year date) (Date.month date) (getDaysInMonth (Date.year date) (Date.month date))
+
+
+isParsedDate : Date -> Bool
+isParsedDate date =
+    case  date of
+        ParsedDate _ ->
+            True
+
+        PartialDate _ ->
+            False
+
+isPartialDate: Date -> Bool
+isPartialDate  =
+    not << isParsedDate
