@@ -7,18 +7,25 @@ platform:
   arch: amd64
 
 clone:
-  depth: 1
+  disable: true
 
 steps:
+- name: git-clone
+  image: 595659439703.dkr.ecr.eu-west-1.amazonaws.com/drone-git:1.3-3
+  environment:
+    PLUGIN_DEPTH: 5
+
 - name: pre-start
-  image: 001575623345.dkr.ecr.eu-west-1.amazonaws.com/drone-tools:1.17.16
+  image: 595659439703.dkr.ecr.eu-west-1.amazonaws.com/drone-tools:1.17.16
   commands:
   - pre-start-scripts
   environment:
     COUNTRY: it
+  depends_on:
+  - git-clone
 
 - name: cache-restore
-  image: 001575623345.dkr.ecr.eu-west-1.amazonaws.com/drone-tools:1.17.16
+  image: 595659439703.dkr.ecr.eu-west-1.amazonaws.com/drone-tools:1.17.16
   commands:
   - . /etc/profile.d/ecs-credentials-endpoint
   - cache-restore
@@ -31,18 +38,22 @@ steps:
     path: /var/run/docker.sock
   - name: docker-conf
     path: /root/.docker
+  depends_on:
+  - git-clone
 
 - name: check-secrets
-  image: 001575623345.dkr.ecr.eu-west-1.amazonaws.com/drone-tools:1.17.16
+  image: 595659439703.dkr.ecr.eu-west-1.amazonaws.com/drone-tools:1.17.16
   commands:
   - . /etc/profile.d/ecs-credentials-endpoint
   - check-secrets-grants
   volumes:
   - name: ecs
     path: /etc/profile.d/ecs-credentials-endpoint
+  depends_on:
+  - git-clone
 
 - name: build-image
-  image: 001575623345.dkr.ecr.eu-west-1.amazonaws.com/drone-tools:1.17.16
+  image: 595659439703.dkr.ecr.eu-west-1.amazonaws.com/drone-tools:1.17.16
   commands:
   - sed -i 's/USER node/USER root/g' ./Dockerfile
   - docker build -t prima/pyxis-components-ci:1 ./
@@ -96,7 +107,7 @@ steps:
   - dependencies
 
 - name: cache-save
-  image: 001575623345.dkr.ecr.eu-west-1.amazonaws.com/drone-tools:1.17.16
+  image: 595659439703.dkr.ecr.eu-west-1.amazonaws.com/drone-tools:1.17.16
   commands:
   - . /etc/profile.d/ecs-credentials-endpoint
   - cache-save .cache node_modules elm-stuff
@@ -167,6 +178,6 @@ depends_on:
 
 ---
 kind: signature
-hmac: 8d7c81c1426130fd17bb438d74e8527a750a9fd51d95992e203bb4e6dafc48f7
+hmac: 3588b20554b8292f4ddbbe6796ac8b426e2ce08489193398f332db8aa6768aee
 
 ...
