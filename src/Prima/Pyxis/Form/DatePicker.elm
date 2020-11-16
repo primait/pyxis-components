@@ -3,7 +3,8 @@ module Prima.Pyxis.Form.DatePicker exposing
     , init, update
     , render
     , selectedDate, setDate
-    , isParsedDate, isPartialDate)
+    , isParsedDate, isPartialDate, toMaybeDate
+    )
 
 {-|
 
@@ -174,7 +175,6 @@ shiftToPreviousMonth model =
             Date.fromCalendarDate newYear newMonth (Date.day model.date)
     in
     updateModelIfValid ValidMonth newDate model
-
 
 
 shiftToNextMonth : Model -> Model
@@ -574,7 +574,7 @@ prevMonth month year =
             ( Jan, year )
 
         Mar ->
-            (Feb, year )
+            ( Feb, year )
 
         Apr ->
             ( Mar, year )
@@ -660,13 +660,24 @@ updateToLastDayOfMonth date =
 
 isParsedDate : Date -> Bool
 isParsedDate date =
-    case  date of
+    case date of
         ParsedDate _ ->
             True
 
         PartialDate _ ->
             False
 
-isPartialDate: Date -> Bool
-isPartialDate  =
+
+isPartialDate : Date -> Bool
+isPartialDate =
     not << isParsedDate
+
+
+toMaybeDate : Date -> Maybe Date.Date
+toMaybeDate date =
+    case date of
+        ParsedDate parsedDate ->
+            Just parsedDate
+
+        PartialDate _ ->
+            Nothing
