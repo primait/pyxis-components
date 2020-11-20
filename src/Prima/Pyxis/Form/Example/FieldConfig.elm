@@ -26,6 +26,7 @@ import Prima.Pyxis.Form.Autocomplete as Autocomplete
 import Prima.Pyxis.Form.Checkbox as Checkbox
 import Prima.Pyxis.Form.CheckboxFlag as CheckboxFlag
 import Prima.Pyxis.Form.Date as Date
+import Prima.Pyxis.Form.DatePicker as DatePicker
 import Prima.Pyxis.Form.Example.FieldValidations as Validation
 import Prima.Pyxis.Form.Example.Model exposing (BirthDateField(..), Field(..), FormData, Msg(..))
 import Prima.Pyxis.Form.FilterableSelect as FilterableSelect
@@ -332,6 +333,7 @@ birthDateConfig =
     Date.date .birthDate (OnDateInput BirthDate)
         |> Date.withId slug
         |> Date.withOnFocus (OnFocus BirthDate)
+        |> Date.withDefaultValue (DatePicker.PartialDate (Just ""))
         |> Date.withDatePicker .birthDateDatePicker (OnDatePickerUpdate BirthDate)
         |> Date.withDatePickerVisibility (.birthDateDatePickerOpened << .uiState)
         |> Date.withOnIconClick (OnClick BirthDate)
