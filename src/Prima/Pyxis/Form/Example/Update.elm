@@ -56,7 +56,7 @@ update msg model =
 
         OnInput Username value ->
             model
-                |> updateUsername (Just value)
+                |> updateUsername (H.validString value)
                 |> H.withoutCmds
 
         OnInput Password value ->

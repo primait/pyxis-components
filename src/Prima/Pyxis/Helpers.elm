@@ -14,6 +14,7 @@ module Prima.Pyxis.Helpers exposing
     , renderMaybe
     , spacer
     , stopEvt
+    , validString
     , withCmds
     , withoutCmds
     )
@@ -141,3 +142,13 @@ addIf condition element list =
 
     else
         list
+
+
+validString : String -> Maybe String
+validString str =
+    case str of
+        "" ->
+            Nothing
+
+        validStr ->
+            Just validStr

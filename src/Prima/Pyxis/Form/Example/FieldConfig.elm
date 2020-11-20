@@ -77,6 +77,7 @@ usernameWithTooltipConfig showTooltip =
     in
     Input.text .username (OnInput Username)
         |> Input.withId slug
+        |> Input.withDefaultValue Nothing
         |> Form.input
         |> Form.withAppendableHtml
             [ icon
