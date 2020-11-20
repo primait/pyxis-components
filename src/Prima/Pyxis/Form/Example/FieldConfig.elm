@@ -220,6 +220,7 @@ powerSourceConfig state =
     in
     Select.select
         |> Select.withId slug
+        |> Select.withDefaultValue Nothing
         |> Select.withValidation (Validation.notEmptyValidation .powerSource)
         |> Select.withValidation Validation.powerSourceNotDieselValidation
         |> Form.select SelectMsg state
