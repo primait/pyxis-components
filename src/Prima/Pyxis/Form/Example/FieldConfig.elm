@@ -314,6 +314,7 @@ textAreaConfig =
     TextArea.textArea .note (OnInput Note)
         |> TextArea.withId slug
         |> TextArea.withLargeSize
+        |> TextArea.withDefaultValue Nothing
         |> TextArea.withPlaceholder "Describe something happened"
         |> TextArea.withValidation (Validation.notEmptyValidation .note)
         |> Form.textArea

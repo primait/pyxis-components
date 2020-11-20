@@ -118,7 +118,7 @@ update msg model =
 
         OnInput Note value ->
             model
-                |> updateNote (Just value)
+                |> updateNote (H.validString value)
                 |> H.withoutCmds
 
         ToggleTooltip ->
