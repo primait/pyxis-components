@@ -340,10 +340,6 @@ isPristine model ((TextArea config) as textAreaModel) =
 -}
 pristineAttribute : model -> TextArea model msg -> Html.Attribute msg
 pristineAttribute model textAreaModel =
-    let
-        options =
-            computeOptions textAreaModel
-    in
     if isPristine model textAreaModel then
         Attrs.class "is-pristine"
 
