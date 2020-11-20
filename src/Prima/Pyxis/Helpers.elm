@@ -1,5 +1,6 @@
 module Prima.Pyxis.Helpers exposing
-    ( btnGroup
+    ( addIf
+    , btnGroup
     , classesAttribute
     , flip
     , isJust
@@ -131,3 +132,12 @@ maybeCons mA xs =
 
         Nothing ->
             xs
+
+
+addIf : Bool -> a -> List a -> List a
+addIf condition element list =
+    if condition then
+        element :: list
+
+    else
+        list
