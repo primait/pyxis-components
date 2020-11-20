@@ -327,15 +327,24 @@ validationAttribute model textAreaModel =
             Attrs.class "has-error"
 
 
-{-| Internal. Applies the `pristine/touched` visual state to the component.
--}
-pristineAttribute : model -> TextArea model msg -> Html.Attribute msg
-pristineAttribute model ((TextArea config) as textAreaModel) =
+isPristine : model -> TextArea model msg -> Bool
+isPristine model ((TextArea config) as textAreaModel) =
     let
         options =
             computeOptions textAreaModel
     in
-    if Value (config.reader model) == options.defaultValue then
+    Value (config.reader model) == options.defaultValue
+
+
+{-| Internal. Applies the `pristine/touched` visual state to the component.
+-}
+pristineAttribute : model -> TextArea model msg -> Html.Attribute msg
+pristineAttribute model textAreaModel =
+    let
+        options =
+            computeOptions textAreaModel
+    in
+    if isPristine model textAreaModel then
         Attrs.class "is-pristine"
 
     else
@@ -356,6 +365,9 @@ buildAttributes model ((TextArea _) as textAreaModel) =
     let
         options =
             computeOptions textAreaModel
+
+        hasValidations =
+            List.length options.validations > 0 || not (isPristine model textAreaModel)
     in
     [ options.id
         |> Maybe.map Attrs.id
@@ -377,7 +389,7 @@ buildAttributes model ((TextArea _) as textAreaModel) =
         |> (::) (readerAttribute model textAreaModel)
         |> (::) (taggerAttribute textAreaModel)
         |> (::) (sizeAttribute options.size)
-        |> (::) (validationAttribute model textAreaModel)
+        |> H.addIf hasValidations (validationAttribute model textAreaModel)
 
 
 {-|

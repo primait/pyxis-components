@@ -450,15 +450,20 @@ validationAttribute model inputModel =
             Attrs.class "has-error"
 
 
-{-| Internal. Applies the `pristine/touched` visual state to the component.
--}
-pristineAttribute : model -> Input model msg -> Html.Attribute msg
-pristineAttribute model ((Input config) as inputModel) =
+isPristine : model -> Input model msg -> Bool
+isPristine model ((Input config) as inputModel) =
     let
         options =
             computeOptions inputModel
     in
-    if Value (config.reader model) == options.defaultValue then
+    Value (config.reader model) == options.defaultValue
+
+
+{-| Internal. Applies the `pristine/touched` visual state to the component.
+-}
+pristineAttribute : model -> Input model msg -> Html.Attribute msg
+pristineAttribute model inputModel =
+    if isPristine model inputModel then
         Attrs.class "is-pristine"
 
     else
@@ -479,6 +484,9 @@ buildAttributes model ((Input config) as inputModel) =
     let
         options =
             computeOptions inputModel
+
+        hasValidations =
+            List.length options.validations > 0 || not (isPristine model inputModel)
     in
     [ options.id
         |> Maybe.map Attrs.id
@@ -500,7 +508,7 @@ buildAttributes model ((Input config) as inputModel) =
         |> (::) (taggerAttribute inputModel)
         |> (::) (typeAttribute config.type_)
         |> (::) (sizeAttribute options.size)
-        |> (::) (validationAttribute model inputModel)
+        |> H.addIf hasValidations (validationAttribute model inputModel)
         |> (::) (pristineAttribute model inputModel)
 
 

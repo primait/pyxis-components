@@ -541,15 +541,20 @@ validationAttribute model dateModel =
             Attrs.class "has-error"
 
 
-{-| Internal. Applies the `pristine/touched` visual state to the component.
--}
-pristineAttribute : model -> Date model msg -> Html.Attribute msg
-pristineAttribute model ((Date config) as dateModel) =
+isPristine : model -> Date model msg -> Bool
+isPristine model ((Date config) as dateModel) =
     let
         options =
             computeOptions dateModel
     in
-    if Value (config.reader model) == options.defaultValue then
+    Value (config.reader model) == options.defaultValue
+
+
+{-| Internal. Applies the `pristine/touched` visual state to the component.
+-}
+pristineAttribute : model -> Date model msg -> Html.Attribute msg
+pristineAttribute model dateModel =
+    if isPristine model dateModel then
         Attrs.class "is-pristine"
 
     else
@@ -563,6 +568,9 @@ buildAttributes mode model dateModel =
     let
         options =
             computeOptions dateModel
+
+        hasValidations =
+            List.length options.validations > 0 || not (isPristine model dateModel)
     in
     [ options.id
         |> Maybe.map Attrs.id
@@ -583,7 +591,7 @@ buildAttributes mode model dateModel =
         |> (::) (readerAttribute mode model dateModel)
         |> (::) (taggerAttribute dateModel)
         |> (::) (sizeAttribute options.size)
-        |> (::) (validationAttribute model dateModel)
+        |> H.addIf hasValidations (validationAttribute model dateModel)
         |> (::) (pristineAttribute model dateModel)
         |> (::) (typeAttribute mode)
 
