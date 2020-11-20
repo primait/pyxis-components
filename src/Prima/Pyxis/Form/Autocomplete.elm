@@ -1,5 +1,5 @@
 module Prima.Pyxis.Form.Autocomplete exposing
-    ( Autocomplete, State, Msg, AutocompleteChoice
+    ( Autocomplete, State, Msg(..), AutocompleteChoice
     , autocomplete, init, initWithDefault, update, autocompleteChoice, updateChoices
     , render
     , selectedValue, filterValue, subscription, open, close, isOpen, toggle
