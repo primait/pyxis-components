@@ -43,7 +43,7 @@ module Prima.Pyxis.Form.RadioButton exposing
 -}
 
 import Html exposing (Attribute, Html)
-import Html.Attributes as Attrs exposing (disabled)
+import Html.Attributes as Attrs
 import Html.Events as Events
 import Prima.Pyxis.Form.Validation as Validation
 import Prima.Pyxis.Helpers as H
@@ -227,15 +227,14 @@ readerAttribute model (RadioButton config) choice =
 -}
 taggerAttribute : RadioButton model msg -> RadioButtonChoice -> Options model msg -> List (Html.Attribute msg)
 taggerAttribute (RadioButton config) choice options =
-    case options.disabled of
-        False ->
-            choice.value
-                |> config.tagger
-                |> Events.onClick
-                |> List.singleton
+    if options.disabled then
+        []
 
-        True ->
-            []
+    else
+        choice.value
+            |> config.tagger
+            |> Events.onClick
+            |> List.singleton
 
 
 {-| Internal. Checks RadioButton has subtitle
