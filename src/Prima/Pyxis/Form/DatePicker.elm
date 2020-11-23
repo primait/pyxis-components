@@ -4,7 +4,7 @@ module Prima.Pyxis.Form.DatePicker exposing
     , render
     , selectedDate, setDate
     , isParsedDate, isPartialDate, toMaybeDate
-    )
+    , fromMaybeDate)
 
 {-|
 
