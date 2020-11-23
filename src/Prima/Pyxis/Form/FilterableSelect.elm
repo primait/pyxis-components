@@ -6,6 +6,7 @@ module Prima.Pyxis.Form.FilterableSelect exposing
     , withAttribute, withClass, withDefaultValue, withDisabled, withId, withName, withMediumSize, withSmallSize, withLargeSize, withPlaceholder, withOverridingClass
     , withOnBlur, withOnFocus
     , withValidation
+    , withThreshold
     )
 
 {-|
@@ -314,3 +315,10 @@ withOnFocus =
 withValidation : (model -> Maybe Validation.Type) -> FilterableSelect model -> FilterableSelect model
 withValidation =
     Autocomplete.withValidation
+
+
+{-| Changes the threshold value
+-}
+withThreshold : Int -> State -> State
+withThreshold threshold ({ autocompleteState } as state) =
+    { state | autocompleteState = Autocomplete.withThreshold threshold autocompleteState }
