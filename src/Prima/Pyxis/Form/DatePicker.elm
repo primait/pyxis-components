@@ -681,3 +681,13 @@ toMaybeDate date =
 
         PartialDate _ ->
             Nothing
+
+
+fromMaybeDate : Maybe Date.Date -> Date
+fromMaybeDate date =
+    case date of
+        Just a ->
+            ParsedDate a
+
+        Nothing ->
+            PartialDate Nothing
