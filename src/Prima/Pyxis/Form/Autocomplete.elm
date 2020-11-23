@@ -70,6 +70,8 @@ type Msg
     | OnReset
     | OnInput String
     | Debounce (Debouncer.Msg Msg)
+    | OpenMenu
+    | CloseMenu
 
 
 {-| Represent the opaque `Autocomplete` configuration.
@@ -211,6 +213,16 @@ update msg ((State state) as stateModel) =
 
         OnKeyPress Nothing ->
             stateModel
+                |> H.withoutCmds
+                |> addReturningFilter Nothing
+
+        CloseMenu ->
+            close stateModel
+                |> H.withoutCmds
+                |> addReturningFilter Nothing
+
+        OpenMenu ->
+            open stateModel
                 |> H.withoutCmds
                 |> addReturningFilter Nothing
 
