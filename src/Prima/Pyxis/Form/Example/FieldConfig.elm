@@ -258,7 +258,7 @@ countrySelectConfig state =
     FilterableSelect.filterableSelect
         |> FilterableSelect.withLargeSize
         |> FilterableSelect.withId slug
-        |> FilterableSelect.withValidation Validation.countryNotItalyValidation
+        |> FilterableSelect.withDefaultValue Nothing
         |> Form.filterableSelect FilterableSelectMsg state
         |> Form.withLabel
             ("Paese di nascita"
