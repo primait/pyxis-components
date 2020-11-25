@@ -1,5 +1,5 @@
 module Prima.Pyxis.Form.FilterableSelect exposing
-    ( FilterableSelect, State, Msg
+    ( FilterableSelect, State, Msg(..)
     , filterableSelect, init, initWithDefault, update, filterableSelectChoice
     , render
     , selectedValue, filterValue, subscription, open, close, isOpen, toggle
