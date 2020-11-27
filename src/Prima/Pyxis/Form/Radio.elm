@@ -44,7 +44,6 @@ module Prima.Pyxis.Form.Radio exposing
 import Html exposing (Attribute, Html)
 import Html.Attributes as Attrs
 import Html.Events as Events
-import Maybe.Extra
 import Prima.Pyxis.Form.Label as Label
 import Prima.Pyxis.Form.Validation as Validation
 import Prima.Pyxis.Helpers as H
