@@ -491,15 +491,50 @@ taggerAttribute (Date config) =
 
 stringToDate : String -> DatePicker.Date
 stringToDate str =
+    let
+        guessedDate =
+            case String.length str of
+                6 ->
+                    let
+                        guessedYear =
+                            String.slice 4 6 str
+                                |> String.toInt
+                                |> Maybe.map
+                                    (\y ->
+                                        if y <= 25 then
+                                            "20" ++ String.slice 4 6 str
+
+                                        else
+                                            "19" ++ String.slice 4 6 str
+                                    )
+                                |> Maybe.withDefault (String.slice 4 6 str)
+                    in
+                    String.join "/" [ String.slice 0 2 str, String.slice 2 4 str, guessedYear ]
+
+                8 ->
+                    if String.contains "/" str then
+                        str
+
+                    else
+                        String.join "/" [ String.slice 0 2 str, String.slice 2 4 str, String.slice 4 8 str ]
+
+                _ ->
+                    str
+    in
     case
-        str
+        ( String.length guessedDate
+        , guessedDate
             |> toIsoFormat
             |> Date.fromIsoString
+        )
     of
-        Ok parsedDate ->
+        ( 8, Ok parsedDate ) ->
             DatePicker.ParsedDate parsedDate
 
-        Err _ ->
+        ( 10, Ok parsedDate ) ->
+            DatePicker.ParsedDate parsedDate
+
+        ( _, _ ) ->
             (DatePicker.PartialDate << Just) str
 
 
