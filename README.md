@@ -40,7 +40,12 @@ Run the following commands after you had committed your work:
 - `./node_modules/.bin/elm publish`
 
 ## Testing package
-Run the `./node_modules/.bin/elm reactor` command. 
+Run `./node_modules/.bin/elm reactor` command. 
 It will start a local server which points to  `http://localhost:8000` .
 *Remember to run Pyxis on local webserver in order to see styled form fields.* 
 You can now navigate through the examples and test your work before publishing it.
+
+## Navigable Documentation
+Run `./node_modules/.bin/elm make --docs=docs.json`command, in the main directory of pyxis-component will be
+generated a `docs.json` file then open https://elm-doc-preview.netlify.app/ and click to "Open files".
+You will be able to browse the docs
