@@ -2,9 +2,8 @@ module Prima.Pyxis.Form.DatePicker exposing
     ( Model, Msg(..), Date(..)
     , init, update
     , render
-    , selectedDate, setDate
-    , isParsedDate, isPartialDate, toMaybeDate
-    , fromMaybeDate)
+    , selectedDate, setDate, toMaybeDate, isPartialDate, isParsedDate, fromMaybeDate
+    )
 
 {-|
 
@@ -26,7 +25,7 @@ module Prima.Pyxis.Form.DatePicker exposing
 
 ## Methods
 
-@docs selectedDate, setDate
+@docs selectedDate, setDate, toMaybeDate, isPartialDate, isParsedDate, fromMaybeDate
 
 -}
 
@@ -658,6 +657,8 @@ updateToLastDayOfMonth date =
     Date.fromCalendarDate (Date.year date) (Date.month date) (getDaysInMonth (Date.year date) (Date.month date))
 
 
+{-| Returns true if date is valid
+-}
 isParsedDate : Date -> Bool
 isParsedDate date =
     case date of
@@ -668,11 +669,15 @@ isParsedDate date =
             False
 
 
+{-| Returns true if Date is a Partial one
+-}
 isPartialDate : Date -> Bool
 isPartialDate =
     not << isParsedDate
 
 
+{-| Converts DatePicker.Date into a Maybe elm Date
+-}
 toMaybeDate : Date -> Maybe Date.Date
 toMaybeDate date =
     case date of
@@ -683,6 +688,8 @@ toMaybeDate date =
             Nothing
 
 
+{-| Converts a Maybe elm Date into a DatePicker.Date
+-}
 fromMaybeDate : Maybe Date.Date -> Date
 fromMaybeDate date =
     case date of

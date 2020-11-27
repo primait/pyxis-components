@@ -2,10 +2,9 @@ module Prima.Pyxis.Form.RadioButton exposing
     ( RadioButton, RadioButtonChoice
     , radioButton, radioButtonChoice, radioButtonChoiceWithSubtitle
     , render
-    , withAttribute, withClass, withId
+    , withAttribute, withClass, withId, withDisabled
     , withOnBlur, withOnFocus
     , withValidation
-    , withDisabled
     )
 
 {-|
@@ -28,7 +27,7 @@ module Prima.Pyxis.Form.RadioButton exposing
 
 ## Options
 
-@docs withAttribute, withClass, withId
+@docs withAttribute, withClass, withId, withDisabled
 
 
 ## Event Options
@@ -148,6 +147,8 @@ withAttribute attribute =
     addOption (Attribute attribute)
 
 
+{-| Adds disabled Html.Attribute to the `RadioButton`.
+-}
 withDisabled : Bool -> RadioButton model msg -> RadioButton model msg
 withDisabled disabled =
     addOption (Disabled disabled)
