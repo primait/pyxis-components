@@ -360,20 +360,14 @@ render ((Config { label, icon, href }) as config) =
                 |> List.singleton
                 |> List.filterMap identity
     in
-    case href of
-        Just _ ->
-            a
-                (List.append (buildAttributes config) maybeHref)
-                [ ME.unwrap (text "") renderIcon icon
-                , text label
-                ]
-
-        Nothing ->
-            span
-                (List.append (buildAttributes config) maybeHref)
-                [ ME.unwrap (text "") renderIcon icon
-                , text label
-                ]
+    (href
+        |> Maybe.map (always a)
+        |> Maybe.withDefault span
+    )
+        (List.append (buildAttributes config) maybeHref)
+        [ ME.unwrap (text "") renderIcon icon
+        , text label
+        ]
 
 
 {-| Internal. Renders the icon
