@@ -266,10 +266,10 @@ alignmentToClass alignment =
             "justify-content-center"
 
         ContentStart ->
-            "justify-content-start"
+            "justify-content-flex-start"
 
         ContentEnd ->
-            "justify-content-end"
+            "justify-content-flex-end"
 
         CoverFluid ->
             "btn-group--cover-fluid"
