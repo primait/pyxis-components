@@ -26,6 +26,7 @@ import Prima.Pyxis.Form.Autocomplete as Autocomplete
 import Prima.Pyxis.Form.Checkbox as Checkbox
 import Prima.Pyxis.Form.CheckboxFlag as CheckboxFlag
 import Prima.Pyxis.Form.Date as Date
+import Prima.Pyxis.Form.DatePicker as DatePicker
 import Prima.Pyxis.Form.Example.FieldValidations as Validation
 import Prima.Pyxis.Form.Example.Model exposing (BirthDateField(..), Field(..), FormData, Msg(..))
 import Prima.Pyxis.Form.FilterableSelect as FilterableSelect
@@ -77,6 +78,7 @@ usernameWithTooltipConfig showTooltip =
     in
     Input.text .username (OnInput Username)
         |> Input.withId slug
+        |> Input.withDefaultValue Nothing
         |> Form.input
         |> Form.withAppendableHtml
             [ icon
@@ -218,6 +220,7 @@ powerSourceConfig state =
     in
     Select.select
         |> Select.withId slug
+        |> Select.withDefaultValue Nothing
         |> Select.withValidation (Validation.notEmptyValidation .powerSource)
         |> Select.withValidation Validation.powerSourceNotDieselValidation
         |> Form.select SelectMsg state
@@ -255,7 +258,7 @@ countrySelectConfig state =
     FilterableSelect.filterableSelect
         |> FilterableSelect.withLargeSize
         |> FilterableSelect.withId slug
-        |> FilterableSelect.withValidation Validation.countryNotItalyValidation
+        |> FilterableSelect.withDefaultValue Nothing
         |> Form.filterableSelect FilterableSelectMsg state
         |> Form.withLabel
             ("Paese di nascita"
@@ -312,6 +315,7 @@ textAreaConfig =
     TextArea.textArea .note (OnInput Note)
         |> TextArea.withId slug
         |> TextArea.withLargeSize
+        |> TextArea.withDefaultValue Nothing
         |> TextArea.withPlaceholder "Describe something happened"
         |> TextArea.withValidation (Validation.notEmptyValidation .note)
         |> Form.textArea
@@ -331,6 +335,7 @@ birthDateConfig =
     Date.date .birthDate (OnDateInput BirthDate)
         |> Date.withId slug
         |> Date.withOnFocus (OnFocus BirthDate)
+        |> Date.withDefaultValue (DatePicker.PartialDate (Just ""))
         |> Date.withDatePicker .birthDateDatePicker (OnDatePickerUpdate BirthDate)
         |> Date.withDatePickerVisibility (.birthDateDatePickerOpened << .uiState)
         |> Date.withOnIconClick (OnClick BirthDate)

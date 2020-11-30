@@ -498,15 +498,20 @@ validationAttribute model selectModel =
             Attrs.class "has-error"
 
 
-{-| Internal. Applies the `pristine/touched` visual state to the component.
--}
-pristineAttribute : State -> Select model -> Html.Attribute Msg
-pristineAttribute (State { selected }) selectModel =
+isPristine : State -> Select model -> Bool
+isPristine (State { selected }) selectModel =
     let
         options =
             computeOptions selectModel
     in
-    if Value selected == options.defaultValue then
+    Value selected == options.defaultValue
+
+
+{-| Internal. Applies the `pristine/touched` visual state to the component.
+-}
+pristineAttribute : State -> Select model -> Html.Attribute Msg
+pristineAttribute state selectModel =
+    if isPristine state selectModel then
         Attrs.class "is-pristine"
 
     else
@@ -520,6 +525,9 @@ buildAttributes model stateModel selectModel =
     let
         options =
             computeOptions selectModel
+
+        hasValidations =
+            List.length options.validations > 0 || not (isPristine stateModel selectModel)
     in
     [ options.id
         |> Maybe.map Attrs.id
@@ -535,7 +543,7 @@ buildAttributes model stateModel selectModel =
         |> (::) (H.classesAttribute options.class)
         |> (::) (sizeAttribute options.size)
         |> (::) taggerAttribute
-        |> (::) (validationAttribute model selectModel)
+        |> H.addIf hasValidations (validationAttribute model selectModel)
         |> (::) (pristineAttribute stateModel selectModel)
 
 
@@ -578,16 +586,21 @@ renderCustomSelect model ((State { choices, isMenuOpen }) as stateModel) selectM
     let
         options =
             computeOptions selectModel
+
+        hasValidations =
+            List.length options.validations > 0 || not (isPristine stateModel selectModel)
     in
     Html.div
-        [ Attrs.classList
-            [ ( "form-select", True )
-            , ( "is-open", isMenuOpen )
-            , ( "is-disabled", Maybe.withDefault False options.disabled )
+        (H.addIf hasValidations
+            (validationAttribute model selectModel)
+            [ Attrs.classList
+                [ ( "form-select", True )
+                , ( "is-open", isMenuOpen )
+                , ( "is-disabled", Maybe.withDefault False options.disabled )
+                ]
+            , sizeAttribute options.size
             ]
-        , sizeAttribute options.size
-        , validationAttribute model selectModel
-        ]
+        )
         [ renderCustomSelectStatus stateModel selectModel
         , renderCustomSelectIcon
         , choices

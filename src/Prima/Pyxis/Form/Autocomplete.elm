@@ -676,15 +676,20 @@ validationAttribute model autocompleteModel =
             Attrs.class "has-error"
 
 
-{-| Internal. Applies the `pristine/touched` visual state to the component.
--}
-pristineAttribute : State -> Autocomplete model -> Html.Attribute Msg
-pristineAttribute (State stateConfig) inputModel =
+isPristine : State -> Autocomplete model -> Bool
+isPristine (State stateConfig) inputModel =
     let
         options =
             computeOptions inputModel
     in
-    if Value stateConfig.selected == options.defaultValue then
+    Value stateConfig.selected == options.defaultValue
+
+
+{-| Internal. Applies the `pristine/touched` visual state to the component.
+-}
+pristineAttribute : State -> Autocomplete model -> Html.Attribute Msg
+pristineAttribute state inputModel =
+    if isPristine state inputModel then
         Attrs.class "is-pristine"
 
     else
@@ -734,19 +739,24 @@ render model ((State stateConfig) as stateModel) autocompleteModel =
             stateConfig
                 |> pickChoices
                 |> List.any (isChoiceSelected stateModel)
+
+        hasValidations =
+            List.length options.validations > 0 || not (isPristine stateModel autocompleteModel)
     in
     Html.div
-        [ Attrs.classList
-            [ ( "form-autocomplete", True )
-            , ( "is-open", hasReachedThreshold stateModel && stateConfig.isMenuOpen )
-            , ( "has-selected-choice", hasSelectedAnyChoice )
-            , ( "is-small", isSmall options.size )
-            , ( "is-medium", isMedium options.size )
-            , ( "is-large", isLarge options.size )
+        (H.addIf hasValidations
+            (validationAttribute model autocompleteModel)
+            [ Attrs.classList
+                [ ( "form-autocomplete", True )
+                , ( "is-open", hasReachedThreshold stateModel && stateConfig.isMenuOpen )
+                , ( "has-selected-choice", hasSelectedAnyChoice )
+                , ( "is-small", isSmall options.size )
+                , ( "is-medium", isMedium options.size )
+                , ( "is-large", isLarge options.size )
+                ]
+            , pristineAttribute stateModel autocompleteModel
             ]
-        , validationAttribute model autocompleteModel
-        , pristineAttribute stateModel autocompleteModel
-        ]
+        )
         [ Html.input
             (buildAttributes model stateModel autocompleteModel)
             []
@@ -834,6 +844,9 @@ buildAttributes model stateModel autocompleteModel =
     let
         options =
             computeOptions autocompleteModel
+
+        hasValidations =
+            List.length options.validations > 0 || not (isPristine stateModel autocompleteModel)
     in
     [ options.id
         |> Maybe.map Attrs.id
@@ -851,7 +864,7 @@ buildAttributes model stateModel autocompleteModel =
         |> List.filterMap identity
         |> (++) options.attributes
         |> (::) (H.classesAttribute options.classes)
-        |> (::) (validationAttribute model autocompleteModel)
+        |> H.addIf hasValidations (validationAttribute model autocompleteModel)
         |> (::) (pristineAttribute stateModel autocompleteModel)
         |> (::) (filterReaderAttribute stateModel)
         |> (::) filterTaggerAttribute

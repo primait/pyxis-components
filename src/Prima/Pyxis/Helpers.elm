@@ -1,5 +1,6 @@
 module Prima.Pyxis.Helpers exposing
-    ( btnGroup
+    ( addIf
+    , btnGroup
     , classesAttribute
     , flip
     , isJust
@@ -13,6 +14,7 @@ module Prima.Pyxis.Helpers exposing
     , renderMaybe
     , spacer
     , stopEvt
+    , validString
     , withCmds
     , withoutCmds
     )
@@ -131,3 +133,22 @@ maybeCons mA xs =
 
         Nothing ->
             xs
+
+
+addIf : Bool -> a -> List a -> List a
+addIf condition element list =
+    if condition then
+        element :: list
+
+    else
+        list
+
+
+validString : String -> Maybe String
+validString str =
+    case str of
+        "" ->
+            Nothing
+
+        validStr ->
+            Just validStr

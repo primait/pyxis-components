@@ -119,7 +119,7 @@ initialFormData =
             ]
     , fiscalCode = Nothing
     , countryVisited = [ "italia", "francia" ]
-    , birthDate = DatePicker.PartialDate Nothing
+    , birthDate = DatePicker.PartialDate (Just "")
     , birthDateDatePicker = Nothing
     , birthDateDay = Nothing
     , birthDateMonth = Nothing
