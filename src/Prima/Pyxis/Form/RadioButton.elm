@@ -270,10 +270,18 @@ computeOptions (RadioButton config) =
 {-| Internal. Transforms all the customizations into a list of valid Html.Attribute(s).
 -}
 buildAttributes : model -> RadioButton model msg -> RadioButtonChoice -> List (Html.Attribute msg)
-buildAttributes model radioButtonModel choice =
+buildAttributes model ((RadioButton config) as radioButtonModel) choice =
     let
         options =
             computeOptions radioButtonModel
+
+        taggerAttrList : List (Attribute msg)
+        taggerAttrList =
+            if Just choice.value == config.reader model then
+                []
+
+            else
+                [ taggerAttribute radioButtonModel choice ]
     in
     [ options.id
         |> Maybe.map Attrs.id
@@ -286,7 +294,7 @@ buildAttributes model radioButtonModel choice =
         |> (++) options.attributes
         |> (::) (H.classesAttribute options.class)
         |> (::) (readerAttribute model radioButtonModel choice)
-        |> (::) (taggerAttribute radioButtonModel choice)
+        |> (++) taggerAttrList
         |> (::) (validationAttribute model radioButtonModel)
         |> (::) (hasSubtitleAttribute choice)
 
