@@ -13,7 +13,7 @@ import Task
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-    case Debug.log "msg" msg of
+    case msg of
         AutocompleteMsg subMsg ->
             let
                 ( autocompleteState, autocompleteCmd, filter ) =
