@@ -742,7 +742,7 @@ filterTaggerAttribute =
 {-| Renders the `Autocomplete`.
 -}
 render : model -> State -> Autocomplete model -> List (Html Msg)
-render model ((State stateConfig) as stateModel) autocompleteModel =
+render model ((State stateConfig) as stateModel) ((Autocomplete autocompleteConfig) as autocompleteModel) =
     let
         options =
             computeOptions autocompleteModel
@@ -754,6 +754,13 @@ render model ((State stateConfig) as stateModel) autocompleteModel =
 
         hasValidations =
             List.length options.validations > 0 || not (isPristine stateModel autocompleteModel)
+
+        isDisabled : Bool
+        isDisabled =
+            autocompleteConfig
+                |> List.filter (\option -> option == Disabled True)
+                |> List.length
+                |> (==) 1
     in
     Html.div
         (H.addIf hasValidations
@@ -775,7 +782,7 @@ render model ((State stateConfig) as stateModel) autocompleteModel =
         , Html.i
             [ Attrs.classList
                 [ ( "form-autocomplete__loader-icon", stateConfig.choices == Loading )
-                , ( "form-autocomplete__search-icon", stateConfig.choices /= Loading )
+                , ( "form-autocomplete__search-icon", stateConfig.choices /= Loading && not isDisabled )
                 ]
             ]
             []
@@ -792,7 +799,7 @@ render model ((State stateConfig) as stateModel) autocompleteModel =
                     []
             )
         , renderResetIcon
-            |> H.renderIf hasSelectedAnyChoice
+            |> H.renderIf (hasSelectedAnyChoice && not isDisabled)
         ]
         :: renderValidationMessages model autocompleteModel
 
