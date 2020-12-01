@@ -258,10 +258,18 @@ validationAttribute model radioModel =
 {-| Composes all the modifiers into a set of `Html.Attribute`(s).
 -}
 buildAttributes : model -> Radio model msg -> RadioChoice -> List (Html.Attribute msg)
-buildAttributes model ((Radio _) as radioModel) choice =
+buildAttributes model ((Radio config) as radioModel) choice =
     let
         options =
             computeOptions radioModel
+
+        taggerAttrList : List (Attribute msg)
+        taggerAttrList =
+            if Just choice.value == config.reader model then
+                []
+
+            else
+                [ taggerAttribute radioModel choice ]
     in
     [ options.id
         |> Maybe.map Attrs.id
@@ -278,7 +286,7 @@ buildAttributes model ((Radio _) as radioModel) choice =
         |> (++) options.attributes
         |> (::) (H.classesAttribute options.class)
         |> (::) (readerAttribute model radioModel choice)
-        |> (::) (taggerAttribute radioModel choice)
+        |> (++) taggerAttrList
         |> (::) (validationAttribute model radioModel)
         |> (::) (Attrs.type_ "radio")
         |> (::) (Attrs.value choice.value)
@@ -306,7 +314,16 @@ render model ((Radio { radioChoices }) as radioModel) =
 
 
 renderRadioChoice : model -> Radio model msg -> RadioChoice -> Html msg
-renderRadioChoice model ((Radio { tagger }) as radioModel) ({ value, label } as choice) =
+renderRadioChoice model ((Radio { tagger, reader }) as radioModel) ({ value, label } as choice) =
+    let
+        conditionallyAddOnClick : Label.Label msg -> Label.Label msg
+        conditionallyAddOnClick labelInstance =
+            if Just choice.value == reader model then
+                labelInstance
+
+            else
+                Label.withOnClick (tagger value) labelInstance
+    in
     Html.div
         [ Attrs.class "form-radio" ]
         [ Html.input
@@ -314,7 +331,7 @@ renderRadioChoice model ((Radio { tagger }) as radioModel) ({ value, label } as 
             []
         , label
             |> Label.label
-            |> Label.withOnClick (tagger value)
+            |> conditionallyAddOnClick
             |> Label.withFor value
             |> Label.withOverridingClass "form-radio__label"
             |> Label.render

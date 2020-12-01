@@ -289,10 +289,18 @@ validationAttribute model radioModel =
 {-| Composes all the modifiers into a set of `Html.Attribute`(s).
 -}
 buildAttributes : model -> RadioFlag model msg -> RadioFlagChoice -> List (Html.Attribute msg)
-buildAttributes model radioModel choice =
+buildAttributes model ((RadioFlag config) as radioModel) choice =
     let
         options =
             computeOptions radioModel
+
+        taggerAttrList : List (Attribute msg)
+        taggerAttrList =
+            if Just choice.value == config.reader model then
+                []
+
+            else
+                [ taggerAttribute radioModel choice ]
     in
     [ options.id
         |> Maybe.map Attrs.id
@@ -309,7 +317,7 @@ buildAttributes model radioModel choice =
         |> (++) options.attributes
         |> (::) (H.classesAttribute options.class)
         |> (::) (readerAttribute model radioModel choice)
-        |> (::) (taggerAttribute radioModel choice)
+        |> (++) taggerAttrList
         |> (::) (validationAttribute model radioModel)
         |> (::) (Attrs.type_ "radio")
         |> (::) (Attrs.value (boolToValue choice.value))
@@ -326,7 +334,16 @@ render model ((RadioFlag { radioChoices }) as radioModel) =
 
 
 renderRadioChoice : model -> RadioFlag model msg -> RadioFlagChoice -> Html msg
-renderRadioChoice model ((RadioFlag { tagger, skin }) as radioModel) ({ value, label } as choice) =
+renderRadioChoice model ((RadioFlag { tagger, skin, reader }) as radioModel) ({ value, label } as choice) =
+    let
+        conditionallyAddOnClick : Label.Label msg -> Label.Label msg
+        conditionallyAddOnClick labelInstance =
+            if Just choice.value == reader model then
+                labelInstance
+
+            else
+                Label.withOnClick (tagger value) labelInstance
+    in
     Html.div
         [ Attrs.classList
             [ ( "form-radio-flag", True )
@@ -339,7 +356,7 @@ renderRadioChoice model ((RadioFlag { tagger, skin }) as radioModel) ({ value, l
             []
         , label
             |> Label.label
-            |> Label.withOnClick (tagger value)
+            |> conditionallyAddOnClick
             |> Label.withFor (boolToValue value)
             |> Label.withOverridingClass "form-radio-flag__label"
             |> Label.render
