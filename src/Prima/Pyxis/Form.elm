@@ -1,6 +1,7 @@
 module Prima.Pyxis.Form exposing
     ( Form, FormField, FormFieldset, Legend
-    , init, initInline, initVertical
+    , init
+    , withBeside, withVertical
     , withFields, withFieldsAndLegend
     , legend, legendWithPrependableHtml, legendWithAppendableHtml
     , input, inputList, autocomplete, checkbox, date, filterableSelect, flag, radio, radioFlag, radioButton, select, textArea
@@ -18,7 +19,12 @@ module Prima.Pyxis.Form exposing
 
 ## Configuration Methods
 
-@docs init, initInline, initVertical
+@docs init
+
+
+## Change Kind to the Form
+
+@docs withBeside, withVertical
 
 
 ## Adding Fields to the Form
@@ -81,24 +87,9 @@ type alias FormConfig model msg =
 
 
 type RowKind
-    = Default
-    | Inline
+    = Base
+    | Beside
     | Vertical
-
-
-isDefault : RowKind -> Bool
-isDefault =
-    (==) Default
-
-
-isInline : RowKind -> Bool
-isInline =
-    (==) Inline
-
-
-isVertical : RowKind -> Bool
-isVertical =
-    (==) Vertical
 
 
 {-| Create an instance of a `Form`.
@@ -106,23 +97,23 @@ You can specify later which fields will go inside it.
 -}
 init : Form model msg
 init =
-    Form { kind = Default, fields = [] }
+    Form { kind = Base, fields = [] }
 
 
 {-| Create an instance of a `Form`.
 You can specify later which fields will go inside it.
 -}
-initInline : Form model msg
-initInline =
-    Form { kind = Inline, fields = [] }
+withBeside : Form model msg -> Form model msg
+withBeside (Form formConfig) =
+    Form { formConfig | kind = Beside }
 
 
 {-| Create an instance of a `Form`.
 You can specify later which fields will go inside it.
 -}
-initVertical : Form model msg
-initVertical =
-    Form { kind = Vertical, fields = [] }
+withVertical : Form model msg -> Form model msg
+withVertical (Form formConfig) =
+    Form { formConfig | kind = Vertical }
 
 
 {-| Internal. Convenient way to represents a List of FormField.
@@ -675,25 +666,19 @@ renderAppendableHtml content =
 renderFields : model -> RowKind -> List (FormFieldList model msg) -> List (Html msg)
 renderFields model kind fields =
     case kind of
-        Default ->
-            fields
-                |> List.map (H.flip Grid.addRow Grid.create << buildGridRow model kind)
-                |> List.map Grid.render
-                |> List.concat
-
         Vertical ->
             fields
-                |> List.map (buildRow model)
+                |> List.map (buildVerticalRow model)
 
-        Inline ->
+        _ ->
             fields
                 |> List.map (H.flip Grid.addRow Grid.create << buildGridRow model kind)
                 |> List.map Grid.render
                 |> List.concat
 
 
-buildRow : model -> FormFieldList model msg -> Html msg
-buildRow model fields =
+buildVerticalRow : model -> FormFieldList model msg -> Html msg
+buildVerticalRow model fields =
     Html.div [ class "form-row is-vertical" ]
         (fields |> List.map (renderVerticalField model))
 
@@ -720,7 +705,7 @@ buildGridRow model kind fields =
 
                 ( _, False ) ->
                     case kind of
-                        Default ->
+                        Base ->
                             Grid.withThreeColumns
                                 (renderLabel first)
                                 (renderField model first)
@@ -729,11 +714,11 @@ buildGridRow model kind fields =
                         Vertical ->
                             Grid.emptyRow
 
-                        Inline ->
+                        Beside ->
                             Grid.withTwoColumns
                                 (renderLabel first)
-                                [ Html.div [ class "form-row__item__inline" ] (renderField model first)
-                                , Html.div [ class "form-row__item__inline" ] (renderField model second)
+                                [ Html.div [ class "form-row__item__column" ] (renderField model first)
+                                , Html.div [ class "form-row__item__column" ] (renderField model second)
                                 ]
 
         first :: [] ->
