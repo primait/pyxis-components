@@ -496,20 +496,31 @@ stringToDate str =
             case String.length str of
                 6 ->
                     let
-                        guessedYear =
+                        year =
                             String.slice 4 6 str
+
+                        guessedYear =
+                            year
                                 |> String.toInt
                                 |> Maybe.map
                                     (\y ->
                                         if y <= 25 then
-                                            "20" ++ String.slice 4 6 str
+                                            "20" ++ year
 
                                         else
-                                            "19" ++ String.slice 4 6 str
+                                            "19" ++ year
                                     )
                                 |> Maybe.withDefault (String.slice 4 6 str)
                     in
-                    String.join "/" [ String.slice 0 2 str, String.slice 2 4 str, guessedYear ]
+                    case year of
+                        "19" ->
+                            str
+
+                        "20" ->
+                            str
+
+                        _ ->
+                            String.join "/" [ String.slice 0 2 str, String.slice 2 4 str, guessedYear ]
 
                 8 ->
                     if String.contains "/" str then
