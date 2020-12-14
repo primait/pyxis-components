@@ -151,7 +151,7 @@ isOpen { autocompleteState } =
 choiceContainsFilter : Maybe String -> FilterableSelectChoice -> Bool
 choiceContainsFilter maybeFilter { value, label } =
     maybeFilter
-        |> Maybe.map (\filter -> String.contains filter label || String.contains filter value)
+        |> Maybe.map (\filter -> String.contains (String.toLower filter) (String.toLower label) || String.contains filter value)
         |> Maybe.withDefault True
 
 

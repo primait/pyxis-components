@@ -324,7 +324,13 @@ updateOnFilter (( State state, cmd, filter ) as stateCmdFilter) =
 -}
 updateOnInput : Maybe String -> State -> State
 updateOnInput value (State state) =
-    State { state | filter = value, isMenuOpen = True }
+    let
+        lowerValue =
+            value
+                |> Maybe.withDefault ""
+                |> String.toLower
+    in
+    State { state | filter = Just lowerValue, isMenuOpen = True }
 
 
 {-| Internal.
