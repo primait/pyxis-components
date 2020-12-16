@@ -56,7 +56,7 @@ import Maybe.Extra as ME
 import Prima.Pyxis.Form.DatePicker as DatePicker
 import Prima.Pyxis.Form.Validation as Validation
 import Prima.Pyxis.Helpers as H
-import String.Extra
+import String.Extra as SE
 
 
 {-| Represent the opaque `Date` configuration.
@@ -490,9 +490,10 @@ taggerAttribute (Date config) =
         |> Events.stopPropagationOn "input"
 
 
+interpolateWithSlash : String -> String
 interpolateWithSlash =
-    String.Extra.insertAt "/" 2
-        >> String.Extra.insertAt "/" 5
+    SE.insertAt "/" 2
+        >> SE.insertAt "/" 5
 
 
 {-| Guess internal functions
@@ -561,6 +562,7 @@ guessedYear year =
         year
 
 
+guessDate : String -> String
 guessDate str =
     case String.length str of
         6 ->

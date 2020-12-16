@@ -742,7 +742,7 @@ filterTaggerAttribute =
 {-| Renders the `Autocomplete`.
 -}
 render : model -> State -> Autocomplete model -> List (Html Msg)
-render model ((State stateConfig) as stateModel) ((Autocomplete autocompleteConfig) as autocompleteModel) =
+render model ((State stateConfig) as stateModel) autocompleteModel =
     let
         options =
             computeOptions autocompleteModel
