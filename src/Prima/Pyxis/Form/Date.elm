@@ -56,6 +56,7 @@ import Maybe.Extra as ME
 import Prima.Pyxis.Form.DatePicker as DatePicker
 import Prima.Pyxis.Form.Validation as Validation
 import Prima.Pyxis.Helpers as H
+import String.Extra
 
 
 {-| Represent the opaque `Date` configuration.
@@ -489,48 +490,94 @@ taggerAttribute (Date config) =
         |> Events.stopPropagationOn "input"
 
 
+interpolateWithSlash =
+    String.Extra.insertAt "/" 2
+        >> String.Extra.insertAt "/" 5
+
+
+{-| Guess internal functions
+Try to guess a Date from user input
+
+    guess8Chars 04/04/61 -> 04/04/1961
+
+    guess8Chars 04041961 -> 04/04/1961
+
+    guess6Chars 040461 -> 04/04/1961
+
+    guess6Chars 040419 -> 040419 (Not parsed because 19 is Century)
+
+    guess6Chars 040420 -> 040420 (Not parsed because 20 is Century)
+
+-}
+guess8Chars : String -> String
+guess8Chars str =
+    case ( String.contains "/" str, String.length str ) of
+        ( True, 8 ) ->
+            str
+                |> String.replace "/" ""
+                |> guess6Chars interpolateWithSlash
+
+        ( False, 8 ) ->
+            String.join "/" [ String.slice 0 2 str, String.slice 2 4 str, String.slice 4 8 str ]
+
+        _ ->
+            str
+
+
+guess6Chars : (String -> String) -> String -> String
+guess6Chars mapper str =
+    let
+        year : String
+        year =
+            String.slice 4 6 str
+
+        startsWithCentury : Bool
+        startsWithCentury =
+            String.startsWith "19" year || String.startsWith "20" year
+    in
+    if startsWithCentury then
+        mapper str
+
+    else
+        String.join "/" [ String.slice 0 2 str, String.slice 2 4 str, guessedYear year ]
+
+
+guessedYear : String -> String
+guessedYear year =
+    if String.length year == 2 then
+        year
+            |> String.toInt
+            |> Maybe.map
+                (\y ->
+                    if y <= 25 then
+                        "20" ++ year
+
+                    else
+                        "19" ++ year
+                )
+            |> Maybe.withDefault year
+
+    else
+        year
+
+
+guessDate str =
+    case String.length str of
+        6 ->
+            guess6Chars identity str
+
+        8 ->
+            guess8Chars str
+
+        _ ->
+            str
+
+
 stringToDate : String -> DatePicker.Date
 stringToDate str =
     let
         guessedDate =
-            case String.length str of
-                6 ->
-                    let
-                        year =
-                            String.slice 4 6 str
-
-                        guessedYear =
-                            year
-                                |> String.toInt
-                                |> Maybe.map
-                                    (\y ->
-                                        if y <= 25 then
-                                            "20" ++ year
-
-                                        else
-                                            "19" ++ year
-                                    )
-                                |> Maybe.withDefault (String.slice 4 6 str)
-                    in
-                    case year of
-                        "19" ->
-                            str
-
-                        "20" ->
-                            str
-
-                        _ ->
-                            String.join "/" [ String.slice 0 2 str, String.slice 2 4 str, guessedYear ]
-
-                8 ->
-                    if String.contains "/" str then
-                        str
-
-                    else
-                        String.join "/" [ String.slice 0 2 str, String.slice 2 4 str, String.slice 4 8 str ]
-
-                _ ->
-                    str
+            guessDate str
     in
     case
         ( String.length guessedDate

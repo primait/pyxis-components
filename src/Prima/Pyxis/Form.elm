@@ -100,7 +100,8 @@ init =
     Form { kind = Base, fields = [] }
 
 
-{-| Create an instance of a `Form`.
+{-| Create an instance of a `Form` with standard layout where you have
+2 fields in line with 1 label.
 You can specify later which fields will go inside it.
 -}
 withBeside : Form model msg -> Form model msg
@@ -108,7 +109,7 @@ withBeside (Form formConfig) =
     Form { formConfig | kind = Beside }
 
 
-{-| Create an instance of a `Form`.
+{-| Create an instance of a `Form` with vertical layout.
 You can specify later which fields will go inside it.
 -}
 withVertical : Form model msg -> Form model msg
@@ -166,14 +167,14 @@ legendWithAppendableHtml name appendableHtml =
 -}
 withFields : FormFieldList model msg -> Form model msg -> Form model msg
 withFields fields (Form formConfig) =
-    let
-        newFieldsets =
-            fields
-                |> WithoutLegend
-                |> List.singleton
-                |> List.append formConfig.fields
-    in
-    Form { formConfig | fields = newFieldsets }
+    Form
+        { formConfig
+            | fields =
+                fields
+                    |> WithoutLegend
+                    |> List.singleton
+                    |> List.append formConfig.fields
+        }
 
 
 {-| Adds a list of list of field (which represents a list of row of the `Grid`) to the `Form`.
@@ -181,14 +182,14 @@ This list will be wrapped inside a fieldset.
 -}
 withFieldsAndLegend : Legend msg -> List (FormFieldList model msg) -> Form model msg -> Form model msg
 withFieldsAndLegend legend_ fields (Form formConfig) =
-    let
-        newFieldsets =
-            fields
-                |> WithLegend legend_
-                |> List.singleton
-                |> List.append formConfig.fields
-    in
-    Form { formConfig | fields = newFieldsets }
+    Form
+        { formConfig
+            | fields =
+                fields
+                    |> WithLegend legend_
+                    |> List.singleton
+                    |> List.append formConfig.fields
+        }
 
 
 {-| Represent the fields admitted by the `Form`.
@@ -680,7 +681,7 @@ renderFields model kind fields =
 buildVerticalRow : model -> FormFieldList model msg -> Html msg
 buildVerticalRow model fields =
     Html.div [ class "form-row is-vertical" ]
-        (fields |> List.map (renderVerticalField model))
+        (List.map (renderVerticalField model) fields)
 
 
 renderVerticalField : model -> FormField model msg -> Html msg

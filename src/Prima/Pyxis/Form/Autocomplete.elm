@@ -757,10 +757,7 @@ render model ((State stateConfig) as stateModel) ((Autocomplete autocompleteConf
 
         isDisabled : Bool
         isDisabled =
-            autocompleteConfig
-                |> List.filter (\option -> option == Disabled True)
-                |> List.length
-                |> (==) 1
+            options.disabled == Just True
     in
     Html.div
         (H.addIf hasValidations
