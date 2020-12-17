@@ -600,6 +600,18 @@ renderCustomSelect model ((State { choices, isMenuOpen }) as stateModel) selectM
                 ]
             , sizeAttribute options.size
             ]
+            ++ ([ options.id
+                    |> Maybe.map Attrs.id
+                , options.disabled
+                    |> Maybe.map Attrs.disabled
+                , options.onFocus
+                    |> Maybe.map Events.onFocus
+                , options.onBlur
+                    |> Maybe.map Events.onBlur
+                ]
+                    |> List.filterMap identity
+                    |> (++) options.attributes
+               )
         )
         [ renderCustomSelectStatus stateModel selectModel
         , renderCustomSelectIcon
