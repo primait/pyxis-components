@@ -2,7 +2,7 @@ module Prima.Pyxis.Form.DatePicker exposing
     ( Model, Msg(..), Date(..)
     , init, update
     , render
-    , selectedDate, setDate
+    , selectedDate, setDate, toMaybeDate, isPartialDate, isParsedDate, fromMaybeDate
     )
 
 {-|
@@ -25,7 +25,7 @@ module Prima.Pyxis.Form.DatePicker exposing
 
 ## Methods
 
-@docs selectedDate, setDate
+@docs selectedDate, setDate, toMaybeDate, isPartialDate, isParsedDate, fromMaybeDate
 
 -}
 
@@ -174,7 +174,6 @@ shiftToPreviousMonth model =
             Date.fromCalendarDate newYear newMonth (Date.day model.date)
     in
     updateModelIfValid ValidMonth newDate model
-
 
 
 shiftToNextMonth : Model -> Model
@@ -574,7 +573,7 @@ prevMonth month year =
             ( Jan, year )
 
         Mar ->
-            (Feb, year )
+            ( Feb, year )
 
         Apr ->
             ( Mar, year )
@@ -656,3 +655,46 @@ isLeapYear year =
 updateToLastDayOfMonth : Date.Date -> Date.Date
 updateToLastDayOfMonth date =
     Date.fromCalendarDate (Date.year date) (Date.month date) (getDaysInMonth (Date.year date) (Date.month date))
+
+
+{-| Returns true if date is valid
+-}
+isParsedDate : Date -> Bool
+isParsedDate date =
+    case date of
+        ParsedDate _ ->
+            True
+
+        PartialDate _ ->
+            False
+
+
+{-| Returns true if Date is a Partial one
+-}
+isPartialDate : Date -> Bool
+isPartialDate =
+    not << isParsedDate
+
+
+{-| Converts DatePicker.Date into a Maybe elm Date
+-}
+toMaybeDate : Date -> Maybe Date.Date
+toMaybeDate date =
+    case date of
+        ParsedDate parsedDate ->
+            Just parsedDate
+
+        PartialDate _ ->
+            Nothing
+
+
+{-| Converts a Maybe elm Date into a DatePicker.Date
+-}
+fromMaybeDate : Maybe Date.Date -> Date
+fromMaybeDate date =
+    case date of
+        Just a ->
+            ParsedDate a
+
+        Nothing ->
+            PartialDate Nothing

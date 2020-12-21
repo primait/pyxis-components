@@ -1,6 +1,7 @@
 module Prima.Pyxis.Form exposing
     ( Form, FormField, FormFieldset, Legend
     , init
+    , withBeside, withVertical
     , withFields, withFieldsAndLegend
     , legend, legendWithPrependableHtml, legendWithAppendableHtml
     , input, inputList, autocomplete, checkbox, date, filterableSelect, flag, radio, radioFlag, radioButton, select, textArea
@@ -19,6 +20,11 @@ module Prima.Pyxis.Form exposing
 ## Configuration Methods
 
 @docs init
+
+
+## Change Kind to the Form
+
+@docs withBeside, withVertical
 
 
 ## Adding Fields to the Form
@@ -75,7 +81,15 @@ type Form model msg
 {-| Internal. Represents the configuration of a `Form`.
 -}
 type alias FormConfig model msg =
-    List (FormFieldset model msg)
+    { kind : RowKind
+    , fields : List (FormFieldset model msg)
+    }
+
+
+type RowKind
+    = Base
+    | Beside
+    | Vertical
 
 
 {-| Create an instance of a `Form`.
@@ -83,7 +97,24 @@ You can specify later which fields will go inside it.
 -}
 init : Form model msg
 init =
-    Form []
+    Form { kind = Base, fields = [] }
+
+
+{-| Create an instance of a `Form` with standard layout where you have
+2 fields in line with 1 label.
+You can specify later which fields will go inside it.
+-}
+withBeside : Form model msg -> Form model msg
+withBeside (Form formConfig) =
+    Form { formConfig | kind = Beside }
+
+
+{-| Create an instance of a `Form` with vertical layout.
+You can specify later which fields will go inside it.
+-}
+withVertical : Form model msg -> Form model msg
+withVertical (Form formConfig) =
+    Form { formConfig | kind = Vertical }
 
 
 {-| Internal. Convenient way to represents a List of FormField.
@@ -135,24 +166,30 @@ legendWithAppendableHtml name appendableHtml =
 {-| Adds a list of field (which represents a row of the `Grid`) to the `Form`.
 -}
 withFields : FormFieldList model msg -> Form model msg -> Form model msg
-withFields fields (Form fieldsets) =
-    fields
-        |> WithoutLegend
-        |> List.singleton
-        |> List.append fieldsets
-        |> Form
+withFields fields (Form formConfig) =
+    Form
+        { formConfig
+            | fields =
+                fields
+                    |> WithoutLegend
+                    |> List.singleton
+                    |> List.append formConfig.fields
+        }
 
 
 {-| Adds a list of list of field (which represents a list of row of the `Grid`) to the `Form`.
 This list will be wrapped inside a fieldset.
 -}
 withFieldsAndLegend : Legend msg -> List (FormFieldList model msg) -> Form model msg -> Form model msg
-withFieldsAndLegend legend_ fields (Form fieldsets) =
-    fields
-        |> WithLegend legend_
-        |> List.singleton
-        |> List.append fieldsets
-        |> Form
+withFieldsAndLegend legend_ fields (Form formConfig) =
+    Form
+        { formConfig
+            | fields =
+                fields
+                    |> WithLegend legend_
+                    |> List.singleton
+                    |> List.append formConfig.fields
+        }
 
 
 {-| Represent the fields admitted by the `Form`.
@@ -576,28 +613,28 @@ renderField model formField =
 {-| Renders the form with all his fields.
 -}
 render : model -> Form model msg -> Html msg
-render model (Form fieldsets) =
+render model (Form formConfig) =
     Html.div
         [ class "form" ]
-        (fieldsets
-            |> List.map (renderFieldset model)
+        (formConfig.fields
+            |> List.map (renderFieldset model formConfig.kind)
             |> List.concat
         )
 
 
-renderFieldset : model -> FormFieldset model msg -> List (Html msg)
-renderFieldset model fieldset =
+renderFieldset : model -> RowKind -> FormFieldset model msg -> List (Html msg)
+renderFieldset model kind fieldset =
     case fieldset of
         WithoutLegend fields ->
             fields
                 |> List.singleton
-                |> renderFields model
+                |> renderFields model kind
 
         WithLegend legend_ fields ->
             [ Html.fieldset
                 [ class "form__fieldset" ]
                 (fields
-                    |> renderFields model
+                    |> renderFields model kind
                     |> (::) (renderLegend legend_)
                 )
             ]
@@ -627,18 +664,36 @@ renderAppendableHtml content =
         |> List.singleton
 
 
-renderFields : model -> List (FormFieldList model msg) -> List (Html msg)
-renderFields model fields =
-    fields
-        |> List.map (H.flip Grid.addRow Grid.create << buildGridRow model)
-        |> List.map Grid.render
-        |> List.concat
+renderFields : model -> RowKind -> List (FormFieldList model msg) -> List (Html msg)
+renderFields model kind fields =
+    case kind of
+        Vertical ->
+            fields
+                |> List.map (buildVerticalRow model)
+
+        _ ->
+            fields
+                |> List.map (H.flip Grid.addRow Grid.create << buildGridRow model kind)
+                |> List.map Grid.render
+                |> List.concat
+
+
+buildVerticalRow : model -> FormFieldList model msg -> Html msg
+buildVerticalRow model fields =
+    Html.div [ class "form-row is-vertical" ]
+        (List.map (renderVerticalField model) fields)
+
+
+renderVerticalField : model -> FormField model msg -> Html msg
+renderVerticalField model field =
+    Html.div [ class "form-row__item is-vertical" ]
+        (renderLabel field ++ renderField model field)
 
 
 {-| Internal. Create a `Grid` row.
 -}
-buildGridRow : model -> FormFieldList model msg -> Grid.Row msg
-buildGridRow model fields =
+buildGridRow : model -> RowKind -> FormFieldList model msg -> Grid.Row msg
+buildGridRow model kind fields =
     case fields of
         first :: second :: [] ->
             case ( hasLabel first, hasLabel second ) of
@@ -650,10 +705,22 @@ buildGridRow model fields =
                         (renderField model second)
 
                 ( _, False ) ->
-                    Grid.withThreeColumns
-                        (renderLabel first)
-                        (renderField model first)
-                        (renderField model second)
+                    case kind of
+                        Base ->
+                            Grid.withThreeColumns
+                                (renderLabel first)
+                                (renderField model first)
+                                (renderField model second)
+
+                        Vertical ->
+                            Grid.emptyRow
+
+                        Beside ->
+                            Grid.withTwoColumns
+                                (renderLabel first)
+                                [ Html.div [ class "form-row__item__column" ] (renderField model first)
+                                , Html.div [ class "form-row__item__column" ] (renderField model second)
+                                ]
 
         first :: [] ->
             if isRadioFlagField first then

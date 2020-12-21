@@ -1,5 +1,5 @@
 module Prima.Pyxis.Form.Autocomplete exposing
-    ( Autocomplete, State, Msg, AutocompleteChoice
+    ( Autocomplete, State, Msg(..), AutocompleteChoice
     , autocomplete, init, initWithDefault, update, autocompleteChoice, updateChoices
     , render
     , selectedValue, filterValue, subscription, open, close, isOpen, toggle
@@ -70,6 +70,8 @@ type Msg
     | OnReset
     | OnInput String
     | Debounce (Debouncer.Msg Msg)
+    | OpenMenu
+    | CloseMenu
 
 
 {-| Represent the opaque `Autocomplete` configuration.
@@ -211,6 +213,16 @@ update msg ((State state) as stateModel) =
 
         OnKeyPress Nothing ->
             stateModel
+                |> H.withoutCmds
+                |> addReturningFilter Nothing
+
+        CloseMenu ->
+            close stateModel
+                |> H.withoutCmds
+                |> addReturningFilter Nothing
+
+        OpenMenu ->
+            open stateModel
                 |> H.withoutCmds
                 |> addReturningFilter Nothing
 
@@ -742,6 +754,10 @@ render model ((State stateConfig) as stateModel) autocompleteModel =
 
         hasValidations =
             List.length options.validations > 0 || not (isPristine stateModel autocompleteModel)
+
+        isDisabled : Bool
+        isDisabled =
+            options.disabled == Just True
     in
     Html.div
         (H.addIf hasValidations
@@ -763,7 +779,7 @@ render model ((State stateConfig) as stateModel) autocompleteModel =
         , Html.i
             [ Attrs.classList
                 [ ( "form-autocomplete__loader-icon", stateConfig.choices == Loading )
-                , ( "form-autocomplete__search-icon", stateConfig.choices /= Loading )
+                , ( "form-autocomplete__search-icon", stateConfig.choices /= Loading && not isDisabled )
                 ]
             ]
             []
@@ -780,7 +796,7 @@ render model ((State stateConfig) as stateModel) autocompleteModel =
                     []
             )
         , renderResetIcon
-            |> H.renderIf hasSelectedAnyChoice
+            |> H.renderIf (hasSelectedAnyChoice && not isDisabled)
         ]
         :: renderValidationMessages model autocompleteModel
 

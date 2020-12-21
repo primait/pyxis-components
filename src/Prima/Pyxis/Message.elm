@@ -2,7 +2,7 @@ module Prima.Pyxis.Message exposing
     ( Config
     , error, info, success, alert, errorAlt, infoAlt, successAlt, alertAlt
     , render
-    , withClass, withClassList, withAttribute
+    , withClass, withClassList, withAttribute, withSvgIcons
     , withOnClick, withOnMouseDown, withOnMouseUp, withOnMouseEnter, withOnMouseLeave, withOnMouseOver, withOnMouseOut
     )
 
@@ -26,7 +26,7 @@ module Prima.Pyxis.Message exposing
 
 ## Options
 
-@docs withClass, withClassList, withAttribute
+@docs withClass, withClassList, withAttribute, withSvgIcons
 
 
 ## Event Options
@@ -39,6 +39,7 @@ import Html exposing (Html, div, i, span)
 import Html.Attributes as Attrs
 import Html.Events as Events
 import Prima.Pyxis.Helpers as H
+import Prima.Pyxis.Message.Icons as MessageIcon
 
 
 {-| Represent the configuration of a Message
@@ -62,6 +63,7 @@ type MessageOption msg
     | ClassList (List ( String, Bool ))
     | Event (Html.Attribute msg)
     | Attribute (Html.Attribute msg)
+    | UseSvgIcons
 
 
 {-| Internal. Represents the list of options for the `Message` component.
@@ -71,6 +73,7 @@ type alias Options msg =
     , classList : List ( String, Bool )
     , events : List (Html.Attribute msg)
     , attributes : List (Html.Attribute msg)
+    , useSvgIcons : Bool
     }
 
 
@@ -82,6 +85,7 @@ defaultOptions =
     , classList = []
     , events = []
     , attributes = []
+    , useSvgIcons = False
     }
 
 
@@ -101,6 +105,9 @@ applyOption modifier options =
 
         Attribute attr ->
             { options | attributes = attr :: options.attributes }
+
+        UseSvgIcons ->
+            { options | useSvgIcons = True }
 
 
 {-| Internal. Applies all the customizations and returns the internal `Options` type.
@@ -136,6 +143,13 @@ withClassList classList =
 withAttribute : Html.Attribute msg -> Config msg -> Config msg
 withAttribute attr =
     addOption (Attribute attr)
+
+
+{-| Tells the `Message` component to use SVG icons instead of Pyxis icons.
+-}
+withSvgIcons : Config msg -> Config msg
+withSvgIcons =
+    addOption UseSvgIcons
 
 
 {-| Adds an `onClick` Html.Event to the `Message`.
@@ -254,13 +268,16 @@ isMessageInfo : MessageType -> Bool
 isMessageInfo =
     (==) Info
 
+
 isMessageSuccess : MessageType -> Bool
 isMessageSuccess =
     (==) Success
 
+
 isMessageAlert : MessageType -> Bool
 isMessageAlert =
     (==) Alert
+
 
 isMessageError : MessageType -> Bool
 isMessageError =
@@ -271,13 +288,16 @@ type MessageKind
     = Base
     | Alt
 
+
 isMessageKindBase : MessageKind -> Bool
 isMessageKindBase =
     (==) Base
 
+
 isMessageKindAlt : MessageKind -> Bool
 isMessageKindAlt =
     (==) Alt
+
 
 {-| Renders the Message by receiving it's configuration.
 -}
@@ -287,16 +307,29 @@ render ((Config { type_, content }) as config) =
         (buildAttributes config)
         [ div
             [ Attrs.class "message__icon" ]
-            [ i
-                [ Attrs.classList
-                    [ ( "icon icon-ok", isMessageSuccess type_ )
-                    , ( "icon icon-info", isMessageInfo type_ )
-                    , ( "icon icon-attention", isMessageAlert type_ )
-                    , ( "icon icon-danger", isMessageError type_ )
-                    ]
+            (if
+                config
+                    |> computeOptions
+                    |> .useSvgIcons
+             then
+                [ H.renderIf (isMessageSuccess type_) MessageIcon.renderIconOk
+                , H.renderIf (isMessageInfo type_) MessageIcon.renderIconInfo
+                , H.renderIf (isMessageAlert type_) MessageIcon.renderIconAlert
+                , H.renderIf (isMessageError type_) MessageIcon.renderIconError
                 ]
-                []
-            ]
+
+             else
+                [ i
+                    [ Attrs.classList
+                        [ ( "icon icon-ok", isMessageSuccess type_ )
+                        , ( "icon icon-info", isMessageInfo type_ )
+                        , ( "icon icon-attention", isMessageAlert type_ )
+                        , ( "icon icon-danger", isMessageError type_ )
+                        ]
+                    ]
+                    []
+                ]
+            )
         , span
             [ Attrs.class "message__content" ]
             content

@@ -2,7 +2,7 @@ module Prima.Pyxis.Form.RadioButton exposing
     ( RadioButton, RadioButtonChoice
     , radioButton, radioButtonChoice, radioButtonChoiceWithSubtitle
     , render
-    , withAttribute, withClass, withId
+    , withAttribute, withClass, withId, withDisabled
     , withOnBlur, withOnFocus
     , withValidation
     )
@@ -27,7 +27,7 @@ module Prima.Pyxis.Form.RadioButton exposing
 
 ## Options
 
-@docs withAttribute, withClass, withId
+@docs withAttribute, withClass, withId, withDisabled
 
 
 ## Event Options
@@ -102,6 +102,7 @@ type RadioButtonOption model msg
     | Id String
     | OnFocus msg
     | OnBlur msg
+    | Disabled Bool
     | Validation (model -> Maybe Validation.Type)
 
 
@@ -114,6 +115,7 @@ type alias Options model msg =
     , onFocus : Maybe msg
     , onBlur : Maybe msg
     , validations : List (model -> Maybe Validation.Type)
+    , disabled : Bool
     }
 
 
@@ -127,6 +129,7 @@ defaultOptions =
     , onFocus = Nothing
     , onBlur = Nothing
     , validations = []
+    , disabled = False
     }
 
 
@@ -142,6 +145,13 @@ addOption option (RadioButton radioButtonConfig) =
 withAttribute : Html.Attribute msg -> RadioButton model msg -> RadioButton model msg
 withAttribute attribute =
     addOption (Attribute attribute)
+
+
+{-| Adds disabled Html.Attribute to the `RadioButton`.
+-}
+withDisabled : Bool -> RadioButton model msg -> RadioButton model msg
+withDisabled disabled =
+    addOption (Disabled disabled)
 
 
 {-| Adds a `class` to the `RadioButton`.
@@ -195,6 +205,9 @@ applyOption modifier options =
         Validation validation ->
             { options | validations = validation :: options.validations }
 
+        Disabled disabled ->
+            { options | disabled = disabled }
+
 
 {-| Internal. Transforms the `reader` function into a valid Html.Attribute.
 -}
@@ -213,11 +226,16 @@ readerAttribute model (RadioButton config) choice =
 
 {-| Internal. Transforms the `tagger` function into a valid Html.Attribute.
 -}
-taggerAttribute : RadioButton model msg -> RadioButtonChoice -> Html.Attribute msg
-taggerAttribute (RadioButton config) choice =
-    choice.value
-        |> config.tagger
-        |> Events.onClick
+taggerAttribute : RadioButton model msg -> RadioButtonChoice -> Options model msg -> List (Html.Attribute msg)
+taggerAttribute (RadioButton config) choice options =
+    if options.disabled then
+        []
+
+    else
+        choice.value
+            |> config.tagger
+            |> Events.onClick
+            |> List.singleton
 
 
 {-| Internal. Checks RadioButton has subtitle
@@ -226,6 +244,17 @@ hasSubtitleAttribute : RadioButtonChoice -> Html.Attribute msg
 hasSubtitleAttribute choice =
     if H.isJust choice.subtitle then
         Attrs.class "has-subtitle"
+
+    else
+        Attrs.class ""
+
+
+{-| Internal. Checks RadioButton has subtitle
+-}
+hasDisabledAttribute : Bool -> Html.Attribute msg
+hasDisabledAttribute disabled =
+    if disabled then
+        Attrs.class "is-disabled"
 
     else
         Attrs.class ""
@@ -281,7 +310,7 @@ buildAttributes model ((RadioButton config) as radioButtonModel) choice =
                 []
 
             else
-                [ taggerAttribute radioButtonModel choice ]
+                taggerAttribute radioButtonModel choice options
     in
     [ options.id
         |> Maybe.map Attrs.id
@@ -293,6 +322,7 @@ buildAttributes model ((RadioButton config) as radioButtonModel) choice =
         |> List.filterMap identity
         |> (++) options.attributes
         |> (::) (H.classesAttribute options.class)
+        |> (::) (hasDisabledAttribute options.disabled)
         |> (::) (readerAttribute model radioButtonModel choice)
         |> (++) taggerAttrList
         |> (::) (validationAttribute model radioButtonModel)

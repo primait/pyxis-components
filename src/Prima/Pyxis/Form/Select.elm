@@ -1,5 +1,5 @@
 module Prima.Pyxis.Form.Select exposing
-    ( Select, State, Msg, SelectChoice
+    ( Select, State, Msg(..), SelectChoice
     , select, init, initWithDefault, update, selectChoice
     , selectedValue, subscription, open, close, isOpen, toggle
     , render
