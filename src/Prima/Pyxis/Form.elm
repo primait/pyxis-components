@@ -7,7 +7,7 @@ module Prima.Pyxis.Form exposing
     , input, inputList, autocomplete, checkbox, date, filterableSelect, flag, radio, radioFlag, radioButton, select, textArea
     , withLabel, withAppendableHtml
     , render
-    , renderField, renderFields, renderLabel
+    , RowKind(..), renderField, renderFields, renderLabel
     )
 
 {-|
