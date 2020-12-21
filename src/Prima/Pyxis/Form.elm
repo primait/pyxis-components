@@ -88,7 +88,7 @@ type alias FormConfig model msg =
 
 
 type RowKind
-    = Base
+    = Grid
     | Beside
     | Vertical
 
@@ -98,7 +98,7 @@ You can specify later which fields will go inside it.
 -}
 init : Form model msg
 init =
-    Form { kind = Base, fields = [] }
+    Form { kind = Grid, fields = [] }
 
 
 {-| Create an instance of a `Form` with standard layout where you have
@@ -707,7 +707,7 @@ buildGridRow model kind fields =
 
                 ( _, False ) ->
                     case kind of
-                        Base ->
+                        Grid ->
                             Grid.withThreeColumns
                                 (renderLabel first)
                                 (renderField model first)

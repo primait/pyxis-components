@@ -2,7 +2,7 @@ module Prima.Pyxis.Button exposing
     ( Config
     , callOut, primary, secondary, tertiary, loading, primaryAlt, secondaryAlt, tertiaryAlt
     , render
-    , withAttribute, withClass, withDisabled, withIcon, withId, withMediumSize, withSmallSize, withTinySize, withTabIndex, withTargetBlank, withTargetParent, withTargetSelf, withTargetTop, withTitle, withTypeButton, withTypeReset, withTypeSubmit
+    , withAttribute, withClass, withDisabled, withIcon, withId, withMediumSize, withSmallSize, withTinySize, withTabIndex, withTargetBlank, withTargetParent, withTargetSelf, withTargetTop, withTitle, withTypeButton, withTypeReset, withTypeSubmit, withLoading
     , withOnClick, withOnMouseDown, withOnMouseUp, withOnMouseEnter, withOnMouseLeave, withOnMouseOver, withOnMouseOut
     )
 
@@ -26,7 +26,7 @@ module Prima.Pyxis.Button exposing
 
 ## Options
 
-@docs withAttribute, withClass, withDisabled, withIcon, withId, withMediumSize, withSmallSize, withTinySize, withTabIndex, withTargetBlank, withTargetParent, withTargetSelf, withTargetTop, withTitle, withTypeButton, withTypeReset, withTypeSubmit
+@docs withAttribute, withClass, withDisabled, withIcon, withId, withMediumSize, withSmallSize, withTinySize, withTabIndex, withTargetBlank, withTargetParent, withTargetSelf, withTargetTop, withTitle, withTypeButton, withTypeReset, withTypeSubmit, withLoading
 
 
 ## Event Options
@@ -475,6 +475,17 @@ withOnMouseOver tagger =
 withOnMouseOut : msg -> Config msg -> Config msg
 withOnMouseOut tagger =
     addOption (Event (Events.onMouseOut tagger))
+
+
+{-| Sets a emphasis of `Loading` to the `Button`.
+-}
+withLoading : Bool -> Config msg -> Config msg
+withLoading isStartLoading (Config buttonConfig) =
+    if isStartLoading then
+        Config { buttonConfig | emphasis = Loading }
+
+    else
+        Config buttonConfig
 
 
 {-| Adds a generic attribute to the Button.
