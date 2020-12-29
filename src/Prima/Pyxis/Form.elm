@@ -1,5 +1,5 @@
 module Prima.Pyxis.Form exposing
-    ( Form, FormField(..), FormFieldset(..), Legend
+    ( Form, FormField, FormFieldset, Legend
     , init
     , withBeside, withVertical
     , withFields, withFieldsAndLegend
