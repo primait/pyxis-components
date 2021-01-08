@@ -1,7 +1,7 @@
 module Prima.Pyxis.Form.Select exposing
     ( Select, State, Msg(..), SelectChoice
     , select, init, initWithDefault, update, selectChoice
-    , selectedValue, subscription, open, close, isOpen, toggle
+    , selectedValue, subscription, open, close, isOpen, toggle, reset
     , render
     , withAttribute, withId, withDefaultValue, withDisabled, withClass, withLargeSize, withMediumSize, withOverridingClass, withPlaceholder, withSmallSize
     , withOnBlur, withOnFocus
@@ -23,7 +23,7 @@ module Prima.Pyxis.Form.Select exposing
 
 ## Methods
 
-@docs selectedValue, subscription, open, close, isOpen, toggle
+@docs selectedValue, subscription, open, close, isOpen, toggle, reset
 
 
 ## Rendering
@@ -208,6 +208,14 @@ close (State state) =
 toggle : State -> State
 toggle (State state) =
     State { state | isMenuOpen = not state.isMenuOpen }
+
+
+{-| Reset selected value.
+-}
+reset : State -> State
+reset (State state) =
+    State { state | focused = Nothing, selected = Nothing }
+        |> close
 
 
 {-| Returns whether the menu is open or not.
