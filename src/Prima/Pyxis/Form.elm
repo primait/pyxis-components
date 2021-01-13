@@ -1,13 +1,12 @@
 module Prima.Pyxis.Form exposing
-    ( Form, FormField, FormFieldset, Legend
+    ( Form, FormField, FormFieldset, Legend, RowKind(..)
     , init
     , withBeside, withVertical
     , withFields, withFieldsAndLegend
     , legend, legendWithPrependableHtml, legendWithAppendableHtml
     , input, inputList, autocomplete, checkbox, date, filterableSelect, flag, radio, radioFlag, radioButton, select, textArea
     , withLabel, withAppendableHtml
-    , render
-    , RowKind(..), renderField, renderFields, renderLabel
+    , renderField, renderFields, renderLabel, render
     )
 
 {-|
@@ -15,7 +14,7 @@ module Prima.Pyxis.Form exposing
 
 ## Configuration
 
-@docs Form, FormField, FormFieldset, Legend
+@docs Form, FormField, FormFieldset, Legend, RowKind(..)
 
 
 ## Configuration Methods
@@ -50,7 +49,7 @@ module Prima.Pyxis.Form exposing
 
 ## Rendering
 
-@docs render
+@docs renderField, renderFields, renderLabel, render
 
 -}
 
@@ -549,7 +548,7 @@ withAppendableHtml html formField =
             FilterableSelectField { fieldConfig | appendableHtml = html }
 
 
-{-| Internal. Transforms a `FormField` label into Html.
+{-| Transforms or render a `FormField` label into Html.
 -}
 renderLabel : FormField model msg -> List (Html msg)
 renderLabel formField =
@@ -558,7 +557,7 @@ renderLabel formField =
         |> ME.unwrap [] (List.singleton << Label.render)
 
 
-{-| Internal. Transforms a `FormField` into Html.
+{-| Transforms o render a `FormField` into Html.
 -}
 renderField : model -> FormField model msg -> List (Html msg)
 renderField model formField =
@@ -665,6 +664,8 @@ renderAppendableHtml content =
         |> List.singleton
 
 
+{-| Transforms or render a `FormField list` into Html without fieldset and form div.
+-}
 renderFields : model -> RowKind -> List (FormFieldList model msg) -> List (Html msg)
 renderFields model kind fields =
     case kind of
