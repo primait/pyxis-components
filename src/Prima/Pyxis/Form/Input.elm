@@ -421,6 +421,18 @@ readerAttribute model (Input config) =
     (Attrs.value << Maybe.withDefault "" << config.reader) model
 
 
+{-| Internal. Check the `reader` function if exist.
+-}
+readerChecker : model -> Input model msg -> Bool
+readerChecker model (Input config) =
+    case config.reader model of
+        Just _ ->
+            True
+
+        Nothing ->
+            False
+
+
 {-| Internal. Transforms the `tagger` function into a valid Html.Attribute.
 -}
 taggerAttribute : Input model msg -> Html.Attribute msg
@@ -486,7 +498,7 @@ buildAttributes model ((Input config) as inputModel) =
             computeOptions inputModel
 
         hasValidations =
-            List.length options.validations > 0 || not (isPristine model inputModel)
+            List.length options.validations > 0 && readerChecker model inputModel
     in
     [ options.id
         |> Maybe.map Attrs.id

@@ -526,6 +526,18 @@ pristineAttribute state selectModel =
         Attrs.class "is-touched"
 
 
+{-| Internal. Check if selectedValue is set.
+-}
+isSelectedValue : State -> Bool
+isSelectedValue (State stateConfig) =
+    case stateConfig.selected of
+        Just _ ->
+            True
+
+        Nothing ->
+            False
+
+
 {-| Composes all the modifiers into a set of `Html.Attribute`(s).
 -}
 buildAttributes : model -> State -> Select model -> List (Html.Attribute Msg)
@@ -535,7 +547,7 @@ buildAttributes model stateModel selectModel =
             computeOptions selectModel
 
         hasValidations =
-            List.length options.validations > 0 || not (isPristine stateModel selectModel)
+            List.length options.validations > 0 && isSelectedValue stateModel
     in
     [ options.id
         |> Maybe.map Attrs.id
@@ -596,7 +608,7 @@ renderCustomSelect model ((State { choices, isMenuOpen }) as stateModel) selectM
             computeOptions selectModel
 
         hasValidations =
-            List.length options.validations > 0 || not (isPristine stateModel selectModel)
+            List.length options.validations > 0 && isSelectedValue stateModel
     in
     Html.div
         (H.addIf hasValidations
