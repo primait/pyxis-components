@@ -49,6 +49,7 @@ type Config msg
 
 type alias ButtonConfig msg =
     { emphasis : Emphasis
+    , isLoadingState : Bool
     , size : Size
     , label : String
     , icon : Maybe String
@@ -264,56 +265,56 @@ isTiny =
 -}
 callOut : String -> Config msg
 callOut label =
-    Config (ButtonConfig CallOut Medium label Nothing [])
+    Config (ButtonConfig CallOut False Medium label Nothing [])
 
 
 {-| Create a button with a `Primary` visual weight and a `default size`.
 -}
 primary : String -> Config msg
 primary label =
-    Config (ButtonConfig Primary Medium label Nothing [])
+    Config (ButtonConfig Primary False Medium label Nothing [])
 
 
 {-| Create a button with a `Primary Alt` visual weight and a `default size`.
 -}
 primaryAlt : String -> Config msg
 primaryAlt label =
-    Config (ButtonConfig PrimaryAlt Medium label Nothing [])
+    Config (ButtonConfig PrimaryAlt False Medium label Nothing [])
 
 
 {-| Create a button with a `Secondary` visual weight and a `default size`.
 -}
 secondary : String -> Config msg
 secondary label =
-    Config (ButtonConfig Secondary Medium label Nothing [])
+    Config (ButtonConfig Secondary False Medium label Nothing [])
 
 
 {-| Create a button with a `Secondary Alt` visual weight and a `default size`.
 -}
 secondaryAlt : String -> Config msg
 secondaryAlt label =
-    Config (ButtonConfig SecondaryAlt Medium label Nothing [])
+    Config (ButtonConfig SecondaryAlt False Medium label Nothing [])
 
 
 {-| Create a button with a `Tertiary` visual weight and a `default size`.
 -}
 tertiary : String -> Config msg
 tertiary label =
-    Config (ButtonConfig Tertiary Medium label Nothing [])
+    Config (ButtonConfig Tertiary False Medium label Nothing [])
 
 
 {-| Create a button with a `Tertiary Alt` visual weight and a `default size`.
 -}
 tertiaryAlt : String -> Config msg
 tertiaryAlt label =
-    Config (ButtonConfig TertiaryAlt Medium label Nothing [])
+    Config (ButtonConfig TertiaryAlt False Medium label Nothing [])
 
 
 {-| Create a button with a `Loading` visual weight and a `default size`.
 -}
 loading : String -> Config msg
 loading label =
-    Config (ButtonConfig Loading Medium label Nothing [])
+    Config (ButtonConfig Loading False Medium label Nothing [])
 
 
 {-| Sets a size of `Tiny` to the `Button`.
@@ -480,12 +481,8 @@ withOnMouseOut tagger =
 {-| Sets a emphasis of `Loading` to the `Button`.
 -}
 withLoading : Bool -> Config msg -> Config msg
-withLoading isStartLoading (Config buttonConfig) =
-    if isStartLoading then
-        Config { buttonConfig | emphasis = Loading }
-
-    else
-        Config buttonConfig
+withLoading checkLoading (Config buttonConfig) =
+    Config { buttonConfig | isLoadingState = checkLoading }
 
 
 {-| Adds a generic attribute to the Button.
@@ -600,7 +597,7 @@ buildFormTarget options =
 {-| Internal. Merges the component configuration and options to a classes attribute.
 -}
 buildClasses : Config msg -> Options msg -> List (Html.Attribute msg)
-buildClasses (Config { emphasis, size }) options =
+buildClasses (Config { emphasis, size, isLoadingState }) options =
     [ Attrs.classList
         [ ( "btn", True )
         , ( "btn--callout", isCallOut emphasis )
@@ -614,6 +611,7 @@ buildClasses (Config { emphasis, size }) options =
         , ( "btn--small", isSmall size )
         , ( "btn--tiny", isTiny size )
         , ( "btn--medium", isMedium size )
+        , ( "is-loading", not (isLoading emphasis) && isLoadingState )
         ]
     , options.classes
         |> String.join " "
