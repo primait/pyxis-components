@@ -641,8 +641,20 @@ isPristine model ((Date config) as dateModel) =
     let
         options =
             computeOptions dateModel
+
+        sameDefault : Bool
+        sameDefault =
+            Value (config.reader model) == options.defaultValue
     in
-    Value (config.reader model) == options.defaultValue
+    case ( sameDefault, config.reader model ) of
+        ( True, _ ) ->
+            True
+
+        ( False, Just _ ) ->
+            False
+
+        ( False, Nothing ) ->
+            True
 
 
 {-| Internal. Applies the `pristine/touched` visual state to the component.
@@ -665,7 +677,7 @@ buildAttributes mode model dateModel =
             computeOptions dateModel
 
         hasValidations =
-            List.length options.validations > 0 || not (isPristine model dateModel)
+            (List.length options.validations > 0 && not (isPristine model dateModel)) || not (isPristine model dateModel)
     in
     [ options.id
         |> Maybe.map Attrs.id

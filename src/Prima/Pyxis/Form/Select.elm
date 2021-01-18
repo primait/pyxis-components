@@ -511,8 +511,20 @@ isPristine (State { selected }) selectModel =
     let
         options =
             computeOptions selectModel
+
+        sameDefault : Bool
+        sameDefault =
+            Value selected == options.defaultValue
     in
-    Value selected == options.defaultValue
+    case ( sameDefault, stateConfig.selected ) of
+        ( True, _ ) ->
+            True
+
+        ( False, Just _ ) ->
+            False
+
+        ( False, Nothing ) ->
+            True
 
 
 {-| Internal. Applies the `pristine/touched` visual state to the component.
@@ -534,8 +546,9 @@ buildAttributes model stateModel selectModel =
         options =
             computeOptions selectModel
 
+        hasValidations : Bool
         hasValidations =
-            List.length options.validations > 0 || not (isPristine stateModel selectModel)
+            (List.length options.validations > 0 && not (isPristine stateModel selectModel)) || not (isPristine stateModel selectModel)
     in
     [ options.id
         |> Maybe.map Attrs.id
@@ -595,8 +608,9 @@ renderCustomSelect model ((State { choices, isMenuOpen }) as stateModel) selectM
         options =
             computeOptions selectModel
 
+        hasValidations : Bool
         hasValidations =
-            List.length options.validations > 0 || not (isPristine stateModel selectModel)
+            (List.length options.validations > 0 && not (isPristine stateModel selectModel)) || not (isPristine stateModel selectModel)
     in
     Html.div
         (H.addIf hasValidations

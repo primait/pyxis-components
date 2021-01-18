@@ -455,8 +455,20 @@ isPristine model ((Input config) as inputModel) =
     let
         options =
             computeOptions inputModel
+
+        sameDefault : Bool
+        sameDefault =
+            Value (config.reader model) == options.defaultValue
     in
-    Value (config.reader model) == options.defaultValue
+    case ( sameDefault, config.reader model ) of
+        ( True, _ ) ->
+            True
+
+        ( False, Just _ ) ->
+            False
+
+        ( False, Nothing ) ->
+            True
 
 
 {-| Internal. Applies the `pristine/touched` visual state to the component.

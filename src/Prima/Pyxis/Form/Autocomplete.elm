@@ -701,8 +701,20 @@ isPristine (State stateConfig) inputModel =
     let
         options =
             computeOptions inputModel
+
+        sameDefault : Bool
+        sameDefault =
+            Value stateConfig.selected == options.defaultValue
     in
-    Value stateConfig.selected == options.defaultValue
+    case ( sameDefault, stateConfig.selected ) of
+        ( True, _ ) ->
+            True
+
+        ( False, Just _ ) ->
+            False
+
+        ( False, Nothing ) ->
+            True
 
 
 {-| Internal. Applies the `pristine/touched` visual state to the component.
@@ -760,8 +772,9 @@ render model ((State stateConfig) as stateModel) autocompleteModel =
                 |> pickChoices
                 |> List.any (isChoiceSelected stateModel)
 
+        hasValidations : Bool
         hasValidations =
-            List.length options.validations > 0 || not (isPristine stateModel autocompleteModel)
+            (List.length options.validations > 0 && not (isPristine stateModel autocompleteModel)) || not (isPristine stateModel autocompleteModel)
 
         isDisabled : Bool
         isDisabled =
@@ -869,8 +882,9 @@ buildAttributes model stateModel autocompleteModel =
         options =
             computeOptions autocompleteModel
 
+        hasValidations : Bool
         hasValidations =
-            List.length options.validations > 0 || not (isPristine stateModel autocompleteModel)
+            (List.length options.validations > 0 && not (isPristine stateModel autocompleteModel)) || not (isPristine stateModel autocompleteModel)
     in
     [ options.id
         |> Maybe.map Attrs.id
