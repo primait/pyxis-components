@@ -705,18 +705,6 @@ isPristine (State stateConfig) inputModel =
     Value stateConfig.selected == options.defaultValue
 
 
-{-| Internal. Check if selectedValue is set.
--}
-isSelectedValue : State -> Bool
-isSelectedValue (State stateConfig) =
-    case stateConfig.selected of
-        Just _ ->
-            True
-
-        Nothing ->
-            False
-
-
 {-| Internal. Applies the `pristine/touched` visual state to the component.
 -}
 pristineAttribute : State -> Autocomplete model -> Html.Attribute Msg
@@ -773,7 +761,7 @@ render model ((State stateConfig) as stateModel) autocompleteModel =
                 |> List.any (isChoiceSelected stateModel)
 
         hasValidations =
-            List.length options.validations > 0 && isSelectedValue stateModel
+            List.length options.validations > 0 || not (isPristine stateModel autocompleteModel)
 
         isDisabled : Bool
         isDisabled =
@@ -882,7 +870,7 @@ buildAttributes model stateModel autocompleteModel =
             computeOptions autocompleteModel
 
         hasValidations =
-            List.length options.validations > 0 && isSelectedValue stateModel
+            List.length options.validations > 0 || not (isPristine stateModel autocompleteModel)
     in
     [ options.id
         |> Maybe.map Attrs.id

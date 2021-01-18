@@ -235,18 +235,6 @@ taggerAttribute (Radio config) choice =
         |> Events.onClick
 
 
-{-| Internal. Check the `reader` function if exist.
--}
-readerChecker : model -> Radio model msg -> Bool
-readerChecker model (Radio config) =
-    case config.reader model of
-        Just _ ->
-            True
-
-        Nothing ->
-            False
-
-
 validationAttribute : model -> Radio model msg -> Html.Attribute msg
 validationAttribute model radioModel =
     let
@@ -275,9 +263,6 @@ buildAttributes model ((Radio config) as radioModel) choice =
         options =
             computeOptions radioModel
 
-        hasValidations =
-            List.length options.validations > 0 && readerChecker model radioModel
-
         taggerAttrList : List (Attribute msg)
         taggerAttrList =
             if Just choice.value == config.reader model then
@@ -302,7 +287,7 @@ buildAttributes model ((Radio config) as radioModel) choice =
         |> (::) (H.classesAttribute options.class)
         |> (::) (readerAttribute model radioModel choice)
         |> (++) taggerAttrList
-        |> H.addIf hasValidations (validationAttribute model radioModel)
+        |> (::) (validationAttribute model radioModel)
         |> (::) (Attrs.type_ "radio")
         |> (::) (Attrs.value choice.value)
 
