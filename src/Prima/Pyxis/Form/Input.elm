@@ -501,7 +501,7 @@ buildAttributes model ((Input config) as inputModel) =
             computeOptions inputModel
 
         hasValidations =
-            List.length options.validations > 0 || not (isPristine model inputModel)
+            (List.length options.validations > 0 && not (isPristine model inputModel)) || (not <| isPristine model inputModel)
     in
     [ options.id
         |> Maybe.map Attrs.id
