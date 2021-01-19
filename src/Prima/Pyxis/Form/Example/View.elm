@@ -60,6 +60,9 @@ formConfig model =
         |> Form.withFields
             [ Config.fiscalCodeGroupConfig
             ]
+        |> Form.withFields
+            [ Config.addressWithDefaultConfig
+            ]
         |> Form.withFieldsAndLegend
             (Form.legendWithAppendableHtml
                 "Privacy"

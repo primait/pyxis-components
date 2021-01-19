@@ -47,6 +47,7 @@ initialModel =
 type Field
     = Username
     | Password
+    | Address
     | Privacy
     | GuideType
     | FiscalCode
@@ -68,6 +69,7 @@ type BirthDateField
 type alias FormData =
     { username : Maybe String
     , password : Maybe String
+    , address : Maybe String
     , privacy : Maybe Bool
     , guideType : Maybe String
     , powerSource : Maybe String
@@ -94,6 +96,7 @@ initialFormData : FormData
 initialFormData =
     { username = Nothing
     , password = Nothing
+    , address = Nothing
     , privacy = Nothing
     , guideType = Nothing
     , powerSource = Nothing

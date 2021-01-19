@@ -650,10 +650,10 @@ isPristine model ((Date config) as dateModel) =
         ( True, _ ) ->
             True
 
-        ( False, Just _ ) ->
+        ( False, DatePicker.ParsedDate _ ) ->
             False
 
-        ( False, Nothing ) ->
+        ( False, DatePicker.PartialDate _ ) ->
             True
 
 

@@ -255,8 +255,8 @@ validationAttribute model radioModel =
             Attrs.class "has-error"
 
 
-isPristine : model -> Input model msg -> Bool
-isPristine model (Input config) =
+isPristine : model -> Radio model msg -> Bool
+isPristine model (Radio config) =
     case config.reader model of
         Just _ ->
             False

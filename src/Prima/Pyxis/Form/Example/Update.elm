@@ -59,6 +59,11 @@ update msg model =
                 |> updateUsername (H.validString value)
                 |> H.withoutCmds
 
+        OnInput Address value ->
+            model
+                |> updateAddress (H.validString value)
+                |> H.withoutCmds
+
         OnInput Password value ->
             model
                 |> updatePassword (Just value)
@@ -161,6 +166,11 @@ updateSelect selectMsg =
 updateUsername : Maybe String -> Model -> Model
 updateUsername value =
     updateFormData (\f -> { f | username = value })
+
+
+updateAddress : Maybe String -> Model -> Model
+updateAddress value =
+    updateFormData (\f -> { f | address = value })
 
 
 updatePassword : Maybe String -> Model -> Model

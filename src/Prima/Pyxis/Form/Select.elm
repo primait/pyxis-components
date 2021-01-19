@@ -507,14 +507,14 @@ validationAttribute model selectModel =
 
 
 isPristine : State -> Select model -> Bool
-isPristine (State { selected }) selectModel =
+isPristine (State stateConfig) selectModel =
     let
         options =
             computeOptions selectModel
 
         sameDefault : Bool
         sameDefault =
-            Value selected == options.defaultValue
+            Value stateConfig.selected == options.defaultValue
     in
     case ( sameDefault, stateConfig.selected ) of
         ( True, _ ) ->

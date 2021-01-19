@@ -9,7 +9,9 @@
   "scripts": {
     "analyse": "./node_modules/.bin/elm-analyse  src/*",
     "review": "./node_modules/.bin/elm-review --compiler node_modules/.bin/elm",
-    "test": "./node_modules/.bin/elm-test"
+    "test": "./node_modules/.bin/elm-test",
+    "serve": "./node_modules/.bin/elm reactor",
+    "serve:doc": "./node_modules/.bin/elm make --docs=docs.json"
   },
   "devDependencies": {
     "elm-review": "^2.1.0"
