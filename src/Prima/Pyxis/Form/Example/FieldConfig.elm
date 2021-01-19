@@ -126,7 +126,6 @@ addressWithDefaultConfig =
     Input.text .address (OnInput Address)
         |> Input.withId slug
         |> Input.withDefaultValue (Just "Address")
-        |> Input.withValidation (Validation.notEmptyValidation .address)
         |> Form.input
         |> Form.withLabel
             ("Address"

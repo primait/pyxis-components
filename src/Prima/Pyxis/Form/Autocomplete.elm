@@ -710,11 +710,11 @@ isPristine (State stateConfig) inputModel =
         ( True, _ ) ->
             True
 
-        ( False, Just _ ) ->
-            False
-
         ( False, Nothing ) ->
             True
+
+        ( False, Just _ ) ->
+            False
 
 
 {-| Internal. Applies the `pristine/touched` visual state to the component.

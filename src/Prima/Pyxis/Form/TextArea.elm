@@ -341,11 +341,14 @@ isPristine model ((TextArea config) as textAreaModel) =
         ( True, _ ) ->
             True
 
-        ( False, Just _ ) ->
-            False
+        ( False, Just "" ) ->
+            True
 
         ( False, Nothing ) ->
             True
+
+        ( False, Just _ ) ->
+            False
 
 
 {-| Internal. Applies the `pristine/touched` visual state to the component.

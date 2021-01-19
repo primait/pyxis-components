@@ -650,11 +650,11 @@ isPristine model ((Date config) as dateModel) =
         ( True, _ ) ->
             True
 
-        ( False, DatePicker.ParsedDate _ ) ->
-            False
-
         ( False, DatePicker.PartialDate _ ) ->
             True
+
+        ( False, DatePicker.ParsedDate _ ) ->
+            False
 
 
 {-| Internal. Applies the `pristine/touched` visual state to the component.
