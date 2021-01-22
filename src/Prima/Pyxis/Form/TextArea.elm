@@ -341,9 +341,6 @@ isPristine model ((TextArea config) as textAreaModel) =
         ( True, _ ) ->
             True
 
-        ( False, Just "" ) ->
-            True
-
         ( False, Nothing ) ->
             True
 
@@ -379,7 +376,7 @@ buildAttributes model ((TextArea _) as textAreaModel) =
 
         hasValidations : Bool
         hasValidations =
-            (List.length options.validations > 0 && not (isPristine model textAreaModel)) || not (isPristine model textAreaModel)
+            (List.length options.validations > 0) || not (isPristine model textAreaModel)
     in
     [ options.id
         |> Maybe.map Attrs.id
@@ -442,7 +439,15 @@ buildAttributes model ((TextArea _) as textAreaModel) =
 -}
 render : model -> TextArea model msg -> List (Html msg)
 render model textAreaModel =
-    renderTextArea model textAreaModel :: renderValidationMessages model textAreaModel
+    let
+        options =
+            computeOptions textAreaModel
+
+        hasValidations : Bool
+        hasValidations =
+            (List.length options.validations > 0) || not (isPristine model textAreaModel)
+    in
+    renderTextArea model textAreaModel :: renderValidationMessages model textAreaModel hasValidations
 
 
 {-| Internal. Renders the `Input` alone.
@@ -456,8 +461,8 @@ renderTextArea model textAreaModel =
 
 {-| Internal. Renders the list of errors if present. Renders the list of warnings if not.
 -}
-renderValidationMessages : model -> TextArea model msg -> List (Html msg)
-renderValidationMessages model textAreaModel =
+renderValidationMessages : model -> TextArea model msg -> Bool -> List (Html msg)
+renderValidationMessages model textAreaModel showValidation =
     let
         warnings =
             warningValidations model (computeOptions textAreaModel)
@@ -465,12 +470,15 @@ renderValidationMessages model textAreaModel =
         errors =
             errorsValidations model (computeOptions textAreaModel)
     in
-    case ( errors, warnings ) of
-        ( [], _ ) ->
+    case ( showValidation, errors, warnings ) of
+        ( True, [], _ ) ->
             List.map Validation.render warnings
 
-        ( _, _ ) ->
+        ( True, _, _ ) ->
             List.map Validation.render errors
+
+        ( False, _, _ ) ->
+            []
 
 
 warningValidations : model -> Options model msg -> List Validation.Type

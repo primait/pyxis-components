@@ -774,7 +774,7 @@ render model ((State stateConfig) as stateModel) autocompleteModel =
 
         hasValidations : Bool
         hasValidations =
-            (List.length options.validations > 0 && not (isPristine stateModel autocompleteModel)) || not (isPristine stateModel autocompleteModel)
+            (List.length options.validations > 0) || not (isPristine stateModel autocompleteModel)
 
         isDisabled : Bool
         isDisabled =
@@ -819,7 +819,7 @@ render model ((State stateConfig) as stateModel) autocompleteModel =
         , renderResetIcon
             |> H.renderIf (hasSelectedAnyChoice && not isDisabled)
         ]
-        :: renderValidationMessages model autocompleteModel
+        :: renderValidationMessages model autocompleteModel hasValidations
 
 
 renderAutocompleteChoice : State -> AutocompleteChoice -> Html Msg
@@ -857,8 +857,8 @@ renderResetIcon =
 
 {-| Internal. Renders the list of errors if present. Renders the list of warnings if not.
 -}
-renderValidationMessages : model -> Autocomplete model -> List (Html Msg)
-renderValidationMessages model autocompleteModel =
+renderValidationMessages : model -> Autocomplete model -> Bool -> List (Html Msg)
+renderValidationMessages model autocompleteModel showValidation =
     let
         warnings =
             warningValidations model (computeOptions autocompleteModel)
@@ -866,12 +866,15 @@ renderValidationMessages model autocompleteModel =
         errors =
             errorsValidations model (computeOptions autocompleteModel)
     in
-    case ( errors, warnings ) of
-        ( [], _ ) ->
+    case ( showValidation, errors, warnings ) of
+        ( True, [], _ ) ->
             List.map Validation.render warnings
 
-        ( _, _ ) ->
+        ( True, _, _ ) ->
             List.map Validation.render errors
+
+        ( False, _, _ ) ->
+            []
 
 
 {-| Internal. Transforms all the customizations into a list of valid Html.Attribute(s).
@@ -884,7 +887,7 @@ buildAttributes model stateModel autocompleteModel =
 
         hasValidations : Bool
         hasValidations =
-            (List.length options.validations > 0 && not (isPristine stateModel autocompleteModel)) || not (isPristine stateModel autocompleteModel)
+            (List.length options.validations > 0) || not (isPristine stateModel autocompleteModel)
     in
     [ options.id
         |> Maybe.map Attrs.id

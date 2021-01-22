@@ -464,9 +464,6 @@ isPristine model ((Input config) as inputModel) =
         ( True, _ ) ->
             True
 
-        ( False, Just "" ) ->
-            True
-
         ( False, Nothing ) ->
             True
 
@@ -500,8 +497,9 @@ buildAttributes model ((Input config) as inputModel) =
         options =
             computeOptions inputModel
 
+        hasValidations : Bool
         hasValidations =
-            (List.length options.validations > 0 && not (isPristine model inputModel)) || (not <| isPristine model inputModel)
+            List.length options.validations > 0 || (not <| isPristine model inputModel)
     in
     [ options.id
         |> Maybe.map Attrs.id
@@ -568,13 +566,17 @@ render model inputModel =
     let
         options =
             computeOptions inputModel
+
+        hasValidations : Bool
+        hasValidations =
+            List.length options.validations > 0 || (not <| isPristine model inputModel)
     in
     case ( options.prependGroup, options.appendGroup ) of
         ( Just html, _ ) ->
             [ renderGroup
                 (renderPrependGroup inputModel html
                     :: renderInput model inputModel
-                    :: renderValidationMessages model inputModel
+                    :: renderValidationMessages model inputModel hasValidations
                 )
             ]
 
@@ -582,12 +584,12 @@ render model inputModel =
             [ renderGroup
                 (renderAppendGroup inputModel html
                     :: renderInput model inputModel
-                    :: renderValidationMessages model inputModel
+                    :: renderValidationMessages model inputModel hasValidations
                 )
             ]
 
         _ ->
-            renderInput model inputModel :: renderValidationMessages model inputModel
+            renderInput model inputModel :: renderValidationMessages model inputModel hasValidations
 
 
 {-| Internal. Renders the `Input` alone.
@@ -637,8 +639,8 @@ renderPrependGroup inputModel =
 
 {-| Internal. Renders the list of errors if present. Renders the list of warnings if not.
 -}
-renderValidationMessages : model -> Input model msg -> List (Html msg)
-renderValidationMessages model inputModel =
+renderValidationMessages : model -> Input model msg -> Bool -> List (Html msg)
+renderValidationMessages model inputModel showValidation =
     let
         warnings =
             warningValidations model (computeOptions inputModel)
@@ -646,12 +648,15 @@ renderValidationMessages model inputModel =
         errors =
             errorsValidations model (computeOptions inputModel)
     in
-    case ( errors, warnings ) of
-        ( [], _ ) ->
+    case ( showValidation, errors, warnings ) of
+        ( True, [], _ ) ->
             List.map Validation.render warnings
 
-        ( _, _ ) ->
+        ( True, _, _ ) ->
             List.map Validation.render errors
+
+        ( False, _, _ ) ->
+            []
 
 
 warningValidations : model -> Options model msg -> List Validation.Type

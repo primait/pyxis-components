@@ -240,6 +240,14 @@ withValidation validation =
 -}
 render : model -> Date model msg -> List (Html msg)
 render model dateModel =
+    let
+        options =
+            computeOptions dateModel
+
+        hasValidations : Bool
+        hasValidations =
+            (List.length options.validations > 0) || not (isPristine model dateModel)
+    in
     if shouldShowDatePicker model dateModel then
         [ renderGroup
             (renderAppendGroup dateModel
@@ -248,14 +256,14 @@ render model dateModel =
                 :: renderInput InputDate model dateModel
                 :: renderInput InputText model dateModel
                 :: renderDatePicker model dateModel
-                :: renderValidationMessages model dateModel
+                :: renderValidationMessages model dateModel hasValidations
             )
         ]
 
     else
         renderInput InputDate model dateModel
             :: renderInput InputText model dateModel
-            :: renderValidationMessages model dateModel
+            :: renderValidationMessages model dateModel hasValidations
 
 
 renderInput : Mode -> model -> Date model msg -> Html msg
@@ -308,8 +316,8 @@ renderAppendGroup dateModel =
     Html.div groupAttrs
 
 
-renderValidationMessages : model -> Date model msg -> List (Html msg)
-renderValidationMessages model dateModel =
+renderValidationMessages : model -> Date model msg -> Bool -> List (Html msg)
+renderValidationMessages model dateModel showValidation =
     let
         warnings =
             warningValidations model (computeOptions dateModel)
@@ -317,12 +325,15 @@ renderValidationMessages model dateModel =
         errors =
             errorsValidations model (computeOptions dateModel)
     in
-    case ( errors, warnings ) of
-        ( [], _ ) ->
+    case ( showValidation, errors, warnings ) of
+        ( True, [], _ ) ->
             List.map Validation.render warnings
 
-        ( _, _ ) ->
+        ( True, _, _ ) ->
             List.map Validation.render errors
+
+        ( False, _, _ ) ->
+            []
 
 
 shouldShowDatePicker : model -> Date model msg -> Bool
@@ -676,8 +687,9 @@ buildAttributes mode model dateModel =
         options =
             computeOptions dateModel
 
+        hasValidations : Bool
         hasValidations =
-            (List.length options.validations > 0 && not (isPristine model dateModel)) || not (isPristine model dateModel)
+            (List.length options.validations > 0) || not (isPristine model dateModel)
     in
     [ options.id
         |> Maybe.map Attrs.id

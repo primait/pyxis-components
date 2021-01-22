@@ -548,7 +548,7 @@ buildAttributes model stateModel selectModel =
 
         hasValidations : Bool
         hasValidations =
-            (List.length options.validations > 0 && not (isPristine stateModel selectModel)) || not (isPristine stateModel selectModel)
+            (List.length options.validations > 0) || not (isPristine stateModel selectModel)
     in
     [ options.id
         |> Maybe.map Attrs.id
@@ -572,10 +572,18 @@ buildAttributes model stateModel selectModel =
 -}
 render : model -> State -> Select model -> List (Html Msg)
 render model stateModel selectModel =
+    let
+        options =
+            computeOptions selectModel
+
+        hasValidations : Bool
+        hasValidations =
+            (List.length options.validations > 0) || not (isPristine stateModel selectModel)
+    in
     [ renderSelect model stateModel selectModel
     , renderCustomSelect model stateModel selectModel
     ]
-        ++ renderValidationMessages model selectModel
+        ++ renderValidationMessages model selectModel hasValidations
 
 
 renderSelect : model -> State -> Select model -> Html Msg
@@ -688,8 +696,8 @@ renderCustomSelectChoice stateModel choice =
         ]
 
 
-renderValidationMessages : model -> Select model -> List (Html Msg)
-renderValidationMessages model selectModel =
+renderValidationMessages : model -> Select model -> Bool -> List (Html Msg)
+renderValidationMessages model selectModel showValidation =
     let
         warnings =
             warningValidations model (computeOptions selectModel)
@@ -697,12 +705,15 @@ renderValidationMessages model selectModel =
         errors =
             errorsValidations model (computeOptions selectModel)
     in
-    case ( errors, warnings ) of
-        ( [], _ ) ->
+    case ( showValidation, errors, warnings ) of
+        ( True, [], _ ) ->
             List.map Validation.render warnings
 
-        ( _, _ ) ->
+        ( True, _, _ ) ->
             List.map Validation.render errors
+
+        ( False, _, _ ) ->
+            []
 
 
 {-| Internal
