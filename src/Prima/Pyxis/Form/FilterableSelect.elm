@@ -2,7 +2,7 @@ module Prima.Pyxis.Form.FilterableSelect exposing
     ( FilterableSelect, State, Msg(..)
     , filterableSelect, init, initWithDefault, update, filterableSelectChoice
     , render
-    , selectedValue, filterValue, subscription, open, close, isOpen, toggle
+    , selectedValue, filterValue, subscription, open, close, isOpen, toggle, reset
     , withAttribute, withClass, withDefaultValue, withDisabled, withId, withName, withMediumSize, withSmallSize, withLargeSize, withPlaceholder, withOverridingClass, withThreshold
     , withOnBlur, withOnFocus
     , withValidation
@@ -28,7 +28,7 @@ module Prima.Pyxis.Form.FilterableSelect exposing
 
 ## Methods
 
-@docs selectedValue, filterValue, subscription, open, close, isOpen, toggle
+@docs selectedValue, filterValue, subscription, open, close, isOpen, toggle, reset
 
 
 ## Options
@@ -139,6 +139,13 @@ toggle state =
     { state | autocompleteState = Autocomplete.toggle state.autocompleteState }
 
 
+{-| Reset selected value.
+-}
+reset : State -> State
+reset state =
+    { state | autocompleteState = Autocomplete.reset state.autocompleteState }
+
+
 {-| Returns whether the menu is open or not.
 -}
 isOpen : State -> Bool
@@ -151,7 +158,7 @@ isOpen { autocompleteState } =
 choiceContainsFilter : Maybe String -> FilterableSelectChoice -> Bool
 choiceContainsFilter maybeFilter { value, label } =
     maybeFilter
-        |> Maybe.map (\filter -> String.contains filter label || String.contains filter value)
+        |> Maybe.map (\filter -> String.contains (String.toLower filter) (String.toLower label) || String.contains filter value)
         |> Maybe.withDefault True
 
 

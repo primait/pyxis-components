@@ -2,7 +2,7 @@ module Prima.Pyxis.Form.Autocomplete exposing
     ( Autocomplete, State, Msg(..), AutocompleteChoice
     , autocomplete, init, initWithDefault, update, autocompleteChoice, updateChoices
     , render
-    , selectedValue, filterValue, subscription, open, close, isOpen, toggle
+    , selectedValue, filterValue, subscription, open, close, isOpen, toggle, reset
     , withAttribute, withClass, withDebouncer, withDefaultValue, withDisabled, withId, withLargeSize, withMediumSize, withName, withOverridingClass, withPlaceholder, withSmallSize, withThreshold
     , withOnBlur, withOnFocus
     , withValidation
@@ -28,7 +28,7 @@ module Prima.Pyxis.Form.Autocomplete exposing
 
 ## Methods
 
-@docs selectedValue, filterValue, subscription, open, close, isOpen, toggle
+@docs selectedValue, filterValue, subscription, open, close, isOpen, toggle, reset
 
 
 ## Options
@@ -248,6 +248,14 @@ toggle (State state) =
     State { state | isMenuOpen = not state.isMenuOpen }
 
 
+{-| Reset selected value.
+-}
+reset : State -> State
+reset (State state) =
+    State { state | focused = Nothing, selected = Nothing, filter = Nothing }
+        |> close
+
+
 {-| Returns whether the menu is open or not.
 -}
 isOpen : State -> Bool
@@ -324,7 +332,7 @@ updateOnFilter (( State state, cmd, filter ) as stateCmdFilter) =
 -}
 updateOnInput : Maybe String -> State -> State
 updateOnInput value (State state) =
-    State { state | filter = value, isMenuOpen = True }
+    State { state | filter = Maybe.map String.toLower value, isMenuOpen = True }
 
 
 {-| Internal.
