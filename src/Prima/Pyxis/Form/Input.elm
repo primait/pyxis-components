@@ -6,6 +6,7 @@ module Prima.Pyxis.Form.Input exposing
     , withPrependGroup, withAppendGroup, withGroupClass
     , withOnBlur, withOnFocus
     , withValidation
+    , whitIsSubmitted
     )
 
 {-|
@@ -132,6 +133,7 @@ type InputOption model msg
     | Disabled Bool
     | GroupClass String
     | Id String
+    | IsSubmitted (model -> Bool)
     | Name String
     | OnBlur msg
     | OnFocus msg
@@ -203,6 +205,13 @@ withGroupClass class =
 withId : String -> Input model msg -> Input model msg
 withId id =
     addOption (Id id)
+
+
+{-| Adds an `isSubmitted` predicate to the `Input`.
+-}
+whitIsSubmitted : (model -> Bool) -> Input model msg -> Input model msg
+whitIsSubmitted isSubmitted =
+    addOption (IsSubmitted isSubmitted)
 
 
 {-| Adds a `name` Html.Attribute to the `Input`.
@@ -292,6 +301,7 @@ type alias Options model msg =
     , classes : List String
     , groupClasses : List String
     , id : Maybe String
+    , isSubmitted : model -> Bool
     , name : Maybe String
     , onFocus : Maybe msg
     , onBlur : Maybe msg
@@ -313,6 +323,7 @@ defaultOptions =
     , classes = [ "form-input" ]
     , groupClasses = []
     , id = Nothing
+    , isSubmitted = always True
     , name = Nothing
     , onFocus = Nothing
     , onBlur = Nothing
@@ -351,6 +362,9 @@ applyOption modifier options =
 
         Id id ->
             { options | id = Just id }
+
+        IsSubmitted predicate ->
+            { options | isSubmitted = predicate }
 
         Name name ->
             { options | name = Just name }
@@ -489,17 +503,21 @@ computeOptions (Input config) =
     List.foldl applyOption defaultOptions config.options
 
 
+{-| Internal. Determines whether the field should be validated or not.
+-}
+shouldBeValidated : model -> Input model msg -> Options model msg -> Bool
+shouldBeValidated model ((Input config) as inputModel) options =
+    List.length options.validations > 0 || ((not <| isPristine model inputModel) || options.isSubmitted model)
+
+
 {-| Internal. Transforms all the customizations into a list of valid Html.Attribute(s).
 -}
 buildAttributes : model -> Input model msg -> List (Html.Attribute msg)
 buildAttributes model ((Input config) as inputModel) =
     let
+        options : Options model msg
         options =
             computeOptions inputModel
-
-        hasValidations : Bool
-        hasValidations =
-            List.length options.validations > 0 || (not <| isPristine model inputModel)
     in
     [ options.id
         |> Maybe.map Attrs.id
@@ -521,7 +539,7 @@ buildAttributes model ((Input config) as inputModel) =
         |> (::) (taggerAttribute inputModel)
         |> (::) (typeAttribute config.type_)
         |> (::) (sizeAttribute options.size)
-        |> H.addIf hasValidations (validationAttribute model inputModel)
+        |> H.addIf (shouldBeValidated model inputModel options) (validationAttribute model inputModel)
         |> (::) (pristineAttribute model inputModel)
 
 
@@ -567,9 +585,8 @@ render model inputModel =
         options =
             computeOptions inputModel
 
-        hasValidations : Bool
         hasValidations =
-            List.length options.validations > 0 || (not <| isPristine model inputModel)
+            shouldBeValidated model inputModel options
     in
     case ( options.prependGroup, options.appendGroup ) of
         ( Just html, _ ) ->
