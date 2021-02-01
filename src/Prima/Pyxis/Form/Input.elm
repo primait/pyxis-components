@@ -506,7 +506,7 @@ computeOptions (Input config) =
 {-| Internal. Determines whether the field should be validated or not.
 -}
 shouldBeValidated : model -> Input model msg -> Options model msg -> Bool
-shouldBeValidated model ((Input config) as inputModel) options =
+shouldBeValidated model inputModel options =
     List.length options.validations > 0 || ((not <| isPristine model inputModel) || options.isSubmitted model)
 
 
