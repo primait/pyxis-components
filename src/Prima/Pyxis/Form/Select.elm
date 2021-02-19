@@ -748,8 +748,7 @@ subscription : State -> Sub Msg
 subscription state =
     if isOpen state then
         Events.keyCode
-            |> Json.Decode.map KeyboardEvents.toKeyCode
-            |> Json.Decode.map OnKeyPress
+            |> Json.Decode.map (OnKeyPress << KeyboardEvents.toKeyCode)
             |> Browser.Events.onKeyDown
 
     else
