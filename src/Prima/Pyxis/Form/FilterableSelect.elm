@@ -211,7 +211,7 @@ filterValue =
 
 {-| Needed to wire keyboard events to the `FilterableSelect`.
 -}
-subscription : Sub Autocomplete.Msg
+subscription : Autocomplete.State -> Sub Autocomplete.Msg
 subscription =
     Autocomplete.subscription
 

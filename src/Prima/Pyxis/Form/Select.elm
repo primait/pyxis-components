@@ -744,9 +744,13 @@ pickChoiceByIndex index (State { choices }) =
 
 {-| Needed to wire keyboard events to the `Select`.
 -}
-subscription : Sub Msg
-subscription =
-    Events.keyCode
-        |> Json.Decode.map KeyboardEvents.toKeyCode
-        |> Json.Decode.map OnKeyPress
-        |> Browser.Events.onKeyDown
+subscription : State -> Sub Msg
+subscription state =
+    if isOpen state then
+        Events.keyCode
+            |> Json.Decode.map KeyboardEvents.toKeyCode
+            |> Json.Decode.map OnKeyPress
+            |> Browser.Events.onKeyDown
+
+    else
+        Sub.none
