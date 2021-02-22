@@ -17,12 +17,11 @@ main =
         , view = view
         , update = update
         , subscriptions =
-            always
-                (Sub.batch
-                    [ Sub.map SelectMsg Select.subscription
-                    , Sub.map AutocompleteMsg Autocomplete.subscription
+            \model ->
+                Sub.batch
+                    [ Sub.map SelectMsg <| Select.subscription model.formData.powerSourceSelect
+                    , Sub.map AutocompleteMsg <| Autocomplete.subscription model.formData.countryAutocomplete
                     ]
-                )
         }
 
 
