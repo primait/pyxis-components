@@ -85,7 +85,9 @@ type alias FormConfig model msg =
     , fields : List (FormFieldset model msg)
     }
 
-
+{-| Define the flow in which form fields should be displayed.
+  You can choose to use the Pyxis standard (`Grid`), or to go out of default boundaries with `Vertical` and `Beside`.
+-}
 type RowKind
     = Grid
     | Beside
