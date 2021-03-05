@@ -8,6 +8,7 @@
         "Prima.Pyxis.Accordion",
         "Prima.Pyxis.AtrTable",
         "Prima.Pyxis.Button",
+        "Prima.Pyxis.ButtonGroup",
         "Prima.Pyxis.Container",
         "Prima.Pyxis.DownloadButton",
         "Prima.Pyxis.Form",
