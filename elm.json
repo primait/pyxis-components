@@ -3,11 +3,12 @@
     "name": "primait/pyxis-components",
     "summary": "Prima Design System components",
     "license": "BSD-3-Clause",
-    "version": "7.0.0",
+    "version": "7.0.1",
     "exposed-modules": [
         "Prima.Pyxis.Accordion",
         "Prima.Pyxis.AtrTable",
         "Prima.Pyxis.Button",
+        "Prima.Pyxis.ButtonGroup",
         "Prima.Pyxis.Container",
         "Prima.Pyxis.DownloadButton",
         "Prima.Pyxis.Form",
