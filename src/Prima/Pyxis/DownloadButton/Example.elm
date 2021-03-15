@@ -64,6 +64,7 @@ appBody model =
     [ Helpers.pyxisStyle
     , Helpers.pyxisIconSetStyle
     , DownloadButton.render myDownloadBtn
+    , DownloadButton.render myDownloadBtnWithSvg
     , DownloadButton.render myDownloadBtnDisabled
     , model.clicked
         |> Maybe.withDefault "No button clicked"
@@ -74,6 +75,13 @@ appBody model =
 myDownloadBtn : DownloadButton.Config Msg
 myDownloadBtn =
     DownloadButton.download "Certificato di polizza" "Scarica .pdf"
+        |> DownloadButton.withOnClick (HandleEvent "Clicked")
+
+
+myDownloadBtnWithSvg : DownloadButton.Config Msg
+myDownloadBtnWithSvg =
+    DownloadButton.download "Certificato di polizza" "Scarica .pdf"
+        |> DownloadButton.withSvgIcon
         |> DownloadButton.withOnClick (HandleEvent "Clicked")
 
 

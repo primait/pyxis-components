@@ -179,7 +179,7 @@ buildAttributes tooltip =
 -}
 defaultOptions : TooltipOptions
 defaultOptions =
-    { classes = [ "tooltip" ]
+    { classes = []
     , id = Nothing
     }
 

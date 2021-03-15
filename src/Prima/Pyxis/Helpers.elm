@@ -12,6 +12,7 @@ module Prima.Pyxis.Helpers exposing
     , renderIf
     , renderListIf
     , renderMaybe
+    , renderOrElse
     , slugify
     , spacer
     , stopEvt
@@ -69,6 +70,15 @@ renderIf condition html =
 
     else
         text ""
+
+
+renderOrElse : Bool -> Html msg -> Html msg -> Html msg
+renderOrElse bool html1 html2 =
+    if bool then
+        html1
+
+    else
+        html2
 
 
 btnGroup : List (Html msg) -> Html msg
