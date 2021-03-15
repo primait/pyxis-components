@@ -2,9 +2,8 @@ module Prima.Pyxis.DownloadButton exposing
     ( Config
     , download
     , render
-    , withAttribute, withClass, withDisabled, withId, withTabIndex, withTargetBlank, withTargetParent, withTargetSelf, withTargetTop, withTitle
+    , withAttribute, withClass, withDisabled, withId, withTabIndex, withTargetBlank, withTargetParent, withTargetSelf, withTargetTop, withTitle, withSvgIcon
     , withOnClick, withOnMouseDown, withOnMouseUp, withOnMouseEnter, withOnMouseLeave, withOnMouseOver, withOnMouseOut
-    , withSvgIcon
     )
 
 {-|
@@ -27,7 +26,7 @@ module Prima.Pyxis.DownloadButton exposing
 
 ## Options
 
-@docs withAttribute, withClass, withDisabled, withId, withTabIndex, withTargetBlank, withTargetParent, withTargetSelf, withTargetTop, withTitle
+@docs withAttribute, withClass, withDisabled, withId, withTabIndex, withTargetBlank, withTargetParent, withTargetSelf, withTargetTop, withTitle, withSvgIcon
 
 
 ## Event Options

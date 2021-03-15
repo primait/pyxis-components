@@ -2,7 +2,7 @@ module Prima.Pyxis.Tooltip exposing
     ( Config
     , top, bottom, left, right
     , render
-    , withClass, withId
+    , withClass, withId, withBrand, withError, withWarning
     )
 
 {-|
@@ -25,7 +25,7 @@ module Prima.Pyxis.Tooltip exposing
 
 ## Options
 
-@docs withClass, withId
+@docs withClass, withId, withBrand, withError, withWarning
 
 -}
 
@@ -44,6 +44,7 @@ type Config msg
 -}
 type alias TooltipConfig msg =
     { type_ : TooltipType
+    , kind : TooltipKind
     , options : List (TooltipOption msg)
     , children : List (Html msg)
     }
@@ -58,32 +59,39 @@ type TooltipType
     | Right
 
 
+type TooltipKind
+    = Default
+    | Brand
+    | Warning
+    | Error
+
+
 {-| Create a tooltip top.
 -}
 top : List (Html msg) -> Config msg
 top children =
-    Config (TooltipConfig Top [] children)
+    Config (TooltipConfig Top Default [] children)
 
 
 {-| Create a tooltip bottom.
 -}
 bottom : List (Html msg) -> Config msg
 bottom children =
-    Config (TooltipConfig Bottom [] children)
+    Config (TooltipConfig Bottom Default [] children)
 
 
 {-| Create a tooltip left.
 -}
 left : List (Html msg) -> Config msg
 left children =
-    Config (TooltipConfig Left [] children)
+    Config (TooltipConfig Left Default [] children)
 
 
 {-| Create a tooltip right.
 -}
 right : List (Html msg) -> Config msg
 right children =
-    Config (TooltipConfig Right [] children)
+    Config (TooltipConfig Right Default [] children)
 
 
 {-| Internal. Represent the possible modifiers for an `Tooltip`.
@@ -115,6 +123,27 @@ withId id =
     addOption (Id id)
 
 
+{-| Sets a kind of `Brand` to the `Tooltip`.
+-}
+withBrand : Config msg -> Config msg
+withBrand (Config inputConfig) =
+    Config { inputConfig | kind = Brand }
+
+
+{-| Sets a kind of `Warning` to the `Tooltip`.
+-}
+withWarning : Config msg -> Config msg
+withWarning (Config inputConfig) =
+    Config { inputConfig | kind = Warning }
+
+
+{-| Sets a kind of `Error` to the `Tooltip`.
+-}
+withError : Config msg -> Config msg
+withError (Config inputConfig) =
+    Config { inputConfig | kind = Error }
+
+
 {-| Internal. Check is tooltip type top.
 -}
 isTooltipTop : TooltipType -> Bool
@@ -141,6 +170,27 @@ isTooltipLeft =
 isTooltipRight : TooltipType -> Bool
 isTooltipRight =
     (==) Right
+
+
+{-| Internal. Check is tooltip kind brand.
+-}
+isBrand : TooltipKind -> Bool
+isBrand =
+    (==) Brand
+
+
+{-| Internal. Check is tooltip type warning.
+-}
+isWarning : TooltipKind -> Bool
+isWarning =
+    (==) Warning
+
+
+{-| Internal. Check is tooltip type error.
+-}
+isError : TooltipKind -> Bool
+isError =
+    (==) Error
 
 
 {-| Internal. Applies the customizations made by end user to the `Tooltip` component.
@@ -226,7 +276,7 @@ addOption option (Config inputConfig) =
 
 -}
 render : Config msg -> Html msg
-render ((Config { children, type_ }) as tooltipModel) =
+render ((Config { children, type_, kind }) as tooltipModel) =
     Html.div
         (List.append
             (buildAttributes tooltipModel)
@@ -236,6 +286,9 @@ render ((Config { children, type_ }) as tooltipModel) =
                 , ( "tooltip--bottom", isTooltipBottom type_ )
                 , ( "tooltip--left", isTooltipLeft type_ )
                 , ( "tooltip--right", isTooltipRight type_ )
+                , ( "tooltip--brand", isBrand kind )
+                , ( "tooltip--warning", isWarning kind )
+                , ( "tooltip--error", isError kind )
                 ]
             ]
         )
