@@ -78,63 +78,39 @@ appBody _ =
         , style "margin-top" "120px"
         , style "height" "60px"
         ]
-        ([ Tooltip.top
-         , Tooltip.bottom
-         , Tooltip.left
-         , Tooltip.right
-         ]
-            |> List.map tooltipBuilderBrand
-            |> List.intersperse Helpers.spacer
-        )
+        [ Tooltip.brand contentTooltip |> Tooltip.withPositionTop |> Tooltip.render
+        , Tooltip.brand contentTooltip |> Tooltip.withPositionBottom |> Tooltip.render
+        , Tooltip.brand contentTooltip |> Tooltip.withPositionLeft |> Tooltip.render
+        , Tooltip.brand contentTooltip |> Tooltip.withPositionRight |> Tooltip.render
+        ]
     , Helpers.spacer
     , div
         [ class "container container--small direction-column position-relative"
         , style "margin-top" "120px"
         , style "height" "60px"
         ]
-        ([ Tooltip.top
-         , Tooltip.bottom
-         , Tooltip.left
-         , Tooltip.right
-         ]
-            |> List.map tooltipBuilderWarning
-            |> List.intersperse Helpers.spacer
-        )
+        [ Tooltip.warning contentTooltip |> Tooltip.withPositionTop |> Tooltip.render
+        , Tooltip.warning contentTooltip |> Tooltip.withPositionBottom |> Tooltip.render
+        , Tooltip.warning contentTooltip |> Tooltip.withPositionLeft |> Tooltip.render
+        , Tooltip.warning contentTooltip |> Tooltip.withPositionRight |> Tooltip.render
+        ]
     , Helpers.spacer
     , div
         [ class "container container--small direction-column position-relative"
         , style "margin-top" "120px"
         , style "height" "60px"
         ]
-        ([ Tooltip.top
-         , Tooltip.bottom
-         , Tooltip.left
-         , Tooltip.right
-         ]
-            |> List.map tooltipBuilderError
-            |> List.intersperse Helpers.spacer
-        )
+        [ Tooltip.error contentTooltip |> Tooltip.withPositionTop |> Tooltip.render
+        , Tooltip.error contentTooltip |> Tooltip.withPositionBottom |> Tooltip.render
+        , Tooltip.error contentTooltip |> Tooltip.withPositionLeft |> Tooltip.render
+        , Tooltip.error contentTooltip |> Tooltip.withPositionRight |> Tooltip.render
+        ]
     ]
 
 
 tooltipBuilder : (List (Html Msg) -> Tooltip.Config Msg) -> Html Msg
 tooltipBuilder mapper =
     (Tooltip.render << Tooltip.withClass "tooltip-my-class" << mapper) contentTooltip
-
-
-tooltipBuilderBrand : (List (Html Msg) -> Tooltip.Config Msg) -> Html Msg
-tooltipBuilderBrand mapper =
-    (Tooltip.render << Tooltip.withBrand << mapper) contentTooltip
-
-
-tooltipBuilderWarning : (List (Html Msg) -> Tooltip.Config Msg) -> Html Msg
-tooltipBuilderWarning mapper =
-    (Tooltip.render << Tooltip.withWarning << mapper) contentTooltip
-
-
-tooltipBuilderError : (List (Html Msg) -> Tooltip.Config Msg) -> Html Msg
-tooltipBuilderError mapper =
-    (Tooltip.render << Tooltip.withError << mapper) contentTooltip
 
 
 contentTooltip : List (Html Msg)

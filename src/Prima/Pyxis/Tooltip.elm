@@ -2,7 +2,8 @@ module Prima.Pyxis.Tooltip exposing
     ( Config
     , top, bottom, left, right
     , render
-    , withClass, withId, withBrand, withError, withWarning
+    , withClass, withId
+    , brand, error, warning, withPositionBottom, withPositionLeft, withPositionRight, withPositionTop
     )
 
 {-|
@@ -53,7 +54,8 @@ type alias TooltipConfig msg =
 {-| Internal. Represent the `Tooltip` type.
 -}
 type TooltipType
-    = Top
+    = Undefined
+    | Top
     | Bottom
     | Left
     | Right
@@ -94,6 +96,27 @@ right children =
     Config (TooltipConfig Right Default [] children)
 
 
+{-| Create a tooltip brand.
+-}
+brand : List (Html msg) -> Config msg
+brand children =
+    Config (TooltipConfig Undefined Brand [] children)
+
+
+{-| Create a tooltip warning.
+-}
+warning : List (Html msg) -> Config msg
+warning children =
+    Config (TooltipConfig Undefined Warning [] children)
+
+
+{-| Create a tooltip error.
+-}
+error : List (Html msg) -> Config msg
+error children =
+    Config (TooltipConfig Undefined Error [] children)
+
+
 {-| Internal. Represent the possible modifiers for an `Tooltip`.
 -}
 type alias TooltipOptions =
@@ -123,25 +146,32 @@ withId id =
     addOption (Id id)
 
 
-{-| Sets a kind of `Brand` to the `Tooltip`.
+{-| Sets a type position `Top` to the `Tooltip`.
 -}
-withBrand : Config msg -> Config msg
-withBrand (Config inputConfig) =
-    Config { inputConfig | kind = Brand }
+withPositionTop : Config msg -> Config msg
+withPositionTop (Config inputConfig) =
+    Config { inputConfig | type_ = Top }
 
 
-{-| Sets a kind of `Warning` to the `Tooltip`.
+{-| Sets a type position `Left` to the `Tooltip`.
 -}
-withWarning : Config msg -> Config msg
-withWarning (Config inputConfig) =
-    Config { inputConfig | kind = Warning }
+withPositionLeft : Config msg -> Config msg
+withPositionLeft (Config inputConfig) =
+    Config { inputConfig | type_ = Left }
 
 
-{-| Sets a kind of `Error` to the `Tooltip`.
+{-| Sets a type position `Right` to the `Tooltip`.
 -}
-withError : Config msg -> Config msg
-withError (Config inputConfig) =
-    Config { inputConfig | kind = Error }
+withPositionRight : Config msg -> Config msg
+withPositionRight (Config inputConfig) =
+    Config { inputConfig | type_ = Right }
+
+
+{-| Sets a type position `Bottom` to the `Tooltip`.
+-}
+withPositionBottom : Config msg -> Config msg
+withPositionBottom (Config inputConfig) =
+    Config { inputConfig | type_ = Bottom }
 
 
 {-| Internal. Check is tooltip type top.
@@ -261,18 +291,8 @@ addOption option (Config inputConfig) =
 
     view : Html Msg
     view =
-        Html.div
-            []
-            (Tooltip.topConfig []
-            |> Tooltip.withClass ""
-            )
-
-    validate : String -> Validation.Type
-    validate str =
-        if String.isEmpty str then
-            Just <| Validation.ErrorWithMessage "Username is empty".
-        else
-            Nothing
+            Tooltip.brand [ text "Lorem ipsum dolor sit amet" ]
+              |> Tooltip.render
 
 -}
 render : Config msg -> Html msg
