@@ -570,7 +570,7 @@ buildAttributes model ((Input config) as inputModel) =
             (Input.email .username OnInput
                 |> Input.withClass "my-custom-class"
                 |> Input.withValidation (Maybe.andThen validate << .username)
-                |> Input.whitIsSubmitted .isSubmitted
+                |> Input.withIsSubmitted .isSubmitted
             )
 
     validate : String -> Validation.Type
