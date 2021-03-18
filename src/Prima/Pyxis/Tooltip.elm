@@ -1,9 +1,8 @@
 module Prima.Pyxis.Tooltip exposing
     ( Config
-    , top, bottom, left, right
+    , top, bottom, left, right, brand, error, warning
     , render
-    , withClass, withId
-    , brand, error, warning, withPositionBottom, withPositionLeft, withPositionRight, withPositionTop
+    , withClass, withId, withPositionBottom, withPositionLeft, withPositionRight, withPositionTop
     )
 
 {-|
@@ -16,7 +15,7 @@ module Prima.Pyxis.Tooltip exposing
 
 ## Configuration Methods
 
-@docs top, bottom, left, right
+@docs top, bottom, left, right, brand, error, warning
 
 
 ## Rendering
@@ -26,7 +25,7 @@ module Prima.Pyxis.Tooltip exposing
 
 ## Options
 
-@docs withClass, withId, withBrand, withError, withWarning
+@docs withClass, withId, withPositionBottom, withPositionLeft, withPositionRight, withPositionTop
 
 -}
 
