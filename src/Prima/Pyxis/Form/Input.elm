@@ -507,7 +507,7 @@ computeOptions (Input config) =
 -}
 shouldBeValidated : model -> Input model msg -> Options model msg -> Bool
 shouldBeValidated model inputModel options =
-    List.length options.validations > 0 || ((not <| isPristine model inputModel) || options.isSubmitted model)
+    (not <| isPristine model inputModel) || options.isSubmitted model
 
 
 {-| Internal. Transforms all the customizations into a list of valid Html.Attribute(s).
@@ -558,7 +558,9 @@ buildAttributes model ((Input config) as inputModel) =
         OnInput String
 
     type alias Model =
-        { username: Maybe String }
+        { username : Maybe String
+        , isSubmitted : Bool
+        }
 
     ...
 
@@ -569,6 +571,7 @@ buildAttributes model ((Input config) as inputModel) =
             (Input.email .username OnInput
                 |> Input.withClass "my-custom-class"
                 |> Input.withValidation (Maybe.andThen validate << .username)
+                |> Input.whitIsSubmitted .isSubmitted
             )
 
     validate : String -> Validation.Type

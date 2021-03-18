@@ -6,6 +6,7 @@ module Prima.Pyxis.Form.Date exposing
     , withDatePicker, withDatePickerVisibility
     , withOnBlur, withOnFocus, withOnIconClick
     , withValidation
+    , whitIsSubmitted
     )
 
 {-|
@@ -100,6 +101,7 @@ type DateOption model msg
     | DefaultValue DatePicker.Date
     | Disabled Bool
     | Id String
+    | IsSubmitted (model -> Bool)
     | Name String
     | OnBlur msg
     | OnFocus msg
@@ -171,6 +173,13 @@ withDisabled disabled =
 withId : String -> Date model msg -> Date model msg
 withId id =
     addOption (Id id)
+
+
+{-| Adds an `isSubmitted` predicate to the `Date`.
+-}
+whitIsSubmitted : (model -> Bool) -> Date model msg -> Date model msg
+whitIsSubmitted isSubmitted =
+    addOption (IsSubmitted isSubmitted)
 
 
 {-| Sets a `size` to the `Date`.
@@ -246,7 +255,7 @@ render model dateModel =
 
         hasValidations : Bool
         hasValidations =
-            (List.length options.validations > 0) || not (isPristine model dateModel)
+            shouldBeValidated model dateModel options
     in
     if shouldShowDatePicker model dateModel then
         [ renderGroup
@@ -369,6 +378,7 @@ type alias Options model msg =
     , classes : List String
     , groupClasses : List String
     , id : Maybe String
+    , isSubmitted : model -> Bool
     , name : Maybe String
     , onFocus : Maybe msg
     , onBlur : Maybe msg
@@ -394,6 +404,7 @@ defaultOptions =
     , classes = [ "form-input", "form-datepicker" ]
     , groupClasses = []
     , id = Nothing
+    , isSubmitted = always True
     , name = Nothing
     , onFocus = Nothing
     , onBlur = Nothing
@@ -430,6 +441,9 @@ applyOption modifier options =
 
         Id id ->
             { options | id = Just id }
+
+        IsSubmitted predicate ->
+            { options | isSubmitted = predicate }
 
         Name name ->
             { options | name = Just name }
@@ -679,6 +693,13 @@ pristineAttribute model dateModel =
         Attrs.class "is-touched"
 
 
+{-| Internal. Determines whether the field should be validated or not.
+-}
+shouldBeValidated : model -> Date model msg -> Options model msg -> Bool
+shouldBeValidated model dateModel options =
+    (not <| isPristine model dateModel) || options.isSubmitted model
+
+
 {-| Composes all the modifiers into a set of `Html.Attribute`(s).
 -}
 buildAttributes : Mode -> model -> Date model msg -> List (Html.Attribute msg)
@@ -686,10 +707,6 @@ buildAttributes mode model dateModel =
     let
         options =
             computeOptions dateModel
-
-        hasValidations : Bool
-        hasValidations =
-            (List.length options.validations > 0) || not (isPristine model dateModel)
     in
     [ options.id
         |> Maybe.map Attrs.id
@@ -710,7 +727,7 @@ buildAttributes mode model dateModel =
         |> (::) (readerAttribute mode model dateModel)
         |> (::) (taggerAttribute dateModel)
         |> (::) (sizeAttribute options.size)
-        |> H.addIf hasValidations (validationAttribute model dateModel)
+        |> H.addIf (shouldBeValidated model dateModel options) (validationAttribute model dateModel)
         |> (::) (pristineAttribute model dateModel)
         |> (::) (typeAttribute mode)
 
