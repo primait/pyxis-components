@@ -2,11 +2,10 @@ module Prima.Pyxis.Form.Date exposing
     ( Date
     , date
     , render
-    , withAttribute, withClass, withDefaultValue, withDisabled, withId, withMediumSize, withSmallSize, withLargeSize, withName, withPlaceholder
+    , withAttribute, withClass, withDefaultValue, withDisabled, withId, withMediumSize, withSmallSize, withLargeSize, withName, withPlaceholder, withIsSubmitted
     , withDatePicker, withDatePickerVisibility
     , withOnBlur, withOnFocus, withOnIconClick
     , withValidation
-    , whitIsSubmitted
     )
 
 {-|
@@ -29,7 +28,7 @@ module Prima.Pyxis.Form.Date exposing
 
 ## Options
 
-@docs withAttribute, withClass, withDefaultValue, withDisabled, withId, withMediumSize, withSmallSize, withLargeSize, withName, withPlaceholder
+@docs withAttribute, withClass, withDefaultValue, withDisabled, withId, withMediumSize, withSmallSize, withLargeSize, withName, withPlaceholder, withIsSubmitted
 
 
 ## DatePicker Options
@@ -177,8 +176,8 @@ withId id =
 
 {-| Adds an `isSubmitted` predicate to the `Date`.
 -}
-whitIsSubmitted : (model -> Bool) -> Date model msg -> Date model msg
-whitIsSubmitted isSubmitted =
+withIsSubmitted : (model -> Bool) -> Date model msg -> Date model msg
+withIsSubmitted isSubmitted =
     addOption (IsSubmitted isSubmitted)
 
 

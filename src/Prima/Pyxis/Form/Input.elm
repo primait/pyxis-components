@@ -2,11 +2,10 @@ module Prima.Pyxis.Form.Input exposing
     ( Input
     , text, password, date, number, email
     , render
-    , withAttribute, withClass, withDefaultValue, withDisabled, withId, withName, withMediumSize, withSmallSize, withLargeSize, withPlaceholder, withOverridingClass
+    , withAttribute, withClass, withDefaultValue, withDisabled, withId, withName, withMediumSize, withSmallSize, withLargeSize, withPlaceholder, withOverridingClass, withIsSubmitted
     , withPrependGroup, withAppendGroup, withGroupClass
     , withOnBlur, withOnFocus
     , withValidation
-    , whitIsSubmitted
     )
 
 {-|
@@ -29,7 +28,7 @@ module Prima.Pyxis.Form.Input exposing
 
 ## Options
 
-@docs withAttribute, withClass, withDefaultValue, withDisabled, withId, withName, withMediumSize, withSmallSize, withLargeSize, withPlaceholder, withOverridingClass
+@docs withAttribute, withClass, withDefaultValue, withDisabled, withId, withName, withMediumSize, withSmallSize, withLargeSize, withPlaceholder, withOverridingClass, withIsSubmitted
 
 
 ## Group Options
@@ -209,8 +208,8 @@ withId id =
 
 {-| Adds an `isSubmitted` predicate to the `Input`.
 -}
-whitIsSubmitted : (model -> Bool) -> Input model msg -> Input model msg
-whitIsSubmitted isSubmitted =
+withIsSubmitted : (model -> Bool) -> Input model msg -> Input model msg
+withIsSubmitted isSubmitted =
     addOption (IsSubmitted isSubmitted)
 
 

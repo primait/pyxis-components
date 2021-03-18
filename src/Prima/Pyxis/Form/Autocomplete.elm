@@ -3,7 +3,7 @@ module Prima.Pyxis.Form.Autocomplete exposing
     , autocomplete, init, initWithDefault, update, autocompleteChoice, updateChoices
     , render
     , selectedValue, filterValue, subscription, open, close, isOpen, toggle, reset
-    , withAttribute, withClass, withDebouncer, withDefaultValue, withDisabled, withId, withLargeSize, withMediumSize, withName, withOverridingClass, withPlaceholder, withSmallSize, withThreshold
+    , withAttribute, withClass, withDebouncer, withDefaultValue, withDisabled, withId, withLargeSize, withMediumSize, withName, withOverridingClass, withPlaceholder, withSmallSize, withThreshold, withIsSubmitted
     , withOnBlur, withOnFocus
     , withValidation
     )
@@ -33,7 +33,7 @@ module Prima.Pyxis.Form.Autocomplete exposing
 
 ## Options
 
-@docs withAttribute, withClass, withDebouncer, withDefaultValue, withDisabled, withId, withLargeSize, withMediumSize, withName, withOverridingClass, withPlaceholder, withSmallSize, withThreshold
+@docs withAttribute, withClass, withDebouncer, withDefaultValue, withDisabled, withId, withLargeSize, withMediumSize, withName, withOverridingClass, withPlaceholder, withSmallSize, withThreshold, withIsSubmitted
 
 
 ## Event Options
@@ -452,6 +452,7 @@ type AutocompleteOption model
     | DefaultValue (Maybe String)
     | Disabled Bool
     | Id String
+    | IsSubmitted (model -> Bool)
     | Name String
     | OnBlur Msg
     | OnFocus Msg
@@ -525,6 +526,13 @@ withDisabled disabled =
 withId : String -> Autocomplete model -> Autocomplete model
 withId id =
     addOption (Id id)
+
+
+{-| Adds an `isSubmitted` predicate to the `Autocomplete`.
+-}
+withIsSubmitted : (model -> Bool) -> Autocomplete model -> Autocomplete model
+withIsSubmitted isSubmitted =
+    addOption (IsSubmitted isSubmitted)
 
 
 {-| Adds a `name` Html.Attribute to the `Autocomplete`.
@@ -605,6 +613,7 @@ type alias Options model =
     , defaultValue : DefaultValue
     , classes : List String
     , id : Maybe String
+    , isSubmitted : model -> Bool
     , name : Maybe String
     , onFocus : Maybe Msg
     , onBlur : Maybe Msg
@@ -623,6 +632,7 @@ defaultOptions =
     , disabled = Nothing
     , classes = [ "form-input form-autocomplete__input" ]
     , id = Nothing
+    , isSubmitted = always True
     , name = Nothing
     , onFocus = Nothing
     , onBlur = Nothing
@@ -654,6 +664,9 @@ applyOption modifier options =
 
         Id id ->
             { options | id = Just id }
+
+        IsSubmitted predicate ->
+            { options | isSubmitted = predicate }
 
         Name name ->
             { options | name = Just name }
@@ -759,6 +772,13 @@ filterTaggerAttribute =
     Events.onInput OnInput
 
 
+{-| Internal. Determines whether the field should be validated or not.
+-}
+shouldBeValidated : model -> Autocomplete model -> State -> Options model -> Bool
+shouldBeValidated model autocompleteModel stateModel options =
+    (not <| isPristine stateModel autocompleteModel) || options.isSubmitted model
+
+
 {-| Renders the `Autocomplete`.
 -}
 render : model -> State -> Autocomplete model -> List (Html Msg)
@@ -774,7 +794,7 @@ render model ((State stateConfig) as stateModel) autocompleteModel =
 
         hasValidations : Bool
         hasValidations =
-            (List.length options.validations > 0) || not (isPristine stateModel autocompleteModel)
+            shouldBeValidated model autocompleteModel stateModel options
 
         isDisabled : Bool
         isDisabled =
@@ -887,7 +907,7 @@ buildAttributes model stateModel autocompleteModel =
 
         hasValidations : Bool
         hasValidations =
-            (List.length options.validations > 0) || not (isPristine stateModel autocompleteModel)
+            shouldBeValidated model autocompleteModel stateModel options
     in
     [ options.id
         |> Maybe.map Attrs.id

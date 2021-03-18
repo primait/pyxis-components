@@ -3,7 +3,7 @@ module Prima.Pyxis.Form.Select exposing
     , select, init, initWithDefault, update, selectChoice
     , selectedValue, subscription, open, close, isOpen, toggle, reset
     , render
-    , withAttribute, withId, withDefaultValue, withDisabled, withClass, withLargeSize, withMediumSize, withOverridingClass, withPlaceholder, withSmallSize
+    , withAttribute, withId, withDefaultValue, withDisabled, withClass, withLargeSize, withMediumSize, withOverridingClass, withPlaceholder, withSmallSize, withIsSubmitted
     , withOnBlur, withOnFocus
     , withValidation
     )
@@ -33,7 +33,7 @@ module Prima.Pyxis.Form.Select exposing
 
 ## Options
 
-@docs withAttribute, withId, withDefaultValue, withDisabled, withClass, withLargeSize, withMediumSize, withOverridingClass, withPlaceholder, withSmallSize
+@docs withAttribute, withId, withDefaultValue, withDisabled, withClass, withLargeSize, withMediumSize, withOverridingClass, withPlaceholder, withSmallSize, withIsSubmitted
 
 
 ## Event Options
@@ -274,6 +274,7 @@ type SelectOption model
     | DefaultValue (Maybe String)
     | Disabled Bool
     | Id String
+    | IsSubmitted (model -> Bool)
     | OnFocus Msg
     | OnBlur Msg
     | OverridingClass String
@@ -303,6 +304,7 @@ type alias Options model =
     , defaultValue : Default
     , disabled : Maybe Bool
     , id : Maybe String
+    , isSubmitted : model -> Bool
     , onFocus : Maybe Msg
     , onBlur : Maybe Msg
     , placeholder : String
@@ -318,6 +320,7 @@ defaultOptions =
     , defaultValue = Indeterminate
     , disabled = Nothing
     , id = Nothing
+    , isSubmitted = always True
     , onFocus = Nothing
     , onBlur = Nothing
     , placeholder = "Seleziona"
@@ -374,6 +377,13 @@ withPlaceholder placeholder =
 withId : String -> Select model -> Select model
 withId id =
     addOption (Id id)
+
+
+{-| Adds an `isSubmitted` predicate to the `Input`.
+-}
+withIsSubmitted : (model -> Bool) -> Select model -> Select model
+withIsSubmitted isSubmitted =
+    addOption (IsSubmitted isSubmitted)
 
 
 {-| Sets a `Size` to the `Select`.
@@ -444,6 +454,9 @@ applyOption modifier options =
 
         Id id ->
             { options | id = Just id }
+
+        IsSubmitted predicate ->
+            { options | isSubmitted = predicate }
 
         OnFocus onFocus ->
             { options | onFocus = Just onFocus }
@@ -538,6 +551,13 @@ pristineAttribute state selectModel =
         Attrs.class "is-touched"
 
 
+{-| Internal. Determines whether the field should be validated or not.
+-}
+shouldBeValidated : model -> Select model -> State -> Options model -> Bool
+shouldBeValidated model selectModel stateModel options =
+    (not <| isPristine stateModel selectModel) || options.isSubmitted model
+
+
 {-| Composes all the modifiers into a set of `Html.Attribute`(s).
 -}
 buildAttributes : model -> State -> Select model -> List (Html.Attribute Msg)
@@ -548,7 +568,7 @@ buildAttributes model stateModel selectModel =
 
         hasValidations : Bool
         hasValidations =
-            (List.length options.validations > 0) || not (isPristine stateModel selectModel)
+            shouldBeValidated model selectModel stateModel options
     in
     [ options.id
         |> Maybe.map Attrs.id
@@ -578,7 +598,7 @@ render model stateModel selectModel =
 
         hasValidations : Bool
         hasValidations =
-            (List.length options.validations > 0) || not (isPristine stateModel selectModel)
+            shouldBeValidated model selectModel stateModel options
     in
     [ renderSelect model stateModel selectModel
     , renderCustomSelect model stateModel selectModel
@@ -618,7 +638,7 @@ renderCustomSelect model ((State { choices, isMenuOpen }) as stateModel) selectM
 
         hasValidations : Bool
         hasValidations =
-            (List.length options.validations > 0 && not (isPristine stateModel selectModel)) || not (isPristine stateModel selectModel)
+            shouldBeValidated model selectModel stateModel options
     in
     Html.div
         (H.addIf hasValidations

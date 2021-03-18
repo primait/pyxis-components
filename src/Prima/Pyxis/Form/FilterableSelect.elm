@@ -3,7 +3,7 @@ module Prima.Pyxis.Form.FilterableSelect exposing
     , filterableSelect, init, initWithDefault, update, filterableSelectChoice
     , render
     , selectedValue, filterValue, subscription, open, close, isOpen, toggle, reset
-    , withAttribute, withClass, withDefaultValue, withDisabled, withId, withName, withMediumSize, withSmallSize, withLargeSize, withPlaceholder, withOverridingClass, withThreshold
+    , withAttribute, withClass, withDefaultValue, withDisabled, withId, withName, withMediumSize, withSmallSize, withLargeSize, withPlaceholder, withOverridingClass, withThreshold, withIsSubmitted
     , withOnBlur, withOnFocus
     , withValidation
     )
@@ -33,7 +33,7 @@ module Prima.Pyxis.Form.FilterableSelect exposing
 
 ## Options
 
-@docs withAttribute, withClass, withDefaultValue, withDisabled, withId, withName, withMediumSize, withSmallSize, withLargeSize, withPlaceholder, withOverridingClass, withThreshold
+@docs withAttribute, withClass, withDefaultValue, withDisabled, withId, withName, withMediumSize, withSmallSize, withLargeSize, withPlaceholder, withOverridingClass, withThreshold, withIsSubmitted
 
 
 ## Event Options
@@ -250,6 +250,13 @@ withDisabled =
 withId : String -> FilterableSelect model -> FilterableSelect model
 withId =
     Autocomplete.withId
+
+
+{-| Adds an `isSubmitted` predicate to the `Autocomplete`.
+-}
+withIsSubmitted : (model -> Bool) -> FilterableSelect model -> FilterableSelect model
+withIsSubmitted =
+    Autocomplete.withIsSubmitted
 
 
 {-| Adds a `name` Html.Attribute to the `FilterableSelect`.
