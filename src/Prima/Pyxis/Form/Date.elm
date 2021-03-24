@@ -665,12 +665,8 @@ isPristine model ((Date config) as dateModel) =
     let
         options =
             computeOptions dateModel
-
-        sameDefault : Bool
-        sameDefault =
-            Value (config.reader model) == options.defaultValue
     in
-    case ( sameDefault, config.reader model ) of
+    case ( Value (config.reader model) == options.defaultValue, config.reader model ) of
         ( True, _ ) ->
             True
 

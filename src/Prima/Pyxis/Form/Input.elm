@@ -468,12 +468,8 @@ isPristine model ((Input config) as inputModel) =
     let
         options =
             computeOptions inputModel
-
-        sameDefault : Bool
-        sameDefault =
-            Value (config.reader model) == options.defaultValue
     in
-    case ( sameDefault, config.reader model ) of
+    case ( Value (config.reader model) == options.defaultValue, config.reader model ) of
         ( True, _ ) ->
             True
 

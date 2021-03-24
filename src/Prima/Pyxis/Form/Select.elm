@@ -524,12 +524,8 @@ isPristine (State stateConfig) selectModel =
     let
         options =
             computeOptions selectModel
-
-        sameDefault : Bool
-        sameDefault =
-            Value stateConfig.selected == options.defaultValue
     in
-    case ( sameDefault, stateConfig.selected ) of
+    case ( Value stateConfig.selected == options.defaultValue, stateConfig.selected ) of
         ( True, _ ) ->
             True
 

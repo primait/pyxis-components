@@ -345,12 +345,8 @@ isPristine model ((TextArea config) as textAreaModel) =
     let
         options =
             computeOptions textAreaModel
-
-        sameDefault : Bool
-        sameDefault =
-            Value (config.reader model) == options.defaultValue
     in
-    case ( sameDefault, config.reader model ) of
+    case ( Value (config.reader model) == options.defaultValue, config.reader model ) of
         ( True, _ ) ->
             True
 
