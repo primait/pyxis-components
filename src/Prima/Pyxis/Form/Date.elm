@@ -2,7 +2,7 @@ module Prima.Pyxis.Form.Date exposing
     ( Date
     , date
     , render
-    , withAttribute, withClass, withDefaultValue, withDisabled, withId, withMediumSize, withSmallSize, withLargeSize, withName, withPlaceholder
+    , withAttribute, withClass, withDefaultValue, withDisabled, withId, withMediumSize, withSmallSize, withLargeSize, withName, withPlaceholder, withIsSubmitted
     , withDatePicker, withDatePickerVisibility
     , withOnBlur, withOnFocus, withOnIconClick
     , withValidation
@@ -28,7 +28,7 @@ module Prima.Pyxis.Form.Date exposing
 
 ## Options
 
-@docs withAttribute, withClass, withDefaultValue, withDisabled, withId, withMediumSize, withSmallSize, withLargeSize, withName, withPlaceholder
+@docs withAttribute, withClass, withDefaultValue, withDisabled, withId, withMediumSize, withSmallSize, withLargeSize, withName, withPlaceholder, withIsSubmitted
 
 
 ## DatePicker Options
@@ -100,6 +100,7 @@ type DateOption model msg
     | DefaultValue DatePicker.Date
     | Disabled Bool
     | Id String
+    | IsSubmitted (model -> Bool)
     | Name String
     | OnBlur msg
     | OnFocus msg
@@ -173,6 +174,13 @@ withId id =
     addOption (Id id)
 
 
+{-| Adds an `isSubmitted` predicate to the `Date`.
+-}
+withIsSubmitted : (model -> Bool) -> Date model msg -> Date model msg
+withIsSubmitted isSubmitted =
+    addOption (IsSubmitted isSubmitted)
+
+
 {-| Sets a `size` to the `Date`.
 -}
 withLargeSize : Date model msg -> Date model msg
@@ -240,6 +248,14 @@ withValidation validation =
 -}
 render : model -> Date model msg -> List (Html msg)
 render model dateModel =
+    let
+        options =
+            computeOptions dateModel
+
+        hasValidations : Bool
+        hasValidations =
+            shouldBeValidated model dateModel options
+    in
     if shouldShowDatePicker model dateModel then
         [ renderGroup
             (renderAppendGroup dateModel
@@ -248,14 +264,14 @@ render model dateModel =
                 :: renderInput InputDate model dateModel
                 :: renderInput InputText model dateModel
                 :: renderDatePicker model dateModel
-                :: renderValidationMessages model dateModel
+                :: renderValidationMessages model dateModel hasValidations
             )
         ]
 
     else
         renderInput InputDate model dateModel
             :: renderInput InputText model dateModel
-            :: renderValidationMessages model dateModel
+            :: renderValidationMessages model dateModel hasValidations
 
 
 renderInput : Mode -> model -> Date model msg -> Html msg
@@ -308,8 +324,8 @@ renderAppendGroup dateModel =
     Html.div groupAttrs
 
 
-renderValidationMessages : model -> Date model msg -> List (Html msg)
-renderValidationMessages model dateModel =
+renderValidationMessages : model -> Date model msg -> Bool -> List (Html msg)
+renderValidationMessages model dateModel showValidation =
     let
         warnings =
             warningValidations model (computeOptions dateModel)
@@ -317,12 +333,15 @@ renderValidationMessages model dateModel =
         errors =
             errorsValidations model (computeOptions dateModel)
     in
-    case ( errors, warnings ) of
-        ( [], _ ) ->
+    case ( showValidation, errors, warnings ) of
+        ( True, [], _ ) ->
             List.map Validation.render warnings
 
-        ( _, _ ) ->
+        ( True, _, _ ) ->
             List.map Validation.render errors
+
+        ( False, _, _ ) ->
+            []
 
 
 shouldShowDatePicker : model -> Date model msg -> Bool
@@ -358,6 +377,7 @@ type alias Options model msg =
     , classes : List String
     , groupClasses : List String
     , id : Maybe String
+    , isSubmitted : model -> Bool
     , name : Maybe String
     , onFocus : Maybe msg
     , onBlur : Maybe msg
@@ -383,6 +403,7 @@ defaultOptions =
     , classes = [ "form-input", "form-datepicker" ]
     , groupClasses = []
     , id = Nothing
+    , isSubmitted = always True
     , name = Nothing
     , onFocus = Nothing
     , onBlur = Nothing
@@ -419,6 +440,9 @@ applyOption modifier options =
 
         Id id ->
             { options | id = Just id }
+
+        IsSubmitted predicate ->
+            { options | isSubmitted = predicate }
 
         Name name ->
             { options | name = Just name }
@@ -642,7 +666,15 @@ isPristine model ((Date config) as dateModel) =
         options =
             computeOptions dateModel
     in
-    Value (config.reader model) == options.defaultValue
+    case ( Value (config.reader model) == options.defaultValue, config.reader model ) of
+        ( True, _ ) ->
+            True
+
+        ( False, DatePicker.PartialDate _ ) ->
+            True
+
+        ( False, DatePicker.ParsedDate _ ) ->
+            False
 
 
 {-| Internal. Applies the `pristine/touched` visual state to the component.
@@ -656,6 +688,13 @@ pristineAttribute model dateModel =
         Attrs.class "is-touched"
 
 
+{-| Internal. Determines whether the field should be validated or not.
+-}
+shouldBeValidated : model -> Date model msg -> Options model msg -> Bool
+shouldBeValidated model dateModel options =
+    (not <| isPristine model dateModel) || options.isSubmitted model
+
+
 {-| Composes all the modifiers into a set of `Html.Attribute`(s).
 -}
 buildAttributes : Mode -> model -> Date model msg -> List (Html.Attribute msg)
@@ -663,9 +702,6 @@ buildAttributes mode model dateModel =
     let
         options =
             computeOptions dateModel
-
-        hasValidations =
-            List.length options.validations > 0 || not (isPristine model dateModel)
     in
     [ options.id
         |> Maybe.map Attrs.id
@@ -686,7 +722,7 @@ buildAttributes mode model dateModel =
         |> (::) (readerAttribute mode model dateModel)
         |> (::) (taggerAttribute dateModel)
         |> (::) (sizeAttribute options.size)
-        |> H.addIf hasValidations (validationAttribute model dateModel)
+        |> H.addIf (shouldBeValidated model dateModel options) (validationAttribute model dateModel)
         |> (::) (pristineAttribute model dateModel)
         |> (::) (typeAttribute mode)
 

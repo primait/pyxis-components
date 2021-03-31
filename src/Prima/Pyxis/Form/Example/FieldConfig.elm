@@ -1,5 +1,6 @@
 module Prima.Pyxis.Form.Example.FieldConfig exposing
-    ( birthDateCompoundConfig
+    ( addressWithDefaultConfig
+    , birthDateCompoundConfig
     , birthDateConfig
     , checkboxConfig
     , countryAutocompleteConfig
@@ -113,6 +114,23 @@ passwordGroupConfig =
                 |> Label.label
                 |> Label.withFor slug
                 |> Label.withSubtitle "(opzionale)"
+            )
+
+
+addressWithDefaultConfig : Form.FormField FormData Msg
+addressWithDefaultConfig =
+    let
+        slug =
+            "address"
+    in
+    Input.text .address (OnInput Address)
+        |> Input.withId slug
+        |> Input.withDefaultValue (Just "Address")
+        |> Form.input
+        |> Form.withLabel
+            ("Address"
+                |> Label.label
+                |> Label.withFor slug
             )
 
 

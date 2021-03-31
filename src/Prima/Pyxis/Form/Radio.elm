@@ -255,6 +255,16 @@ validationAttribute model radioModel =
             Attrs.class "has-error"
 
 
+isPristine : model -> Radio model msg -> Bool
+isPristine model (Radio config) =
+    case config.reader model of
+        Just _ ->
+            False
+
+        Nothing ->
+            True
+
+
 {-| Composes all the modifiers into a set of `Html.Attribute`(s).
 -}
 buildAttributes : model -> Radio model msg -> RadioChoice -> List (Html.Attribute msg)
@@ -270,6 +280,10 @@ buildAttributes model ((Radio config) as radioModel) choice =
 
             else
                 [ taggerAttribute radioModel choice ]
+
+        hasValidations : Bool
+        hasValidations =
+            (List.length options.validations > 0 && not (isPristine model radioModel)) || not (isPristine model radioModel)
     in
     [ options.id
         |> Maybe.map Attrs.id
@@ -287,7 +301,7 @@ buildAttributes model ((Radio config) as radioModel) choice =
         |> (::) (H.classesAttribute options.class)
         |> (::) (readerAttribute model radioModel choice)
         |> (++) taggerAttrList
-        |> (::) (validationAttribute model radioModel)
+        |> H.addIf hasValidations (validationAttribute model radioModel)
         |> (::) (Attrs.type_ "radio")
         |> (::) (Attrs.value choice.value)
 

@@ -2,7 +2,7 @@ module Prima.Pyxis.Form.TextArea exposing
     ( TextArea
     , textArea
     , render
-    , withAttribute, withClass, withDefaultValue, withDisabled, withId, withMediumSize, withSmallSize, withLargeSize, withName, withPlaceholder
+    , withAttribute, withClass, withDefaultValue, withDisabled, withId, withMediumSize, withSmallSize, withLargeSize, withName, withPlaceholder, withIsSubmitted
     , withOnBlur, withOnFocus
     , withValidation
     )
@@ -27,7 +27,7 @@ module Prima.Pyxis.Form.TextArea exposing
 
 ## Options
 
-@docs withAttribute, withClass, withDefaultValue, withDisabled, withId, withMediumSize, withSmallSize, withLargeSize, withName, withPlaceholder
+@docs withAttribute, withClass, withDefaultValue, withDisabled, withId, withMediumSize, withSmallSize, withLargeSize, withName, withPlaceholder, withIsSubmitted
 
 
 ## Event Options
@@ -78,6 +78,7 @@ type TextAreaOption model msg
     | DefaultValue (Maybe String)
     | Disabled Bool
     | Id String
+    | IsSubmitted (model -> Bool)
     | Name String
     | OnBlur msg
     | OnFocus msg
@@ -133,6 +134,13 @@ withDisabled disabled =
 withId : String -> TextArea model msg -> TextArea model msg
 withId id =
     addOption (Id id)
+
+
+{-| Adds an `isSubmitted` predicate to the `TextArea`.
+-}
+withIsSubmitted : (model -> Bool) -> TextArea model msg -> TextArea model msg
+withIsSubmitted isSubmitted =
+    addOption (IsSubmitted isSubmitted)
 
 
 {-| Adds a `name` Html.Attribute to the `TextArea`.
@@ -207,6 +215,7 @@ type alias Options model msg =
     , classes : List String
     , groupClasses : List String
     , id : Maybe String
+    , isSubmitted : model -> Bool
     , name : Maybe String
     , onFocus : Maybe msg
     , onBlur : Maybe msg
@@ -226,6 +235,7 @@ defaultOptions =
     , classes = [ "form-textarea" ]
     , groupClasses = []
     , id = Nothing
+    , isSubmitted = always True
     , name = Nothing
     , onFocus = Nothing
     , onBlur = Nothing
@@ -254,6 +264,9 @@ applyOption modifier options =
 
         Id id ->
             { options | id = Just id }
+
+        IsSubmitted predicate ->
+            { options | isSubmitted = predicate }
 
         Name name ->
             { options | name = Just name }
@@ -333,7 +346,15 @@ isPristine model ((TextArea config) as textAreaModel) =
         options =
             computeOptions textAreaModel
     in
-    Value (config.reader model) == options.defaultValue
+    case ( Value (config.reader model) == options.defaultValue, config.reader model ) of
+        ( True, _ ) ->
+            True
+
+        ( False, Nothing ) ->
+            True
+
+        ( False, Just _ ) ->
+            False
 
 
 {-| Internal. Applies the `pristine/touched` visual state to the component.
@@ -354,6 +375,13 @@ computeOptions (TextArea config) =
     List.foldl applyOption defaultOptions config.options
 
 
+{-| Internal. Determines whether the field should be validated or not.
+-}
+shouldBeValidated : model -> TextArea model msg -> Options model msg -> Bool
+shouldBeValidated model textAreaModel options =
+    (not <| isPristine model textAreaModel) || options.isSubmitted model
+
+
 {-| Internal. Transforms all the customizations into a list of valid Html.Attribute(s).
 -}
 buildAttributes : model -> TextArea model msg -> List (Html.Attribute msg)
@@ -361,9 +389,6 @@ buildAttributes model ((TextArea _) as textAreaModel) =
     let
         options =
             computeOptions textAreaModel
-
-        hasValidations =
-            List.length options.validations > 0 || not (isPristine model textAreaModel)
     in
     [ options.id
         |> Maybe.map Attrs.id
@@ -385,7 +410,7 @@ buildAttributes model ((TextArea _) as textAreaModel) =
         |> (::) (readerAttribute model textAreaModel)
         |> (::) (taggerAttribute textAreaModel)
         |> (::) (sizeAttribute options.size)
-        |> H.addIf hasValidations (validationAttribute model textAreaModel)
+        |> H.addIf (shouldBeValidated model textAreaModel options) (validationAttribute model textAreaModel)
 
 
 {-|
@@ -426,7 +451,15 @@ buildAttributes model ((TextArea _) as textAreaModel) =
 -}
 render : model -> TextArea model msg -> List (Html msg)
 render model textAreaModel =
-    renderTextArea model textAreaModel :: renderValidationMessages model textAreaModel
+    let
+        options =
+            computeOptions textAreaModel
+
+        hasValidations : Bool
+        hasValidations =
+            shouldBeValidated model textAreaModel options
+    in
+    renderTextArea model textAreaModel :: renderValidationMessages model textAreaModel hasValidations
 
 
 {-| Internal. Renders the `Input` alone.
@@ -440,8 +473,8 @@ renderTextArea model textAreaModel =
 
 {-| Internal. Renders the list of errors if present. Renders the list of warnings if not.
 -}
-renderValidationMessages : model -> TextArea model msg -> List (Html msg)
-renderValidationMessages model textAreaModel =
+renderValidationMessages : model -> TextArea model msg -> Bool -> List (Html msg)
+renderValidationMessages model textAreaModel showValidation =
     let
         warnings =
             warningValidations model (computeOptions textAreaModel)
@@ -449,12 +482,15 @@ renderValidationMessages model textAreaModel =
         errors =
             errorsValidations model (computeOptions textAreaModel)
     in
-    case ( errors, warnings ) of
-        ( [], _ ) ->
+    case ( showValidation, errors, warnings ) of
+        ( True, [], _ ) ->
             List.map Validation.render warnings
 
-        ( _, _ ) ->
+        ( True, _, _ ) ->
             List.map Validation.render errors
+
+        ( False, _, _ ) ->
+            []
 
 
 warningValidations : model -> Options model msg -> List Validation.Type

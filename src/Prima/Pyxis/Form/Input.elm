@@ -2,7 +2,7 @@ module Prima.Pyxis.Form.Input exposing
     ( Input
     , text, password, date, number, email
     , render
-    , withAttribute, withClass, withDefaultValue, withDisabled, withId, withName, withMediumSize, withSmallSize, withLargeSize, withPlaceholder, withOverridingClass
+    , withAttribute, withClass, withDefaultValue, withDisabled, withId, withName, withMediumSize, withSmallSize, withLargeSize, withPlaceholder, withOverridingClass, withIsSubmitted
     , withPrependGroup, withAppendGroup, withGroupClass
     , withOnBlur, withOnFocus
     , withValidation
@@ -28,7 +28,7 @@ module Prima.Pyxis.Form.Input exposing
 
 ## Options
 
-@docs withAttribute, withClass, withDefaultValue, withDisabled, withId, withName, withMediumSize, withSmallSize, withLargeSize, withPlaceholder, withOverridingClass
+@docs withAttribute, withClass, withDefaultValue, withDisabled, withId, withName, withMediumSize, withSmallSize, withLargeSize, withPlaceholder, withOverridingClass, withIsSubmitted
 
 
 ## Group Options
@@ -132,6 +132,7 @@ type InputOption model msg
     | Disabled Bool
     | GroupClass String
     | Id String
+    | IsSubmitted (model -> Bool)
     | Name String
     | OnBlur msg
     | OnFocus msg
@@ -203,6 +204,13 @@ withGroupClass class =
 withId : String -> Input model msg -> Input model msg
 withId id =
     addOption (Id id)
+
+
+{-| Adds an `isSubmitted` predicate to the `Input`.
+-}
+withIsSubmitted : (model -> Bool) -> Input model msg -> Input model msg
+withIsSubmitted isSubmitted =
+    addOption (IsSubmitted isSubmitted)
 
 
 {-| Adds a `name` Html.Attribute to the `Input`.
@@ -292,6 +300,7 @@ type alias Options model msg =
     , classes : List String
     , groupClasses : List String
     , id : Maybe String
+    , isSubmitted : model -> Bool
     , name : Maybe String
     , onFocus : Maybe msg
     , onBlur : Maybe msg
@@ -313,6 +322,7 @@ defaultOptions =
     , classes = [ "form-input" ]
     , groupClasses = []
     , id = Nothing
+    , isSubmitted = always True
     , name = Nothing
     , onFocus = Nothing
     , onBlur = Nothing
@@ -351,6 +361,9 @@ applyOption modifier options =
 
         Id id ->
             { options | id = Just id }
+
+        IsSubmitted predicate ->
+            { options | isSubmitted = predicate }
 
         Name name ->
             { options | name = Just name }
@@ -456,7 +469,15 @@ isPristine model ((Input config) as inputModel) =
         options =
             computeOptions inputModel
     in
-    Value (config.reader model) == options.defaultValue
+    case ( Value (config.reader model) == options.defaultValue, config.reader model ) of
+        ( True, _ ) ->
+            True
+
+        ( False, Nothing ) ->
+            True
+
+        ( False, Just _ ) ->
+            False
 
 
 {-| Internal. Applies the `pristine/touched` visual state to the component.
@@ -477,16 +498,21 @@ computeOptions (Input config) =
     List.foldl applyOption defaultOptions config.options
 
 
+{-| Internal. Determines whether the field should be validated or not.
+-}
+shouldBeValidated : model -> Input model msg -> Options model msg -> Bool
+shouldBeValidated model inputModel options =
+    (not <| isPristine model inputModel) || options.isSubmitted model
+
+
 {-| Internal. Transforms all the customizations into a list of valid Html.Attribute(s).
 -}
 buildAttributes : model -> Input model msg -> List (Html.Attribute msg)
 buildAttributes model ((Input config) as inputModel) =
     let
+        options : Options model msg
         options =
             computeOptions inputModel
-
-        hasValidations =
-            List.length options.validations > 0 || not (isPristine model inputModel)
     in
     [ options.id
         |> Maybe.map Attrs.id
@@ -508,7 +534,7 @@ buildAttributes model ((Input config) as inputModel) =
         |> (::) (taggerAttribute inputModel)
         |> (::) (typeAttribute config.type_)
         |> (::) (sizeAttribute options.size)
-        |> H.addIf hasValidations (validationAttribute model inputModel)
+        |> H.addIf (shouldBeValidated model inputModel options) (validationAttribute model inputModel)
         |> (::) (pristineAttribute model inputModel)
 
 
@@ -527,7 +553,9 @@ buildAttributes model ((Input config) as inputModel) =
         OnInput String
 
     type alias Model =
-        { username: Maybe String }
+        { username : Maybe String
+        , isSubmitted : Bool
+        }
 
     ...
 
@@ -538,6 +566,7 @@ buildAttributes model ((Input config) as inputModel) =
             (Input.email .username OnInput
                 |> Input.withClass "my-custom-class"
                 |> Input.withValidation (Maybe.andThen validate << .username)
+                |> Input.withIsSubmitted .isSubmitted
             )
 
     validate : String -> Validation.Type
@@ -553,13 +582,16 @@ render model inputModel =
     let
         options =
             computeOptions inputModel
+
+        hasValidations =
+            shouldBeValidated model inputModel options
     in
     case ( options.prependGroup, options.appendGroup ) of
         ( Just html, _ ) ->
             [ renderGroup
                 (renderPrependGroup inputModel html
                     :: renderInput model inputModel
-                    :: renderValidationMessages model inputModel
+                    :: renderValidationMessages model inputModel hasValidations
                 )
             ]
 
@@ -567,12 +599,12 @@ render model inputModel =
             [ renderGroup
                 (renderAppendGroup inputModel html
                     :: renderInput model inputModel
-                    :: renderValidationMessages model inputModel
+                    :: renderValidationMessages model inputModel hasValidations
                 )
             ]
 
         _ ->
-            renderInput model inputModel :: renderValidationMessages model inputModel
+            renderInput model inputModel :: renderValidationMessages model inputModel hasValidations
 
 
 {-| Internal. Renders the `Input` alone.
@@ -622,8 +654,8 @@ renderPrependGroup inputModel =
 
 {-| Internal. Renders the list of errors if present. Renders the list of warnings if not.
 -}
-renderValidationMessages : model -> Input model msg -> List (Html msg)
-renderValidationMessages model inputModel =
+renderValidationMessages : model -> Input model msg -> Bool -> List (Html msg)
+renderValidationMessages model inputModel showValidation =
     let
         warnings =
             warningValidations model (computeOptions inputModel)
@@ -631,12 +663,15 @@ renderValidationMessages model inputModel =
         errors =
             errorsValidations model (computeOptions inputModel)
     in
-    case ( errors, warnings ) of
-        ( [], _ ) ->
+    case ( showValidation, errors, warnings ) of
+        ( True, [], _ ) ->
             List.map Validation.render warnings
 
-        ( _, _ ) ->
+        ( True, _, _ ) ->
             List.map Validation.render errors
+
+        ( False, _, _ ) ->
+            []
 
 
 warningValidations : model -> Options model msg -> List Validation.Type
