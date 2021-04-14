@@ -22,7 +22,7 @@ By using `elm`'s type system we can predict behaviors of our components and test
 
 Example:
 
-    import Prima.Pyxis.Accordion.Accordion as Accordion exposing (Config, State, Accordion)
+    import Prima.PyxisV2.Accordion.Accordion as Accordion exposing (Config, State, Accordion)
     ...
     
     view : Model -> List (Html Msg) 
