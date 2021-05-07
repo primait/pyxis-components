@@ -289,7 +289,7 @@ validationAttribute model radioModel =
 {-| Composes all the modifiers into a set of `Html.Attribute`(s).
 -}
 buildAttributes : model -> RadioFlag model msg -> RadioFlagChoice -> List (Html.Attribute msg)
-buildAttributes model ((RadioFlag config) as radioModel) choice =
+buildAttributes model ((RadioFlag config) as radioModel) ({ label } as choice) =
     let
         options =
             computeOptions radioModel
@@ -301,9 +301,13 @@ buildAttributes model ((RadioFlag config) as radioModel) choice =
 
             else
                 [ taggerAttribute radioModel choice ]
+
+        generateId : String -> String
+        generateId id =
+            id ++ "_" ++ H.slugify label
     in
     [ options.id
-        |> Maybe.map Attrs.id
+        |> Maybe.map (generateId >> Attrs.id)
     , options.name
         |> Maybe.map Attrs.name
     , options.disabled
@@ -327,8 +331,16 @@ buildAttributes model ((RadioFlag config) as radioModel) choice =
 -}
 render : model -> RadioFlag model msg -> List (Html msg)
 render model ((RadioFlag { radioChoices }) as radioModel) =
+    let
+        id : String
+        id =
+            radioModel
+                |> computeOptions
+                |> .id
+                |> Maybe.withDefault ""
+    in
     Html.div
-        [ Attrs.class "form-radio-flag-options" ]
+        [ Attrs.class "form-radio-flag-options", Attrs.id id ]
         (List.map (renderRadioChoice model radioModel) radioChoices)
         :: renderValidationMessages model radioModel
 
