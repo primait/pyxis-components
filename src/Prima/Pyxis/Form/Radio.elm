@@ -332,7 +332,6 @@ render model ((Radio { radioChoices }) as radioModel) =
                 |> computeOptions
                 |> .id
                 |> Maybe.withDefault ""
-                |> Debug.log "ID"
     in
     Html.div
         [ Attrs.class "form-radio-options", Attrs.id id ]
