@@ -195,6 +195,7 @@ userPrivacyMarketingConfig =
     RadioFlag.radioFlagLight .userPrivacyMarketing (OnCheck UserPrivacyMarketing)
         |> RadioFlag.withName "user_privacy_marketing"
         |> RadioFlag.withValidation (Validation.userPrivacyAcceptedValidation .userPrivacyMarketing)
+        |> RadioFlag.withId "user-privacy-marketing"
         |> Form.radioFlag
         |> Form.withLabel
             ("Acconsento al trattamento dei miei dati personali per fini commerciali ovvero offerte speciali e informazioni promozionali relative a prodotti/servizi di Prima o di soggetti terzi anche attraverso posta cartacea, sistemi automatizzati (email, sms, fax) o tramite operatore telefonico."
@@ -207,6 +208,7 @@ userPrivacyThirdPartConfig =
     RadioFlag.radioFlagDark .userPrivacyThirdPart (OnCheck UserPrivacyThirdPart)
         |> RadioFlag.withName "user_privacy_third_part"
         |> RadioFlag.withValidation (Validation.userPrivacyAcceptedValidation .userPrivacyThirdPart)
+        |> RadioFlag.withId "user-privacy-third-part"
         |> Form.radioFlag
         |> Form.withLabel
             ("Acconsento al trattamento dei miei dati personali per ricerche di mercato e fini statistici e/o per la personalizzazione del marketing diretto e della pubblicità comportamentale."
@@ -223,6 +225,7 @@ guideTypeConfig =
         |> Radio.radio .guideType (OnInput GuideType)
         |> Radio.withName "guide_type"
         |> Radio.withValidation (Validation.notEmptyValidation .guideType)
+        |> Radio.withId "guide-type"
         |> Form.radio
         |> Form.withLabel
             ("Tipo di guida"
@@ -302,6 +305,7 @@ checkboxConfig =
         |> Checkbox.checkbox .countryVisited (OnChange VisitedCountries)
         |> Checkbox.withValidation Validation.countryVisitedEmptyValidation
         |> Checkbox.withName "country_visited"
+        |> Checkbox.withId "country-visited"
         |> Form.checkbox
         |> Form.withLabel
             ("Paesi visitati"
@@ -317,6 +321,7 @@ radioButtonConfig =
     ]
         |> RadioButton.radioButton .insuranceType (OnChange InsuranceType)
         |> RadioButton.withValidation (Validation.notEmptyValidation .insuranceType)
+        |> RadioButton.withId "insurance-type"
         |> Form.radioButton
         |> Form.withLabel
             ("Tipo di polizza"

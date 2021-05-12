@@ -272,14 +272,18 @@ computeOptions (Checkbox config) =
 
 {-| Internal. Transforms all the customizations into a list of valid Html.Attribute(s).
 -}
-buildAttributes : model -> Checkbox model msg -> String -> List (Html.Attribute msg)
-buildAttributes model ((Checkbox _) as checkboxModel) choice =
+buildAttributes : model -> Checkbox model msg -> CheckboxChoice -> List (Html.Attribute msg)
+buildAttributes model checkboxModel { label, value } =
     let
         options =
             computeOptions checkboxModel
+
+        generateId : String -> String
+        generateId id =
+            id ++ "_" ++ H.slugify label
     in
     [ options.id
-        |> Maybe.map Attrs.id
+        |> Maybe.map (generateId >> Attrs.id)
     , options.name
         |> Maybe.map Attrs.name
     , options.disabled
@@ -292,10 +296,10 @@ buildAttributes model ((Checkbox _) as checkboxModel) choice =
         |> List.filterMap identity
         |> (++) options.attributes
         |> (::) (H.classesAttribute options.class)
-        |> (::) (readerAttribute model checkboxModel choice)
-        |> (::) (taggerAttribute checkboxModel choice)
+        |> (::) (readerAttribute model checkboxModel value)
+        |> (::) (taggerAttribute checkboxModel value)
         |> (::) (Attrs.type_ "checkbox")
-        |> (::) (Attrs.value choice)
+        |> (::) (Attrs.value value)
         |> (::) (validationAttribute model checkboxModel)
 
 
@@ -303,9 +307,18 @@ buildAttributes model ((Checkbox _) as checkboxModel) choice =
 -}
 render : model -> Checkbox model msg -> List (Html msg)
 render model ((Checkbox config) as checkboxModel) =
+    let
+        id : String
+        id =
+            checkboxModel
+                |> computeOptions
+                |> .id
+                |> Maybe.withDefault ""
+    in
     [ Html.div
         [ Attrs.class "form-checkbox-options"
         , validationAttribute model checkboxModel
+        , Attrs.id id
         ]
         (List.map (renderCheckbox model checkboxModel) config.choices)
     ]
@@ -314,16 +327,16 @@ render model ((Checkbox config) as checkboxModel) =
 {-| Internal. Renders the `Checkbox` alone.
 -}
 renderCheckbox : model -> Checkbox model msg -> CheckboxChoice -> Html msg
-renderCheckbox model ((Checkbox config) as checkboxModel) checkboxItem =
+renderCheckbox model ((Checkbox config) as checkboxModel) ({ value, label } as checkboxItem) =
     Html.div
         [ Attrs.class "form-checkbox" ]
         [ Html.input
-            (buildAttributes model checkboxModel checkboxItem.value)
+            (buildAttributes model checkboxModel checkboxItem)
             []
-        , checkboxItem.label
+        , label
             |> Label.label
-            |> Label.withOnClick (config.tagger checkboxItem.value)
-            |> Label.withFor checkboxItem.value
+            |> Label.withOnClick (config.tagger value)
+            |> Label.withFor value
             |> Label.withOverridingClass "form-checkbox__label"
             |> Label.render
         ]

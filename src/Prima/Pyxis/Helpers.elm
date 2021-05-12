@@ -12,12 +12,14 @@ module Prima.Pyxis.Helpers exposing
     , renderIf
     , renderListIf
     , renderMaybe
+    , slugify
     , spacer
     , stopEvt
     , validString
     , withCmds
+    , withCmdsMap
     , withoutCmds
-    , withCmdsMap)
+    )
 
 import Html exposing (Html, br, div, text)
 import Html.Attributes exposing (class, href, rel)
@@ -108,11 +110,13 @@ withoutCmds : model -> ( model, Cmd msg )
 withoutCmds =
     withCmds []
 
+
 {-| Used to apply an updated model to the cmds in fluid style updating
 -}
 withCmdsMap : List (model -> Cmd msg) -> model -> ( model, Cmd msg )
 withCmdsMap cmdFunctions model =
     ( model, Cmd.batch <| List.map (\fun -> fun model) cmdFunctions )
+
 
 {-| Transforms a list of `class`(es) into a valid Html.Attribute.
 -}
@@ -157,3 +161,18 @@ validString str =
 
         validStr ->
             Just validStr
+
+
+slugify : String -> String
+slugify =
+    String.map
+        (\c ->
+            if c == ' ' then
+                '_'
+
+            else
+                c
+        )
+        >> String.toList
+        >> List.filter (\c -> Char.isAlphaNum c || c == ' ')
+        >> String.fromList

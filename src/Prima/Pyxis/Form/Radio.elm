@@ -268,7 +268,7 @@ isPristine model (Radio config) =
 {-| Composes all the modifiers into a set of `Html.Attribute`(s).
 -}
 buildAttributes : model -> Radio model msg -> RadioChoice -> List (Html.Attribute msg)
-buildAttributes model ((Radio config) as radioModel) choice =
+buildAttributes model ((Radio config) as radioModel) ({ label } as choice) =
     let
         options =
             computeOptions radioModel
@@ -284,9 +284,13 @@ buildAttributes model ((Radio config) as radioModel) choice =
         hasValidations : Bool
         hasValidations =
             (List.length options.validations > 0 && not (isPristine model radioModel)) || not (isPristine model radioModel)
+
+        generateId : String -> String
+        generateId id =
+            id ++ "_" ++ H.slugify label
     in
     [ options.id
-        |> Maybe.map Attrs.id
+        |> Maybe.map (generateId >> Attrs.id)
     , options.name
         |> Maybe.map Attrs.name
     , options.disabled
@@ -321,8 +325,16 @@ buildAttributes model ((Radio config) as radioModel) choice =
 -}
 render : model -> Radio model msg -> List (Html msg)
 render model ((Radio { radioChoices }) as radioModel) =
+    let
+        id : String
+        id =
+            radioModel
+                |> computeOptions
+                |> .id
+                |> Maybe.withDefault ""
+    in
     Html.div
-        [ Attrs.class "form-radio-options" ]
+        [ Attrs.class "form-radio-options", Attrs.id id ]
         (List.map (renderRadioChoice model radioModel) radioChoices)
         :: renderValidationMessages model radioModel
 

@@ -299,7 +299,7 @@ computeOptions (RadioButton config) =
 {-| Internal. Transforms all the customizations into a list of valid Html.Attribute(s).
 -}
 buildAttributes : model -> RadioButton model msg -> RadioButtonChoice -> List (Html.Attribute msg)
-buildAttributes model ((RadioButton config) as radioButtonModel) choice =
+buildAttributes model ((RadioButton config) as radioButtonModel) ({ title } as choice) =
     let
         options =
             computeOptions radioButtonModel
@@ -311,9 +311,13 @@ buildAttributes model ((RadioButton config) as radioButtonModel) choice =
 
             else
                 taggerAttribute radioButtonModel choice options
+
+        generateId : String -> String
+        generateId id =
+            id ++ "_" ++ H.slugify title
     in
     [ options.id
-        |> Maybe.map Attrs.id
+        |> Maybe.map (generateId >> Attrs.id)
     , options.onFocus
         |> Maybe.map Events.onFocus
     , options.onBlur
@@ -368,8 +372,16 @@ buildAttributes model ((RadioButton config) as radioButtonModel) choice =
 -}
 render : model -> RadioButton model msg -> List (Html msg)
 render model ((RadioButton config) as radioButtonModel) =
+    let
+        id : String
+        id =
+            radioButtonModel
+                |> computeOptions
+                |> .id
+                |> Maybe.withDefault ""
+    in
     Html.div
-        [ Attrs.class "form-radio-button-options" ]
+        [ Attrs.class "form-radio-button-options", Attrs.id id ]
         (List.map (renderRadioButtonChoice model radioButtonModel) config.choices)
         :: renderValidationMessages model radioButtonModel
 
