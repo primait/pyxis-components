@@ -61,7 +61,8 @@ appBody _ =
     [ Helpers.pyxisStyle
     , div
         [ class "container container--small direction-column position-relative"
-        , style "top" "100px"
+        , style "margin-top" "100px"
+        , style "height" "60px"
         ]
         ([ Tooltip.top
          , Tooltip.bottom
@@ -71,6 +72,39 @@ appBody _ =
             |> List.map tooltipBuilder
             |> List.intersperse Helpers.spacer
         )
+    , Helpers.spacer
+    , div
+        [ class "container container--small direction-column position-relative"
+        , style "margin-top" "120px"
+        , style "height" "60px"
+        ]
+        [ Tooltip.brand contentTooltip |> Tooltip.withPositionTop |> Tooltip.render
+        , Tooltip.brand contentTooltip |> Tooltip.withPositionBottom |> Tooltip.render
+        , Tooltip.brand contentTooltip |> Tooltip.withPositionLeft |> Tooltip.render
+        , Tooltip.brand contentTooltip |> Tooltip.withPositionRight |> Tooltip.render
+        ]
+    , Helpers.spacer
+    , div
+        [ class "container container--small direction-column position-relative"
+        , style "margin-top" "120px"
+        , style "height" "60px"
+        ]
+        [ Tooltip.warning contentTooltip |> Tooltip.withPositionTop |> Tooltip.render
+        , Tooltip.warning contentTooltip |> Tooltip.withPositionBottom |> Tooltip.render
+        , Tooltip.warning contentTooltip |> Tooltip.withPositionLeft |> Tooltip.render
+        , Tooltip.warning contentTooltip |> Tooltip.withPositionRight |> Tooltip.render
+        ]
+    , Helpers.spacer
+    , div
+        [ class "container container--small direction-column position-relative"
+        , style "margin-top" "120px"
+        , style "height" "60px"
+        ]
+        [ Tooltip.error contentTooltip |> Tooltip.withPositionTop |> Tooltip.render
+        , Tooltip.error contentTooltip |> Tooltip.withPositionBottom |> Tooltip.render
+        , Tooltip.error contentTooltip |> Tooltip.withPositionLeft |> Tooltip.render
+        , Tooltip.error contentTooltip |> Tooltip.withPositionRight |> Tooltip.render
+        ]
     ]
 
 

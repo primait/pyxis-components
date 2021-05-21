@@ -24,20 +24,29 @@ Example:
 
     import Prima.Pyxis.Accordion.Accordion as Accordion exposing (Config, State, Accordion)
     ...
-    
+
     view : Model -> List (Html Msg) 
-	view model =
-	   Accordion.render model.accordionState model.accordionConfig 
-	   
-	...
+  view model =
+     Accordion.render model.accordionState model.accordionConfig 
+
+  ...
 
 
 ## Publishing package
-Run the following commands after you had committed your work: 
-	
-- `./node_modules/.bin/elm bump`
-- Follow terminal advices to write documentation and confirm the package update (if needed)
-- `./node_modules/.bin/elm publish`
+Run the following commands after you had committed your work:
+
+```sh
+$ yarn build:diff
+$ yarn build:create
+$ TAG_NUMBER=$(cat elm.json | grep "\"version\":" | awk '{print $2}' | sed 's/",//g' | sed 's/"//g')
+$ git tag $TAG_NUMBER
+$ git push origin $TAG_NUMBER
+$ git commit -m "Upgrade version to TAG_NUMBER" && git push // to master or PR branch and after merge
+$ yarn build:publish
+```
+
+**N.B.**
+After run `build:create`, follow terminal advices to write documentation and confirm the package update (if needed)
 
 ## Testing package
 Run `./node_modules/.bin/elm reactor` command. 

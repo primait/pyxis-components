@@ -2,7 +2,7 @@ module Prima.Pyxis.DownloadButton exposing
     ( Config
     , download
     , render
-    , withAttribute, withClass, withDisabled, withId, withTabIndex, withTargetBlank, withTargetParent, withTargetSelf, withTargetTop, withTitle
+    , withAttribute, withClass, withDisabled, withId, withTabIndex, withTargetBlank, withTargetParent, withTargetSelf, withTargetTop, withTitle, withSvgIcon
     , withOnClick, withOnMouseDown, withOnMouseUp, withOnMouseEnter, withOnMouseLeave, withOnMouseOver, withOnMouseOut
     )
 
@@ -26,7 +26,7 @@ module Prima.Pyxis.DownloadButton exposing
 
 ## Options
 
-@docs withAttribute, withClass, withDisabled, withId, withTabIndex, withTargetBlank, withTargetParent, withTargetSelf, withTargetTop, withTitle
+@docs withAttribute, withClass, withDisabled, withId, withTabIndex, withTargetBlank, withTargetParent, withTargetSelf, withTargetTop, withTitle, withSvgIcon
 
 
 ## Event Options
@@ -38,6 +38,8 @@ module Prima.Pyxis.DownloadButton exposing
 import Html exposing (Html, button, div, i, text)
 import Html.Attributes as Attrs exposing (class)
 import Html.Events as Events
+import Prima.Pyxis.DownloadButton.Icons as DownloadIcon
+import Prima.Pyxis.Helpers as H
 
 
 {-| Represent the configuration of the `DownloadButton`.
@@ -73,6 +75,7 @@ type alias Options msg =
     , tabIndex : Maybe Int
     , title : Maybe String
     , target : Target
+    , useSvgIcon : Bool
     }
 
 
@@ -87,6 +90,7 @@ type DownloadButtonOption msg
     | Title String
     | Attribute (Html.Attribute msg)
     | FormTarget Target
+    | UseSvgIcon
 
 
 {-| Internal. Represents the initial state of the list of customizations for the `DownloadButton` component.
@@ -101,6 +105,7 @@ defaultOptions =
     , title = Nothing
     , attributes = []
     , target = Self
+    , useSvgIcon = False
     }
 
 
@@ -132,6 +137,9 @@ applyOption modifier options =
 
         FormTarget target ->
             { options | target = target }
+
+        UseSvgIcon ->
+            { options | useSvgIcon = True }
 
 
 {-| Internal. Applies all the customizations and returns the internal `Options` type.
@@ -218,6 +226,13 @@ withTargetTop =
     addOption (FormTarget Top)
 
 
+{-| Tells the `DownloadButton` component to use SVG icons instead of Pyxis icons.
+-}
+withSvgIcon : Config msg -> Config msg
+withSvgIcon =
+    addOption UseSvgIcon
+
+
 {-| Adds an `onClick` Html.Event to the `DownloadButton`.
 -}
 withOnClick : msg -> Config msg -> Config msg
@@ -300,11 +315,20 @@ withAttribute attr =
 -}
 render : Config msg -> Html msg
 render ((Config { title, subtitle }) as config) =
+    let
+        useSvg =
+            config
+                |> computeOptions
+                |> .useSvgIcon
+    in
     button
         (buildAttributes config)
-        [ i
-            [ class "btn--download__icon icon icon-download" ]
-            []
+        [ H.renderOrElse useSvg
+            DownloadIcon.renderIconDownload
+            (i
+                [ class "btn--download__icon icon icon-download" ]
+                []
+            )
         , div
             [ class "btn--download__title" ]
             [ text title ]
