@@ -1,6 +1,7 @@
 module Prima.PyxisV2.Button exposing
     ( Config, Emphasis, Scheme(..)
     , callOut, callOutSmall, primary, primarySmall, secondary, secondarySmall, tertiary, tertiarySmall
+    , withId
     , render, group, groupFluid
     )
 
@@ -17,6 +18,11 @@ module Prima.PyxisV2.Button exposing
 @docs callOut, callOutSmall, primary, primarySmall, secondary, secondarySmall, tertiary, tertiarySmall
 
 
+# Attributes
+
+@docs withId
+
+
 # Rendering
 
 @docs render, group, groupFluid
@@ -24,7 +30,7 @@ module Prima.PyxisV2.Button exposing
 -}
 
 import Html exposing (Html, button, div, span, text)
-import Html.Attributes exposing (class, classList, disabled)
+import Html.Attributes exposing (class, classList, disabled, id, style)
 import Html.Events exposing (onClick)
 
 
@@ -40,6 +46,7 @@ type alias Configuration msg =
     , scheme : Scheme
     , label : String
     , action : msg
+    , id : Maybe String
     }
 
 
@@ -117,56 +124,61 @@ isSmall =
 -}
 callOut : Scheme -> String -> msg -> Config msg
 callOut scheme label action =
-    Config (Configuration CallOut Normal scheme label action)
+    Config (Configuration CallOut Normal scheme label action Nothing)
 
 
 {-| Creates a button with a `CallOut` visual weight and a `small size`.
 -}
 callOutSmall : Scheme -> String -> msg -> Config msg
 callOutSmall scheme label action =
-    Config (Configuration CallOut Small scheme label action)
+    Config (Configuration CallOut Small scheme label action Nothing)
 
 
 {-| Creates a button with a `Primary` visual weight and a `default size`.
 -}
 primary : Scheme -> String -> msg -> Config msg
 primary scheme label action =
-    Config (Configuration Primary Normal scheme label action)
+    Config (Configuration Primary Normal scheme label action Nothing)
 
 
 {-| Creates a button with a `Primary` visual weight and a `small size`.
 -}
 primarySmall : Scheme -> String -> msg -> Config msg
 primarySmall scheme label action =
-    Config (Configuration Primary Small scheme label action)
+    Config (Configuration Primary Small scheme label action Nothing)
 
 
 {-| Creates a button with a `Secondary` visual weight and a `default size`.
 -}
 secondary : Scheme -> String -> msg -> Config msg
 secondary scheme label action =
-    Config (Configuration Secondary Normal scheme label action)
+    Config (Configuration Secondary Normal scheme label action Nothing)
 
 
 {-| Creates a button with a `Secondary` visual weight and a `small size`.
 -}
 secondarySmall : Scheme -> String -> msg -> Config msg
 secondarySmall scheme label action =
-    Config (Configuration Secondary Small scheme label action)
+    Config (Configuration Secondary Small scheme label action Nothing)
 
 
 {-| Creates a button with a `Tertiary` visual weight and a `default size`.
 -}
 tertiary : Scheme -> String -> msg -> Config msg
 tertiary scheme label action =
-    Config (Configuration Tertiary Normal scheme label action)
+    Config (Configuration Tertiary Normal scheme label action Nothing)
 
 
 {-| Creates a button with a `Tertiary` visual weight and a `small size`.
 -}
 tertiarySmall : Scheme -> String -> msg -> Config msg
 tertiarySmall scheme label action =
-    Config (Configuration Tertiary Small scheme label action)
+    Config (Configuration Tertiary Small scheme label action Nothing)
+
+
+withId : String -> Config msg -> Config msg
+withId identifier (Config config) =
+    Config { config | id = Just identifier }
 
 
 {-| Renders the button by receiving it's configuration.
@@ -209,9 +221,10 @@ render isEnabled (Config config) =
             ]
         , disabled (not isEnabled)
         , onClick config.action
+        , id (Maybe.withDefault "" config.id)
         ]
         [ span
-            []
+            [ style "pointer-events" "none" ]
             [ text config.label ]
         ]
 
