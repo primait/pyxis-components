@@ -518,9 +518,20 @@ withAttribute attr =
 -}
 render : Config msg -> Html msg
 render ((Config { label, icon }) as config) =
+    let
+        options =
+            computeOptions config
+    in
     button
         (buildAttributes config)
-        [ span [ Attrs.class "btn__text" ] [ text label ]
+        [ span
+            [ options.id
+                |> Maybe.map (\id -> id ++ "Text")
+                |> Maybe.withDefault ""
+                |> Attrs.id
+            , Attrs.class "btn__text"
+            ]
+            [ text label ]
         , ME.unwrap (text "") renderIcon icon
         ]
 

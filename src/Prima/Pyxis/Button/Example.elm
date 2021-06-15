@@ -43,24 +43,32 @@ initialModel : Model
 initialModel =
     Model
         [ Button.callOut "CallOut"
+            |> Button.withId "jsBtnCallOut"
         , Button.primary "Primary"
+            |> Button.withId "jsBtnPrimary"
         , Button.secondary "Secondary"
+            |> Button.withId "jsBtnSecondary"
         , Button.tertiary "Tertiary"
+            |> Button.withId "jsBtnTertiary"
         ]
         [ Button.callOut "CallOut"
             |> Button.withOnClick (HandleEvent "Click 1")
             |> Button.withClass "test"
+            |> Button.withId "jsBtnCallout"
             |> Button.withTabIndex 1
         , Button.primaryAlt "Primary alt"
             |> Button.withIcon "editing"
             |> Button.withOnClick (HandleEvent "Click 2")
+            |> Button.withId "jsBtnPrimary"
             |> Button.withTabIndex 0
         , Button.secondaryAlt "Secondary alt"
             |> Button.withOnMouseEnter (HandleEvent "Hover 3")
             |> Button.withOnClick (HandleEvent "Click 3")
+            |> Button.withId "jsBtnPrimary"
             |> Button.withTabIndex 2
         , Button.tertiaryAlt "Tertiary alt"
             |> Button.withTypeSubmit
+            |> Button.withId "jsBtnTertiary"
             |> Button.withTabIndex 3
         ]
         Nothing
