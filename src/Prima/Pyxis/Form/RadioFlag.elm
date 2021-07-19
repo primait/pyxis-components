@@ -291,6 +291,7 @@ validationAttribute model radioModel =
 buildAttributes : model -> RadioFlag model msg -> RadioFlagChoice -> List (Html.Attribute msg)
 buildAttributes model ((RadioFlag config) as radioModel) ({ label } as choice) =
     let
+        options : Options model msg
         options =
             computeOptions radioModel
 
@@ -301,13 +302,9 @@ buildAttributes model ((RadioFlag config) as radioModel) ({ label } as choice) =
 
             else
                 [ taggerAttribute radioModel choice ]
-
-        generateId : String -> String
-        generateId id =
-            id ++ "_" ++ H.slugify label
     in
-    [ options.id
-        |> Maybe.map (generateId >> Attrs.id)
+    [ generateId options label
+              |> Maybe.map Attrs.id
     , options.name
         |> Maybe.map Attrs.name
     , options.disabled
@@ -349,12 +346,22 @@ renderRadioChoice : model -> RadioFlag model msg -> RadioFlagChoice -> Html msg
 renderRadioChoice model ((RadioFlag { tagger, skin, reader }) as radioModel) ({ value, label } as choice) =
     let
         conditionallyAddOnClick : Label.Label msg -> Label.Label msg
-        conditionallyAddOnClick labelInstance =
+        conditionallyAddOnClick =
             if Just choice.value == reader model then
-                labelInstance
+                identity
 
             else
-                Label.withOnClick (tagger value) labelInstance
+                Label.withOnClick (tagger value)
+
+        conditionallyAddFor : Label.Label msg -> Label.Label msg
+        conditionallyAddFor =
+            generateId options label
+                |> Maybe.map Label.withFor
+                |> Maybe.withDefault identity
+
+        options : Options model msg
+        options =
+            computeOptions radioModel
     in
     Html.div
         [ Attrs.classList
@@ -369,7 +376,7 @@ renderRadioChoice model ((RadioFlag { tagger, skin, reader }) as radioModel) ({ 
         , label
             |> Label.label
             |> conditionallyAddOnClick
-            |> Label.withFor (boolToValue value)
+            |> conditionallyAddFor
             |> Label.withOverridingClass "form-radio-flag__label"
             |> Label.render
         ]
@@ -397,6 +404,20 @@ renderValidationMessages model radioModel =
 computeOptions : RadioFlag model msg -> Options model msg
 computeOptions (RadioFlag { options }) =
     List.foldl applyOption defaultOptions options
+
+
+{-| Internal
+-}
+composeIdBlocks : String -> String -> String
+composeIdBlocks label id =
+    id ++ "_" ++ H.slugify label
+
+
+{-| Internal
+-}
+generateId : Options model msg -> String -> Maybe String
+generateId { id } radioChoiceLabel =
+    Maybe.map (composeIdBlocks radioChoiceLabel) id
 
 
 warningValidations : model -> Options model msg -> List Validation.Type
