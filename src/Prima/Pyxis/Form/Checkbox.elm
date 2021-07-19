@@ -280,7 +280,7 @@ buildAttributes model checkboxModel { label, value } =
             computeOptions checkboxModel
     in
     [ generateId options label
-              |> Maybe.map Attrs.id
+        |> Maybe.map Attrs.id
     , options.name
         |> Maybe.map Attrs.name
     , options.disabled

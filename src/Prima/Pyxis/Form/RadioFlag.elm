@@ -304,7 +304,7 @@ buildAttributes model ((RadioFlag config) as radioModel) ({ label } as choice) =
                 [ taggerAttribute radioModel choice ]
     in
     [ generateId options label
-              |> Maybe.map Attrs.id
+        |> Maybe.map Attrs.id
     , options.name
         |> Maybe.map Attrs.name
     , options.disabled
