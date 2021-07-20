@@ -353,12 +353,6 @@ renderRadioChoice model ((RadioFlag { tagger, skin, reader }) as radioModel) ({ 
             else
                 Label.withOnClick (tagger value)
 
-        conditionallyAddFor : Label.Label msg -> Label.Label msg
-        conditionallyAddFor =
-            generateId options label
-                |> Maybe.map Label.withFor
-                |> Maybe.withDefault identity
-
         options : Options model msg
         options =
             computeOptions radioModel
@@ -376,7 +370,7 @@ renderRadioChoice model ((RadioFlag { tagger, skin, reader }) as radioModel) ({ 
         , label
             |> Label.label
             |> conditionallyAddOnClick
-            |> conditionallyAddFor
+            |> Label.withConditionallyFor (generateId options label)
             |> Label.withOverridingClass "form-radio-flag__label"
             |> Label.render
         ]
@@ -408,8 +402,8 @@ computeOptions (RadioFlag { options }) =
 
 {-| Internal
 -}
-composeIdBlocks : String -> String -> String
-composeIdBlocks label id =
+toId : String -> String -> String
+toId label id =
     id ++ "_" ++ H.slugify label
 
 
@@ -417,7 +411,7 @@ composeIdBlocks label id =
 -}
 generateId : Options model msg -> String -> Maybe String
 generateId { id } radioChoiceLabel =
-    Maybe.map (composeIdBlocks radioChoiceLabel) id
+    Maybe.map (toId radioChoiceLabel) id
 
 
 warningValidations : model -> Options model msg -> List Validation.Type

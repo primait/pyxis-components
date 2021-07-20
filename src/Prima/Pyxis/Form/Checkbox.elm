@@ -326,12 +326,6 @@ render model ((Checkbox config) as checkboxModel) =
 renderCheckbox : model -> Checkbox model msg -> CheckboxChoice -> Html msg
 renderCheckbox model ((Checkbox config) as checkboxModel) ({ value, label } as checkboxItem) =
     let
-        conditionallyAddFor : Label.Label msg -> Label.Label msg
-        conditionallyAddFor =
-            generateId options label
-                |> Maybe.map Label.withFor
-                |> Maybe.withDefault identity
-
         options : Options model msg
         options =
             computeOptions checkboxModel
@@ -344,7 +338,7 @@ renderCheckbox model ((Checkbox config) as checkboxModel) ({ value, label } as c
         , label
             |> Label.label
             |> Label.withOnClick (config.tagger value)
-            |> conditionallyAddFor
+            |> Label.withConditionallyFor (generateId options label)
             |> Label.withOverridingClass "form-checkbox__label"
             |> Label.render
         ]
@@ -352,8 +346,8 @@ renderCheckbox model ((Checkbox config) as checkboxModel) ({ value, label } as c
 
 {-| Internal
 -}
-composeIdBlocks : String -> String -> String
-composeIdBlocks label id =
+toId : String -> String -> String
+toId label id =
     id ++ "_" ++ H.slugify label
 
 
@@ -361,7 +355,7 @@ composeIdBlocks label id =
 -}
 generateId : Options model msg -> String -> Maybe String
 generateId { id } checkboxItemLabel =
-    Maybe.map (composeIdBlocks checkboxItemLabel) id
+    Maybe.map (toId checkboxItemLabel) id
 
 
 warningValidations : model -> Options model msg -> List Validation.Type
