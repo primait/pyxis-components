@@ -275,15 +275,12 @@ computeOptions (Checkbox config) =
 buildAttributes : model -> Checkbox model msg -> CheckboxChoice -> List (Html.Attribute msg)
 buildAttributes model checkboxModel { label, value } =
     let
+        options : Options model msg
         options =
             computeOptions checkboxModel
-
-        generateId : String -> String
-        generateId id =
-            id ++ "_" ++ H.slugify label
     in
-    [ options.id
-        |> Maybe.map (generateId >> Attrs.id)
+    [ generateId options label
+        |> Maybe.map Attrs.id
     , options.name
         |> Maybe.map Attrs.name
     , options.disabled
@@ -328,6 +325,11 @@ render model ((Checkbox config) as checkboxModel) =
 -}
 renderCheckbox : model -> Checkbox model msg -> CheckboxChoice -> Html msg
 renderCheckbox model ((Checkbox config) as checkboxModel) ({ value, label } as checkboxItem) =
+    let
+        options : Options model msg
+        options =
+            computeOptions checkboxModel
+    in
     Html.div
         [ Attrs.class "form-checkbox" ]
         [ Html.input
@@ -336,10 +338,24 @@ renderCheckbox model ((Checkbox config) as checkboxModel) ({ value, label } as c
         , label
             |> Label.label
             |> Label.withOnClick (config.tagger value)
-            |> Label.withFor value
+            |> Label.withConditionallyFor (generateId options label)
             |> Label.withOverridingClass "form-checkbox__label"
             |> Label.render
         ]
+
+
+{-| Internal
+-}
+toId : String -> String -> String
+toId label id =
+    id ++ "_" ++ H.slugify label
+
+
+{-| Internal
+-}
+generateId : Options model msg -> String -> Maybe String
+generateId { id } checkboxItemLabel =
+    Maybe.map (toId checkboxItemLabel) id
 
 
 warningValidations : model -> Options model msg -> List Validation.Type
