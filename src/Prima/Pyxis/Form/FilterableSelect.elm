@@ -1,6 +1,6 @@
 module Prima.Pyxis.Form.FilterableSelect exposing
-    ( FilterableSelect, State, Msg(..)
-    , filterableSelect, init, initWithDefault, update, filterableSelectChoice
+    ( FilterableSelect, State, Msg(..), FilterableSelectChoice
+    , filterableSelect, init, initWithDefault, update, updateChoices, filterableSelectChoice
     , render
     , selectedValue, filterValue, subscription, open, close, isOpen, toggle, reset
     , withAttribute, withClass, withDefaultValue, withDisabled, withId, withName, withMediumSize, withSmallSize, withLargeSize, withPlaceholder, withOverridingClass, withThreshold, withIsSubmitted
@@ -13,12 +13,12 @@ module Prima.Pyxis.Form.FilterableSelect exposing
 
 ## Configuration
 
-@docs FilterableSelect, State, Msg
+@docs FilterableSelect, State, Msg, FilterableSelectChoice
 
 
 ## Configuration Methods
 
-@docs filterableSelect, init, initWithDefault, update, filterableSelectChoice
+@docs filterableSelect, init, initWithDefault, update, updateChoices, filterableSelectChoice
 
 
 ## Rendering
@@ -66,10 +66,11 @@ type alias FilterableSelect model =
 
 {-| The `State` of the `FilterableSelect`
 -}
-type alias State =
-    { autocompleteState : Autocomplete.State
-    , choices : List FilterableSelectChoice
-    }
+type State
+    = State
+        { autocompleteState : Autocomplete.State
+        , choices : List FilterableSelectChoice
+        }
 
 
 {-| Represent the `FilterableSelectChoice` configuration.
@@ -89,29 +90,31 @@ filterableSelect =
 -}
 init : List FilterableSelectChoice -> State
 init choices =
-    { choices = choices
-    , autocompleteState = Autocomplete.init
-    }
+    State
+        { choices = choices
+        , autocompleteState = Autocomplete.init
+        }
 
 
 {-| Initializes the `Autocomplete`'s `State` with a default selected value.
 -}
 initWithDefault : String -> String -> List FilterableSelectChoice -> State
 initWithDefault defaultSelectedLabel defaultSelectedValue choices =
-    { choices = choices
-    , autocompleteState = Autocomplete.initWithDefault defaultSelectedLabel defaultSelectedValue
-    }
+    State
+        { choices = choices
+        , autocompleteState = Autocomplete.initWithDefault defaultSelectedLabel defaultSelectedValue
+        }
 
 
 {-| Updates the `FilterableSelect`'s `State`.
 -}
 update : Msg -> State -> State
-update msg state =
+update msg ((State stateModel) as state) =
     case msg of
         FilterableSelectMsg autocompleteMsg ->
             let
                 ( autocompleteState, _, _ ) =
-                    Autocomplete.update autocompleteMsg state.autocompleteState
+                    Autocomplete.update autocompleteMsg stateModel.autocompleteState
             in
             state
                 |> updateAutocompleteState autocompleteState
@@ -121,35 +124,35 @@ update msg state =
 {-| Show the available options for the filterable select.
 -}
 open : State -> State
-open ({ autocompleteState } as state) =
-    { state | autocompleteState = Autocomplete.open autocompleteState }
+open (State state) =
+    State { state | autocompleteState = Autocomplete.open state.autocompleteState }
 
 
 {-| Hide the available options for the filterable select.
 -}
 close : State -> State
-close ({ autocompleteState } as state) =
-    { state | autocompleteState = Autocomplete.close autocompleteState }
+close (State state) =
+    State { state | autocompleteState = Autocomplete.close state.autocompleteState }
 
 
 {-| Toggle the menu openness.
 -}
 toggle : State -> State
-toggle state =
-    { state | autocompleteState = Autocomplete.toggle state.autocompleteState }
+toggle (State state) =
+    State { state | autocompleteState = Autocomplete.toggle state.autocompleteState }
 
 
 {-| Reset selected value.
 -}
 reset : State -> State
-reset state =
-    { state | autocompleteState = Autocomplete.reset state.autocompleteState }
+reset (State state) =
+    State { state | autocompleteState = Autocomplete.reset state.autocompleteState }
 
 
 {-| Returns whether the menu is open or not.
 -}
 isOpen : State -> Bool
-isOpen { autocompleteState } =
+isOpen (State { autocompleteState }) =
     Autocomplete.isOpen autocompleteState
 
 
@@ -165,27 +168,24 @@ choiceContainsFilter maybeFilter { value, label } =
 {-| Internal. Filter the choices using the filter string
 -}
 filterChoices : State -> List FilterableSelectChoice
-filterChoices { choices, autocompleteState } =
-    choices
-        |> List.filter (choiceContainsFilter (filterValue autocompleteState))
+filterChoices (State { choices, autocompleteState }) =
+    List.filter (choiceContainsFilter (Autocomplete.filterValue autocompleteState)) choices
 
 
 {-| Update the `FilterableSelectChoice` inside `Autocomplete`'s state
 -}
 updateChoices : State -> State
-updateChoices state =
+updateChoices ((State stateModel) as state) =
     state
         |> filterChoices
-        |> (\filteredChoices ->
-                { state | autocompleteState = Autocomplete.updateChoices filteredChoices state.autocompleteState }
-           )
+        |> (\filteredChoices -> State { stateModel | autocompleteState = Autocomplete.updateChoices filteredChoices stateModel.autocompleteState })
 
 
 {-| Update the `Autocomplete.State`
 -}
 updateAutocompleteState : Autocomplete.State -> State -> State
-updateAutocompleteState autocompleteState state =
-    { state | autocompleteState = autocompleteState }
+updateAutocompleteState autocompleteState (State state) =
+    State { state | autocompleteState = autocompleteState }
 
 
 {-| Create the FilterableSelectChoice configuration.
@@ -198,22 +198,22 @@ filterableSelectChoice =
 {-| Returns the current `FilterableSelectChoice.value` selected by the user.
 -}
 selectedValue : State -> Maybe String
-selectedValue { autocompleteState } =
+selectedValue (State { autocompleteState }) =
     Autocomplete.selectedValue autocompleteState
 
 
 {-| Returns the current filter inserted by the user.
 -}
-filterValue : Autocomplete.State -> Maybe String
-filterValue =
-    Autocomplete.filterValue
+filterValue : State -> Maybe String
+filterValue (State { autocompleteState }) =
+    Autocomplete.filterValue autocompleteState
 
 
 {-| Needed to wire keyboard events to the `FilterableSelect`.
 -}
-subscription : Autocomplete.State -> Sub Autocomplete.Msg
-subscription =
-    Autocomplete.subscription
+subscription : State -> Sub Msg
+subscription (State state) =
+    Sub.map FilterableSelectMsg (Autocomplete.subscription state.autocompleteState)
 
 
 {-| Adds a generic Html.Attribute to the `FilterableSelect`.
@@ -303,10 +303,9 @@ withOverridingClass =
 
 {-| Renders the `FilterableSelect`.
 -}
-render : model -> Autocomplete.State -> Autocomplete.Autocomplete model -> List (Html Msg)
-render model autocompleteState autocompleteModel =
-    Autocomplete.render model autocompleteState autocompleteModel
-        |> List.map (Html.map (\msg -> FilterableSelectMsg msg))
+render : model -> State -> FilterableSelect model -> List (Html Msg)
+render model (State state) =
+    Autocomplete.render model state.autocompleteState >> List.map (Html.map FilterableSelectMsg)
 
 
 {-| Attaches the `onBlur` event to the `FilterableSelect`.
@@ -333,5 +332,5 @@ withValidation =
 {-| Changes the threshold value
 -}
 withThreshold : Int -> State -> State
-withThreshold threshold ({ autocompleteState } as state) =
-    { state | autocompleteState = Autocomplete.withThreshold threshold autocompleteState }
+withThreshold threshold (State state) =
+    State { state | autocompleteState = Autocomplete.withThreshold threshold state.autocompleteState }

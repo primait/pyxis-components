@@ -2,8 +2,7 @@ module Prima.Pyxis.Form.Label exposing
     ( Label
     , label, labelWithHtml
     , render
-    , withAttribute, withClass, withFor, withOverridingClass, withSubtitle
-    , withConditionallyFor
+    , withAttribute, withClass, withConditionallyFor, withFor, withOverridingClass, withSubtitle
     , withOnClick
     )
 
@@ -27,7 +26,7 @@ module Prima.Pyxis.Form.Label exposing
 
 ## Options
 
-@docs withAttribute, withClass, withFor, withOverridingClass, withSubtitle
+@docs withAttribute, withClass, withConditionallyFor, withFor, withOverridingClass, withSubtitle
 
 
 ## Event Options
@@ -141,7 +140,7 @@ withFor for =
 
 
 {-| Sets a for to the `Label config` if the maybeFor argument has a value,
-    otherwise it leaves the `Label config` unchanged.
+otherwise it leaves the `Label config` unchanged.
 -}
 withConditionallyFor : Maybe String -> Label msg -> Label msg
 withConditionallyFor maybeFor =

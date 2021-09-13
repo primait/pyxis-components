@@ -1,5 +1,5 @@
 module Prima.Pyxis.Form exposing
-    ( Form, FormField, FormFieldset, Legend, RowKind(..)
+    ( Form, FormField, FormFieldset, Legend
     , init
     , withBeside, withVertical
     , withFields, withFieldsAndLegend
@@ -7,6 +7,7 @@ module Prima.Pyxis.Form exposing
     , input, inputList, autocomplete, checkbox, date, filterableSelect, flag, radio, radioFlag, radioButton, select, textArea
     , withLabel, withAppendableHtml
     , renderField, renderFields, renderLabel, render
+    , RowKind(..)
     )
 
 {-|
@@ -14,7 +15,7 @@ module Prima.Pyxis.Form exposing
 
 ## Configuration
 
-@docs Form, FormField, FormFieldset, Legend, RowKind(..)
+@docs Form, FormField, FormFieldset, Legend, RowKind
 
 
 ## Configuration Methods
@@ -85,8 +86,9 @@ type alias FormConfig model msg =
     , fields : List (FormFieldset model msg)
     }
 
+
 {-| Define the flow in which form fields should be displayed.
-  You can choose to use the Pyxis standard (`Grid`), or to go out of default boundaries with `Vertical` and `Beside`.
+You can choose to use the Pyxis standard (`Grid`), or to go out of default boundaries with `Vertical` and `Beside`.
 -}
 type RowKind
     = Grid
@@ -607,7 +609,7 @@ renderField model formField =
 
         FilterableSelectField { msgMapper, state, config, appendableHtml } ->
             config
-                |> FilterableSelect.render model state.autocompleteState
+                |> FilterableSelect.render model state
                 |> List.map (Html.map msgMapper)
                 |> H.flip List.append (renderAppendableHtml appendableHtml)
 
