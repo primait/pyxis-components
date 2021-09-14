@@ -91,8 +91,8 @@ filterableSelect =
 init : List FilterableSelectChoice -> State
 init choices =
     State
-        { choices = choices
-        , autocompleteState = Autocomplete.init
+        { autocompleteState = Autocomplete.updateChoices choices Autocomplete.init
+        , choices = choices
         }
 
 
@@ -101,8 +101,8 @@ init choices =
 initWithDefault : String -> String -> List FilterableSelectChoice -> State
 initWithDefault defaultSelectedLabel defaultSelectedValue choices =
     State
-        { choices = choices
-        , autocompleteState = Autocomplete.initWithDefault defaultSelectedLabel defaultSelectedValue
+        { autocompleteState = Autocomplete.initWithDefault defaultSelectedLabel defaultSelectedValue
+        , choices = choices
         }
 
 
@@ -112,13 +112,39 @@ update : Msg -> State -> State
 update msg ((State stateModel) as state) =
     case msg of
         FilterableSelectMsg autocompleteMsg ->
-            let
-                ( autocompleteState, _, _ ) =
-                    Autocomplete.update autocompleteMsg stateModel.autocompleteState
-            in
             state
-                |> updateAutocompleteState autocompleteState
+                |> updateAutocomplete autocompleteMsg
                 |> updateChoices
+                    (stateModel.autocompleteState
+                        |> Autocomplete.filterValue
+                        |> Maybe.map (getFilteredChoice stateModel.choices)
+                        |> Maybe.withDefault stateModel.choices
+                    )
+
+
+{-| Internal.
+-}
+updateAutocomplete : Autocomplete.Msg -> State -> State
+updateAutocomplete msg (State state) =
+    let
+        ( updatedAutocompleteState, _, _ ) =
+            Autocomplete.update msg state.autocompleteState
+    in
+    State { state | autocompleteState = updatedAutocompleteState }
+
+
+{-| Internal.
+-}
+getFilteredChoice : List FilterableSelectChoice -> String -> List FilterableSelectChoice
+getFilteredChoice choices filter =
+    List.filter (choiceMatches filter) choices
+
+
+{-| Internal.
+-}
+choiceMatches : String -> FilterableSelectChoice -> Bool
+choiceMatches filter choice =
+    String.contains (String.toLower filter) (String.toLower choice.label) || String.contains filter choice.value
 
 
 {-| Show the available options for the filterable select.
@@ -156,36 +182,11 @@ isOpen (State { autocompleteState }) =
     Autocomplete.isOpen autocompleteState
 
 
-{-| Internal. Check if the choice contains the string.
--}
-choiceContainsFilter : Maybe String -> FilterableSelectChoice -> Bool
-choiceContainsFilter maybeFilter { value, label } =
-    maybeFilter
-        |> Maybe.map (\filter -> String.contains (String.toLower filter) (String.toLower label) || String.contains filter value)
-        |> Maybe.withDefault True
-
-
-{-| Internal. Filter the choices using the filter string
--}
-filterChoices : State -> List FilterableSelectChoice
-filterChoices (State { choices, autocompleteState }) =
-    List.filter (choiceContainsFilter (Autocomplete.filterValue autocompleteState)) choices
-
-
 {-| Update the `FilterableSelectChoice` inside `Autocomplete`'s state
 -}
-updateChoices : State -> State
-updateChoices ((State stateModel) as state) =
-    state
-        |> filterChoices
-        |> (\filteredChoices -> State { stateModel | autocompleteState = Autocomplete.updateChoices filteredChoices stateModel.autocompleteState })
-
-
-{-| Update the `Autocomplete.State`
--}
-updateAutocompleteState : Autocomplete.State -> State -> State
-updateAutocompleteState autocompleteState (State state) =
-    State { state | autocompleteState = autocompleteState }
+updateChoices : List FilterableSelectChoice -> State -> State
+updateChoices choices (State stateModel) =
+    State { stateModel | autocompleteState = Autocomplete.updateChoices choices stateModel.autocompleteState }
 
 
 {-| Create the FilterableSelectChoice configuration.
