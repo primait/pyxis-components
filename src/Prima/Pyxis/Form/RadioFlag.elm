@@ -5,6 +5,7 @@ module Prima.Pyxis.Form.RadioFlag exposing
     , withAttribute, withClass, withDisabled, withId, withName
     , withOnBlur, withOnFocus
     , withValidation
+    , isDisabled
     )
 
 {-|
@@ -38,6 +39,11 @@ module Prima.Pyxis.Form.RadioFlag exposing
 ## Validation
 
 @docs withValidation
+
+
+## Methods
+
+@docs isDisabled
 
 -}
 
@@ -259,11 +265,15 @@ readerAttribute model (RadioFlag config) choice =
         |> Attrs.checked
 
 
-taggerAttribute : RadioFlag model msg -> RadioFlagChoice -> Html.Attribute msg
+taggerAttribute : RadioFlag model msg -> RadioFlagChoice -> Maybe msg
 taggerAttribute (RadioFlag config) choice =
-    choice.value
-        |> config.tagger
-        |> Events.onClick
+    if isDisabled (RadioFlag config) then
+        Nothing
+
+    else
+        choice.value
+            |> config.tagger
+            |> Just
 
 
 validationAttribute : model -> RadioFlag model msg -> Html.Attribute msg
@@ -294,14 +304,6 @@ buildAttributes model ((RadioFlag config) as radioModel) ({ label } as choice) =
         options : Options model msg
         options =
             computeOptions radioModel
-
-        taggerAttrList : List (Attribute msg)
-        taggerAttrList =
-            if Just choice.value == config.reader model then
-                []
-
-            else
-                [ taggerAttribute radioModel choice ]
     in
     [ generateId options label
         |> Maybe.map Attrs.id
@@ -313,12 +315,12 @@ buildAttributes model ((RadioFlag config) as radioModel) ({ label } as choice) =
         |> Maybe.map Events.onFocus
     , options.onBlur
         |> Maybe.map Events.onBlur
+    , taggerAttribute radioModel choice |> Maybe.map Events.onClick
     ]
         |> List.filterMap identity
         |> (++) options.attributes
         |> (::) (H.classesAttribute options.class)
         |> (::) (readerAttribute model radioModel choice)
-        |> (++) taggerAttrList
         |> (::) (validationAttribute model radioModel)
         |> (::) (Attrs.type_ "radio")
         |> (::) (Attrs.value (boolToValue choice.value))
@@ -345,14 +347,6 @@ render model ((RadioFlag { radioChoices }) as radioModel) =
 renderRadioChoice : model -> RadioFlag model msg -> RadioFlagChoice -> Html msg
 renderRadioChoice model ((RadioFlag { tagger, skin, reader }) as radioModel) ({ value, label } as choice) =
     let
-        conditionallyAddOnClick : Label.Label msg -> Label.Label msg
-        conditionallyAddOnClick =
-            if Just choice.value == reader model then
-                identity
-
-            else
-                Label.withOnClick (tagger value)
-
         options : Options model msg
         options =
             computeOptions radioModel
@@ -369,7 +363,6 @@ renderRadioChoice model ((RadioFlag { tagger, skin, reader }) as radioModel) ({ 
             []
         , label
             |> Label.label
-            |> conditionallyAddOnClick
             |> Label.withConditionallyFor (generateId options label)
             |> Label.withOverridingClass "form-radio-flag__label"
             |> Label.render
@@ -435,3 +428,13 @@ boolToValue flag =
 
     else
         "no"
+
+
+{-| Checks if checkbox is disabled
+-}
+isDisabled : RadioFlag model msg -> Bool
+isDisabled (RadioFlag config) =
+    config.options
+        |> List.filter ((==) (Disabled True))
+        |> List.length
+        |> (<=) 1
