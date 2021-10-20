@@ -5,6 +5,7 @@ module Prima.Pyxis.Form.Checkbox exposing
     , withAttribute, withDisabled, withClass, withId, withName
     , withOnFocus, withOnBlur
     , withValidation
+    , isDisabled
     )
 
 {-|
@@ -38,6 +39,11 @@ module Prima.Pyxis.Form.Checkbox exposing
 ## Validation
 
 @docs withValidation
+
+
+## Methods
+
+@docs isDisabled
 
 -}
 
@@ -234,11 +240,25 @@ readerAttribute model (Checkbox config) choice =
 
 {-| Internal. Transforms the `tagger` function into a valid Html.Attribute.
 -}
-taggerAttribute : Checkbox model msg -> String -> Html.Attribute msg
+taggerAttribute : Checkbox model msg -> String -> Maybe msg
 taggerAttribute (Checkbox config) choice =
-    choice
-        |> config.tagger
-        |> Events.onClick
+    if isDisabled (Checkbox config) then
+        Nothing
+
+    else
+        choice
+            |> config.tagger
+            |> Just
+
+
+{-| Checks if checkbox is disabled
+-}
+isDisabled : Checkbox model msg -> Bool
+isDisabled (Checkbox config) =
+    config.options
+        |> List.filter ((==) (Disabled True))
+        |> List.length
+        |> (<=) 1
 
 
 {-| Internal. Transforms all the customizations into a list of valid Html.Attribute(s).
@@ -289,12 +309,13 @@ buildAttributes model checkboxModel { label, value } =
         |> Maybe.map Events.onFocus
     , options.onBlur
         |> Maybe.map Events.onBlur
+    , taggerAttribute checkboxModel value
+        |> Maybe.map Events.onClick
     ]
         |> List.filterMap identity
         |> (++) options.attributes
         |> (::) (H.classesAttribute options.class)
         |> (::) (readerAttribute model checkboxModel value)
-        |> (::) (taggerAttribute checkboxModel value)
         |> (::) (Attrs.type_ "checkbox")
         |> (::) (Attrs.value value)
         |> (::) (validationAttribute model checkboxModel)
@@ -337,7 +358,6 @@ renderCheckbox model ((Checkbox config) as checkboxModel) ({ value, label } as c
             []
         , label
             |> Label.label
-            |> Label.withOnClick (config.tagger value)
             |> Label.withConditionallyFor (generateId options label)
             |> Label.withOverridingClass "form-checkbox__label"
             |> Label.render

@@ -62,14 +62,21 @@ type alias RadioConfig model msg =
     , reader : model -> Maybe String
     , tagger : String -> msg
     , radioChoices : List RadioChoice
+    , alwaysEmitClick : Bool
     }
 
 
 {-| Creates the `Radio`.
 -}
 radio : (model -> Maybe String) -> (String -> msg) -> List RadioChoice -> Radio model msg
-radio reader tagger =
-    Radio << RadioConfig [] reader tagger
+radio reader tagger choices =
+    Radio
+        { options = []
+        , reader = reader
+        , tagger = tagger
+        , radioChoices = choices
+        , alwaysEmitClick = False
+        }
 
 
 {-| Represents a choice for the `Radio`.
@@ -268,19 +275,11 @@ isPristine model (Radio config) =
 {-| Composes all the modifiers into a set of `Html.Attribute`(s).
 -}
 buildAttributes : model -> Radio model msg -> RadioChoice -> List (Html.Attribute msg)
-buildAttributes model ((Radio config) as radioModel) ({ label } as choice) =
+buildAttributes model radioModel ({ label } as choice) =
     let
         options : Options model msg
         options =
             computeOptions radioModel
-
-        taggerAttrList : List (Attribute msg)
-        taggerAttrList =
-            if Just choice.value == config.reader model then
-                []
-
-            else
-                [ taggerAttribute radioModel choice ]
 
         hasValidations : Bool
         hasValidations =
@@ -301,7 +300,7 @@ buildAttributes model ((Radio config) as radioModel) ({ label } as choice) =
         |> (++) options.attributes
         |> (::) (H.classesAttribute options.class)
         |> (::) (readerAttribute model radioModel choice)
-        |> (++) taggerAttrList
+        |> (::) (taggerAttribute radioModel choice)
         |> H.addIf hasValidations (validationAttribute model radioModel)
         |> (::) (Attrs.type_ "radio")
         |> (::) (Attrs.value choice.value)
@@ -337,16 +336,8 @@ render model ((Radio { radioChoices }) as radioModel) =
 
 
 renderRadioChoice : model -> Radio model msg -> RadioChoice -> Html msg
-renderRadioChoice model ((Radio { tagger, reader }) as radioModel) ({ value, label } as choice) =
+renderRadioChoice model ((Radio { tagger, reader, alwaysEmitClick }) as radioModel) ({ value, label } as choice) =
     let
-        conditionallyAddOnClick : Label.Label msg -> Label.Label msg
-        conditionallyAddOnClick =
-            if Just choice.value == reader model then
-                identity
-
-            else
-                Label.withOnClick (tagger value)
-
         options : Options model msg
         options =
             computeOptions radioModel
@@ -358,7 +349,6 @@ renderRadioChoice model ((Radio { tagger, reader }) as radioModel) ({ value, lab
             []
         , label
             |> Label.label
-            |> conditionallyAddOnClick
             |> Label.withConditionallyFor (generateId options label)
             |> Label.withOverridingClass "form-radio__label"
             |> Label.render
