@@ -301,7 +301,7 @@ validationAttribute model radioModel =
 {-| Composes all the modifiers into a set of `Html.Attribute`(s).
 -}
 buildAttributes : model -> RadioFlag model msg -> RadioFlagChoice -> List (Html.Attribute msg)
-buildAttributes model ((RadioFlag config) as radioModel) ({ label } as choice) =
+buildAttributes model radioModel ({ label } as choice) =
     let
         options : Options model msg
         options =
@@ -347,7 +347,7 @@ render model ((RadioFlag { radioChoices }) as radioModel) =
 
 
 renderRadioChoice : model -> RadioFlag model msg -> RadioFlagChoice -> Html msg
-renderRadioChoice model ((RadioFlag { tagger, skin, reader }) as radioModel) ({ value, label } as choice) =
+renderRadioChoice model ((RadioFlag { skin }) as radioModel) choice =
     let
         options : Options model msg
         options =
@@ -363,9 +363,9 @@ renderRadioChoice model ((RadioFlag { tagger, skin, reader }) as radioModel) ({ 
         [ Html.input
             (buildAttributes model radioModel choice)
             []
-        , label
+        , choice.label
             |> Label.label
-            |> Label.withConditionallyFor (generateId options label)
+            |> Label.withConditionallyFor (generateId options choice.label)
             |> Label.withOverridingClass "form-radio-flag__label"
             |> Label.render
         ]
