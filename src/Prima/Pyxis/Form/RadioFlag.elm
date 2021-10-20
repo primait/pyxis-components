@@ -265,8 +265,10 @@ readerAttribute model (RadioFlag config) choice =
         |> Attrs.checked
 
 
-taggerAttribute : RadioFlag model msg -> RadioFlagChoice -> Maybe msg
-taggerAttribute (RadioFlag config) choice =
+{-| Internal. Retrieves tagger msg when component is enabled
+-}
+pickTagger : RadioFlag model msg -> RadioFlagChoice -> Maybe msg
+pickTagger (RadioFlag config) choice =
     if isDisabled (RadioFlag config) then
         Nothing
 
@@ -315,7 +317,7 @@ buildAttributes model ((RadioFlag config) as radioModel) ({ label } as choice) =
         |> Maybe.map Events.onFocus
     , options.onBlur
         |> Maybe.map Events.onBlur
-    , taggerAttribute radioModel choice |> Maybe.map Events.onClick
+    , pickTagger radioModel choice |> Maybe.map Events.onClick
     ]
         |> List.filterMap identity
         |> (++) options.attributes

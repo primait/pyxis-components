@@ -5,6 +5,7 @@ module Prima.Pyxis.Form.Radio exposing
     , withAttribute, withClass, withDisabled, withId, withName
     , withOnBlur, withOnFocus
     , withValidation
+    , isDisabled
     )
 
 {-|
@@ -38,6 +39,11 @@ module Prima.Pyxis.Form.Radio exposing
 ## Validation
 
 @docs withValidation
+
+
+## Methods
+
+@docs isDisabled
 
 -}
 
@@ -233,11 +239,17 @@ readerAttribute model (Radio config) choice =
         |> Attrs.checked
 
 
-taggerAttribute : Radio model msg -> RadioChoice -> Html.Attribute msg
-taggerAttribute (Radio config) choice =
-    choice.value
-        |> config.tagger
-        |> Events.onClick
+{-| Internal. Retrieves tagger msg when component is enabled
+-}
+pickTagger : Radio model msg -> RadioChoice -> Maybe msg
+pickTagger (Radio config) choice =
+    if isDisabled (Radio config) then
+        Nothing
+
+    else
+        choice.value
+            |> config.tagger
+            |> Just
 
 
 validationAttribute : model -> Radio model msg -> Html.Attribute msg
@@ -293,12 +305,12 @@ buildAttributes model radioModel ({ label } as choice) =
         |> Maybe.map Events.onFocus
     , options.onBlur
         |> Maybe.map Events.onBlur
+    , pickTagger radioModel choice |> Maybe.map Events.onClick
     ]
         |> List.filterMap identity
         |> (++) options.attributes
         |> (::) (H.classesAttribute options.class)
         |> (::) (readerAttribute model radioModel choice)
-        |> (::) (taggerAttribute radioModel choice)
         |> H.addIf hasValidations (validationAttribute model radioModel)
         |> (::) (Attrs.type_ "radio")
         |> (::) (Attrs.value choice.value)
@@ -403,3 +415,13 @@ errorsValidations model options =
     options.validations
         |> List.filterMap (H.flip identity model)
         |> List.filter Validation.isError
+
+
+{-| Checks if checkbox is disabled
+-}
+isDisabled : Radio model msg -> Bool
+isDisabled (Radio config) =
+    config.options
+        |> List.filter ((==) (Disabled True))
+        |> List.length
+        |> (<=) 1
