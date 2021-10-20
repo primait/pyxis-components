@@ -62,7 +62,6 @@ type alias RadioConfig model msg =
     , reader : model -> Maybe String
     , tagger : String -> msg
     , radioChoices : List RadioChoice
-    , alwaysEmitClick : Bool
     }
 
 
@@ -75,7 +74,6 @@ radio reader tagger choices =
         , reader = reader
         , tagger = tagger
         , radioChoices = choices
-        , alwaysEmitClick = False
         }
 
 
@@ -336,7 +334,7 @@ render model ((Radio { radioChoices }) as radioModel) =
 
 
 renderRadioChoice : model -> Radio model msg -> RadioChoice -> Html msg
-renderRadioChoice model ((Radio { tagger, reader, alwaysEmitClick }) as radioModel) ({ value, label } as choice) =
+renderRadioChoice model radioModel ({ label } as choice) =
     let
         options : Options model msg
         options =

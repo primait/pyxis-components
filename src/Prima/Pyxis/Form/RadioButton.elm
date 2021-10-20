@@ -303,7 +303,7 @@ computeOptions (RadioButton config) =
 {-| Internal. Transforms all the customizations into a list of valid Html.Attribute(s).
 -}
 buildAttributes : model -> RadioButton model msg -> RadioButtonChoice -> List (Html.Attribute msg)
-buildAttributes model ((RadioButton config) as radioButtonModel) ({ title } as choice) =
+buildAttributes model radioButtonModel ({ title } as choice) =
     let
         options =
             computeOptions radioButtonModel

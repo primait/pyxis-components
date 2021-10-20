@@ -345,7 +345,7 @@ render model ((Checkbox config) as checkboxModel) =
 {-| Internal. Renders the `Checkbox` alone.
 -}
 renderCheckbox : model -> Checkbox model msg -> CheckboxChoice -> Html msg
-renderCheckbox model ((Checkbox config) as checkboxModel) ({ value, label } as checkboxItem) =
+renderCheckbox model checkboxModel ({ label } as checkboxItem) =
     let
         options : Options model msg
         options =
