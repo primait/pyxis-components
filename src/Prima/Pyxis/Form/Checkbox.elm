@@ -5,7 +5,6 @@ module Prima.Pyxis.Form.Checkbox exposing
     , withAttribute, withDisabled, withClass, withId, withName
     , withOnFocus, withOnBlur
     , withValidation
-    , isDisabled
     )
 
 {-|
@@ -251,7 +250,7 @@ taggerAttribute (Checkbox config) choice =
             |> Just
 
 
-{-| Checks if checkbox is disabled
+{-| Internal. Checks if checkbox is disabled
 -}
 isDisabled : Checkbox model msg -> Bool
 isDisabled (Checkbox config) =

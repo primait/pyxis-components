@@ -5,7 +5,6 @@ module Prima.Pyxis.Form.CheckboxFlag exposing
     , withAttribute, withDisabled, withLabel, withName
     , withOnBlur, withOnFocus
     , withValidation
-    , isDisabled
     )
 
 {-|
@@ -371,7 +370,7 @@ errorsValidations model options =
         |> List.filter Validation.isError
 
 
-{-| Checks if checkbox is disabled
+{-| Internal. Checks if checkbox flag is disabled
 -}
 isDisabled : Flag model msg -> Bool
 isDisabled (Flag config) =

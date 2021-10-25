@@ -5,7 +5,6 @@ module Prima.Pyxis.Form.Radio exposing
     , withAttribute, withClass, withDisabled, withId, withName
     , withOnBlur, withOnFocus
     , withValidation
-    , isDisabled
     )
 
 {-|
@@ -417,7 +416,7 @@ errorsValidations model options =
         |> List.filter Validation.isError
 
 
-{-| Checks if checkbox is disabled
+{-| Internal. Checks if radio is disabled
 -}
 isDisabled : Radio model msg -> Bool
 isDisabled (Radio config) =

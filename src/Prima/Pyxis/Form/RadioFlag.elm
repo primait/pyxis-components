@@ -5,7 +5,6 @@ module Prima.Pyxis.Form.RadioFlag exposing
     , withAttribute, withClass, withDisabled, withId, withName
     , withOnBlur, withOnFocus
     , withValidation
-    , isDisabled
     )
 
 {-|
@@ -432,7 +431,7 @@ boolToValue flag =
         "no"
 
 
-{-| Checks if checkbox is disabled
+{-| Internal. Checks if radio flag is disabled
 -}
 isDisabled : RadioFlag model msg -> Bool
 isDisabled (RadioFlag config) =
