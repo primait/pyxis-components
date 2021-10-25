@@ -201,16 +201,20 @@ readerAttribute model (Flag config) =
     (Attrs.checked << Maybe.withDefault False << config.reader) model
 
 
-{-| Internal. Transforms the `tagger` function into a valid Html.Attribute.
+{-| Internal. Retrieves tagger msg when component is enabled
 -}
-taggerAttribute : model -> Flag model msg -> Html.Attribute msg
-taggerAttribute model (Flag config) =
-    model
-        |> config.reader
-        |> Maybe.withDefault False
-        |> not
-        |> config.tagger
-        |> Events.onClick
+pickTagger : model -> Flag model msg -> Maybe msg
+pickTagger model (Flag config) =
+    if isDisabled (Flag config) then
+        Nothing
+
+    else
+        model
+            |> config.reader
+            |> Maybe.withDefault False
+            |> not
+            |> config.tagger
+            |> Just
 
 
 {-| Internal. Transforms the `Validation` status into an Html.Attribute `class`.
@@ -254,11 +258,11 @@ buildAttributes model ((Flag config) as flagModel) =
     , Maybe.map Attrs.disabled options.disabled
     , Maybe.map Events.onBlur options.onBlur
     , Maybe.map Events.onFocus options.onFocus
+    , pickTagger model flagModel |> Maybe.map Events.onClick
     ]
         |> List.filterMap identity
         |> (++) options.attributes
         |> (::) (readerAttribute model flagModel)
-        |> (::) (taggerAttribute model flagModel)
         |> (::) (validationAttribute model flagModel)
         |> (::) (Attrs.type_ "checkbox")
         |> (::) (Attrs.id config.id)
@@ -359,3 +363,13 @@ errorsValidations model options =
     options.validations
         |> List.filterMap (H.flip identity model)
         |> List.filter Validation.isError
+
+
+{-| Internal. Checks if checkbox flag is disabled
+-}
+isDisabled : Flag model msg -> Bool
+isDisabled (Flag config) =
+    config.options
+        |> List.filter ((==) (Disabled True))
+        |> List.length
+        |> (<=) 1

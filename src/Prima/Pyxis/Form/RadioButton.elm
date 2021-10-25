@@ -67,8 +67,13 @@ type alias RadioConfig model msg =
 {-| Create a radioButton.
 -}
 radioButton : (model -> Maybe String) -> (String -> msg) -> List RadioButtonChoice -> RadioButton model msg
-radioButton reader tagger =
-    RadioButton << RadioConfig [] reader tagger
+radioButton reader tagger choices =
+    RadioButton
+        { options = []
+        , reader = reader
+        , tagger = tagger
+        , choices = choices
+        }
 
 
 {-| Represent the `RadioButtonChoice` configuration.
@@ -224,18 +229,17 @@ readerAttribute model (RadioButton config) choice =
         Attrs.class ""
 
 
-{-| Internal. Transforms the `tagger` function into a valid Html.Attribute.
+{-| Internal. Retrieves tagger msg when component is enabled
 -}
-taggerAttribute : RadioButton model msg -> RadioButtonChoice -> Options model msg -> List (Html.Attribute msg)
-taggerAttribute (RadioButton config) choice options =
+pickTagger : RadioButton model msg -> RadioButtonChoice -> Options model msg -> Maybe msg
+pickTagger (RadioButton config) choice options =
     if options.disabled then
-        []
+        Nothing
 
     else
         choice.value
             |> config.tagger
-            |> Events.onClick
-            |> List.singleton
+            |> Just
 
 
 {-| Internal. Checks RadioButton has subtitle
@@ -299,18 +303,10 @@ computeOptions (RadioButton config) =
 {-| Internal. Transforms all the customizations into a list of valid Html.Attribute(s).
 -}
 buildAttributes : model -> RadioButton model msg -> RadioButtonChoice -> List (Html.Attribute msg)
-buildAttributes model ((RadioButton config) as radioButtonModel) ({ title } as choice) =
+buildAttributes model radioButtonModel ({ title } as choice) =
     let
         options =
             computeOptions radioButtonModel
-
-        taggerAttrList : List (Attribute msg)
-        taggerAttrList =
-            if Just choice.value == config.reader model then
-                []
-
-            else
-                taggerAttribute radioButtonModel choice options
 
         generateId : String -> String
         generateId id =
@@ -322,13 +318,14 @@ buildAttributes model ((RadioButton config) as radioButtonModel) ({ title } as c
         |> Maybe.map Events.onFocus
     , options.onBlur
         |> Maybe.map Events.onBlur
+    , pickTagger radioButtonModel choice options
+        |> Maybe.map Events.onClick
     ]
         |> List.filterMap identity
         |> (++) options.attributes
         |> (::) (H.classesAttribute options.class)
         |> (::) (hasDisabledAttribute options.disabled)
         |> (::) (readerAttribute model radioButtonModel choice)
-        |> (++) taggerAttrList
         |> (::) (validationAttribute model radioButtonModel)
         |> (::) (hasSubtitleAttribute choice)
 
