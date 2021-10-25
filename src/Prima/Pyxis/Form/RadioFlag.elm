@@ -39,11 +39,6 @@ module Prima.Pyxis.Form.RadioFlag exposing
 
 @docs withValidation
 
-
-## Methods
-
-@docs isDisabled
-
 -}
 
 import Html exposing (Attribute, Html)

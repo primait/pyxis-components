@@ -39,11 +39,6 @@ module Prima.Pyxis.Form.Radio exposing
 
 @docs withValidation
 
-
-## Methods
-
-@docs isDisabled
-
 -}
 
 import Html exposing (Attribute, Html)
