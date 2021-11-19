@@ -1,4 +1,6 @@
-# Pyxis UI components written in `elm`
+# Pyxis UI components written in `elm` [Website Version]
+
+***This is a parallel branch developed to keep V3 updated with website-team needs***
 
 Prima Design System public package for `elm`.
 It helps to build scalable UIs by mantaining consistency between design and components across different apps.
