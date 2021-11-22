@@ -3,8 +3,9 @@ module Prima.Pyxis.Form.Select exposing
     , select, init, initWithDefault, update, selectChoice
     , selectedValue, subscription, open, close, isOpen, toggle, reset
     , render
-    , withAttribute, withId, withDefaultValue, withDisabled, withClass, withLargeSize, withMediumSize, withOverridingClass, withPlaceholder, withSmallSize, withIsSubmitted
-    , withOnBlur, withOnFocus, withEventPropagation
+    , withAttribute, withClass, withDefaultValue, withDisabled, withId, withIsSubmitted, withLargeSize, withMediumSize
+    , withOverridingClass, withPlaceholder, withSmallSize
+    , withEventPropagationPrevented, withOnBlur, withOnFocus
     , withValidation
     )
 
@@ -33,12 +34,13 @@ module Prima.Pyxis.Form.Select exposing
 
 ## Options
 
-@docs withAttribute, withId, withDefaultValue, withDisabled, withClass, withLargeSize, withMediumSize, withOverridingClass, withPlaceholder, withSmallSize, withIsSubmitted
+@docs withAttribute, withClass, withDefaultValue, withDisabled, withId, withIsSubmitted, withLargeSize, withMediumSize
+@docs withOverridingClass, withPlaceholder, withSmallSize
 
 
 ## Event Options
 
-@docs withOnBlur, withOnFocus, withEventPropagation
+@docs withEventPropagationPrevented, withOnBlur, withOnFocus
 
 
 ## Validation
@@ -283,7 +285,7 @@ type SelectOption model
     | Placeholder String
     | Size SelectSize
     | Validation (model -> Maybe Validation.Type)
-    | PropagateEvents Bool
+    | IsEventPropagationPrevented Bool
 
 
 type Default
@@ -313,7 +315,7 @@ type alias Options model =
     , placeholder : String
     , size : SelectSize
     , validations : List (model -> Maybe Validation.Type)
-    , eventsArePropagated : Bool
+    , isEventPropagationPrevented : Bool
     }
 
 
@@ -330,7 +332,7 @@ defaultOptions =
     , placeholder = "Seleziona"
     , size = Medium
     , validations = []
-    , eventsArePropagated = True
+    , isEventPropagationPrevented = False
     }
 
 
@@ -423,15 +425,15 @@ withOverridingClass class =
     addOption (OverridingClass class)
 
 
-{-| With this on False events are blocked at parent level (native or custom select).
-By default is on True (events are propagated)
+{-| With this on True events are blocked at parent level (native or custom select).
+By default is on False (events are propagated)
 
-This doesn't affect OnInput event on form field since it's not propagated by default
+**This doesn't affect OnInput event on form field since it's not propagated by default**
 
 -}
-withEventPropagation : Bool -> Select model -> Select model
-withEventPropagation arePropagated =
-    addOption (PropagateEvents arePropagated)
+withEventPropagationPrevented : Bool -> Select model -> Select model
+withEventPropagationPrevented arePropagated =
+    addOption (IsEventPropagationPrevented arePropagated)
 
 
 {-| Sets a `Size` to the `Select`.
@@ -496,8 +498,8 @@ applyOption modifier options =
         Validation validation ->
             { options | validations = validation :: options.validations }
 
-        PropagateEvents arePropagated ->
-            { options | eventsArePropagated = arePropagated }
+        IsEventPropagationPrevented isEventPropagationPrevented ->
+            { options | isEventPropagationPrevented = isEventPropagationPrevented }
 
 
 {-| Transforms an `SelectSize` into a valid `Html.Attribute`.
@@ -816,13 +818,13 @@ subscription state =
 
 clickEvent : Options model -> Msg -> Html.Attribute Msg
 clickEvent options msg =
-    if options.eventsArePropagated then
-        HtmlEvents.onClick msg
-
-    else
+    if options.isEventPropagationPrevented then
         InterceptedEvents.onClick (Interceptor.targetContainsClass "form-select") msg
             |> InterceptedEvents.withStopPropagation
             |> InterceptedEvents.toHtmlAttribute
+
+    else
+        HtmlEvents.onClick msg
 
 
 inputEvent : Html.Attribute Msg

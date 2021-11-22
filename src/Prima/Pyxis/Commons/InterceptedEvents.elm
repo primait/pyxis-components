@@ -1,7 +1,7 @@
 module Prima.Pyxis.Commons.InterceptedEvents exposing
-    ( onClick, onDoubleClick, on
+    ( InterceptedEvent, onClick, onDoubleClick, on
     , withStopPropagation, withPreventDefault
-    , InterceptedEvent, toHtmlAttribute
+    , toHtmlAttribute
     )
 
 {-| This module offers some abstractions and common utilities to handle intercepted events.
@@ -9,7 +9,7 @@ module Prima.Pyxis.Commons.InterceptedEvents exposing
 
 # Configuration
 
-@docs Config, NativeEvent, onClick, onDoubleClick, on
+@docs InterceptedEvent, NativeEvent, onClick, onDoubleClick, on
 
 
 ## Options
@@ -19,7 +19,7 @@ module Prima.Pyxis.Commons.InterceptedEvents exposing
 
 # Event builder
 
-@docs event
+@docs toHtmlAttribute
 
 -}
 
