@@ -1,5 +1,5 @@
 module Prima.Pyxis.Form exposing
-    ( Form, FormField, FormFieldset, Legend
+    ( Form, FormField, FormFieldset, Legend, RowKind(..)
     , init
     , withBeside, withVertical
     , withFields, withFieldsAndLegend
@@ -7,7 +7,6 @@ module Prima.Pyxis.Form exposing
     , input, inputList, autocomplete, checkbox, date, filterableSelect, flag, radio, radioFlag, radioButton, select, textArea
     , withLabel, withAppendableHtml
     , renderField, renderFields, renderLabel, render
-    , RowKind(..)
     )
 
 {-|
