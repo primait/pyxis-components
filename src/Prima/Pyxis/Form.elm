@@ -1,6 +1,7 @@
 module Prima.Pyxis.Form exposing
-    ( Form, FormField, FormFieldset, Legend, RowKind(..)
+    ( Form, FormField, FormFieldset, Legend
     , init
+    , isRowKindBeside, isRowKindGrid, isRowKindVertical
     , withBeside, withVertical
     , withFields, withFieldsAndLegend
     , legend, legendWithPrependableHtml, legendWithAppendableHtml
@@ -14,12 +15,13 @@ module Prima.Pyxis.Form exposing
 
 ## Configuration
 
-@docs Form, FormField, FormFieldset, Legend, RowKind
+@docs Form, FormField, FormFieldset, Legend
 
 
 ## Configuration Methods
 
 @docs init
+@docs isRowKindBeside, isRowKindGrid, isRowKindVertical
 
 
 ## Change Kind to the Form
@@ -93,6 +95,41 @@ type RowKind
     = Grid
     | Beside
     | Vertical
+
+
+{-| Internal. Extracts config
+-}
+pickFormConfig : Form model msg -> FormConfig model msg
+pickFormConfig (Form conf) =
+    conf
+
+
+{-| Internal. Extracts Row kind
+-}
+pickRowKind : Form model msg -> RowKind
+pickRowKind =
+    pickFormConfig >> .kind
+
+
+{-| Is form Row kind Grid
+-}
+isRowKindGrid : Form model msg -> Bool
+isRowKindGrid =
+    pickRowKind >> (==) Grid
+
+
+{-| Is form Row kind Beside
+-}
+isRowKindBeside : Form model msg -> Bool
+isRowKindBeside =
+    pickRowKind >> (==) Beside
+
+
+{-| Is form Row kind Vertical
+-}
+isRowKindVertical : Form model msg -> Bool
+isRowKindVertical =
+    pickRowKind >> (==) Vertical
 
 
 {-| Create an instance of a `Form`.
