@@ -380,6 +380,8 @@ withPlaceholder placeholder =
 
 
 {-| Sets an `id` to the `Select`.
+Since the component renders both native (on mobile) and custom (on desktop) selects id will have "-custom-select" or
+"-native-select" suffix
 -}
 withId : String -> Select model -> Select model
 withId id =
