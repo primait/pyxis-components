@@ -49,8 +49,8 @@ module Prima.Pyxis.Form.Select exposing
 
 import Array
 import Browser.Events
-import Html exposing (Attribute, Html, div, text)
-import Html.Attributes as Attrs exposing (class, id, value)
+import Html exposing (Attribute, Html, text)
+import Html.Attributes as Attrs exposing (class, value)
 import Html.Events as HtmlEvents
 import Json.Decode
 import Maybe.Extra as ME
