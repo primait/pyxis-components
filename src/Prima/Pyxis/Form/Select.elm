@@ -4,7 +4,7 @@ module Prima.Pyxis.Form.Select exposing
     , selectedValue, subscription, open, close, isOpen, toggle, reset
     , render
     , withAttribute, withId, withDefaultValue, withDisabled, withClass, withLargeSize, withMediumSize, withOverridingClass, withPlaceholder, withSmallSize, withIsSubmitted
-    , withOnBlur, withOnFocus
+    , withOnBlur, withOnFocus, withEventPropagation
     , withValidation
     )
 
@@ -38,7 +38,7 @@ module Prima.Pyxis.Form.Select exposing
 
 ## Event Options
 
-@docs withOnBlur, withOnFocus
+@docs withOnBlur, withOnFocus, withEventPropagation
 
 
 ## Validation
@@ -49,11 +49,13 @@ module Prima.Pyxis.Form.Select exposing
 
 import Array
 import Browser.Events
-import Html exposing (Attribute, Html, text)
+import Html exposing (Attribute, Html, div, text)
 import Html.Attributes as Attrs exposing (class, id, value)
-import Html.Events as Events
+import Html.Events as HtmlEvents
 import Json.Decode
 import Maybe.Extra as ME
+import Prima.Pyxis.Commons.InterceptedEvents as InterceptedEvents
+import Prima.Pyxis.Commons.Interceptor as Interceptor
 import Prima.Pyxis.Form.Commons.KeyboardEvents as KeyboardEvents
 import Prima.Pyxis.Form.Validation as Validation
 import Prima.Pyxis.Helpers as H
@@ -62,7 +64,7 @@ import Prima.Pyxis.Helpers as H
 {-| Represents the Msg of the `Select`.
 -}
 type Msg
-    = OnSelect String
+    = OnClick String
     | OnToggleMenu
     | OnKeyPress (Maybe KeyboardEvents.KeyCode)
 
@@ -103,7 +105,7 @@ initWithDefault defaultSelectedValue choices =
 update : Msg -> State -> State
 update msg ((State state) as stateModel) =
     case msg of
-        OnSelect value ->
+        OnClick value ->
             updateOnSelect (Just value) stateModel
 
         OnToggleMenu ->
@@ -281,6 +283,7 @@ type SelectOption model
     | Placeholder String
     | Size SelectSize
     | Validation (model -> Maybe Validation.Type)
+    | PropagateEvents Bool
 
 
 type Default
@@ -310,6 +313,7 @@ type alias Options model =
     , placeholder : String
     , size : SelectSize
     , validations : List (model -> Maybe Validation.Type)
+    , eventsArePropagated : Bool
     }
 
 
@@ -326,6 +330,7 @@ defaultOptions =
     , placeholder = "Seleziona"
     , size = Medium
     , validations = []
+    , eventsArePropagated = True
     }
 
 
@@ -333,7 +338,9 @@ defaultOptions =
 -}
 addOption : SelectOption model -> Select model -> Select model
 addOption option (Select options) =
-    Select <| options ++ [ option ]
+    options
+        ++ [ option ]
+        |> Select
 
 
 {-| Sets an `attribute` to the `Select`.
@@ -414,6 +421,17 @@ withOverridingClass class =
     addOption (OverridingClass class)
 
 
+{-| With this on False events are blocked at parent level (native or custom select).
+By default is on True (events are propagated)
+
+This doesn't affect OnInput event on form field since it's not propagated by default
+
+-}
+withEventPropagation : Bool -> Select model -> Select model
+withEventPropagation arePropagated =
+    addOption (PropagateEvents arePropagated)
+
+
 {-| Sets a `Size` to the `Select`.
 -}
 withMediumSize : Select model -> Select model
@@ -476,6 +494,9 @@ applyOption modifier options =
         Validation validation ->
             { options | validations = validation :: options.validations }
 
+        PropagateEvents arePropagated ->
+            { options | eventsArePropagated = arePropagated }
+
 
 {-| Transforms an `SelectSize` into a valid `Html.Attribute`.
 -}
@@ -492,11 +513,6 @@ sizeAttribute size =
             Large ->
                 "is-large"
         )
-
-
-taggerAttribute : Html.Attribute Msg
-taggerAttribute =
-    Events.onInput OnSelect
 
 
 validationAttribute : model -> Select model -> Html.Attribute Msg
@@ -556,8 +572,8 @@ shouldBeValidated model selectModel stateModel options =
 
 {-| Composes all the modifiers into a set of `Html.Attribute`(s).
 -}
-buildAttributes : model -> State -> Select model -> List (Html.Attribute Msg)
-buildAttributes model stateModel selectModel =
+buildNativeSelectAttributes : model -> State -> Select model -> List (Html.Attribute Msg)
+buildNativeSelectAttributes model stateModel selectModel =
     let
         options =
             computeOptions selectModel
@@ -567,19 +583,19 @@ buildAttributes model stateModel selectModel =
             shouldBeValidated model selectModel stateModel options
     in
     [ options.id
-        |> Maybe.map Attrs.id
+        |> Maybe.map (\id -> id ++ "-native-select" |> Attrs.id)
     , options.disabled
         |> Maybe.map Attrs.disabled
     , options.onFocus
-        |> Maybe.map Events.onFocus
+        |> Maybe.map HtmlEvents.onFocus
     , options.onBlur
-        |> Maybe.map Events.onBlur
+        |> Maybe.map HtmlEvents.onBlur
     ]
         |> List.filterMap identity
         |> (++) options.attributes
         |> (::) (H.classesAttribute options.class)
         |> (::) (sizeAttribute options.size)
-        |> (::) taggerAttribute
+        |> (::) inputEvent
         |> H.addIf hasValidations (validationAttribute model selectModel)
         |> (::) (pristineAttribute stateModel selectModel)
 
@@ -596,20 +612,20 @@ render model stateModel selectModel =
         hasValidations =
             shouldBeValidated model selectModel stateModel options
     in
-    [ renderSelect model stateModel selectModel
+    [ renderNativeSelect model stateModel selectModel
     , renderCustomSelect model stateModel selectModel
     ]
         ++ renderValidationMessages model selectModel hasValidations
 
 
-renderSelect : model -> State -> Select model -> Html Msg
-renderSelect model ((State { choices }) as stateModel) selectModel =
+renderNativeSelect : model -> State -> Select model -> Html Msg
+renderNativeSelect model ((State { choices }) as stateModel) selectModel =
     let
         options =
             computeOptions selectModel
     in
     Html.select
-        (buildAttributes model stateModel selectModel)
+        (buildNativeSelectAttributes model stateModel selectModel)
         (options.placeholder
             |> SelectChoice ""
             |> H.flip (::) choices
@@ -647,13 +663,13 @@ renderCustomSelect model ((State { choices, isMenuOpen }) as stateModel) selectM
             , sizeAttribute options.size
             ]
             ++ ([ options.id
-                    |> Maybe.map Attrs.id
+                    |> Maybe.map (\id -> id ++ "-custom-select" |> Attrs.id)
                 , options.disabled
                     |> Maybe.map Attrs.disabled
                 , options.onFocus
-                    |> Maybe.map Events.onFocus
+                    |> Maybe.map HtmlEvents.onFocus
                 , options.onBlur
-                    |> Maybe.map Events.onBlur
+                    |> Maybe.map HtmlEvents.onBlur
                 ]
                     |> List.filterMap identity
                     |> (++) options.attributes
@@ -662,7 +678,7 @@ renderCustomSelect model ((State { choices, isMenuOpen }) as stateModel) selectM
         [ renderCustomSelectStatus stateModel selectModel
         , renderCustomSelectIcon
         , choices
-            |> List.map (renderCustomSelectChoice stateModel)
+            |> List.map (renderCustomSelectChoice options stateModel)
             |> renderCustomSelectChoiceWrapper
         ]
 
@@ -675,7 +691,7 @@ renderCustomSelectStatus (State { choices, selected }) selectModel =
     in
     Html.span
         [ Attrs.class "form-select__status"
-        , Events.onClick OnToggleMenu
+        , clickEvent options OnToggleMenu
         ]
         [ choices
             |> List.filter ((==) selected << Just << .value)
@@ -699,14 +715,14 @@ renderCustomSelectChoiceWrapper =
         [ class "form-select__list" ]
 
 
-renderCustomSelectChoice : State -> SelectChoice -> Html Msg
-renderCustomSelectChoice stateModel choice =
+renderCustomSelectChoice : Options model -> State -> SelectChoice -> Html Msg
+renderCustomSelectChoice options stateModel choice =
     Html.li
         [ Attrs.classList
             [ ( "form-select__list__item", True )
             , ( "is-selected", isChoiceSelected stateModel choice || isChoiceFocused stateModel choice )
             ]
-        , (Events.onClick << OnSelect) choice.value
+        , clickEvent options (OnClick choice.value)
         ]
         [ text choice.label
         ]
@@ -788,9 +804,25 @@ pickChoiceByIndex index (State { choices }) =
 subscription : State -> Sub Msg
 subscription state =
     if isOpen state then
-        Events.keyCode
+        HtmlEvents.keyCode
             |> Json.Decode.map (OnKeyPress << KeyboardEvents.toKeyCode)
             |> Browser.Events.onKeyDown
 
     else
         Sub.none
+
+
+clickEvent : Options model -> Msg -> Html.Attribute Msg
+clickEvent options msg =
+    if options.eventsArePropagated then
+        HtmlEvents.onClick msg
+
+    else
+        InterceptedEvents.onClick (Interceptor.targetContainsClass "form-select") msg
+            |> InterceptedEvents.withStopPropagation
+            |> InterceptedEvents.toHtmlAttribute
+
+
+inputEvent : Html.Attribute Msg
+inputEvent =
+    HtmlEvents.onInput OnClick

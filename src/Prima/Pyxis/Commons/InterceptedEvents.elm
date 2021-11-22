@@ -1,7 +1,7 @@
 module Prima.Pyxis.Commons.InterceptedEvents exposing
-    ( Config, onClick, onDoubleClick, on
+    ( onClick, onDoubleClick, on
     , withStopPropagation, withPreventDefault
-    , event
+    , InterceptedEvent, toHtmlAttribute
     )
 
 {-| This module offers some abstractions and common utilities to handle intercepted events.
@@ -48,7 +48,7 @@ nativeEventSlug (NativeEvent slug) =
 Wraps together all InterceptedEvents construction flags avoiding to use
 pipeable constructing style
 -}
-type Config msg
+type InterceptedEvent msg
     = Config (InterceptedEventConfig msg)
 
 
@@ -90,7 +90,7 @@ type alias InterceptedEventConfig msg =
 --
 
 -}
-onClick : Interceptor -> msg -> Config msg
+onClick : Interceptor -> msg -> InterceptedEvent msg
 onClick interceptor msg =
     Config
         { msg = msg
@@ -125,7 +125,7 @@ onClick interceptor msg =
 --
 
 -}
-onDoubleClick : Interceptor -> msg -> Config msg
+onDoubleClick : Interceptor -> msg -> InterceptedEvent msg
 onDoubleClick interceptor msg =
     Config
         { msg = msg
@@ -164,7 +164,7 @@ avoiding this constructor
 --
 
 -}
-on : String -> Interceptor -> msg -> Config msg
+on : String -> Interceptor -> msg -> InterceptedEvent msg
 on jsEventName interceptor msg =
     Config
         { msg = msg
@@ -177,7 +177,7 @@ on jsEventName interceptor msg =
 
 {-| Optional modifier. Stops event propagation once events is intercepted
 -}
-withStopPropagation : Config msg -> Config msg
+withStopPropagation : InterceptedEvent msg -> InterceptedEvent msg
 withStopPropagation (Config interceptedEventConfig) =
     { interceptedEventConfig
         | stopPropagation = True
@@ -187,7 +187,7 @@ withStopPropagation (Config interceptedEventConfig) =
 
 {-| Optional modifier. Avoid triggering any default event listener once intercepted
 -}
-withPreventDefault : Config msg -> Config msg
+withPreventDefault : InterceptedEvent msg -> InterceptedEvent msg
 withPreventDefault (Config interceptedEventConfig) =
     { interceptedEventConfig
         | preventDefault = True
@@ -195,10 +195,10 @@ withPreventDefault (Config interceptedEventConfig) =
         |> Config
 
 
-{-| Produces desired intercepted event
+{-| Converts InterceptedEvent desired intercepted event
 -}
-event : Config msg -> Html.Attribute msg
-event (Config interceptedEventConfig) =
+toHtmlAttribute : InterceptedEvent msg -> Html.Attribute msg
+toHtmlAttribute (Config interceptedEventConfig) =
     interceptedEventConfig
         |> .interceptor
         |> decodeTargetFieldByInterceptor

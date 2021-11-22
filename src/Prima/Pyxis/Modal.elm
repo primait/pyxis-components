@@ -1,6 +1,6 @@
 module Prima.Pyxis.Modal exposing
     ( Config
-    , small, medium, large , smallAlt, mediumAlt, largeAlt
+    , small, medium, large, smallAlt, mediumAlt, largeAlt
     , render
     , hide, show, toggle
     , withAttribute, withClass, withClassList, withId, withStyle, withTitleAttribute
@@ -20,7 +20,7 @@ module Prima.Pyxis.Modal exposing
 
 ## Configuration Methods
 
-@docs small, medium, large , smallAlt, mediumAlt, largeAlt
+@docs small, medium, large, smallAlt, mediumAlt, largeAlt
 
 
 ## Rendering
@@ -399,6 +399,7 @@ large initialVisibility closeEvent =
         , visible = initialVisibility
         }
 
+
 {-| Large size modal constructor with Dark style.
 -}
 largeAlt : Bool -> msg -> Config msg
@@ -664,7 +665,7 @@ render : Config msg -> Html msg
 render (Config modalConfig) =
     H.renderIf modalConfig.visible <|
         overlay modalConfig
-            [ modal (pickModalOptions modalConfig)  ]
+            [ modal (pickModalOptions modalConfig) ]
 
 
 {-| Internal.
@@ -683,7 +684,8 @@ constructs overlay attribute list from overlay options
 overlayAttributes : ModalConfig msg -> List (Html.Attribute msg)
 overlayAttributes modalConfig =
     let
-        overlayOptions = pickOverlayOptions modalConfig
+        overlayOptions =
+            pickOverlayOptions modalConfig
     in
     [ HtmlAttributes.id overlayId
     ]
@@ -728,7 +730,7 @@ onOverlayClick : msg -> Html.Attribute msg
 onOverlayClick =
     InterceptedEvents.onClick (Interceptor.targetWithId overlayId)
         >> InterceptedEvents.withStopPropagation
-        >> InterceptedEvents.event
+        >> InterceptedEvents.toHtmlAttribute
 
 
 {-| Internal.
@@ -1361,4 +1363,4 @@ onCloseButtonClick =
     InterceptedEvents.onClick
         (Interceptor.targetWithId headerCloseButtonId)
         >> InterceptedEvents.withStopPropagation
-        >> InterceptedEvents.event
+        >> InterceptedEvents.toHtmlAttribute
