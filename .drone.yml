@@ -16,7 +16,7 @@ steps:
     PLUGIN_DEPTH: 5
 
 - name: cache-restore
-  image: public.ecr.aws/prima/drone-tools:1.20.1
+  image: public.ecr.aws/prima/drone-tools:1.21.2
   commands:
   - . /etc/profile.d/ecs-credentials-endpoint
   - cache-restore
@@ -27,13 +27,11 @@ steps:
     path: /etc/profile.d/ecs-credentials-endpoint
   - name: docker
     path: /var/run/docker.sock
-  - name: docker-conf
-    path: /root/.docker
   depends_on:
   - git-clone
 
 - name: check-secrets
-  image: public.ecr.aws/prima/drone-tools:1.20.1
+  image: public.ecr.aws/prima/drone-tools:1.21.2
   commands:
   - . /etc/profile.d/ecs-credentials-endpoint
   - check-secrets-grants
@@ -44,22 +42,20 @@ steps:
   - git-clone
 
 - name: check-public-docker-images
-  image: public.ecr.aws/prima/drone-tools:1.20.1
+  image: public.ecr.aws/prima/drone-tools:1.21.2
   commands:
   - check-public-docker-images
   depends_on:
   - git-clone
 
 - name: build-image
-  image: public.ecr.aws/prima/drone-tools:1.20.1
+  image: public.ecr.aws/prima/drone-tools:1.21.2
   commands:
   - sed -i 's/USER node/USER root/g' ./Dockerfile
   - docker build -t prima/pyxis-components-ci:${DRONE_COMMIT} ./
   volumes:
   - name: docker
     path: /var/run/docker.sock
-  - name: docker-conf
-    path: /root/.docker
   depends_on:
   - cache-restore
 
@@ -104,7 +100,7 @@ steps:
   - dependencies
 
 - name: cache-save
-  image: public.ecr.aws/prima/drone-tools:1.20.1
+  image: public.ecr.aws/prima/drone-tools:1.21.2
   commands:
   - . /etc/profile.d/ecs-credentials-endpoint
   - cache-save .cache node_modules elm-stuff
@@ -115,8 +111,6 @@ steps:
     path: /etc/profile.d/ecs-credentials-endpoint
   - name: docker
     path: /var/run/docker.sock
-  - name: docker-conf
-    path: /root/.docker
   when:
     branch:
     - master
@@ -133,9 +127,6 @@ volumes:
 - name: ecs
   host:
     path: /etc/profile.d/ecs-credentials-endpoint
-- name: docker-conf
-  host:
-    path: /home/ec2-user/.docker
 
 trigger:
   event:
@@ -156,7 +147,7 @@ steps:
 - name: email-failure
   image: public.ecr.aws/prima/drone-email
   settings:
-    from: noreply@prima.it
+    from: drone@prima.it
     host: email-smtp.eu-west-1.amazonaws.com
   environment:
     PLUGIN_PASSWORD:
@@ -178,6 +169,6 @@ depends_on:
 
 ---
 kind: signature
-hmac: 1e970fda888d503693db84c3a2cfa79174050b105e4f07df935e9a43deb933f1
+hmac: 0d67a4b271f4ebdf97780aa22e3928761deccdb9c909495eb5693ee61e0af60d
 
 ...
