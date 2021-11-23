@@ -37,7 +37,7 @@ config =
     , NoUnused.Dependencies.rule
     , NoUnused.Exports.rule
        |> ignoreErrorsForDirectories
-           [ "src/Prima/Pyxis/" ]
+           [ "src/Prima/PyxisV3/" ]
        |> ignoreErrorsForFiles
            []
     , NoUnused.Modules.rule
@@ -48,7 +48,7 @@ config =
 
 
 exampleDirectories : List String
-exampleDirectories = 
+exampleDirectories =
     [ "Accordion"
     , "AtrTable"
     , "Button"
@@ -62,10 +62,10 @@ exampleDirectories =
     , "Modal"
     , "Table"
     , "Tooltip"]
-    |> List.map (\file -> "src/Prima/Pyxis/"++  file ++"/Example")
+    |> List.map (\file -> "src/Prima/PyxisV3/"++  file ++"/Example")
 
-exampleFiles : List String 
-exampleFiles = 
+exampleFiles : List String
+exampleFiles =
     [ "Accordion"
     , "AtrTable"
     , "Button"
@@ -79,10 +79,10 @@ exampleFiles =
     , "Modal"
     , "Table"
     , "Tooltip"]
-    |> List.map (\file -> "src/Prima/Pyxis/"++  file ++"/Example.elm")
+    |> List.map (\file -> "src/Prima/PyxisV3/"++  file ++"/Example.elm")
 
-coreFiles : List String 
-coreFiles = 
+coreFiles : List String
+coreFiles =
  [ "Accordion",
     "AtrTable",
     "Button",
@@ -112,4 +112,4 @@ coreFiles =
     "Table",
         "Tooltip"
     ]
-    |> List.map (\file -> "src/Prima/Pyxis/"++  file ++".elm")
+    |> List.map (\file -> "src/Prima/PyxisV3/"++  file ++".elm")
