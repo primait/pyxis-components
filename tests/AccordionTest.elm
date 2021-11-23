@@ -1,7 +1,7 @@
 module AccordionTest exposing (baseAccordion, darkAccordion, lightAccordion)
 
 import Html exposing (Html)
-import Prima.Pyxis.Accordion as Accordion
+import Prima.PyxisV3.Accordion as Accordion
 import Test exposing (Test, describe, test)
 import Test.Html.Query as Query
 import Test.Html.Selector exposing (class, classes, tag)
