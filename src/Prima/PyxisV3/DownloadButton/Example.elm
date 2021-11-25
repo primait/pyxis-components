@@ -1,0 +1,91 @@
+module Prima.PyxisV3.DownloadButton.Example exposing
+    ( Model
+    , Msg(..)
+    , appBody
+    , init
+    , initialModel
+    , main
+    , update
+    , view
+    )
+
+import Browser
+import Html exposing (Html)
+import Prima.PyxisV3.DownloadButton as DownloadButton
+import Prima.PyxisV3.Helpers as Helpers
+
+
+main : Program () Model Msg
+main =
+    Browser.document
+        { init = init
+        , view = view
+        , update = update
+        , subscriptions = \_ -> Sub.none
+        }
+
+
+init : () -> ( Model, Cmd Msg )
+init _ =
+    ( initialModel, Cmd.none )
+
+
+type alias Model =
+    { downloadButtons : List (DownloadButton.Config Msg)
+    , clicked : Maybe String
+    }
+
+
+initialModel : Model
+initialModel =
+    Model
+        []
+        Nothing
+
+
+type Msg
+    = HandleEvent String
+
+
+update : Msg -> Model -> ( Model, Cmd Msg )
+update msg model =
+    case msg of
+        HandleEvent label ->
+            ( { model | clicked = Just label }, Cmd.none )
+
+
+view : Model -> Browser.Document Msg
+view model =
+    Browser.Document "Download Button component" (appBody model)
+
+
+appBody : Model -> List (Html Msg)
+appBody model =
+    [ Helpers.pyxisStyle
+    , Helpers.pyxisIconSetStyle
+    , DownloadButton.render myDownloadBtn
+    , DownloadButton.render myDownloadBtnWithSvg
+    , DownloadButton.render myDownloadBtnDisabled
+    , model.clicked
+        |> Maybe.withDefault "No button clicked"
+        |> Html.text
+    ]
+
+
+myDownloadBtn : DownloadButton.Config Msg
+myDownloadBtn =
+    DownloadButton.download "Certificato di polizza" "Scarica .pdf"
+        |> DownloadButton.withOnClick (HandleEvent "Clicked")
+
+
+myDownloadBtnWithSvg : DownloadButton.Config Msg
+myDownloadBtnWithSvg =
+    DownloadButton.download "Certificato di polizza" "Scarica .pdf"
+        |> DownloadButton.withSvgIcon
+        |> DownloadButton.withOnClick (HandleEvent "Clicked")
+
+
+myDownloadBtnDisabled : DownloadButton.Config Msg
+myDownloadBtnDisabled =
+    DownloadButton.download "Certificato di polizza" "Scarica .pdf"
+        |> DownloadButton.withDisabled True

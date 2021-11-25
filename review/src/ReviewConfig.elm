@@ -36,19 +36,19 @@ config =
         |> ignoreErrorsForFiles exampleFiles
     , NoUnused.Dependencies.rule
     , NoUnused.Exports.rule
-       |> ignoreErrorsForDirectories
-           [ "src/Prima/Pyxis/" ]
-       |> ignoreErrorsForFiles
-           []
+        |> ignoreErrorsForDirectories
+            [ "src/Prima/PyxisV3/" ]
+        |> ignoreErrorsForFiles
+            []
     , NoUnused.Modules.rule
-       |> ignoreErrorsForDirectories exampleDirectories
-       |> ignoreErrorsForFiles (coreFiles ++ exampleFiles)
+        |> ignoreErrorsForDirectories exampleDirectories
+        |> ignoreErrorsForFiles (coreFiles ++ exampleFiles)
     , NoUnused.Variables.rule
     ]
 
 
 exampleDirectories : List String
-exampleDirectories = 
+exampleDirectories =
     [ "Accordion"
     , "AtrTable"
     , "Button"
@@ -61,55 +61,59 @@ exampleDirectories =
     , "Message"
     , "Modal"
     , "Table"
-    , "Tooltip"]
-    |> List.map (\file -> "src/Prima/Pyxis/"++  file ++"/Example")
-
-exampleFiles : List String 
-exampleFiles = 
-    [ "Accordion"
-    , "AtrTable"
-    , "Button"
-    , "Container"
-    , "DownloadButton"
-    , "Form"
-    , "Link"
-    , "ListChooser"
-    , "Loader"
-    , "Message"
-    , "Modal"
-    , "Table"
-    , "Tooltip"]
-    |> List.map (\file -> "src/Prima/Pyxis/"++  file ++"/Example.elm")
-
-coreFiles : List String 
-coreFiles = 
- [ "Accordion",
-    "AtrTable",
-    "Button",
-    "Container",
-    "DownloadButton",
-    "Form",
-    "Form.Autocomplete",
-    "Form.Checkbox",
-    "Form.CheckboxFlag",
-    "Form.Date",
-    "Form.DatePicker",
-    "Form.Grid",
-    "Form.Input",
-    "Form.Label",
-    "Form.Radio",
-    "Form.RadioFlag",
-    "Form.RadioButton",
-    "Form.Select",
-    "Form.TextArea",
-    "Form.Validation",
-    "Link",
-    "ListChooser",
-    "Loader",
-    "Message",
-    "Modal",
-    "Shared/InterceptedEvents",
-    "Table",
-        "Tooltip"
+    , "Tooltip"
     ]
-    |> List.map (\file -> "src/Prima/Pyxis/"++  file ++".elm")
+        |> List.map (\file -> "src/Prima/PyxisV3/" ++ file ++ "/Example")
+
+
+exampleFiles : List String
+exampleFiles =
+    [ "Accordion"
+    , "AtrTable"
+    , "Button"
+    , "Container"
+    , "DownloadButton"
+    , "Form"
+    , "Link"
+    , "ListChooser"
+    , "Loader"
+    , "Message"
+    , "Modal"
+    , "Table"
+    , "Tooltip"
+    ]
+        |> List.map (\file -> "src/Prima/PyxisV3/" ++ file ++ "/Example.elm")
+
+
+coreFiles : List String
+coreFiles =
+    [ "Accordion"
+    , "AtrTable"
+    , "Button"
+    , "Container"
+    , "DownloadButton"
+    , "Form"
+    , "Form.Autocomplete"
+    , "Form.Checkbox"
+    , "Form.CheckboxFlag"
+    , "Form.Date"
+    , "Form.DatePicker"
+    , "Form.Grid"
+    , "Form.Input"
+    , "Form.Label"
+    , "Form.Radio"
+    , "Form.RadioFlag"
+    , "Form.RadioButton"
+    , "Form.Select"
+    , "Form.TextArea"
+    , "Form.Validation"
+    , "Link"
+    , "ListChooser"
+    , "Loader"
+    , "Message"
+    , "Modal"
+    , "Shared/InterceptedEvents"
+    , "Table"
+    , "Tooltip"
+    ]
+        |> List.map (\file -> "src/Prima/PyxisV3/" ++ file ++ ".elm")

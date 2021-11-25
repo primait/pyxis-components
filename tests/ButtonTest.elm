@@ -5,7 +5,7 @@ module ButtonTest exposing
     , tertiaryButton
     )
 
-import Prima.Pyxis.Button as Button
+import Prima.PyxisV3.Button as Button
 import Test exposing (Test, describe, test)
 import Test.Html.Query as Query
 import Test.Html.Selector exposing (class, classes, disabled, id, text)
