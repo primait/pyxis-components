@@ -173,7 +173,7 @@ shiftToPreviousMonth model =
         newDate =
             Date.fromCalendarDate newYear newMonth (Date.day model.date)
     in
-    updateModelIfValid ValidMonth newDate model
+    updateModelIfValid ValidDay newDate model
 
 
 shiftToNextMonth : Model -> Model
@@ -186,7 +186,7 @@ shiftToNextMonth model =
         newDate =
             Date.fromCalendarDate newYear newMonth (Date.day model.date)
     in
-    updateModelIfValid ValidMonth newDate model
+    updateModelIfValid ValidDay newDate model
 
 
 updateSelectedDay : Int -> Model -> Model
