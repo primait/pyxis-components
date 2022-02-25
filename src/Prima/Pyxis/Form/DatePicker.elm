@@ -169,9 +169,20 @@ shiftToPreviousMonth model =
         ( newMonth, newYear ) =
             prevMonth (Date.month model.date) (Date.year model.date)
 
+        ( low_, _ ) =
+            model.daysPickerRange
+
+        shiftedDate : Date.Date
+        shiftedDate =
+            Date.fromCalendarDate newYear newMonth (Date.day model.date)
+
         newDate : Date.Date
         newDate =
-            Date.fromCalendarDate newYear newMonth (Date.day model.date)
+            if Date.compare low_ shiftedDate == LT then
+                shiftedDate
+
+            else
+                low_
     in
     updateModelIfValid ValidDay newDate model
 
@@ -182,9 +193,20 @@ shiftToNextMonth model =
         ( newMonth, newYear ) =
             nextMonth (Date.month model.date) (Date.year model.date)
 
+        ( _, high_ ) =
+            model.daysPickerRange
+
+        shiftedDate : Date.Date
+        shiftedDate =
+            Date.fromCalendarDate newYear newMonth (Date.day model.date)
+
         newDate : Date.Date
         newDate =
-            Date.fromCalendarDate newYear newMonth (Date.day model.date)
+            if Date.compare high_ shiftedDate == GT then
+                shiftedDate
+
+            else
+                high_
     in
     updateModelIfValid ValidDay newDate model
 
@@ -611,10 +633,10 @@ getDaysInMonth year month =
 
         Feb ->
             if isLeapYear year then
-                28
+                29
 
             else
-                29
+                28
 
         Mar ->
             31
@@ -649,7 +671,7 @@ getDaysInMonth year month =
 
 isLeapYear : Int -> Bool
 isLeapYear year =
-    remainderBy year 4 == 0 && (remainderBy year 100 /= 0 || remainderBy year 400 == 0)
+    (remainderBy 4 year == 0 && remainderBy 100 year /= 0) || remainderBy 400 year == 0
 
 
 updateToLastDayOfMonth : Date.Date -> Date.Date
